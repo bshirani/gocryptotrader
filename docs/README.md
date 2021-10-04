@@ -1,15 +1,5 @@
 # GoCryptoTrader Documentation
 
-<img src="https://github.com/thrasher-corp/gocryptotrader/blob/master/web/src/assets/page-logo.png?raw=true" width="350px" height="350px" hspace="70">
-
-A cryptocurrency trading bot supporting multiple exchanges written in Golang.
-
-**Please note that this bot is under development and is not ready for production!**
-
-## Community
-
-Join our slack to discuss all things related to GoCryptoTrader! [GoCryptoTrader Slack](https://join.slack.com/t/gocryptotrader/shared_invite/enQtNTQ5NDAxMjA2Mjc5LTc5ZDE1ZTNiOGM3ZGMyMmY1NTAxYWZhODE0MWM5N2JlZDk1NDU0YTViYzk4NTk3OTRiMDQzNGQ1YTc4YmRlMTk)
-
 ## Documentation
 
 See below for feature documentation:

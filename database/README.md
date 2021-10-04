@@ -1,16 +1,10 @@
 # GoCryptoTrader package Database
 
-<img src="https://github.com/thrasher-corp/gocryptotrader/blob/master/web/src/assets/page-logo.png?raw=true" width="350px" height="350px" hspace="70">
-
-
-
-This database package is part of the GoCryptoTrader codebase.
-
 ## Current Features for database package
 
 + Establishes & Maintains database connection across program life cycle
-+ Migration handed by [Goose](https://github.com/thrasher-corp/goose) 
-+ Model generation handled by [SQLBoiler](https://github.com/thrasher-corp/sqlboiler) 
++ Migration handed by [Goose](https://github.com/thrasher-corp/goose)
++ Model generation handled by [SQLBoiler](https://github.com/thrasher-corp/sqlboiler)
 
 ## How to use
 
@@ -33,7 +27,7 @@ go get -u github.com/thrasher-corp/sqlboiler-sqlite3
 
 ##### Configuration
 
-The database configuration struct is currently: 
+The database configuration struct is currently:
 ```shell script
 type Config struct {
 	Enabled                   bool   `json:"enabled"`
@@ -73,10 +67,10 @@ With an example configuration being:
 ```
 
 ##### Create and Run migrations
- Migrations are created using a modified version of [Goose](https://github.com/thrasher-corp/goose) 
- 
+ Migrations are created using a modified version of [Goose](https://github.com/thrasher-corp/goose)
+
  A helper tool sits in the ./cmd/dbmigrate folder that includes the following features:
- 
+
 + Check current database version with the "status" command
 ```shell script
 dbmigrate -command status
@@ -87,7 +81,7 @@ dbmigrate -command status
 dbmigrate -command "create" -args "model"
 ```
 _This will create a folder in the ./database/migration folder that contains postgres.sql and sqlite.sql files_
- + Run dbmigrate command with -command up 
+ + Run dbmigrate command with -command up
 ```shell script
 dbmigrate -command "up"
 ```
@@ -98,14 +92,14 @@ dbmigrate provides a -migrationdir flag override to tell it what path to look in
 
 
 ##### Adding a new model
-Model's are generated using [SQLBoiler](https://github.com/thrasher-corp/sqlboiler) 
+Model's are generated using [SQLBoiler](https://github.com/thrasher-corp/sqlboiler)
 A helper tool has been made located in gen_sqlboiler_config that will parse your GoCryptoTrader config and output a SQLBoiler config
 
 ```sh
 gen_sqlboiler_config
 ```
 
-By default this will look in your gocryptotrader data folder and default config, these can be overwritten 
+By default this will look in your gocryptotrader data folder and default config, these can be overwritten
 along with the location of the sqlboiler generated config
 
 ```shell script
@@ -118,14 +112,14 @@ Generate a new model that gets placed in ./database/models/<databasetype> folder
 
 Linux:
 ```shell script
-sqlboiler -o database/models/postgres -p postgres --no-auto-timestamps --wipe psql 
+sqlboiler -o database/models/postgres -p postgres --no-auto-timestamps --wipe psql
 ```
-Windows: 
+Windows:
 ```sh
 sqlboiler -o database\\models\\postgres -p postgres --no-auto-timestamps --wipe psql
 ```
 
-Helpers have been provided in the Makefile for linux users 
+Helpers have been provided in the Makefile for linux users
 ```
 make gen_db_models
 ```
@@ -136,6 +130,6 @@ And in the contrib/sqlboiler.cmd for windows users
 
 
 ##### DBSeed helper
-A helper tool [cmd/dbseed](../cmd/dbseed/README.md) has been created for assisting with data migration 
+A helper tool [cmd/dbseed](../cmd/dbseed/README.md) has been created for assisting with data migration
 
 

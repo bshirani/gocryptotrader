@@ -1,18 +1,11 @@
 # GoCryptoTrader package Telegram
 
-<img src="/common/gctlogo.png?raw=true" width="350px" height="350px" hspace="70">
-
-
-
-This telegram package is part of the GoCryptoTrader codebase.
-
 ## Telegram Communications package
 
 ### What is telegram?
 
 + Telegram is a cloud-based instant messaging and voice over IP service
 developed by Telegram Messenger LLP
-+ Please visit: [Telegram](https://telegram.org/) for more information
 
 ### Current Features
 
@@ -54,5 +47,3 @@ via Telegram:
 /help			- Displays current command list
 /settings		- Displays current bot settings
 ```
-
-

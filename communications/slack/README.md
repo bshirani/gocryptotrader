@@ -1,18 +1,11 @@
 # GoCryptoTrader package Slack
 
-<img src="/common/gctlogo.png?raw=true" width="350px" height="350px" hspace="70">
-
-
-
-This slack package is part of the GoCryptoTrader codebase.
-
 ## Slack Communications package
 
 ### What is Slack?
 
 + Slack is a code-centric collaboration hub that allows users to connect via an
 app and share different types of data
-+ Please visit: [Slack](https://slack.com/) for more information and account setup
 
 ### Current Features
 
@@ -54,5 +47,3 @@ via Slack:
 !help 			- Displays help text
 !settings		- Displays current settings
 ```
-
-

@@ -1,21 +1,5 @@
 # GoCryptoTrader ADD NEW EXCHANGE
 
-<img src="https://github.com/thrasher-corp/gocryptotrader/blob/master/web/src/assets/page-logo.png?raw=true" width="350px" height="350px" hspace="70">
-
-[![Build Status](https://github.com/thrasher-corp/gocryptotrader/actions/workflows/tests.yml/badge.svg?branch=master)](https://github.com/thrasher-corp/gocryptotrader/actions/workflows/tests.yml)
-[![Software License](https://img.shields.io/badge/License-MIT-orange.svg?style=flat-square)](https://github.com/thrasher-corp/gocryptotrader/blob/master/LICENSE)
-[![GoDoc](https://godoc.org/github.com/thrasher-corp/gocryptotrader?status.svg)](https://godoc.org/github.com/thrasher-corp/gocryptotrader/exchanges)
-[![Coverage Status](http://codecov.io/github/thrasher-corp/gocryptotrader/coverage.svg?branch=master)](http://codecov.io/github/thrasher-corp/gocryptotrader?branch=master)
-[![Go Report Card](https://goreportcard.com/badge/github.com/thrasher-corp/gocryptotrader)](https://goreportcard.com/report/github.com/thrasher-corp/gocryptotrader)
-
-This exchanges package is part of the GoCryptoTrader codebase.
-
-## This is still in active development
-
-You can track ideas, planned features and what's in progress on this Trello board: [https://trello.com/b/ZAhMhpOy/gocryptotrader](https://trello.com/b/ZAhMhpOy/gocryptotrader).
-
-Join our slack to discuss all things related to GoCryptoTrader! [GoCryptoTrader Slack](https://join.slack.com/t/gocryptotrader/shared_invite/enQtNTQ5NDAxMjA2Mjc5LTc5ZDE1ZTNiOGM3ZGMyMmY1NTAxYWZhODE0MWM5N2JlZDk1NDU0YTViYzk4NTk3OTRiMDQzNGQ1YTc4YmRlMTk)
-
 ## How to add a new exchange
 
 This document is from a perspective of adding a new exchange called FTX to the codebase:
@@ -324,7 +308,7 @@ for i := range bot.Exchanges {
 // Public calls - wrapper functions
 
 // Fetches current ticker information
-tick, err := e.FetchTicker() // e -> f 
+tick, err := e.FetchTicker() // e -> f
 if err != nil {
   // Handle error
 }
@@ -352,8 +336,8 @@ This will generate a readme file for the exchange which can be found in the new 
 // SendHTTPRequest sends an unauthenticated HTTP request
 func (f *FTX) SendHTTPRequest(ctx context.Context, path string, result interface{}) error {
 	// This is used to generate the *http.Request, used in conjunction with the
-	// generate functionality below. 
-	item := &request.Item{  
+	// generate functionality below.
+	item := &request.Item{
 		Method:        http.MethodGet,
 		Path:          path,
 		Result:        result,
@@ -363,12 +347,12 @@ func (f *FTX) SendHTTPRequest(ctx context.Context, path string, result interface
 	}
 
 	// Request function that closes over the above request.Item values, which
-	// executes on every attempt after rate limiting. 
+	// executes on every attempt after rate limiting.
 	generate := func() (*request.Item, error) { return item, nil }
 
-	endpoint := request.Unset // Used in conjunction with the rate limiting 
+	endpoint := request.Unset // Used in conjunction with the rate limiting
 	// system defined in the exchange package to slow down outbound requests
-	// depending on each individual endpoint. 
+	// depending on each individual endpoint.
 	return f.SendPayload(ctx, endpoint, generate)
 }
 ```
@@ -456,11 +440,11 @@ Authenticated request function is created based on the way the exchange document
 ```go
 // SendAuthHTTPRequest sends an authenticated request
 func (f *FTX) SendAuthHTTPRequest(ctx context.Context, method, path string, data, result interface{}) error {
-// A potential example below of closing over authenticated variables which may 
+// A potential example below of closing over authenticated variables which may
 // be required to regenerate on every request between each attempt after rate
-// limiting. This is for when signatures are based on timestamps/nonces that are 
+// limiting. This is for when signatures are based on timestamps/nonces that are
 // within time receive windows. NOTE: This is not always necessary and the above
-// SendHTTPRequest example will suffice. 
+// SendHTTPRequest example will suffice.
 	generate := func() (*request.Item, error) {
 		ts := strconv.FormatInt(time.Now().UnixNano()/1000000, 10)
 		var body io.Reader
@@ -499,9 +483,9 @@ func (f *FTX) SendAuthHTTPRequest(ctx context.Context, method, path string, data
 		return item, nil
 	}
 
-	endpoint := request.Unset // Used in conjunction with the rate limiting 
+	endpoint := request.Unset // Used in conjunction with the rate limiting
 	// system defined in the exchange package to slow down outbound requests
-	// depending on each individual endpoint. 
+	// depending on each individual endpoint.
 
 	return f.SendPayload(ctx, endpoint, generate)
 }
@@ -808,7 +792,7 @@ type WsSub struct {
 // Subscribe sends a websocket message to receive data from the channel
 func (f *FTX) Subscribe(channelsToSubscribe []stream.ChannelSubscription) error {
 	// For subscriptions we try to batch as much as possible to limit the amount
-	// of connection usage but sometimes this is not supported on the exchange 
+	// of connection usage but sometimes this is not supported on the exchange
 	// API.
 	var errs common.Errors // This is an array of errors useful in the event that one channel subscription errors but we can subscribe to the next iteration.
 channels:
@@ -820,7 +804,7 @@ channels:
 
 		switch channelsToSubscribe[i].Channel {
 		case wsFills, wsOrders, wsMarkets:
-		// Authenticated wsFills && wsOrders or wsMarkets which is a channel subscription for the full set of tradable markets do not need a currency pair association. 
+		// Authenticated wsFills && wsOrders or wsMarkets which is a channel subscription for the full set of tradable markets do not need a currency pair association.
 		default:
 			a, err := f.GetPairAssetType(channelsToSubscribe[i].Currency)
 			if err != nil {
@@ -1052,7 +1036,7 @@ func (f *FTX) WsAuth() error {
 ```go
 // Unsubscribe sends a websocket message to stop receiving data from the channel
 func (f *FTX) Unsubscribe(channelsToUnsubscribe []stream.ChannelSubscription) error {
-	// As with subscribing we want to batch as much as possible, but sometimes this cannot be achieved due to API shortfalls. 
+	// As with subscribing we want to batch as much as possible, but sometimes this cannot be achieved due to API shortfalls.
 	var errs common.Errors
 channels:
 	for i := range channelsToUnsubscribe {
@@ -1122,13 +1106,13 @@ func (f *FTX) Setup(exch *config.ExchangeConfig) error {
 		GenerateSubscriptions:            f.GenerateDefaultSubscriptions, // GenerateDefaultSubscriptions function outlined above.
 		Features:                         &f.Features.Supports.WebsocketCapabilities, // Defines the capabilities of the websocket outlined in supported features struct. This allows the websocket connection to be flushed appropriately if we have a pair/asset enable/disable change. This is outlined below.
 
-		// Orderbook buffer specific variables for processing orderbook updates via websocket feed. 
+		// Orderbook buffer specific variables for processing orderbook updates via websocket feed.
 		OrderbookBufferLimit:             exch.OrderbookConfig.WebsocketBufferLimit,
 		// Other orderbook buffer vars:
-		// BufferEnabled         bool 
-		// SortBuffer            bool 
-		// SortBufferByUpdateIDs bool 
-		// UpdateEntriesByID     bool 
+		// BufferEnabled         bool
+		// SortBuffer            bool
+		// SortBufferByUpdateIDs bool
+		// UpdateEntriesByID     bool
 	})
 	if err != nil {
 		return err
@@ -1205,7 +1189,7 @@ Please test all `websocket` commands below whilst a GoCryptoTrader instance is r
 - `disable/enable` to ensure disabling/enabling a websocket connection disconnects/connects accordingly.
 - `getsubs` to ensure the subscriptions are in sync with the exchange's config settings or by manual subscriptions added/removed via `gctcli`.
 - `setproxy` to ensure that a proxy can be set and resets the websocket connection accordingly.
-- `seturl` to ensure that a new websocket URL can be set in the event of an API endpoint change whilst an instance of GoCryptoTrader is already running.   
+- `seturl` to ensure that a new websocket URL can be set in the event of an API endpoint change whilst an instance of GoCryptoTrader is already running.
 
 Please test all `pair` commands to disable and enable different assets types to witness subscriptions and unsubscriptions:
 
@@ -1216,7 +1200,3 @@ Please test all `pair` commands to disable and enable different assets types to 
 - `enable` to ensure correct enabling of pair(s) and associated subscriptions.
 - `enableall` to ensure correct enabling of all pairs for an asset type and associated subscriptions.
 - `disableall` to ensure correct disabling of all pairs for an asset type and associated unsubscriptions.
-
-## Open a PR
-
-Submitting a PR is easy and all are welcome additions to the public repository. Submit via github.com/thrasher-corp/gocryptotrader or contact our team via slack for more information. 

@@ -1,11 +1,5 @@
 # GoCryptoTrader package Comms
 
-<img src="https://github.com/thrasher-corp/gocryptotrader/blob/master/web/src/assets/page-logo.png?raw=true" width="350px" height="350px" hspace="70">
-
-
-
-This comms package is part of the GoCryptoTrader codebase.
-
 ## Communications package
 
 ### What is the Communications package?

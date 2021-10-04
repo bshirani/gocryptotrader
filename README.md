@@ -1,13 +1,5 @@
 <img src="/common/gctlogo.png?raw=true" width="350px" height="350px" hspace="70">
 
-A cryptocurrency trading bot supporting multiple exchanges written in Golang.
-
-**Please note that this bot is under development and is not ready for production!**
-
-## Community
-
-Join our slack to discuss all things related to GoCryptoTrader! [GoCryptoTrader Slack](https://join.slack.com/t/gocryptotrader/shared_invite/enQtNTQ5NDAxMjA2Mjc5LTc5ZDE1ZTNiOGM3ZGMyMmY1NTAxYWZhODE0MWM5N2JlZDk1NDU0YTViYzk4NTk3OTRiMDQzNGQ1YTc4YmRlMTk)
-
 ## Exchange Support Table
 
 | Exchange | REST API | Streaming API | FIX API |
@@ -41,7 +33,7 @@ Join our slack to discuss all things related to GoCryptoTrader! [GoCryptoTrader 
 | Yobit | Yes | NA | NA |
 | ZB.COM | Yes | Yes | NA |
 
-We are aiming to support the top 30 exchanges sorted by average liquidity as [ranked by CoinMarketCap](https://coinmarketcap.com/rankings/exchanges/). 
+We are aiming to support the top 30 exchanges sorted by average liquidity as [ranked by CoinMarketCap](https://coinmarketcap.com/rankings/exchanges/).
 However, we welcome pull requests for any exchange which does not match this criterion. If you need help with this, please join us on [Slack](https://join.slack.com/t/gocryptotrader/shared_invite/enQtNTQ5NDAxMjA2Mjc5LTc5ZDE1ZTNiOGM3ZGMyMmY1NTAxYWZhODE0MWM5N2JlZDk1NDU0YTViYzk4NTk3OTRiMDQzNGQ1YTc4YmRlMTk).
 
 ** NA means not applicable as the exchange does not support the feature.
@@ -72,11 +64,6 @@ However, we welcome pull requests for any exchange which does not match this cri
 + Recent and historic trade processing. See [trades](/exchanges/trade/README.md).
 + Backtesting application. An event-driven backtesting tool to test and iterate trading strategies using historical or custom data. See [backtester](/backtester/README.md).
 + WebGUI (discontinued).
-
-## Planned Features
-
-Planned features can be found on our [community Trello page](https://trello.com/b/ZAhMhpOy/gocryptotrader).
-
 
 ## Compiling instructions
 
@@ -111,62 +98,3 @@ copy config_example.json %APPDATA%\GoCryptoTrader\config.json
 ## Binaries
 
 Binaries will be published once the codebase reaches a stable condition.
-
-## Contributor List
-
-### A very special thank you to all who have contributed to this program:
-
-|User|Contribution Amount|
-|--|--|
-| [thrasher-](https://github.com/thrasher-) | 658 |
-| [shazbert](https://github.com/shazbert) | 223 |
-| [gloriousCode](https://github.com/gloriousCode) | 190 |
-| [dependabot-preview[bot]](https://github.com/apps/dependabot-preview) | 88 |
-| [xtda](https://github.com/xtda) | 47 |
-| [dependabot[bot]](https://github.com/apps/dependabot) | 23 |
-| [Rots](https://github.com/Rots) | 15 |
-| [vazha](https://github.com/vazha) | 15 |
-| [ermalguni](https://github.com/ermalguni) | 14 |
-| [MadCozBadd](https://github.com/MadCozBadd) | 13 |
-| [ydm](https://github.com/ydm) | 11 |
-| [vadimzhukck](https://github.com/vadimzhukck) | 10 |
-| [140am](https://github.com/140am) | 8 |
-| [marcofranssen](https://github.com/marcofranssen) | 8 |
-| [lrascao](https://github.com/lrascao) | 7 |
-| [dackroyd](https://github.com/dackroyd) | 5 |
-| [cranktakular](https://github.com/cranktakular) | 5 |
-| [woshidama323](https://github.com/woshidama323) | 3 |
-| [yangrq1018](https://github.com/yangrq1018) | 3 |
-| [TaltaM](https://github.com/TaltaM) | 3 |
-| [crackcomm](https://github.com/crackcomm) | 3 |
-| [azhang](https://github.com/azhang) | 2 |
-| [andreygrehov](https://github.com/andreygrehov) | 2 |
-| [bretep](https://github.com/bretep) | 2 |
-| [Christian-Achilli](https://github.com/Christian-Achilli) | 2 |
-| [MarkDzulko](https://github.com/MarkDzulko) | 2 |
-| [gam-phon](https://github.com/gam-phon) | 2 |
-| [cornelk](https://github.com/cornelk) | 2 |
-| [if1live](https://github.com/if1live) | 2 |
-| [lozdog245](https://github.com/lozdog245) | 2 |
-| [herenow](https://github.com/herenow) | 2 |
-| [mshogin](https://github.com/mshogin) | 2 |
-| [soxipy](https://github.com/soxipy) | 2 |
-| [tk42](https://github.com/tk42) | 2 |
-| [daniel-cohen](https://github.com/daniel-cohen) | 1 |
-| [DirectX](https://github.com/DirectX) | 1 |
-| [frankzougc](https://github.com/frankzougc) | 1 |
-| [idoall](https://github.com/idoall) | 1 |
-| [mattkanwisher](https://github.com/mattkanwisher) | 1 |
-| [mKurrels](https://github.com/mKurrels) | 1 |
-| [m1kola](https://github.com/m1kola) | 1 |
-| [cavapoo2](https://github.com/cavapoo2) | 1 |
-| [zeldrinn](https://github.com/zeldrinn) | 1 |
-| [starit](https://github.com/starit) | 1 |
-| [Jimexist](https://github.com/Jimexist) | 1 |
-| [lookfirst](https://github.com/lookfirst) | 1 |
-| [merkeld](https://github.com/merkeld) | 1 |
-| [CodeLingoTeam](https://github.com/CodeLingoTeam) | 1 |
-| [Daanikus](https://github.com/Daanikus) | 1 |
-| [CodeLingoBot](https://github.com/CodeLingoBot) | 1 |
-| [blombard](https://github.com/blombard) | 1 |
-| [soxipy](https://github.com/soxipy) | 2 |

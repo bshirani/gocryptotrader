@@ -1,11 +1,5 @@
 # GoCryptoTrader package Config
 
-<img src="/common/gctlogo.png?raw=true" width="350px" height="350px" hspace="70">
-
-
-
-This config package is part of the GoCryptoTrader codebase.
-
 ## Current Features for config
 
  + Handling of config encryption and verification of "configuration".json data.
@@ -201,7 +195,7 @@ comm method and add in your contact list if available.
 ```
 
 
-## Configure Network Time Server 
+## Configure Network Time Server
 
 + To configure and enable a NTP server you need to set the "enabled" field to one of 3 values -1 is disabled 0 is enabled and alert at start up 1 is enabled and warn at start up
 servers are configured by the pool array and attempted first to last allowedDifference and allowedNegativeDifference are how far ahead and behind is acceptable for the time to be out in nanoseconds
@@ -216,5 +210,3 @@ servers are configured by the pool array and attempted first to last allowedDiff
   "allowedNegativeDifference": 0
  },
  ```
-
-

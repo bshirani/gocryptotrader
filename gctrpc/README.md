@@ -1,15 +1,5 @@
 # GoCryptoTrader gRPC Service
 
-<img src="https://github.com/thrasher-corp/gocryptotrader/blob/master/web/src/assets/page-logo.png?raw=true" width="350px" height="350px" hspace="70">
-
-A cryptocurrency trading bot supporting multiple exchanges written in Golang.
-
-**Please note that this bot is under development and is not ready for production!**
-
-## Community
-
-Join our slack to discuss all things related to GoCryptoTrader! [GoCryptoTrader Slack](https://join.slack.com/t/gocryptotrader/shared_invite/enQtNTQ5NDAxMjA2Mjc5LTc5ZDE1ZTNiOGM3ZGMyMmY1NTAxYWZhODE0MWM5N2JlZDk1NDU0YTViYzk4NTk3OTRiMDQzNGQ1YTc4YmRlMTk)
-
 ## Background
 
 GoCryptoTrader utilises gRPC for client/server interaction. Authentication is done
@@ -30,7 +20,7 @@ manager or by downloading one of the releases from the official repository:
 Then use `go get` to download the following packages:
 
 ```bash
-go get \
+go get -d \
     github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \
     github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2 \
     google.golang.org/protobuf/cmd/protoc-gen-go \
@@ -60,11 +50,3 @@ After previous command, make necessary changes to the `rpc.proto` spec file and 
 ```shell
 buf generate
 ```
-
-### Windows
-
-After the above dependencies are required, make necessary changes to the `rpc.proto`
-spec file and run the generation scripts:
-
-Run `gen_pb_win.bat`
-

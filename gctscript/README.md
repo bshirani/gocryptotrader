@@ -1,9 +1,5 @@
 # GoCryptoTrader package gctscript
 
-<img src="https://github.com/thrasher-corp/gocryptotrader/blob/master/web/src/assets/page-logo.png?raw=true" width="350px" height="350px" hspace="70">
-
-
-
 This gctscript package is part of the GoCryptoTrader codebase.
 
 ## Current Features for gctscript package
@@ -29,7 +25,7 @@ To Enable database logging support you must have an active migrated database by 
 
 ##### Configuration
 
-The gctscript configuration struct is currently: 
+The gctscript configuration struct is currently:
 ```shell script
 type Config struct {
 	Enabled       bool          `json:"enabled"`
@@ -68,7 +64,7 @@ With an example configuration being:
   ```shell script
     gctcli script execute <scriptname> <pathoverride>
     gctcli script execute "timer.gct" "~/gctscript"
-  
+
     {
       "status": "ok",
       "data": "timer.gct executed"
@@ -78,7 +74,7 @@ With an example configuration being:
   ```shell script
     gctcli script stop <uuid>
     gctcli script stop 821bd73e-02b1-4974-9463-874cb49f130d
-  
+
     {
       "status": "ok",
       "data": "821bd73e-02b1-4974-9463-874cb49f130d terminated"
@@ -86,8 +82,8 @@ With an example configuration being:
   ```
   - Status:
   ```shell script
-    gctcli script status 
-  
+    gctcli script status
+
     {
       "status": "ok",
       "scripts": [
@@ -103,7 +99,7 @@ With an example configuration being:
   ```shell script
     gctcli script read <filename>
     gctcli script read "timer.gct"
-  
+
     {
       "status": "ok",
       "script": {
@@ -127,7 +123,7 @@ With an example configuration being:
       },
       "data": "fmt := import(\"fmt\")\nt := import(\"times\")\n\nname := \"run\"\ntimer := \"5s\"\n\nload := func() {\n\tfmt.printf(\"5s %s\\n\",t.now())\n}\n\nload()\n"
       }
-      load()  
+      load()
      ```
      - Add script to autoload:
     ```shell script
@@ -149,13 +145,13 @@ With an example configuration being:
 
 The scripting engine utilises [tengo](https://github.com/d5/tengo) an intro tutorial for it can be found [here](https://github.com/d5/tengo/blob/master/docs/tutorial.md)
 
-Modules have been written so far linking up common exchange features including 
+Modules have been written so far linking up common exchange features including
 
 - Orderbook
 - Ticker
 - Order Management
 - Account information
-- Withdraw funds 
+- Withdraw funds
 - Get Deposit Addresses
 
 Extending or creating new modules:
@@ -228,5 +224,3 @@ withdrawcrypto
 -> fee:float64
 -> description:string
 ```
-
-
