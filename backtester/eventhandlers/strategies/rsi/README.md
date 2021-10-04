@@ -1,9 +1,5 @@
 # GoCryptoTrader Backtester: Rsi package
 
-<img src="/backtester/common/backtester.png?raw=true" width="350px" height="350px" hspace="70">
-
-
-
 This rsi package is part of the GoCryptoTrader codebase.
 
 ## Rsi package overview

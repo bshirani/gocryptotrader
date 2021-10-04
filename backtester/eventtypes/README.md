@@ -1,9 +1,5 @@
 # GoCryptoTrader Backtester: Eventtypes package
 
-<img src="/backtester/common/backtester.png?raw=true" width="350px" height="350px" hspace="70">
-
-
-
 This eventtypes package is part of the GoCryptoTrader codebase.
 
 ## Eventtypes overview

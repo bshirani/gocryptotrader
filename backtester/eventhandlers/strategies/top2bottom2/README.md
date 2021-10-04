@@ -1,9 +1,5 @@
 # GoCryptoTrader Backtester: Top2bottom2 package
 
-<img src="/backtester/common/backtester.png?raw=true" width="350px" height="350px" hspace="70">
-
-
-
 This top2bottom2 package is part of the GoCryptoTrader codebase.
 
 ## Top 2 Bottom 2 package overview

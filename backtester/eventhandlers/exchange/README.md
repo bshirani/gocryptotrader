@@ -1,9 +1,5 @@
 # GoCryptoTrader Backtester: Exchange package
 
-<img src="/backtester/common/backtester.png?raw=true" width="350px" height="350px" hspace="70">
-
-
-
 This exchange package is part of the GoCryptoTrader codebase.
 
 ## Exchange package overview
