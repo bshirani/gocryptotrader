@@ -83,16 +83,6 @@ However, we welcome pull requests for any exchange which does not match this cri
 
 Planned features can be found on our [community Trello page](https://trello.com/b/ZAhMhpOy/gocryptotrader).
 
-## Contribution
-
-Please feel free to submit any pull requests or suggest any desired features to be added.
-
-When submitting a PR, please abide by our coding guidelines:
-
-+ Code must adhere to the official Go [formatting](https://golang.org/doc/effective_go.html#formatting) guidelines (i.e. uses [gofmt](https://golang.org/cmd/gofmt/)).
-+ Code must be documented adhering to the official Go [commentary](https://golang.org/doc/effective_go.html#commentary) guidelines.
-+ Code must adhere to our [coding style](https://github.com/thrasher-corp/gocryptotrader/blob/master/.github/CONTRIBUTING.md).
-+ Pull requests need to be based on and opened against the `master` branch.
 
 ## Compiling instructions
 
