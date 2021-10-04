@@ -1,8 +1,5 @@
 # GoCryptoTrader package Currency state manager
 
-<img src="/common/gctlogo.png?raw=true" width="350px" height="350px" hspace="70">
-
-
 ## Current Features for Currency state manager
 + The state manager keeps currency states up to date, which include:
 * Withdrawal - Determines if the currency is allowed to be withdrawn from the exchange.

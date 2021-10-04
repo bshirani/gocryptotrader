@@ -1,8 +1,5 @@
 # GoCryptoTrader package Communication manager
 
-<img src="/common/gctlogo.png?raw=true" width="350px" height="350px" hspace="70">
-
-
 ## Current Features for Communication manager
 + The communication manager subsystem is used to push events raised in GoCryptoTrader to any enabled communication system such as a Slack server
 + In order to modify the behaviour of the communication manager subsystem, you can edit the following inside your config file under `communications`:

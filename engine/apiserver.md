@@ -1,8 +1,5 @@
 # GoCryptoTrader package Apiserver
 
-<img src="/common/gctlogo.png?raw=true" width="350px" height="350px" hspace="70">
-
-
 ## Current Features for Apiserver
 + The API server subsystem is a deprecated service used to host a REST or websocket server to interact with some functions of GoCryptoTrader
 + This subsystem is no longer maintained and it is highly encouraged to interact with GRPC endpoints directly where possible

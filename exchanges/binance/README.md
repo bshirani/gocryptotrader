@@ -1,8 +1,5 @@
 # GoCryptoTrader package Binance
 
-<img src="/common/gctlogo.png?raw=true" width="350px" height="350px" hspace="70">
-
-
 
 This binance package is part of the GoCryptoTrader codebase.
 

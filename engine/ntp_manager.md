@@ -1,8 +1,5 @@
 # GoCryptoTrader package Ntp manager
 
-<img src="/common/gctlogo.png?raw=true" width="350px" height="350px" hspace="70">
-
-
 ## Current Features for Ntp manager
 + The NTP manager subsystem is used highlight discrepancies between your system time and specified NTP server times
 + It is useful for debugging and understanding why a request to an exchange may be rejected

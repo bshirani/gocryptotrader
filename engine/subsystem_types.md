@@ -1,8 +1,5 @@
 # GoCryptoTrader package Subsystem types
 
-<img src="/common/gctlogo.png?raw=true" width="350px" height="350px" hspace="70">
-
-
 ## Current Features for Subsystem types
 + Subsystem contains subsystems that are used at run time by an `engine.Engine`, however they can be setup and run individually.
 + Subsystems are designed to be self contained

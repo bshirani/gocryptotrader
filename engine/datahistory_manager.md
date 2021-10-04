@@ -1,8 +1,5 @@
 # GoCryptoTrader package Datahistory manager
 
-<img src="/common/gctlogo.png?raw=true" width="350px" height="350px" hspace="70">
-
-
 ## What is the data history manager?
 + The data history manager is an engine subsystem responsible for ensuring that the candle/trade history in the range you define is synchronised to your database
 + It is a long running synchronisation task designed to not overwhelm resources and ensure that all data requested is accounted for and saved to the database

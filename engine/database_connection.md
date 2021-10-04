@@ -1,8 +1,5 @@
 # GoCryptoTrader package Database connection
 
-<img src="/common/gctlogo.png?raw=true" width="350px" height="350px" hspace="70">
-
-
 ## Current Features for Database connection
 + The database connection manager subsystem is used to periodically check whether the application is connected to the database and will provide alerts of any changes
 + In order to modify the behaviour of the database connection manager subsystem, you can edit the following inside your config file under `database`:

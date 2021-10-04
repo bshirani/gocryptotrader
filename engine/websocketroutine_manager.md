@@ -1,8 +1,5 @@
 # GoCryptoTrader package Websocketroutine manager
 
-<img src="/common/gctlogo.png?raw=true" width="350px" height="350px" hspace="70">
-
-
 ## Current Features for Websocketroutine manager
 + The websocket routine manager subsystem is used process websocket data in a unified manner across enabled exchanges with websocket support
 + It can help process orders to the order manager subsystem when it receives new data

@@ -1,8 +1,5 @@
 # GoCryptoTrader package Withdraw manager
 
-<img src="/common/gctlogo.png?raw=true" width="350px" height="350px" hspace="70">
-
-
 ## Current Features for Withdraw manager
 + The withdraw manager subsystem is responsible for the processing of withdrawal requests and submitting them to exchanges
 + The withdraw manager can be interacted with via GRPC commands such as `WithdrawFiatRequest` and `WithdrawCryptoRequest`

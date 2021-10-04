@@ -1,8 +1,5 @@
 # GoCryptoTrader package Gemini
 
-<img src="/common/gctlogo.png?raw=true" width="350px" height="350px" hspace="70">
-
-
 
 This gemini package is part of the GoCryptoTrader codebase.
 
