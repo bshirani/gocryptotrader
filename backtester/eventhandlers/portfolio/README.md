@@ -6,12 +6,6 @@
 
 This portfolio package is part of the GoCryptoTrader codebase.
 
-## This is still in active development
-
-You can track ideas, planned features and what's in progress on this Trello board: [https://trello.com/b/ZAhMhpOy/gocryptotrader](https://trello.com/b/ZAhMhpOy/gocryptotrader).
-
-Join our slack to discuss all things related to GoCryptoTrader! [GoCryptoTrader Slack](https://join.slack.com/t/gocryptotrader/shared_invite/enQtNTQ5NDAxMjA2Mjc5LTc5ZDE1ZTNiOGM3ZGMyMmY1NTAxYWZhODE0MWM5N2JlZDk1NDU0YTViYzk4NTk3OTRiMDQzNGQ1YTc4YmRlMTk)
-
 ## Portfolio package overview
 
 The portfolio is one of the most critical packages in the GoCryptoTrader Backtester. It is responsible for making sure that all orders, simulated or otherwise are within all defined risk and sizing rules defined in the config.

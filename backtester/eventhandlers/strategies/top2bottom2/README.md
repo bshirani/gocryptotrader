@@ -6,12 +6,6 @@
 
 This top2bottom2 package is part of the GoCryptoTrader codebase.
 
-## This is still in active development
-
-You can track ideas, planned features and what's in progress on this Trello board: [https://trello.com/b/ZAhMhpOy/gocryptotrader](https://trello.com/b/ZAhMhpOy/gocryptotrader).
-
-Join our slack to discuss all things related to GoCryptoTrader! [GoCryptoTrader Slack](https://join.slack.com/t/gocryptotrader/shared_invite/enQtNTQ5NDAxMjA2Mjc5LTc5ZDE1ZTNiOGM3ZGMyMmY1NTAxYWZhODE0MWM5N2JlZDk1NDU0YTViYzk4NTk3OTRiMDQzNGQ1YTc4YmRlMTk)
-
 ## Top 2 Bottom 2 package overview
 
 The Top 2 Bottom 2 (T2B2) strategy utilises [the gct-ta MFI package](https://github.com/thrasher-corp/gct-ta) to analyse market signals and selects the top and bottom two currencies based on MFI value.

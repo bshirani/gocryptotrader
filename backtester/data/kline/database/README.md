@@ -6,12 +6,6 @@
 
 This database package is part of the GoCryptoTrader codebase.
 
-## This is still in active development
-
-You can track ideas, planned features and what's in progress on this Trello board: [https://trello.com/b/ZAhMhpOy/gocryptotrader](https://trello.com/b/ZAhMhpOy/gocryptotrader).
-
-Join our slack to discuss all things related to GoCryptoTrader! [GoCryptoTrader Slack](https://join.slack.com/t/gocryptotrader/shared_invite/enQtNTQ5NDAxMjA2Mjc5LTc5ZDE1ZTNiOGM3ZGMyMmY1NTAxYWZhODE0MWM5N2JlZDk1NDU0YTViYzk4NTk3OTRiMDQzNGQ1YTc4YmRlMTk)
-
 ## Database package overview
 
 This package is responsible for the loading of kline data via a user's existing GoCryptoTrader database. It can load existing data from the `candles` and `trades` tables.
