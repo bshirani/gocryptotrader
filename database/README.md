@@ -151,11 +151,3 @@ And in the contrib/sqlboiler.cmd for windows users
 A helper tool [cmd/dbseed](../cmd/dbseed/README.md) has been created for assisting with data migration 
 
 
-## Donations
-
-<img src="https://github.com/thrasher-corp/gocryptotrader/blob/master/web/src/assets/donate.png?raw=true" hspace="70">
-
-If this framework helped you in any way, or you would like to support the developers working on it, please donate Bitcoin to:
-
-***bc1qk0jareu4jytc0cfrhr5wgshsq8282awpavfahc***
-

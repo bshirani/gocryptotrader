@@ -26,10 +26,3 @@ The strategy base file has basic implementations of the `strategies.Handler` int
 ### Please click GoDocs chevron above to view current GoDoc information for this package
 
 
-## Donations
-
-<img src="https://github.com/thrasher-corp/gocryptotrader/blob/master/web/src/assets/donate.png?raw=true" hspace="70">
-
-If this framework helped you in any way, or you would like to support the developers working on it, please donate Bitcoin to:
-
-***bc1qk0jareu4jytc0cfrhr5wgshsq8282awpavfahc***
