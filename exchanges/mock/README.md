@@ -189,6 +189,4 @@ func TestDummyTest(t *testing.T) {
 	}
 ```
 
-### Please click GoDocs chevron above to view current GoDoc information for this package
-
 

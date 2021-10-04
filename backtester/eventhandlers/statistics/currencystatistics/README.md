@@ -51,6 +51,4 @@ Both! We calculate ratios where an average is required using both types. The rea
 
 
 
-### Please click GoDocs chevron above to view current GoDoc information for this package
-
 

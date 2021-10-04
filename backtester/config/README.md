@@ -164,6 +164,4 @@ See below for a set of tables and fields, expected values and what they can do
 | MaximumSize | If the order's quantity is over this amount, it cannot be placed and will be reduced to the maximum amount | `10` |
 | MaximumTotal | If the order's price * amount exceeds this number, the order cannot be placed and will be reduced to this figure | `1337` |
 
-### Please click GoDocs chevron above to view current GoDoc information for this package
-
 

@@ -25,6 +25,4 @@ This strategy supports simultaneous signal processing, aka `config.StrategySetti
 This strategy does not support customisation
 
 
-### Please click GoDocs chevron above to view current GoDoc information for this package
-
 

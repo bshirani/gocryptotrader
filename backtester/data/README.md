@@ -28,6 +28,4 @@ This can also be used to implement other means to load data for the backtester t
 
 
 
-### Please click GoDocs chevron above to view current GoDoc information for this package
-
 

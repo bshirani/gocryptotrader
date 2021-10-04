@@ -31,6 +31,4 @@ Once the config is created, when running the backtester, you can reference it vi
 The config builder will ask you all the necessary questions required to create a config file. If there is anything confusing, feel free to ask a question in our Slack group or open an issue!
 
 
-### Please click GoDocs chevron above to view current GoDoc information for this package
-
 

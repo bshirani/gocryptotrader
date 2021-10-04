@@ -46,6 +46,4 @@ The following steps are taken for the `Update` function:
 
 
 
-### Please click GoDocs chevron above to view current GoDoc information for this package
-
 

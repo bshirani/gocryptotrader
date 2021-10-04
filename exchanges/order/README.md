@@ -25,6 +25,4 @@ Join our slack to discuss all things related to GoCryptoTrader! [GoCryptoTrader 
   - Deletion of order
   - Order tracking
 
-### Please click GoDocs chevron above to view current GoDoc information for this package
-
 

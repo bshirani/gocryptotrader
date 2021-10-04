@@ -67,6 +67,4 @@ via Telegram:
 /settings		- Displays current bot settings
 ```
 
-### Please click GoDocs chevron above to view current GoDoc information for this package
-
 

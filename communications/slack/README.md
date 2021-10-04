@@ -67,6 +67,4 @@ via Slack:
 !settings		- Displays current settings
 ```
 
-### Please click GoDocs chevron above to view current GoDoc information for this package
-
 

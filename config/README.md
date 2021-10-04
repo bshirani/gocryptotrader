@@ -229,6 +229,4 @@ servers are configured by the pool array and attempted first to last allowedDiff
  },
  ```
 
-### Please click GoDocs chevron above to view current GoDoc information for this package
-
 

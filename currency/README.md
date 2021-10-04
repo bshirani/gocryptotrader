@@ -26,6 +26,4 @@ Join our slack to discuss all things related to GoCryptoTrader! [GoCryptoTrader 
 	- Symbol mapping
 	- Translation between currencies that have similar strings e.g. XBT, BTC
 
-### Please click GoDocs chevron above to view current GoDoc information for this package
-
 

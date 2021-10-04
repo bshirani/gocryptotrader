@@ -80,6 +80,4 @@ No. The already existing `CurrencySettings` will populate the funding manager wi
 | InitialFunds | The initial funding for the currency | `1337` |
 | TransferFee | If your strategy utilises transferring of funds via the Funding Manager, this is deducted upon doing so | `0.005` |
 
-### Please click GoDocs chevron above to view current GoDoc information for this package
-
 

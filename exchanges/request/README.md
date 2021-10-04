@@ -23,6 +23,4 @@ Join our slack to discuss all things related to GoCryptoTrader! [GoCryptoTrader 
 + This package services the exchanges package with request handling.
 	- Throttling of requests for an individual exchange
 
-### Please click GoDocs chevron above to view current GoDoc information for this package
-
 

@@ -24,6 +24,4 @@ Holdings are used to calculate the holdings at any given time for a given exchan
 Every data event will update and calculate holdings value based on the new price. This will allow for statistics to be easily calculated at the end of a backtesting run
 
 
-### Please click GoDocs chevron above to view current GoDoc information for this package
-
 

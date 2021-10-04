@@ -35,6 +35,4 @@ SetAmount(float64)
 	GetOrder() *order.Detail
 ```
 
-### Please click GoDocs chevron above to view current GoDoc information for this package
-
 

@@ -102,6 +102,4 @@ Creating strategies requires programming skills. [Here](/backtester/eventhandler
 
 
 
-### Please click GoDocs chevron above to view current GoDoc information for this package
-
 

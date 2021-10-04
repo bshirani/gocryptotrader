@@ -89,6 +89,4 @@ _b in this context is an `IBotExchange` implemented struct_
 | ZB.COM | Yes | Yes | No |
 
 
-### Please click GoDocs chevron above to view current GoDoc information for this package
-
 

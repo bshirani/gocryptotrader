@@ -25,6 +25,4 @@ This package will retrieve data for the backtester via continuous requests to li
 ## Important notice
 Live trading is not fully implemented and you should never consider setting `RealOrders` to `true` in a config. *Past performance is no guarantee of future results*
 
-### Please click GoDocs chevron above to view current GoDoc information for this package
-
 

@@ -47,6 +47,4 @@ rates, err := c.GetRates("USD", "EUR,AUD")
 // Handle error
 ```
 
-### Please click GoDocs chevron above to view current GoDoc information for this package
-
 

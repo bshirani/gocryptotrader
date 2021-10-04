@@ -26,6 +26,4 @@ enabled exchanges i.e.
 	- Sort by best price for currency
 	- Others will be added soon
 
-### Please click GoDocs chevron above to view current GoDoc information for this package
-
 

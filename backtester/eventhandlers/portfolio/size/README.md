@@ -26,6 +26,4 @@ The sizing package ensures that all potential orders raised are within both the 
 - The portfolio manager's sizing rules override any CurrencySettings' rules if the sizing is outside the portfolio manager's
 
 
-### Please click GoDocs chevron above to view current GoDoc information for this package
-
 

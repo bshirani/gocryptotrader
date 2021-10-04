@@ -110,6 +110,4 @@ apichecker.exe --create -apikey="insertkeyhere" -apitoken="inserttokenhere" -boa
 ```
 
 
-### Please click GoDocs chevron above to view current GoDoc information for this package
-
 

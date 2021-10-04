@@ -36,6 +36,4 @@ The following steps are taken for the `ExecuteOrder` function:
  - If an order is successfully placed, a snapshot of all existing orders in the run will be captured and store for statistical purposes
 
 
-### Please click GoDocs chevron above to view current GoDoc information for this package
-
 

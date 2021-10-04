@@ -24,6 +24,4 @@ Join our slack to discuss all things related to GoCryptoTrader! [GoCryptoTrader 
 
 + Used to enforce standard variables and methods across the communication packages
 
-### Please click GoDocs chevron above to view current GoDoc information for this package
-
 

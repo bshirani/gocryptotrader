@@ -25,6 +25,4 @@ When multiple currencies are included in your strategy, the statistics package w
 
 
 
-### Please click GoDocs chevron above to view current GoDoc information for this package
-
 

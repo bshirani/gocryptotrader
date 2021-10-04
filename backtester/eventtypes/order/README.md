@@ -35,6 +35,4 @@ The Order Event Type is based on `common.EventHandler` and `common.Directioner` 
 	IsLeveraged() bool
 ```
 
-### Please click GoDocs chevron above to view current GoDoc information for this package
-
 

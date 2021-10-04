@@ -25,6 +25,4 @@ Below is an overview of how events are used
 ![workflow](https://i.imgur.com/Kup6IA9.png)
 
 
-### Please click GoDocs chevron above to view current GoDoc information for this package
-
 
