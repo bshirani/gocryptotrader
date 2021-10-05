@@ -253,6 +253,7 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *engine.
 		}
 	}
 	bt.Funding = funds
+
 	var p *portfolio.Portfolio
 	p, err = portfolio.Setup(sizeManager, portfolioRisk, cfg.StatisticSettings.RiskFreeRate)
 	if err != nil {

@@ -1,3 +1,13 @@
 strategies can trade long and short at the same time
 the portfolio determines the final trade size and makes sure it is in compliance
 
+
+
+backtester:
+
+- portfolio is created in backtest.NewFromConfig()
+- call portfolio.Setup()
+- load the strategy class by name
+- processSignalEvent receives event from strategy and calls portfolio.OnSignal
+
+what is IPairReserver
