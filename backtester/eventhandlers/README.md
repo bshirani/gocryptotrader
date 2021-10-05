@@ -1,7 +1,3 @@
-# GoCryptoTrader Backtester: Eventhandlers package
-
-This eventhandlers package is part of the GoCryptoTrader codebase.
-
 ## Eventhandlers overview
 
 Event handlers are responsible for taking in an event, analysing its contents and outputting another event to be handled. An individual candle is turned into a data event which handled via the strategy event handler. The strategy handler outputs a signal event, which the portfolio eventhandler will size and risk analyse before raising an order event. The event is then sent to the portfolio manager to determine whether there is appropriate funding, adequate risk and proper order sizing before raising an order event. The order event is taken to the exchange handler which will place the order and create a fill event.

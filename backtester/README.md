@@ -1,8 +1,5 @@
 # GoCryptoTrader Backtester: Backtester package
 
-This backtester package is part of the GoCryptoTrader codebase.
-
-
 # GoCryptoTrader Backtester
 An event-driven backtesting tool to test and iterate trading strategies using historical or custom data.
 
@@ -76,14 +73,6 @@ Creating strategies requires programming skills. [Here](/backtester/eventhandler
 - Here is an overview
 ![workflow](https://i.imgur.com/Kup6IA9.png)
 
-
 # Important notes
 - This application is not considered production ready and you may experience issues
-  - If you encounter any issues, you can raise them in our Slack channel or via Github issues
-- **Past performance is no guarantee of future results**
 - While an experimental feature, it is **not** recommended to **ever** use live trading and real orders
-- **Past performance is no guarantee of future results**
-
-
-
-

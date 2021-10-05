@@ -1,7 +1,5 @@
 # GoCryptoTrader Backtester: Strategies package
 
-This strategies package is part of the GoCryptoTrader codebase.
-
 ## Strategies package overview
 
 Strategies are programmed instruction sets which act upon pricing data. After data has been loaded into the GoCryptoTrader, each tick is passed through your loaded strategy and is analysed in either the `OnSignal` function or the `OnSignals` function.

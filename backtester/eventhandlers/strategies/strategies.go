@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/strategies/base"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/strategies/bijan"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/strategies/dollarcostaverage"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/strategies/rsi"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/strategies/top2bottom2"
@@ -37,6 +38,7 @@ func GetStrategies() []Handler {
 	return []Handler{
 		new(dollarcostaverage.Strategy),
 		new(rsi.Strategy),
+		new(bijan.Strategy),
 		new(top2bottom2.Strategy),
 	}
 }

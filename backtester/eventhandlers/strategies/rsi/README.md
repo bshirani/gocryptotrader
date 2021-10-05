@@ -1,7 +1,5 @@
 # GoCryptoTrader Backtester: Rsi package
 
-This rsi package is part of the GoCryptoTrader codebase.
-
 ## Rsi package overview
 
 The RSI strategy utilises [the gct-ta RSI package](https://github.com/thrasher-corp/gct-ta) to analyse market signals and output buy or sell signals based on the RSI output.
@@ -13,5 +11,3 @@ This strategy does support strategy customisation in the following ways:
 |rsi-high| The upper bounds of RSI that when met, will trigger a Sell signal | 70 |
 |rsi-low| The lower bounds of RSI that when met, will trigger a Buy signal | 30 |
 |rsi-period| The consecutive candle periods used in order to generate a value. All values less than this number cannot output a buy or sell signal | 14 |
-
-

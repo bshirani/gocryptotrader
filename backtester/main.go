@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 
 	"github.com/thrasher-corp/gocryptotrader/backtester/backtest"
-	"github.com/thrasher-corp/gocryptotrader/backtester/common"
 	"github.com/thrasher-corp/gocryptotrader/backtester/config"
 	gctconfig "github.com/thrasher-corp/gocryptotrader/config"
 	"github.com/thrasher-corp/gocryptotrader/engine"
@@ -72,9 +71,10 @@ func main() {
 		fmt.Printf("Could not read config. Error: %v.\n", err)
 		os.Exit(1)
 	}
-	if printLogo {
-		fmt.Print(common.ASCIILogo)
-	}
+
+	// if printLogo {
+	// 	fmt.Print(common.ASCIILogo)
+	// }
 
 	path := gctconfig.DefaultFilePath()
 	if cfg.GoCryptoTraderConfigPath != "" {
