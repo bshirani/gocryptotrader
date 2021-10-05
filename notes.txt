@@ -1,0 +1,3 @@
+strategies can trade long and short at the same time
+the portfolio determines the final trade size and makes sure it is in compliance
+
