@@ -1,7 +1,5 @@
 # GoCryptoTrader Backtester: Config package
 
-This config package is part of the GoCryptoTrader codebase.
-
 ## Config package overview
 
 ### What does the config package do?

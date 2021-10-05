@@ -1,7 +1,5 @@
 # GoCryptoTrader Backtester: Holdings package
 
-This holdings package is part of the GoCryptoTrader codebase.
-
 ## Holdings package overview
 
 Holdings are used to calculate the holdings at any given time for a given exchange, asset, currency pair. If an order is placed, funds are removed from funding and placed under assets.

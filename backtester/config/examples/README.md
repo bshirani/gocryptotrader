@@ -1,7 +1,5 @@
 # GoCryptoTrader Backtester: Examples package
 
-This examples package is part of the GoCryptoTrader codebase.
-
 ## Examples package overview
 
 ### Current Config Examples

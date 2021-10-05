@@ -1,7 +1,5 @@
 # GoCryptoTrader Backtester: Report package
 
-This report package is part of the GoCryptoTrader codebase.
-
 ## Report package overview
 
 The report package helps generates the output under the `results` folder.

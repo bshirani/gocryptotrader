@@ -1,7 +1,5 @@
 # GoCryptoTrader Backtester: Data package
 
-This data package is part of the GoCryptoTrader codebase.
-
 ## Data package overview
 
 The data package defines and implements a base version of the `Streamer` interface which is part of the `Handler` interface. These interfaces allow for the translation of data into individual intervals to be accessed and assessed as part of the `backtest` package.

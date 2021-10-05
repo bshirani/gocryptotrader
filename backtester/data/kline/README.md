@@ -1,7 +1,5 @@
 # GoCryptoTrader Backtester: Kline package
 
-This kline package is part of the GoCryptoTrader codebase.
-
 ## Kline package overview
 
 When loading data for the kline, it can come from two sources: candles or trades. In the config they are represented as `common.CandleStr` or `common.TradeStr` respectively.

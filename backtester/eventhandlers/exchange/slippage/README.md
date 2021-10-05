@@ -1,7 +1,5 @@
 # GoCryptoTrader Backtester: Slippage package
 
-This slippage package is part of the GoCryptoTrader codebase.
-
 ## Slippage package overview
 
 Slippage refers to the difference between the expected price of a trade and the price at which the trade is executed. Slippage is used here to simulate what would occur if trading was live as no perfect conditions exist for placing orders.

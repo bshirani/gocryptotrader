@@ -1,7 +1,5 @@
 # GoCryptoTrader Backtester: Fill package
 
-This fill package is part of the GoCryptoTrader codebase.
-
 ## Fill package overview
 
 The Fill Event type contains details the outcome from attempting to make an order. Any slippage or pricing adjustment or fees are part of the fill event. If an order is placed, it is available to access on the event as well as in the compliance manager

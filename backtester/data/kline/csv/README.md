@@ -1,7 +1,5 @@
 # GoCryptoTrader Backtester: Csv package
 
-This csv package is part of the GoCryptoTrader codebase.
-
 ## Csv package overview
 
 This package is responsible for the loading of kline data via a CSV file. It can retrieve candle data or trade data which is converted into candle data.

@@ -1,7 +1,5 @@
 # GoCryptoTrader Backtester: Funding package
 
-This funding package is part of the GoCryptoTrader codebase.
-
 ## Funding package overview
 
 ### What does the funding package do?

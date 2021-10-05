@@ -1,7 +1,5 @@
 # GoCryptoTrader Backtester: Database package
 
-This database package is part of the GoCryptoTrader codebase.
-
 ## Database package overview
 
 This package is responsible for the loading of kline data via a user's existing GoCryptoTrader database. It can load existing data from the `candles` and `trades` tables.
