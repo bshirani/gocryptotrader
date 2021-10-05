@@ -1,5 +1,3 @@
-# GoCryptoTrader Backtester: Rsi package
-
 ## Rsi package overview
 
 The RSI strategy utilises [the gct-ta RSI package](https://github.com/thrasher-corp/gct-ta) to analyse market signals and output buy or sell signals based on the RSI output.

@@ -1,5 +1,3 @@
-# GoCryptoTrader Backtester: Dollarcostaverage package
-
 ## Dollarcostaverage package overview
 
 The dollar cost average is a strategy which is designed to purchase on _every_ data candle. Unless data is missing, all output signals will be to buy.

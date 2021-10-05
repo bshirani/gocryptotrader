@@ -1,5 +1,3 @@
-# GoCryptoTrader Backtester: Examples package
-
 ## Examples package overview
 
 ### Current Config Examples

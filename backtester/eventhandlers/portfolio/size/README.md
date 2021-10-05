@@ -1,5 +1,3 @@
-# GoCryptoTrader Backtester: Size package
-
 ## Size package overview
 
 The sizing package ensures that all potential orders raised are within both the CurrencySettings limits as well as the portfolio manager's limits.

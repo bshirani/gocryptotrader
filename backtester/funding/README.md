@@ -1,5 +1,3 @@
-# GoCryptoTrader Backtester: Funding package
-
 ## Funding package overview
 
 ### What does the funding package do?

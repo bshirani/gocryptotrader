@@ -1,5 +1,3 @@
-# GoCryptoTrader Backtester: Configbuilder package
-
 ## Configbuilder package overview
 
 ### What does the config builder do?

@@ -1,5 +1,3 @@
-# GoCryptoTrader Backtester: Eventholder package
-
 ## Eventholder package overview
 
 The event holder is a simple interface implementation which allows the backtester to iterate over the event queue.

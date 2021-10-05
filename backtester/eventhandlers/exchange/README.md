@@ -1,5 +1,3 @@
-# GoCryptoTrader Backtester: Exchange package
-
 ## Exchange package overview
 
 The exchange eventhandler is responsible for calling the `engine` package's `ordermanager` to place either a fake, or real order on the exchange via API.

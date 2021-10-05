@@ -1,5 +1,3 @@
-# GoCryptoTrader Backtester: Event package
-
 ## Event package overview
 
 The event event type is an important base for all other events. It allows for consistent information to be used across all events in order to track and make decisions. Any information that is shared between events should be added to this struct

@@ -1,5 +1,3 @@
-# GoCryptoTrader Backtester: Order package
-
 ## Order package overview
 
 The Order Event Type is an event type raised after the portfolio manager has passed all its checks and wishes to make an order

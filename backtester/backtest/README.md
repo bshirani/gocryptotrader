@@ -1,5 +1,3 @@
-# GoCryptoTrader Backtester: Backtest package
-
 ## Backtest package overview
 
 The backtest package is the most important package of the GoCryptoTrader backtester. It is the engine which combines all elements.

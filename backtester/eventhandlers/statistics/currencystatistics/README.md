@@ -1,5 +1,3 @@
-# GoCryptoTrader Backtester: Currencystatistics package
-
 ## Currencystatistics package overview
 
 Currency Statistics is an important package to verify the effectiveness of your strategies.

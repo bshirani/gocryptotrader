@@ -1,5 +1,3 @@
-# GoCryptoTrader Backtester: Risk package
-
 ## Risk package overview
 
 The risk manager is responsible for ensuring that no order can be made if it is deemed too risky.

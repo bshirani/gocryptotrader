@@ -1,5 +1,3 @@
-# GoCryptoTrader Backtester: Api package
-
 ## Api package overview
 
 This package is responsible for the loading of kline data via the API. It can retrieve candle data or trade data which is converted into candle data.

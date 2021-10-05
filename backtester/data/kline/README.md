@@ -1,5 +1,3 @@
-# GoCryptoTrader Backtester: Kline package
-
 ## Kline package overview
 
 When loading data for the kline, it can come from two sources: candles or trades. In the config they are represented as `common.CandleStr` or `common.TradeStr` respectively.

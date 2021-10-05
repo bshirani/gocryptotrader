@@ -1,5 +1,3 @@
-# GoCryptoTrader Backtester: Top2bottom2 package
-
 ## Top 2 Bottom 2 package overview
 
 The Top 2 Bottom 2 (T2B2) strategy utilises [the gct-ta MFI package](https://github.com/thrasher-corp/gct-ta) to analyse market signals and selects the top and bottom two currencies based on MFI value.

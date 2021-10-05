@@ -1,5 +1,3 @@
-# GoCryptoTrader Backtester: Statistics package
-
 ## Statistics package overview
 
 The statistics package is used for storing all relevant data over the course of a GoCryptoTrader Backtesting run. All types of events are tracked by exchange, asset and currency pair.

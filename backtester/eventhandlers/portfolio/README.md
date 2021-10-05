@@ -1,5 +1,3 @@
-# GoCryptoTrader Backtester: Portfolio package
-
 ## Portfolio package overview
 
 The portfolio is one of the most critical packages in the GoCryptoTrader Backtester. It is responsible for making sure that all orders, simulated or otherwise are within all defined risk and sizing rules defined in the config.
