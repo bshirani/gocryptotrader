@@ -1,8 +1,5 @@
 # GoCryptoTrader package Apichecker
 
-
-This apichecker package is part of the GoCryptoTrader codebase.
-
 ## Current Features for apichecker
 
 + Checks for API updates
@@ -93,6 +90,3 @@ apichecker.exe -add=true -key=id -val=revision-history -tokendata=h1 -tokendatae
 ```bash
 apichecker.exe --create -apikey="insertkeyhere" -apitoken="inserttokenhere" -boardname="insertboardnamehere"
 ```
-
-
-

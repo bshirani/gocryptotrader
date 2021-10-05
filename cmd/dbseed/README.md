@@ -1,11 +1,5 @@
 # GoCryptoTrader dbseed tool
 
-<img src="https://github.com/thrasher-corp/gocryptotrader/blob/master/web/src/assets/page-logo.png?raw=true" width="350px" height="350px" hspace="70">
-
-
-
-This dbseed tool is part of the GoCryptoTrader codebase.
-
 ## How to use
 
 #### Prerequisites
@@ -29,10 +23,7 @@ dbseed requires a valid database configuration in your gocryptotrader config
  },
 ```
 
-By default this will load from the default GoCryptoTrader path 
-
-For Windows users this is:
-```%APPDATA%\GoCryptoTrader```
+By default this will load from the default GoCryptoTrader path
 
 For Linux/macOS users this is:
 ```$HOME\.gocryptotrader```
@@ -89,5 +80,3 @@ binance,
 ftx,
 btc markets,
 ```
-
-

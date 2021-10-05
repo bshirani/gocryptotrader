@@ -1,5 +1,3 @@
-<img src="/common/gctlogo.png?raw=true" width="350px" height="350px" hspace="70">
-
 ## Exchange Support Table
 
 | Exchange | REST API | Streaming API | FIX API |

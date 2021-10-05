@@ -1,8 +1,5 @@
 # GoCryptoTrader package Exchanges
 
-
-This exchanges package is part of the GoCryptoTrader codebase.
-
 ## Current Features for exchanges
 
 + This package is used to connect and query data from supported exchanges.
@@ -16,7 +13,5 @@ implementation
 
 ## websocket notes
 
-+ If contributing websocket improvements, please make sure order reports 
++ If contributing websocket improvements, please make sure order reports
 follow [these rules](../docs/WS_ORDER_EVENTS.md).
-
-

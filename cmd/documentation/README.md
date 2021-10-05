@@ -1,8 +1,5 @@
 # GoCryptoTrader package Documentation
 
-
-This documentation package is part of the GoCryptoTrader codebase.
-
 ## Current Features for documentation
 
 #### This tool allows for the generation of new documentation through templating
@@ -58,6 +55,3 @@ upper := strings.ToUpper(testString)
 ```
 
 ### ALL NEW UPDATES AND FILE SYSTEM ADDITIONS NEED A DOCUMENTATION UPDATE USING THIS TOOL OR PR MERGE REQUEST MAY BE POSTPONED.
-
-
-

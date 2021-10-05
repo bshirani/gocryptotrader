@@ -12,7 +12,7 @@ const (
 	MinorVersion = "1"
 
 	PrereleaseBlurb = "This version is pre-release and is not inteded to be used as a production ready trading framework or bot - use at your own risk."
-	IsRelease       = false
+	IsRelease       = true
 	GitHub          = "GitHub: https://github.com/thrasher-corp/gocryptotrader"
 	Trello          = "Trello: https://trello.com/b/ZAhMhpOy/gocryptotrader"
 	Slack           = "Slack:  https://join.slack.com/t/gocryptotrader/shared_invite/enQtNTQ5NDAxMjA2Mjc5LTc5ZDE1ZTNiOGM3ZGMyMmY1NTAxYWZhODE0MWM5N2JlZDk1NDU0YTViYzk4NTk3OTRiMDQzNGQ1YTc4YmRlMTk"
@@ -40,10 +40,5 @@ func Version(short bool) string {
 	if short {
 		return versionStr
 	}
-	versionStr += Copyright + "\n\n"
-	versionStr += GitHub + "\n"
-	versionStr += Trello + "\n"
-	versionStr += Slack + "\n"
-	versionStr += Issues + "\n"
 	return versionStr
 }
