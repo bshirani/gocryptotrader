@@ -7,7 +7,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/thrasher-corp/gocryptotrader/communications/base"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/account"
@@ -111,8 +110,6 @@ func (m *portfolioManager) run(wg *sync.WaitGroup) {
 		log.Debugf(log.PortfolioMgr, "Portfolio manager shutdown.")
 	}()
 
-	go m.commsManager.PushEvent(base.Event{Type: "event", Message: "portfolio check"})
-
 	go m.processPortfolio()
 	for {
 		select {
@@ -126,6 +123,7 @@ func (m *portfolioManager) run(wg *sync.WaitGroup) {
 
 // processPortfolio updates portfolio holdings
 func (m *portfolioManager) processPortfolio() {
+	// go m.commsManager.PushEvent(base.Event{Type: "event", Message: "processPortfolio"})
 	if !atomic.CompareAndSwapInt32(&m.processing, 0, 1) {
 		return
 	}

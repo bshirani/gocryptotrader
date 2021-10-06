@@ -70,7 +70,3 @@ Creating strategies requires programming skills. [Here](/backtester/eventhandler
   - If you are still unsure, please raise an issue, ask a question in our Slack or open a pull request
 - Here is an overview
 ![workflow](https://i.imgur.com/Kup6IA9.png)
-
-# Important notes
-- This application is not considered production ready and you may experience issues
-- While an experimental feature, it is **not** recommended to **ever** use live trading and real orders

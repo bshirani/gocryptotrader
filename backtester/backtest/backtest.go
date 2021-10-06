@@ -428,6 +428,7 @@ func (bt *BackTest) loadExchangePairAssetBase(exch, base, quote, ass string) (gc
 
 // setupBot sets up a basic bot to retrieve exchange data
 // as well as process orders
+// setup order manager and exchange manager
 func (bt *BackTest) setupBot(cfg *config.Config, bot *engine.Engine) error {
 	var err error
 	bt.Bot = bot
@@ -970,7 +971,7 @@ func (bt *BackTest) processFillEvent(ev fill.Event) {
 // once new data is processed. It will run until application close event has been received
 func (bt *BackTest) RunLive() error {
 	log.Info(log.BackTester, "running backtester against live data")
-	timeoutTimer := time.NewTimer(time.Minute * 5)
+	timeoutTimer := time.NewTimer(time.Minute * 1)
 	// a frequent timer so that when a new candle is released by an exchange
 	// that it can be processed quickly
 	processEventTicker := time.NewTicker(time.Second)
@@ -987,6 +988,7 @@ func (bt *BackTest) RunLive() error {
 					// as live only supports singular currency, just get the proper reference manually
 					var d data.Handler
 					dd := bt.Datas.GetAllData()
+
 					for k1, v1 := range dd {
 						for k2, v2 := range v1 {
 							for k3 := range v2 {

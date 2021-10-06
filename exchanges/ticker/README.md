@@ -1,8 +1,3 @@
-# GoCryptoTrader package Ticker
-
-
-This ticker package is part of the GoCryptoTrader codebase.
-
 ## Current Features for ticker
 
 + This services the exchanges package by ticker functions.

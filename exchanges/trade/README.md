@@ -1,8 +1,3 @@
-# GoCryptoTrader package Trade
-
-
-This trade package is part of the GoCryptoTrader codebase.
-
 ## Current Features for trade
 
 + The trade package contains a processor for both REST and websocket trade history processing

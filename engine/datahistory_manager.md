@@ -186,6 +186,3 @@ The candle table also has relationships to data history jobs. Only the relevant 
 | source_job_id | The source job id for where the candle data came from | `deadbeef-dead-beef-dead-beef13371337` |
 | validation_job_id | When job id for what job validated the candle data | `deadbeef-dead-beef-dead-beef13371337` |
 | validation_issues | If any discrepancies are found, the data will be written to the column | `issues found at 2020-07-08 00:00:00, Open api: 9262.62 db: 9262.69 diff: 3%, replacing database candle data with API data` |
-
-
-

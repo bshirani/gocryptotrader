@@ -1,8 +1,3 @@
-# GoCryptoTrader package Stats
-
-
-This stats package is part of the GoCryptoTrader codebase.
-
 ## Current Features for stats
 
 + This stats package services the exchanges package by providing stats on
