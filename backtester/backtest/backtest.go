@@ -815,6 +815,7 @@ func (bt *BackTest) processSingleDataEvent(ev common.DataEventHandler) error {
 	if err != nil {
 		return err
 	}
+	bt.Portfolio.UpdateTrades(ev)
 	d := bt.Datas.GetDataForCurrency(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 	s, err := bt.Strategy.OnSignal(d, bt.Portfolio)
 
@@ -889,12 +890,6 @@ func (bt *BackTest) updateStatsForDataEvent(ev common.DataEventHandler) error {
 		log.Error(log.BackTester, err)
 	}
 	// update portfolio manager with the latest price
-
-	bt.Portfolio.UpdateTrades(ev)
-	// if err != nil {
-	// 	log.Error(log.BackTester, err)
-	// }
-
 	err = bt.Portfolio.UpdateHoldings(ev)
 	if err != nil {
 		log.Error(log.BackTester, err)

@@ -11,7 +11,6 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/risk"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/settings"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/trades"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/strategies/base"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/fill"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/order"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/signal"
@@ -26,7 +25,7 @@ var (
 	errSizeManagerUnset     = errors.New("size manager unset")
 	errAssetUnset           = errors.New("asset unset")
 	errCurrencyPairUnset    = errors.New("currency pair unset")
-	errNoTradeForStrategy   = errors.New("no trade for strategy")
+	errNoOpenTrade          = errors.New("no trade open")
 	errExchangeUnset        = errors.New("exchange unset")
 	errNegativeRiskFreeRate = errors.New("received negative risk free rate")
 	errNoPortfolioSettings  = errors.New("no portfolio settings")
@@ -45,8 +44,8 @@ type Portfolio struct {
 	sizeManager               SizeHandler
 	riskManager               risk.Handler
 	exchangeAssetPairSettings map[string]map[asset.Item]map[currency.Pair]*settings.Settings
-	openTrades                []Trade
-	TradesMap                 map[base.Strategy]trades.Trade
+	openTrade                 trades.Trade
+	closedTrades              []Trade
 }
 
 type Trade struct {
@@ -62,6 +61,7 @@ type Handler interface {
 	setHoldingsForOffset(*holdings.Holding, bool) error
 	UpdateHoldings(common.DataEventHandler) error
 	UpdateTrades(common.DataEventHandler)
+	GetOpenTrade() (trades.Trade, error)
 
 	GetComplianceManager(string, asset.Item, currency.Pair) (*compliance.Manager, error)
 

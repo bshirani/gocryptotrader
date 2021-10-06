@@ -12,7 +12,6 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/risk"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/settings"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/trades"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/strategies/base"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/event"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/fill"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/order"
@@ -68,6 +67,12 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *exchange.Settings) (*order.Ord
 	// 	return nil, errAlreadyInTrade
 	// }
 
+	t, err := p.GetOpenTrade()
+	if err != nil && ev.GetDirection() != common.DoNothing {
+		t, _ = trades.Create(ev)
+		p.openTrade = t
+	}
+
 	o := &order.Order{
 		Base: event.Base{
 			Offset:       ev.GetOffset(),
@@ -120,10 +125,8 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *exchange.Settings) (*order.Ord
 func (p *Portfolio) recordTrade(ev signal.Event) {
 	direction := ev.GetDirection()
 	if direction == gctorder.Sell || direction == gctorder.Buy {
-		fmt.Println("creating trade")
 		t, _ := trades.Create(ev)
 		t.Update(ev)
-		// p.TradesMap[ev.GetStrategy()] = t
 	}
 }
 
@@ -198,6 +201,7 @@ func (p *Portfolio) sizeOrder(d common.Directioner, cs *exchange.Settings, origi
 
 // OnFill processes the event after an order has been placed by the exchange. Its purpose is to track holdings for future portfolio decisions.
 func (p *Portfolio) OnFill(ev fill.Event) (*fill.Fill, error) {
+
 	if ev == nil {
 		return nil, common.ErrNilEvent
 	}
@@ -230,31 +234,12 @@ func (p *Portfolio) OnFill(ev fill.Event) (*fill.Fill, error) {
 		log.Error(log.BackTester, err)
 	}
 
-	// which strategy created this fill?
-
-	// UPDATE TRADES
-	// t, _ := p.GetTradeForStrategy(ev.GetStrategy())
-	direction := ev.GetDirection()
-	//
-	// if !t.Timestamp.IsZero() {
-	// 	// if trade exists
-	// 	// fmt.Println(reflect.TypeOf(ev))
-	// 	t.Update(ev)
-	// }
-	// err = p.setTradesForOffset(&t, true)
-	// if errors.Is(err, errNoTrades) {
-	// 	err = p.setTradesForOffset(&t, false)
-	// }
-	// if err != nil {
-	// 	log.Error(log.BackTester, err)
-	// }
-	// end update trades
-
 	err = p.addComplianceSnapshot(ev)
 	if err != nil {
 		log.Error(log.BackTester, err)
 	}
 
+	direction := ev.GetDirection()
 	if direction == common.DoNothing ||
 		direction == common.CouldNotBuy ||
 		direction == common.CouldNotSell ||
@@ -374,15 +359,22 @@ func (p *Portfolio) UpdateTrades(ev common.DataEventHandler) {
 		// 	ev.GetAssetType(),
 		// 	ev.Pair())
 	}
-	// t := p.GetOpenTrades()
+	t, err := p.GetOpenTrade()
+
+	if err != nil {
+		fmt.Println("error", t)
+		// t, _ = trades.Create(ev)
+	}
+
+	p.openTrade = t
+	t, err = p.GetOpenTrade()
+	p.openTrade.UpdateValue(ev)
 
 	// if t.Strategy != nil {
-	// 	t, _ = trades.Create(ev)
 	// 	// if err != nil {
 	// 	// 	return err
 	// 	// }
 	// }
-	// t.UpdateValue(ev)
 	// err := p.setTradesForOffset(&t, true)
 	// if errors.Is(err, errNoTrades) {
 	// 	err = p.setTradesForOffset(&t, false)
@@ -501,23 +493,9 @@ func (p *Portfolio) SetupCurrencySettingsMap(exch string, a asset.Item, cp curre
 }
 
 // GetOpenTrades returns the latest holdings after being sorted by time
-func (p *Portfolio) GetOpenTrades() map[base.Strategy]trades.Trade {
-	if len(p.TradesMap) == 0 {
-		p.TradesMap = make(map[base.Strategy]trades.Trade)
+func (p *Portfolio) GetOpenTrade() (trades.Trade, error) {
+	if p.openTrade.EntryPrice.IsZero() {
+		return trades.Trade{}, errNoOpenTrade
 	}
-
-	return p.TradesMap
-}
-
-func (p *Portfolio) GetTradeForStrategy(s base.Strategy) (trades.Trade, error) {
-	if len(p.TradesMap) == 0 {
-		p.TradesMap = make(map[base.Strategy]trades.Trade)
-	}
-
-	for _, b := range p.TradesMap {
-		if b.Strategy == s {
-			return b, nil
-		}
-	}
-	return trades.Trade{}, errNoTradeForStrategy
+	return p.openTrade, nil
 }

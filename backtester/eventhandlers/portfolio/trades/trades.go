@@ -4,20 +4,23 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/thrasher-corp/gocryptotrader/backtester/common"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/signal"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
 
 // Create makes a Trade struct to track total values of strategy holdings over the course of a backtesting run
-func Create(ev common.EventHandler) (Trade, error) {
+func Create(ev signal.Event) (Trade, error) {
 	if ev == nil {
 		return Trade{}, common.ErrNilEvent
 	}
 
 	return Trade{
-		Offset:    ev.GetOffset(),
-		Pair:      ev.Pair(),
-		Asset:     ev.GetAssetType(),
-		Exchange:  ev.GetExchange(),
-		Timestamp: ev.GetTime(),
+		Offset:     ev.GetOffset(),
+		Pair:       ev.Pair(),
+		Asset:      ev.GetAssetType(),
+		Exchange:   ev.GetExchange(),
+		Timestamp:  ev.GetTime(),
+		Direction:  ev.GetDirection(),
+		EntryPrice: ev.GetPrice(),
 	}, nil
 }
 
@@ -31,6 +34,13 @@ func (t *Trade) Update(e signal.Event) {
 // UpdateValue calculates the trades's value for a data event's time and price
 func (t *Trade) UpdateValue(d common.DataEventHandler) {
 	t.Timestamp = d.GetTime()
+	t.CurrentPrice = d.ClosePrice()
+
+	if t.Direction == order.Buy {
+		t.NetProfit = t.CurrentPrice.Sub(t.EntryPrice)
+	} else if t.Direction == order.Sell {
+		t.NetProfit = t.EntryPrice.Sub(t.CurrentPrice)
+	}
 	// latest := d.ClosePrice()
 	t.Offset = d.GetOffset()
 	// t.updateValue(latest)

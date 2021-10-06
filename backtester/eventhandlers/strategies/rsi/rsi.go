@@ -95,14 +95,23 @@ func (s *Strategy) OnSignal(d data.Handler, p portfolio.Handler) (signal.Event, 
 		return &es, nil
 	}
 
-	if s.Direction() == order.Sell && latestRSIValue.GreaterThanOrEqual(s.rsiHigh) {
-		es.SetDirection(order.Sell)
-	} else if s.Direction() == order.Buy && latestRSIValue.LessThanOrEqual(s.rsiLow) {
-		es.SetDirection(order.Buy)
+	t, err := p.GetOpenTrade()
+
+	if err != nil { // no trade
+		if s.Direction() == order.Sell && latestRSIValue.GreaterThanOrEqual(s.rsiHigh) {
+			es.SetDirection(order.Sell)
+		} else if s.Direction() == order.Buy && latestRSIValue.LessThanOrEqual(s.rsiLow) {
+			es.SetDirection(order.Buy)
+		} else {
+			es.SetDirection(common.DoNothing)
+		}
+		es.AppendReason(fmt.Sprintf("RSI at %v", latestRSIValue))
 	} else {
+		fmt.Println(es.GetPrice())
+		fmt.Printf("%s@%v@%s now:%v pl:%v\n", t.Direction, t.EntryPrice, t.Timestamp, t.CurrentPrice, t.NetProfit)
 		es.SetDirection(common.DoNothing)
+		es.AppendReason(fmt.Sprintf("Already in a trade %v", t))
 	}
-	es.AppendReason(fmt.Sprintf("RSI at %v", latestRSIValue))
 
 	return &es, nil
 }
