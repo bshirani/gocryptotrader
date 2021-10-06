@@ -37,6 +37,7 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/backtester/funding"
 	"github.com/thrasher-corp/gocryptotrader/backtester/report"
 	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
+	gctbase "github.com/thrasher-corp/gocryptotrader/communications/base"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	gctdatabase "github.com/thrasher-corp/gocryptotrader/database"
 	"github.com/thrasher-corp/gocryptotrader/engine"
@@ -439,6 +440,16 @@ func (bt *BackTest) setupBot(cfg *config.Config, bot *engine.Engine) error {
 			return err
 		}
 	}
+
+	// if !bt.Bot.CommunicationsManager.IsRunning() {
+	// 	communicationsConfig := bot.Config.GetCommunicationsConfig()
+	// 	bot.CommunicationsManager, err = engine.SetupCommunicationManager(&communicationsConfig)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	bot.CommunicationsManager.Start()
+	// }
+
 	if !bt.Bot.OrderManager.IsRunning() {
 		bt.Bot.OrderManager, err = engine.SetupOrderManager(
 			bt.Bot.ExchangeManager,
@@ -972,6 +983,8 @@ func (bt *BackTest) processFillEvent(ev fill.Event) {
 func (bt *BackTest) RunLive() error {
 	log.Info(log.BackTester, "running backtester against live data")
 	timeoutTimer := time.NewTimer(time.Minute * 1)
+
+	bt.Bot.CommunicationsManager.PushEvent(gctbase.Event{Type: "event", Message: "run backtest live"})
 	// a frequent timer so that when a new candle is released by an exchange
 	// that it can be processed quickly
 	processEventTicker := time.NewTicker(time.Second)
@@ -983,31 +996,60 @@ func (bt *BackTest) RunLive() error {
 		case <-timeoutTimer.C:
 			return errLiveDataTimeout
 		case <-processEventTicker.C:
-			for e := bt.EventQueue.NextEvent(); ; e = bt.EventQueue.NextEvent() {
-				if e == nil {
-					// as live only supports singular currency, just get the proper reference manually
-					var d data.Handler
-					dd := bt.Datas.GetAllData()
+			for ev := bt.EventQueue.NextEvent(); ; ev = bt.EventQueue.NextEvent() {
+				if ev == nil {
+					dataHandlerMap := bt.Datas.GetAllData()
+					for exchangeName, exchangeMap := range dataHandlerMap {
+						for assetItem, assetMap := range exchangeMap {
+							var hasProcessedData bool
+							for currencyPair, dataHandler := range assetMap {
+								d := dataHandler.Next()
+								if d == nil {
+									if !bt.hasHandledEvent {
+										log.Errorf(log.BackTester, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
+									}
+									// break dataLoadingIssue
+								}
+								if bt.Strategy.UsingSimultaneousProcessing() && hasProcessedData {
+									continue
+								}
 
-					for k1, v1 := range dd {
-						for k2, v2 := range v1 {
-							for k3 := range v2 {
-								d = dd[k1][k2][k3]
+								bt.EventQueue.AppendEvent(d)
+								hasProcessedData = true
 							}
 						}
 					}
-					de := d.Next()
-					if de == nil {
-						break
-					}
-
-					bt.EventQueue.AppendEvent(de)
-					doneARun = true
-					continue
 				}
-				err := bt.handleEvent(e)
-				if err != nil {
-					return err
+				// if ev == nil {
+				// 	// as live only supports singular currency, just get the proper reference manually
+				// 	var d data.Handler
+				// 	dd := bt.Datas.GetAllData()
+				//
+				// 	for k1, v1 := range dd {
+				// 		for k2, v2 := range v1 {
+				// 			for k3 := range v2 {
+				// 				d = dd[k1][k2][k3]
+				// 			}
+				// 		}
+				// 	}
+				// 	de := d.Next()
+				// 	if de == nil {
+				// 		break
+				// 	}
+				//
+				// 	bt.EventQueue.AppendEvent(de)
+				// 	doneARun = true
+				// 	continue
+				// }
+
+				if ev != nil {
+					err := bt.handleEvent(ev)
+					if err != nil {
+						return err
+					}
+				}
+				if !bt.hasHandledEvent {
+					bt.hasHandledEvent = true
 				}
 			}
 			if doneARun {
@@ -1091,5 +1133,6 @@ func (bt *BackTest) loadLiveData(resp *kline.DataFromKline, cfg *config.Config, 
 
 // Stop shuts down the live data loop
 func (bt *BackTest) Stop() {
+	bt.Strategy.Stop()
 	close(bt.shutdown)
 }

@@ -28,6 +28,10 @@ func (s *Strategy) Name() string {
 	return Name
 }
 
+func (s *Strategy) Stop() {
+	return
+}
+
 // Description provides a nice overview of the strategy
 // be it definition of terms or to highlight its purpose
 func (s *Strategy) Description() string {

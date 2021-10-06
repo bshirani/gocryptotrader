@@ -1,6 +1,48 @@
 {
  "nickname": "TestGenerateRSICandleAPICustomSettingsStrat",
  "goal": "To demonstrate the RSI strategy using API candle data and custom settings",
+ "communications": {
+  "slack": {
+   "name": "Slack",
+   "enabled": false,
+   "verbose": false,
+   "targetChannel": "general",
+   "verificationToken": "testtest"
+  },
+  "smsGlobal": {
+   "name": "SMSGlobal",
+   "from": "Skynet",
+   "enabled": false,
+   "verbose": false,
+   "username": "Username",
+   "password": "Password",
+   "contacts": [
+    {
+     "name": "Bob",
+     "number": "12345",
+     "enabled": false
+    }
+   ]
+  },
+  "smtp": {
+   "name": "SMTP",
+   "enabled": false,
+   "verbose": false,
+   "host": "smtp.google.com",
+   "port": "537",
+   "accountName": "some",
+   "accountPassword": "password",
+   "from": "",
+   "recipientList": "lol123@gmail.com"
+  },
+  "telegram": {
+   "name": "Telegram",
+   "enabled": true,
+   "verbose": false,
+   "verificationToken": "2021148688:AAG_oYIIpW36AqfE-sNuFuGWCzIik3Y-9hg",
+   "authorisedClients": 0
+  }
+ },
  "strategy-settings": {
   "name": "rsi",
   "use-simultaneous-signal-processing": false,

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gct-ta/indicators"
 	"github.com/thrasher-corp/gocryptotrader/backtester/common"
 	"github.com/thrasher-corp/gocryptotrader/backtester/data"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio"
@@ -13,6 +12,7 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/signal"
 	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
+	"github.com/thrasher-corp/gocryptotrader/gct-ta/indicators"
 )
 
 const (
@@ -24,12 +24,19 @@ const (
 	description  = `The relative strength index is a technical indicator used in the analysis of financial markets. It is intended to chart the current and historical strength or weakness of a stock or market based on the closing prices of a recent trading period`
 )
 
+type IndicatorValues struct {
+	Timestamp time.Time
+	rsiValue  decimal.Decimal
+	maValue   decimal.Decimal
+}
+
 // Strategy is an implementation of the Handler interface
 type Strategy struct {
 	base.Strategy
-	rsiPeriod decimal.Decimal
-	rsiLow    decimal.Decimal
-	rsiHigh   decimal.Decimal
+	rsiPeriod       decimal.Decimal
+	rsiLow          decimal.Decimal
+	rsiHigh         decimal.Decimal
+	indicatorValues []IndicatorValues
 }
 
 // Name returns the name of the strategy
@@ -66,13 +73,22 @@ func (s *Strategy) OnSignal(d data.Handler, p portfolio.Handler) (signal.Event, 
 	}
 
 	dataRange := d.StreamClose()
+	// fmt.Println("bars", len(dataRange))
 	var massagedData []float64
 	massagedData, err = s.massageMissingData(dataRange, es.GetTime())
 	if err != nil {
 		return nil, err
 	}
 	rsi := indicators.RSI(massagedData, int(s.rsiPeriod.IntPart()))
+	ma := indicators.MA(massagedData, int(s.rsiPeriod.IntPart()), indicators.Sma)
 	latestRSIValue := decimal.NewFromFloat(rsi[len(rsi)-1])
+	latestMAValue := decimal.NewFromFloat(ma[len(ma)-1])
+	i := IndicatorValues{}
+	i.Timestamp = d.Latest().GetTime()
+	i.rsiValue = latestRSIValue
+	i.maValue = latestMAValue
+	s.indicatorValues = append(s.indicatorValues, i)
+
 	if !d.HasDataAtTime(d.Latest().GetTime()) {
 		es.SetDirection(common.MissingData)
 		es.AppendReason(fmt.Sprintf("missing data at %v, cannot perform any actions. RSI %v", d.Latest().GetTime(), latestRSIValue))
@@ -180,4 +196,11 @@ func (s *Strategy) massageMissingData(data []decimal.Decimal, t time.Time) ([]fl
 		resp = append(resp, d)
 	}
 	return resp, nil
+}
+
+func (s *Strategy) Stop() {
+	for i := range s.indicatorValues {
+		x := s.indicatorValues[i]
+		fmt.Printf("%d,%s,%s\n", x.Timestamp.Unix(), x.rsiValue, x.maValue)
+	}
 }

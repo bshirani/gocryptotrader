@@ -83,11 +83,12 @@ func main() {
 
 	var bot *engine.Engine
 	flags := map[string]bool{
-		"tickersync":    false,
-		"orderbooksync": false,
-		"tradesync":     false,
-		"ratelimiter":   true,
-		"ordermanager":  false,
+		"tickersync":         false,
+		"orderbooksync":      false,
+		"tradesync":          false,
+		"ratelimiter":        true,
+		"ordermanager":       false,
+		"enablecommsrelayer": true,
 	}
 	bot, err = engine.NewFromSettings(&engine.Settings{
 		ConfigFile:                    path,
@@ -110,6 +111,7 @@ func main() {
 		fmt.Printf("Could not setup backtester from config. Error: %v.\n", err)
 		os.Exit(1)
 	}
+
 	if cfg.DataSettings.LiveData != nil {
 		go func() {
 			err = bt.RunLive()
@@ -127,6 +129,7 @@ func main() {
 			fmt.Printf("Could not complete run. Error: %v.\n", err)
 			os.Exit(1)
 		}
+		bt.Stop()
 	}
 
 	// err = bt.Statistic.CalculateAllResults()
