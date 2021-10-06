@@ -107,10 +107,16 @@ func (s *Strategy) OnSignal(d data.Handler, p portfolio.Handler) (signal.Event, 
 		}
 		es.AppendReason(fmt.Sprintf("RSI at %v", latestRSIValue))
 	} else {
-		fmt.Println(es.GetPrice())
-		fmt.Printf("%s@%v@%s now:%v pl:%v\n", t.Direction, t.EntryPrice, t.Timestamp, t.CurrentPrice, t.NetProfit)
-		es.SetDirection(common.DoNothing)
-		es.AppendReason(fmt.Sprintf("Already in a trade %v", t))
+		// in trade, check for exit
+		if t.NetProfit.GreaterThanOrEqual(decimal.NewFromFloat(10.0)) {
+			// s.Close()
+			es.SetDirection(order.Sell)
+		} else {
+			fmt.Println(es.GetPrice())
+			fmt.Printf("%s@%v@%s now:%v pl:%v\n", t.Direction, t.EntryPrice, t.Timestamp, t.CurrentPrice, t.NetProfit)
+			es.SetDirection(common.DoNothing)
+			es.AppendReason(fmt.Sprintf("Already in a trade %v", t))
+		}
 	}
 
 	return &es, nil
