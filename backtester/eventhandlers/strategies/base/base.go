@@ -5,10 +5,12 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/backtester/data"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/event"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/signal"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
 
 // Strategy is base implementation of the Handler interface
 type Strategy struct {
+	direction                 order.Side
 	useSimultaneousProcessing bool
 	usingExchangeLevelFunding bool
 }
@@ -57,4 +59,12 @@ func (s *Strategy) UsingExchangeLevelFunding() bool {
 // SetExchangeLevelFunding sets whether funding is based on currency pairs or individual currencies at the exchange level
 func (s *Strategy) SetExchangeLevelFunding(b bool) {
 	s.usingExchangeLevelFunding = b
+}
+
+func (s *Strategy) Direction() order.Side {
+	return s.direction
+}
+
+func (s *Strategy) SetDirection(direction order.Side) {
+	s.direction = direction
 }

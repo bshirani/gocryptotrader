@@ -38,7 +38,6 @@ func (e *Exchange) ExecuteOrder(o order.Event, data data.Handler, bot *engine.En
 			Interval:     o.GetInterval(),
 			Reason:       o.GetReason(),
 		},
-		Strategy:   o.GetStrategy(),
 		Direction:  o.GetDirection(),
 		Amount:     o.GetAmount(),
 		ClosePrice: data.Latest().ClosePrice(),
@@ -189,18 +188,18 @@ func verifyOrderWithinLimits(f *fill.Fill, limitReducedAmount decimal.Decimal, c
 }
 
 func reduceAmountToFitPortfolioLimit(adjustedPrice, amount, sizedPortfolioTotal decimal.Decimal, side gctorder.Side) decimal.Decimal {
-	switch side {
-	case gctorder.Buy:
-		if adjustedPrice.Mul(amount).GreaterThan(sizedPortfolioTotal) {
-			// adjusted amounts exceeds portfolio manager's allowed funds
-			// the amount has to be reduced to equal the sizedPortfolioTotal
-			amount = sizedPortfolioTotal.Div(adjustedPrice)
-		}
-	case gctorder.Sell:
-		if amount.GreaterThan(sizedPortfolioTotal) {
-			amount = sizedPortfolioTotal
-		}
-	}
+	// switch side {
+	// case gctorder.Buy:
+	// 	if adjustedPrice.Mul(amount).GreaterThan(sizedPortfolioTotal) {
+	// 		// adjusted amounts exceeds portfolio manager's allowed funds
+	// 		// the amount has to be reduced to equal the sizedPortfolioTotal
+	// 		amount = sizedPortfolioTotal.Div(adjustedPrice)
+	// 	}
+	// case gctorder.Sell:
+	// 	if amount.GreaterThan(sizedPortfolioTotal) {
+	// 		amount = sizedPortfolioTotal
+	// 	}
+	// }
 	return amount
 }
 

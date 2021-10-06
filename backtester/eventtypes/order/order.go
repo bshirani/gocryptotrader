@@ -66,7 +66,6 @@ func (o *Order) SetStrategy(name string) {
 	o.Strategy = name
 }
 
-// GetID returns the ID
 func (o *Order) GetStrategy() string {
 	return o.Strategy
 }

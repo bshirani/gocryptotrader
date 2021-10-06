@@ -10,6 +10,8 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/holdings"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/risk"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/settings"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/trades"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/strategies/base"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/fill"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/order"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/signal"
@@ -20,9 +22,11 @@ import (
 var (
 	errInvalidDirection     = errors.New("invalid direction")
 	errRiskManagerUnset     = errors.New("risk manager unset")
+	errAlreadyInTrade       = errors.New("already in trade")
 	errSizeManagerUnset     = errors.New("size manager unset")
 	errAssetUnset           = errors.New("asset unset")
 	errCurrencyPairUnset    = errors.New("currency pair unset")
+	errNoTradeForStrategy   = errors.New("no trade for strategy")
 	errExchangeUnset        = errors.New("exchange unset")
 	errNegativeRiskFreeRate = errors.New("received negative risk free rate")
 	errNoPortfolioSettings  = errors.New("no portfolio settings")
@@ -41,6 +45,12 @@ type Portfolio struct {
 	sizeManager               SizeHandler
 	riskManager               risk.Handler
 	exchangeAssetPairSettings map[string]map[asset.Item]map[currency.Pair]*settings.Settings
+	openTrades                []Trade
+	TradesMap                 map[base.Strategy]trades.Trade
+}
+
+type Trade struct {
+	id decimal.Decimal
 }
 
 // Handler contains all functions expected to operate a portfolio manager
@@ -51,7 +61,7 @@ type Handler interface {
 	ViewHoldingAtTimePeriod(common.EventHandler) (*holdings.Holding, error)
 	setHoldingsForOffset(*holdings.Holding, bool) error
 	UpdateHoldings(common.DataEventHandler) error
-	UpdateTrades(common.DataEventHandler) error
+	UpdateTrades(common.DataEventHandler)
 
 	GetComplianceManager(string, asset.Item, currency.Pair) (*compliance.Manager, error)
 

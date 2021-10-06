@@ -5,7 +5,6 @@ import (
 
 	"github.com/shopspring/decimal"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/holdings"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/trades"
 )
 
 // GetLatestHoldings returns the latest holdings after being sorted by time
@@ -15,15 +14,6 @@ func (e *Settings) GetLatestHoldings() holdings.Holding {
 	}
 
 	return e.HoldingsSnapshots[len(e.HoldingsSnapshots)-1]
-}
-
-// GetOpenTrades returns the latest holdings after being sorted by time
-func (e *Settings) GetOpenTrades() map[string]trades.Trade {
-	if len(e.TradesMap) == 0 {
-		e.TradesMap = make(map[string]trades.Trade)
-	}
-
-	return e.TradesMap
 }
 
 // GetHoldingsForTime returns the holdings for a time period, or an empty holding if not found
@@ -38,18 +28,6 @@ func (e *Settings) GetHoldingsForTime(t time.Time) holdings.Holding {
 		}
 	}
 	return holdings.Holding{}
-}
-
-func (e *Settings) GetTradeForStrategy(s string) trades.Trade {
-	if len(e.TradesMap) == 0 {
-		e.TradesMap = make(map[string]trades.Trade)
-	}
-
-	// if e.TradesMap == nil {
-	// 	return trades.Trade{}
-	// }
-
-	return e.TradesMap[s]
 }
 
 // Value returns the total value of the latest holdings

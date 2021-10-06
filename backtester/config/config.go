@@ -41,6 +41,7 @@ func (c *Config) PrintSetting() {
 	log.Info(log.BackTester, "------------------Strategy Settings--------------------------")
 	log.Info(log.BackTester, "-------------------------------------------------------------")
 	log.Infof(log.BackTester, "Strategy: %s", c.StrategySettings.Name)
+	log.Infof(log.BackTester, "Side: %s", c.StrategySettings.Direction)
 	if len(c.StrategySettings.CustomSettings) > 0 {
 		log.Info(log.BackTester, "Custom strategy variables:")
 		for k, v := range c.StrategySettings.CustomSettings {

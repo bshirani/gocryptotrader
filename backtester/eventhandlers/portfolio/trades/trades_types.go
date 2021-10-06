@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/strategies/base"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
@@ -15,10 +16,10 @@ type Trade struct {
 	Offset       int64
 	Item         currency.Code
 	Pair         currency.Pair
-	Strategy     string     `json:"strategy"`
-	Direction    order.Side `json:"side"`
-	Asset        asset.Item `json:"asset"`
-	Exchange     string     `json:"exchange"`
-	Timestamp    time.Time  `json:"timestamp"`
+	Strategy     base.Strategy `json:"strategy"`
+	Direction    order.Side    `json:"side"`
+	Asset        asset.Item    `json:"asset"`
+	Exchange     string        `json:"exchange"`
+	Timestamp    time.Time     `json:"timestamp"`
 	CurrentPrice decimal.Decimal
 }

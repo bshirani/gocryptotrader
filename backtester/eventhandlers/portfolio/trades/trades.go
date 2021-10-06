@@ -3,7 +3,7 @@ package trades
 import (
 	"github.com/shopspring/decimal"
 	"github.com/thrasher-corp/gocryptotrader/backtester/common"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/fill"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/signal"
 )
 
 // Create makes a Trade struct to track total values of strategy holdings over the course of a backtesting run
@@ -18,12 +18,11 @@ func Create(ev common.EventHandler) (Trade, error) {
 		Asset:     ev.GetAssetType(),
 		Exchange:  ev.GetExchange(),
 		Timestamp: ev.GetTime(),
-		Strategy:  ev.GetStrategy(),
 	}, nil
 }
 
 // Update calculates holding statistics for the events time
-func (t *Trade) Update(e fill.Event) {
+func (t *Trade) Update(e signal.Event) {
 	t.Timestamp = e.GetTime()
 	t.Offset = e.GetOffset()
 	t.update(e)
@@ -37,7 +36,7 @@ func (t *Trade) UpdateValue(d common.DataEventHandler) {
 	// t.updateValue(latest)
 }
 
-func (t *Trade) update(e fill.Event) {
+func (t *Trade) update(e signal.Event) {
 	// fmt.Println("update trade")
 	// direction := e.GetDirection()
 	// o := e.GetOrder()
@@ -61,7 +60,8 @@ func (t *Trade) update(e fill.Event) {
 	// }
 	// t.TotalValueLostToVolumeSizing = t.TotalValueLostToVolumeSizing.Add(e.GetClosePrice().Sub(e.GetVolumeAdjustedPrice()).Mul(e.GetAmount()))
 	// t.TotalValueLostToSlippage = t.TotalValueLostToSlippage.Add(e.GetVolumeAdjustedPrice().Sub(e.GetPurchasePrice()).Mul(e.GetAmount()))
-	t.updateValue(e.GetClosePrice())
+	// t.updateValue(e.GetClosePrice())
+	return
 }
 
 func (t *Trade) updateValue(latestPrice decimal.Decimal) {

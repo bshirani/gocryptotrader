@@ -11,3 +11,9 @@ backtester:
 - processSignalEvent receives event from strategy and calls portfolio.OnSignal
 
 what is IPairReserver
+
+when dry run is disabled
+
+when the portfolio starts, it loads the trades from the trades table
+it keeps a map of strategies to their trades
+it updates trades in the trades table every 30 seconds

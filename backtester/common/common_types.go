@@ -56,7 +56,6 @@ type EventHandler interface {
 	GetTime() time.Time
 	Pair() currency.Pair
 	GetExchange() string
-	GetStrategy() string
 	GetInterval() kline.Interval
 	GetAssetType() asset.Item
 	GetReason() string
@@ -76,11 +75,6 @@ type DataEventHandler interface {
 type Directioner interface {
 	SetDirection(side order.Side)
 	GetDirection() order.Side
-}
-
-type Strategier interface {
-	SetStrategy(string)
-	GetStrategy() string
 }
 
 // ASCIILogo is a sweet logo that is optionally printed to the command line window

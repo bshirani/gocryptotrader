@@ -15,16 +15,6 @@ func (f *Fill) GetDirection() order.Side {
 	return f.Direction
 }
 
-// SetStrategy sets the direction
-func (f *Fill) SetStrategy(s string) {
-	f.Strategy = s
-}
-
-// GetStrategy returns the direction
-func (f *Fill) GetStrategy() string {
-	return f.Strategy
-}
-
 // SetAmount sets the amount
 func (f *Fill) SetAmount(i decimal.Decimal) {
 	f.Amount = i

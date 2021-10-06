@@ -6,6 +6,7 @@ import (
 
 	"github.com/shopspring/decimal"
 	"github.com/thrasher-corp/gocryptotrader/database"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
 
 // Errors for config validation
@@ -54,6 +55,7 @@ type DataSettings struct {
 // along with defining whether the strategy will assess all currencies at once, or individually
 type StrategySettings struct {
 	Name                         string                 `json:"name"`
+	Direction                    order.Side             `json:"direction"`
 	SimultaneousSignalProcessing bool                   `json:"use-simultaneous-signal-processing"`
 	UseExchangeLevelFunding      bool                   `json:"use-exchange-level-funding"`
 	ExchangeLevelFunding         []ExchangeLevelFunding `json:"exchange-level-funding,omitempty"`

@@ -231,7 +231,7 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *engine.
 		return nil, err
 	}
 
-	bt.Strategy, err = strategies.LoadStrategyByName(cfg.StrategySettings.Name, cfg.StrategySettings.SimultaneousSignalProcessing)
+	bt.Strategy, err = strategies.LoadStrategyByName(cfg.StrategySettings.Name, cfg.StrategySettings.Direction, cfg.StrategySettings.SimultaneousSignalProcessing)
 	if err != nil {
 		return nil, err
 	}
@@ -890,10 +890,10 @@ func (bt *BackTest) updateStatsForDataEvent(ev common.DataEventHandler) error {
 	}
 	// update portfolio manager with the latest price
 
-	err = bt.Portfolio.UpdateTrades(ev)
-	if err != nil {
-		log.Error(log.BackTester, err)
-	}
+	bt.Portfolio.UpdateTrades(ev)
+	// if err != nil {
+	// 	log.Error(log.BackTester, err)
+	// }
 
 	err = bt.Portfolio.UpdateHoldings(ev)
 	if err != nil {
@@ -924,7 +924,6 @@ func (bt *BackTest) processSignalEvent(ev signal.Event) {
 }
 
 func (bt *BackTest) processOrderEvent(ev order.Event) {
-	// fmt.Printf("signal of strategy: %s\n", ev.GetStrategy())
 	d := bt.Datas.GetDataForCurrency(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 	f, err := bt.Exchange.ExecuteOrder(ev, d, bt.Bot)
 	if err != nil {
