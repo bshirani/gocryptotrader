@@ -68,3 +68,12 @@ func (s *Strategy) Direction() order.Side {
 func (s *Strategy) SetDirection(direction order.Side) {
 	s.direction = direction
 }
+
+func (s *Strategy) Stop() {
+	// fmt.Println("num trades:", len(p.ClosedTrades))
+	return
+	// for i := range s.indicatorValues {
+	// 	x := s.indicatorValues[i]
+	// 	fmt.Printf("%d,%s,%s\n", x.Timestamp.Unix(), x.rsiValue, x.maValue)
+	// }
+}

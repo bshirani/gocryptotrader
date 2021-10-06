@@ -39,10 +39,6 @@ type Strategy struct {
 	mfiHigh   decimal.Decimal
 }
 
-func (s *Strategy) Stop() {
-	return
-}
-
 // Name returns the name of the strategy
 func (s *Strategy) Name() string {
 	return Name

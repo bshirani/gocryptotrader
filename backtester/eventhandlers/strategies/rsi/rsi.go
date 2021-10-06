@@ -97,7 +97,8 @@ func (s *Strategy) OnSignal(d data.Handler, p portfolio.Handler) (signal.Event, 
 
 	t, err := p.GetOpenTrade()
 
-	if err != nil { // no trade
+	if err != nil {
+		// no trade
 		if s.Direction() == order.Sell && latestRSIValue.GreaterThanOrEqual(s.rsiHigh) {
 			es.SetDirection(order.Sell)
 		} else if s.Direction() == order.Buy && latestRSIValue.LessThanOrEqual(s.rsiLow) {
@@ -210,12 +211,4 @@ func (s *Strategy) massageMissingData(data []decimal.Decimal, t time.Time) ([]fl
 		resp = append(resp, d)
 	}
 	return resp, nil
-}
-
-func (s *Strategy) Stop() {
-	return
-	// for i := range s.indicatorValues {
-	// 	x := s.indicatorValues[i]
-	// 	fmt.Printf("%d,%s,%s\n", x.Timestamp.Unix(), x.rsiValue, x.maValue)
-	// }
 }
