@@ -12,6 +12,7 @@ type Order struct {
 	event.Base
 	ID             string
 	Direction      order.Side
+	Strategy       string
 	Status         order.Status
 	Price          decimal.Decimal
 	Amount         decimal.Decimal

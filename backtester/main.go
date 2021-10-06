@@ -42,7 +42,7 @@ func main() {
 	flag.BoolVar(
 		&generateReport,
 		"generatereport",
-		true,
+		false,
 		"whether to generate the report file")
 	flag.StringVar(
 		&reportOutput,
@@ -129,11 +129,11 @@ func main() {
 		}
 	}
 
-	err = bt.Statistic.CalculateAllResults(bt.Funding)
-	if err != nil {
-		gctlog.Error(gctlog.BackTester, err)
-		os.Exit(1)
-	}
+	// err = bt.Statistic.CalculateAllResults()
+	// if err != nil {
+	// 	gctlog.Error(gctlog.BackTester, err)
+	// 	os.Exit(1)
+	// }
 
 	if generateReport {
 		bt.Reports.UseDarkMode(darkReport)

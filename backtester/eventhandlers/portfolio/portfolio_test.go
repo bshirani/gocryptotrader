@@ -226,7 +226,7 @@ func TestViewHoldingAtTimePeriod(t *testing.T) {
 func TestUpdate(t *testing.T) {
 	t.Parallel()
 	p := Portfolio{}
-	err := p.UpdateHoldings(nil, nil)
+	err := p.UpdateHoldings(nil)
 	if !errors.Is(err, common.ErrNilEvent) {
 		t.Errorf("received: %v, expected: %v", err, common.ErrNilEvent)
 	}

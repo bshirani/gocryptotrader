@@ -10,9 +10,9 @@ import (
 	"github.com/thrasher-corp/gct-ta/indicators"
 	"github.com/thrasher-corp/gocryptotrader/backtester/common"
 	"github.com/thrasher-corp/gocryptotrader/backtester/data"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/strategies/base"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/signal"
-	"github.com/thrasher-corp/gocryptotrader/backtester/funding"
 	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
@@ -52,7 +52,7 @@ func (s *Strategy) Description() string {
 
 // OnSignal handles a data event and returns what action the strategy believes should occur
 // however,this complex strategy cannot function on an individual basis
-func (s *Strategy) OnSignal(_ data.Handler, _ funding.IFundTransferer) (signal.Event, error) {
+func (s *Strategy) OnSignal(_ data.Handler, p portfolio.Handler) (signal.Event, error) {
 	return nil, errStrategyOnlySupportsSimultaneousProcessing
 }
 
@@ -66,7 +66,6 @@ func (s *Strategy) SupportsSimultaneousProcessing() bool {
 type mfiFundEvent struct {
 	event signal.Event
 	mfi   decimal.Decimal
-	funds funding.IPairReader
 }
 
 // ByPrice used for sorting orders by order date
@@ -87,7 +86,7 @@ func sortByMFI(o *[]mfiFundEvent, reverse bool) {
 
 // OnSimultaneousSignals analyses multiple data points simultaneously, allowing flexibility
 // in allowing a strategy to only place an order for X currency if Y currency's price is Z
-func (s *Strategy) OnSimultaneousSignals(d []data.Handler, f funding.IFundTransferer) ([]signal.Event, error) {
+func (s *Strategy) OnSimultaneousSignals(d []data.Handler, p portfolio.Handler) ([]signal.Event, error) {
 	if len(d) < 4 {
 		return nil, errStrategyCurrencyRequirements
 	}
@@ -144,17 +143,11 @@ func (s *Strategy) OnSimultaneousSignals(d []data.Handler, f funding.IFundTransf
 		es.SetDirection(common.DoNothing)
 		es.AppendReason(fmt.Sprintf("MFI at %v", latestMFI))
 
-		funds, err := f.GetFundingForEvent(&es)
-		if err != nil {
-			return nil, err
-		}
 		mfiFundEvents = append(mfiFundEvents, mfiFundEvent{
 			event: &es,
 			mfi:   latestMFI,
-			funds: funds,
 		})
 	}
-
 	return s.selectTopAndBottomPerformers(mfiFundEvents, resp)
 }
 

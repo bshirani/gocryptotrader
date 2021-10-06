@@ -8,7 +8,6 @@ import (
 
 	"github.com/shopspring/decimal"
 	"github.com/thrasher-corp/gocryptotrader/backtester/common"
-	"github.com/thrasher-corp/gocryptotrader/backtester/funding"
 	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
 	gctmath "github.com/thrasher-corp/gocryptotrader/common/math"
 	"github.com/thrasher-corp/gocryptotrader/currency"
@@ -19,7 +18,7 @@ import (
 )
 
 // CalculateResults calculates all statistics for the exchange, asset, currency pair
-func (c *CurrencyStatistic) CalculateResults(f funding.IPairReader) error {
+func (c *CurrencyStatistic) CalculateResults() error {
 	var errs gctcommon.Errors
 	var err error
 	first := c.Events[0]
@@ -176,6 +175,13 @@ func (c *CurrencyStatistic) CalculateResults(f funding.IPairReader) error {
 	}
 
 	if last.Holdings.QuoteInitialFunds.GreaterThan(decimal.Zero) {
+		fmt.Println(
+			"ok %s %s %s %d",
+			last.Holdings.QuoteInitialFunds,
+			last.Holdings.TotalValue,
+			decimal.NewFromFloat(intervalsPerYear),
+			decimal.NewFromInt(int64(len(c.Events))),
+		)
 		cagr, err := gctmath.DecimalCompoundAnnualGrowthRate(
 			last.Holdings.QuoteInitialFunds,
 			last.Holdings.TotalValue,
@@ -198,7 +204,7 @@ func (c *CurrencyStatistic) CalculateResults(f funding.IPairReader) error {
 }
 
 // PrintResults outputs all calculated statistics to the command line
-func (c *CurrencyStatistic) PrintResults(e string, a asset.Item, p currency.Pair, f funding.IPairReader, usingExchangeLevelFunding bool) {
+func (c *CurrencyStatistic) PrintResults(e string, a asset.Item, p currency.Pair, usingExchangeLevelFunding bool) {
 	var errs gctcommon.Errors
 	sort.Slice(c.Events, func(i, j int) bool {
 		return c.Events[i].DataEvent.GetTime().Before(c.Events[j].DataEvent.GetTime())
@@ -212,8 +218,8 @@ func (c *CurrencyStatistic) PrintResults(e string, a asset.Item, p currency.Pair
 	sep := fmt.Sprintf("%v %v %v |\t", e, a, p)
 	currStr := fmt.Sprintf("------------------Stats for %v %v %v------------------------------------------", e, a, p)
 	log.Infof(log.BackTester, currStr[:61])
-	log.Infof(log.BackTester, "%s Initial base funds: %v", sep, f.BaseInitialFunds())
-	log.Infof(log.BackTester, "%s Initial base quote: %v", sep, f.QuoteInitialFunds())
+	// log.Infof(log.BackTester, "%s Initial base funds: %v", sep, f.BaseInitialFunds())
+	// log.Infof(log.BackTester, "%s Initial base quote: %v", sep, f.QuoteInitialFunds())
 	log.Infof(log.BackTester, "%s Highest committed funds: %v at %v\n\n", sep, c.HighestCommittedFunds.Value.Round(8), c.HighestCommittedFunds.Time)
 
 	log.Infof(log.BackTester, "%s Buy orders: %d", sep, c.BuyOrders)

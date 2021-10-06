@@ -24,42 +24,12 @@
     "maximum-leverage-rate": "0"
    },
    "buy-side": {
-    "minimum-size": "0.005",
+    "minimum-size": "0.0005",
     "maximum-size": "2",
     "maximum-total": "40000"
    },
    "sell-side": {
-    "minimum-size": "0.005",
-    "maximum-size": "2",
-    "maximum-total": "40000"
-   },
-   "min-slippage-percent": "0",
-   "max-slippage-percent": "0",
-   "maker-fee-override": "0.001",
-   "taker-fee-override": "0.002",
-   "maximum-holdings-ratio": "0",
-   "use-exchange-order-limits": false,
-   "skip-candle-volume-fitting": false
-  },
-  {
-   "exchange-name": "binance",
-   "asset": "spot",
-   "base": "ETH",
-   "quote": "USDT",
-   "initial-base-funds": "10",
-   "initial-quote-funds": "1000000",
-   "leverage": {
-    "can-use-leverage": false,
-    "maximum-orders-with-leverage-ratio": "0",
-    "maximum-leverage-rate": "0"
-   },
-   "buy-side": {
-    "minimum-size": "0.005",
-    "maximum-size": "2",
-    "maximum-total": "40000"
-   },
-   "sell-side": {
-    "minimum-size": "0.005",
+    "minimum-size": "0.0005",
     "maximum-size": "2",
     "maximum-total": "40000"
    },
@@ -77,7 +47,7 @@
   "data-type": "candle",
   "api-data": {
    "start-date": "2020-01-01T00:00:00+10:00",
-   "end-date": "2020-01-05T00:00:00+11:00",
+   "end-date": "2020-01-02T00:00:00+11:00",
    "inclusive-end-date": false
   }
  },
@@ -88,12 +58,12 @@
    "maximum-leverage-rate": "0"
   },
   "buy-side": {
-   "minimum-size": "0.005",
+   "minimum-size": "0.0005",
    "maximum-size": "2",
    "maximum-total": "40000"
   },
   "sell-side": {
-   "minimum-size": "0.005",
+   "minimum-size": "0.0005",
    "maximum-size": "2",
    "maximum-total": "40000"
   }

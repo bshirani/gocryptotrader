@@ -11,6 +11,7 @@ import (
 type Fill struct {
 	event.Base
 	Direction           order.Side      `json:"side"`
+	Strategy            string          `json:"strategy"`
 	Amount              decimal.Decimal `json:"amount"`
 	ClosePrice          decimal.Decimal `json:"close-price"`
 	VolumeAdjustedPrice decimal.Decimal `json:"volume-adjusted-price"`

@@ -43,6 +43,11 @@ func (b *Base) GetAssetType() asset.Item {
 	return b.AssetType
 }
 
+// GetStrategy returns the strategy
+func (b *Base) GetStrategy() string {
+	return b.Strategy
+}
+
 // GetInterval returns the interval
 func (b *Base) GetInterval() kline.Interval {
 	return b.Interval

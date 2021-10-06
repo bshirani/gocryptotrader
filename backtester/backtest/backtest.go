@@ -61,7 +61,6 @@ func (bt *BackTest) Reset() {
 	bt.Portfolio.Reset()
 	bt.Statistic.Reset()
 	bt.Exchange.Reset()
-	bt.Funding.Reset()
 	bt.Bot = nil
 }
 
@@ -105,25 +104,9 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *engine.
 	}
 
 	useExchangeLevelFunding := cfg.StrategySettings.UseExchangeLevelFunding
-	funds := funding.SetupFundingManager(useExchangeLevelFunding)
 	if useExchangeLevelFunding {
 		for i := range cfg.StrategySettings.ExchangeLevelFunding {
-			var a asset.Item
-			a, err = asset.New(cfg.StrategySettings.ExchangeLevelFunding[i].Asset)
-			if err != nil {
-				return nil, err
-			}
-			cq := currency.NewCode(cfg.StrategySettings.ExchangeLevelFunding[i].Currency)
-			var item *funding.Item
-			item, err = funding.CreateItem(cfg.StrategySettings.ExchangeLevelFunding[i].ExchangeName,
-				a,
-				cq,
-				cfg.StrategySettings.ExchangeLevelFunding[i].InitialFunds,
-				cfg.StrategySettings.ExchangeLevelFunding[i].TransferFee)
-			if err != nil {
-				return nil, err
-			}
-			err = funds.AddItem(item)
+			_, err = asset.New(cfg.StrategySettings.ExchangeLevelFunding[i].Asset)
 			if err != nil {
 				return nil, err
 			}
@@ -207,14 +190,6 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *engine.
 			if err != nil {
 				return nil, err
 			}
-			err = funds.AddItem(baseItem)
-			if err != nil && !errors.Is(err, funding.ErrAlreadyExists) {
-				return nil, err
-			}
-			err = funds.AddItem(quoteItem)
-			if err != nil && !errors.Is(err, funding.ErrAlreadyExists) {
-				return nil, err
-			}
 		} else {
 			var bFunds, qFunds decimal.Decimal
 			if cfg.CurrencySettings[i].InitialBaseFunds != nil {
@@ -241,18 +216,13 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *engine.
 			if err != nil {
 				return nil, err
 			}
-			var pair *funding.Pair
-			pair, err = funding.CreatePair(baseItem, quoteItem)
-			if err != nil {
-				return nil, err
-			}
-			err = funds.AddPair(pair)
+			// var pair *funding.Pair
+			_, err = funding.CreatePair(baseItem, quoteItem)
 			if err != nil {
 				return nil, err
 			}
 		}
 	}
-	bt.Funding = funds
 
 	var p *portfolio.Portfolio
 	p, err = portfolio.Setup(sizeManager, portfolioRisk, cfg.StatisticSettings.RiskFreeRate)
@@ -805,22 +775,18 @@ dataLoadingIssue:
 // handle event will process events and add further events to the queue if they
 // are required
 func (bt *BackTest) handleEvent(ev common.EventHandler) error {
-	funds, err := bt.Funding.GetFundingForEvent(ev)
-	if err != nil {
-		return err
-	}
 	switch eType := ev.(type) {
 	case common.DataEventHandler:
 		if bt.Strategy.UsingSimultaneousProcessing() {
 			return bt.processSimultaneousDataEvents()
 		}
-		return bt.processSingleDataEvent(eType, funds)
+		return bt.processSingleDataEvent(eType)
 	case signal.Event:
-		bt.processSignalEvent(eType, funds)
+		bt.processSignalEvent(eType)
 	case order.Event:
-		bt.processOrderEvent(eType, funds)
+		bt.processOrderEvent(eType)
 	case fill.Event:
-		bt.processFillEvent(eType, funds)
+		bt.processFillEvent(eType)
 	default:
 		return fmt.Errorf("%w %v received, could not process",
 			errUnhandledDatatype,
@@ -830,13 +796,14 @@ func (bt *BackTest) handleEvent(ev common.EventHandler) error {
 	return nil
 }
 
-func (bt *BackTest) processSingleDataEvent(ev common.DataEventHandler, funds funding.IPairReader) error {
-	err := bt.updateStatsForDataEvent(ev, funds)
+func (bt *BackTest) processSingleDataEvent(ev common.DataEventHandler) error {
+	err := bt.updateStatsForDataEvent(ev)
 	if err != nil {
 		return err
 	}
 	d := bt.Datas.GetDataForCurrency(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
-	s, err := bt.Strategy.OnSignal(d, bt.Funding)
+	s, err := bt.Strategy.OnSignal(d, bt.Portfolio)
+
 	if err != nil {
 		if errors.Is(err, base.ErrTooMuchBadData) {
 			// too much bad data is a severe error and backtesting must cease
@@ -869,11 +836,7 @@ func (bt *BackTest) processSimultaneousDataEvents() error {
 		for _, assetMap := range exchangeMap {
 			for _, dataHandler := range assetMap {
 				latestData := dataHandler.Latest()
-				funds, err := bt.Funding.GetFundingForEAP(latestData.GetExchange(), latestData.GetAssetType(), latestData.Pair())
-				if err != nil {
-					return err
-				}
-				err = bt.updateStatsForDataEvent(latestData, funds)
+				err := bt.updateStatsForDataEvent(latestData)
 				if err != nil && err == statistics.ErrAlreadyProcessed {
 					continue
 				}
@@ -881,7 +844,7 @@ func (bt *BackTest) processSimultaneousDataEvents() error {
 			}
 		}
 	}
-	signals, err := bt.Strategy.OnSimultaneousSignals(dataEvents, bt.Funding)
+	signals, err := bt.Strategy.OnSimultaneousSignals(dataEvents, bt.Portfolio)
 	if err != nil {
 		if errors.Is(err, base.ErrTooMuchBadData) {
 			// too much bad data is a severe error and backtesting must cease
@@ -902,7 +865,7 @@ func (bt *BackTest) processSimultaneousDataEvents() error {
 
 // updateStatsForDataEvent makes various systems aware of price movements from
 // data events
-func (bt *BackTest) updateStatsForDataEvent(ev common.DataEventHandler, funds funding.IPairReader) error {
+func (bt *BackTest) updateStatsForDataEvent(ev common.DataEventHandler) error {
 	// update statistics with the latest price
 	err := bt.Statistic.SetupEventForTime(ev)
 	if err != nil {
@@ -912,7 +875,13 @@ func (bt *BackTest) updateStatsForDataEvent(ev common.DataEventHandler, funds fu
 		log.Error(log.BackTester, err)
 	}
 	// update portfolio manager with the latest price
-	err = bt.Portfolio.UpdateHoldings(ev, funds)
+
+	err = bt.Portfolio.UpdateTrades(ev)
+	if err != nil {
+		log.Error(log.BackTester, err)
+	}
+
+	err = bt.Portfolio.UpdateHoldings(ev)
 	if err != nil {
 		log.Error(log.BackTester, err)
 	}
@@ -920,14 +889,14 @@ func (bt *BackTest) updateStatsForDataEvent(ev common.DataEventHandler, funds fu
 }
 
 // processSignalEvent receives an event from the strategy for processing under the portfolio
-func (bt *BackTest) processSignalEvent(ev signal.Event, funds funding.IPairReserver) {
+func (bt *BackTest) processSignalEvent(ev signal.Event) {
 	cs, err := bt.Exchange.GetCurrencySettings(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 	if err != nil {
 		log.Error(log.BackTester, err)
 		return
 	}
 	var o *order.Order
-	o, err = bt.Portfolio.OnSignal(ev, &cs, funds)
+	o, err = bt.Portfolio.OnSignal(ev, &cs)
 	if err != nil {
 		log.Error(log.BackTester, err)
 		return
@@ -940,9 +909,10 @@ func (bt *BackTest) processSignalEvent(ev signal.Event, funds funding.IPairReser
 	bt.EventQueue.AppendEvent(o)
 }
 
-func (bt *BackTest) processOrderEvent(ev order.Event, funds funding.IPairReleaser) {
+func (bt *BackTest) processOrderEvent(ev order.Event) {
+	// fmt.Printf("signal of strategy: %s\n", ev.GetStrategy())
 	d := bt.Datas.GetDataForCurrency(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
-	f, err := bt.Exchange.ExecuteOrder(ev, d, bt.Bot, funds)
+	f, err := bt.Exchange.ExecuteOrder(ev, d, bt.Bot)
 	if err != nil {
 		if f == nil {
 			log.Errorf(log.BackTester, "fill event should always be returned, please fix, %v", err)
@@ -957,8 +927,8 @@ func (bt *BackTest) processOrderEvent(ev order.Event, funds funding.IPairRelease
 	bt.EventQueue.AppendEvent(f)
 }
 
-func (bt *BackTest) processFillEvent(ev fill.Event, funds funding.IPairReader) {
-	t, err := bt.Portfolio.OnFill(ev, funds)
+func (bt *BackTest) processFillEvent(ev fill.Event) {
+	t, err := bt.Portfolio.OnFill(ev)
 	if err != nil {
 		log.Error(log.BackTester, err)
 		return

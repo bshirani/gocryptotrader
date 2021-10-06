@@ -22,6 +22,7 @@ type Event interface {
 // Signal contains everything needed for a strategy to raise a signal event
 type Signal struct {
 	event.Base
+	Strategy   string
 	OpenPrice  decimal.Decimal
 	HighPrice  decimal.Decimal
 	LowPrice   decimal.Decimal

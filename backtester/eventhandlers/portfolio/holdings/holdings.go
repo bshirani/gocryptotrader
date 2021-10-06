@@ -4,38 +4,39 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/thrasher-corp/gocryptotrader/backtester/common"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/fill"
-	"github.com/thrasher-corp/gocryptotrader/backtester/funding"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
 
 // Create makes a Holding struct to track total values of strategy holdings over the course of a backtesting run
-func Create(ev common.EventHandler, funding funding.IPairReader, riskFreeRate decimal.Decimal) (Holding, error) {
+func Create(ev common.EventHandler, initialFunds, riskFreeRate decimal.Decimal) (Holding, error) {
 	if ev == nil {
 		return Holding{}, common.ErrNilEvent
 	}
-	if funding.QuoteInitialFunds().LessThan(decimal.Zero) {
+
+	if initialFunds.LessThan(decimal.NewFromFloat(0)) {
 		return Holding{}, ErrInitialFundsZero
 	}
+
 	return Holding{
 		Offset:            ev.GetOffset(),
 		Pair:              ev.Pair(),
 		Asset:             ev.GetAssetType(),
 		Exchange:          ev.GetExchange(),
 		Timestamp:         ev.GetTime(),
-		QuoteInitialFunds: funding.QuoteInitialFunds(),
-		QuoteSize:         funding.QuoteInitialFunds(),
-		BaseInitialFunds:  funding.BaseInitialFunds(),
-		BaseSize:          funding.BaseInitialFunds(),
+		QuoteInitialFunds: initialFunds,
+		QuoteSize:         initialFunds,
+		BaseInitialFunds:  initialFunds,
+		BaseSize:          initialFunds,
 		RiskFreeRate:      riskFreeRate,
-		TotalInitialValue: funding.BaseInitialFunds().Mul(funding.QuoteInitialFunds()).Add(funding.QuoteInitialFunds()),
+		TotalInitialValue: initialFunds,
 	}, nil
 }
 
 // Update calculates holding statistics for the events time
-func (h *Holding) Update(e fill.Event, f funding.IPairReader) {
+func (h *Holding) Update(e fill.Event) {
 	h.Timestamp = e.GetTime()
 	h.Offset = e.GetOffset()
-	h.update(e, f)
+	h.update(e)
 }
 
 // UpdateValue calculates the holding's value for a data event's time and price
@@ -56,15 +57,15 @@ func (h *Holding) HasFunds() bool {
 	return h.QuoteSize.GreaterThan(decimal.Zero)
 }
 
-func (h *Holding) update(e fill.Event, f funding.IPairReader) {
+func (h *Holding) update(e fill.Event) {
 	direction := e.GetDirection()
 	o := e.GetOrder()
 	if o != nil {
 		amount := decimal.NewFromFloat(o.Amount)
 		fee := decimal.NewFromFloat(o.Fee)
 		price := decimal.NewFromFloat(o.Price)
-		h.BaseSize = f.BaseAvailable()
-		h.QuoteSize = f.QuoteAvailable()
+		h.BaseSize = decimal.NewFromFloat(1000.0)  //f.BaseAvailable()
+		h.QuoteSize = decimal.NewFromFloat(1000.0) //f.QuoteAvailable()
 		h.BaseValue = h.BaseSize.Mul(price)
 		h.TotalFees = h.TotalFees.Add(fee)
 		switch direction {

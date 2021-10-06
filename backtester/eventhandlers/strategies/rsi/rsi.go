@@ -8,9 +8,9 @@ import (
 	"github.com/thrasher-corp/gct-ta/indicators"
 	"github.com/thrasher-corp/gocryptotrader/backtester/common"
 	"github.com/thrasher-corp/gocryptotrader/backtester/data"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/strategies/base"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/signal"
-	"github.com/thrasher-corp/gocryptotrader/backtester/funding"
 	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
@@ -46,11 +46,13 @@ func (s *Strategy) Description() string {
 // OnSignal handles a data event and returns what action the strategy believes should occur
 // For rsi, this means returning a buy signal when rsi is at or below a certain level, and a
 // sell signal when it is at or above a certain level
-func (s *Strategy) OnSignal(d data.Handler, _ funding.IFundTransferer) (signal.Event, error) {
+func (s *Strategy) OnSignal(d data.Handler, p portfolio.Handler) (signal.Event, error) {
+	// fmt.Printf("%s %s\n", d.Latest().GetTime(), d.Latest().ClosePrice())
 	if d == nil {
 		return nil, common.ErrNilEvent
 	}
 	es, err := s.GetBaseData(d)
+	es.SetStrategy("mystrategy")
 	if err != nil {
 		return nil, err
 	}
@@ -99,11 +101,11 @@ func (s *Strategy) SupportsSimultaneousProcessing() bool {
 
 // OnSimultaneousSignals analyses multiple data points simultaneously, allowing flexibility
 // in allowing a strategy to only place an order for X currency if Y currency's price is Z
-func (s *Strategy) OnSimultaneousSignals(d []data.Handler, _ funding.IFundTransferer) ([]signal.Event, error) {
+func (s *Strategy) OnSimultaneousSignals(d []data.Handler, p portfolio.Handler) ([]signal.Event, error) {
 	var resp []signal.Event
 	var errs gctcommon.Errors
 	for i := range d {
-		sigEvent, err := s.OnSignal(d[i], nil)
+		sigEvent, err := s.OnSignal(d[i], p)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("%v %v %v %w", d[i].Latest().GetExchange(), d[i].Latest().GetAssetType(), d[i].Latest().Pair(), err))
 		} else {

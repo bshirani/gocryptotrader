@@ -6,7 +6,6 @@ import (
 	"sort"
 	"time"
 
-	"github.com/shopspring/decimal"
 	"github.com/thrasher-corp/gocryptotrader/backtester/common"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/compliance"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/holdings"
@@ -14,7 +13,6 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/fill"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/order"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/signal"
-	"github.com/thrasher-corp/gocryptotrader/backtester/funding"
 	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
@@ -156,39 +154,39 @@ func (s *Statistic) AddComplianceSnapshotForTime(c compliance.Snapshot, e fill.E
 
 // CalculateAllResults calculates the statistics of all exchange asset pair holdings,
 // orders, ratios and drawdowns
-func (s *Statistic) CalculateAllResults(funds funding.IFundingManager) error {
+func (s *Statistic) CalculateAllResults() error {
 	log.Info(log.BackTester, "calculating backtesting results")
 	s.PrintAllEventsChronologically()
 	currCount := 0
 	var finalResults []FinalResultsHolder
 	var err error
-	var startDate, endDate time.Time
+	// var startDate, endDate time.Time
 	for exchangeName, exchangeMap := range s.ExchangeAssetPairStatistics {
 		for assetItem, assetMap := range exchangeMap {
 			for pair, stats := range assetMap {
 				currCount++
-				var f funding.IPairReader
+				// var f funding.IPairReader
 				last := stats.Events[len(stats.Events)-1]
-				startDate = stats.Events[0].DataEvent.GetTime()
-				endDate = last.DataEvent.GetTime()
-				var event common.EventHandler
-				switch {
-				case last.FillEvent != nil:
-					event = last.FillEvent
-				case last.SignalEvent != nil:
-					event = last.SignalEvent
-				default:
-					event = last.DataEvent
-				}
-				f, err = funds.GetFundingForEvent(event)
-				if err != nil {
-					return err
-				}
-				err = stats.CalculateResults(f)
+				// startDate = stats.Events[0].DataEvent.GetTime()
+				// endDate = last.DataEvent.GetTime()
+				// var event common.EventHandler
+				// switch {
+				// case last.FillEvent != nil:
+				// 	event = last.FillEvent
+				// case last.SignalEvent != nil:
+				// 	event = last.SignalEvent
+				// default:
+				// 	event = last.DataEvent
+				// }
+				// f, err = funds.GetFundingForEvent(event)
+				// if err != nil {
+				// 	return err
+				// }
+				err = stats.CalculateResults()
 				if err != nil {
 					log.Error(log.BackTester, err)
 				}
-				stats.PrintResults(exchangeName, assetItem, pair, f, funds.IsUsingExchangeLevelFunding())
+				stats.PrintResults(exchangeName, assetItem, pair, false)
 				stats.FinalHoldings = last.Holdings
 				stats.InitialHoldings = stats.Events[0].Holdings
 				stats.FinalOrders = last.Transactions
@@ -210,13 +208,13 @@ func (s *Statistic) CalculateAllResults(funds funding.IFundingManager) error {
 			}
 		}
 	}
-	s.Funding = funds.GenerateReport(startDate, endDate)
+	// s.Funding = funds.GenerateReport(startDate, endDate)
 	s.TotalOrders = s.TotalBuyOrders + s.TotalSellOrders
 	if currCount > 1 {
 		s.BiggestDrawdown = s.GetTheBiggestDrawdownAcrossCurrencies(finalResults)
 		s.BestMarketMovement = s.GetBestMarketPerformer(finalResults)
 		s.BestStrategyResults = s.GetBestStrategyPerformer(finalResults)
-		s.PrintTotalResults(funds.IsUsingExchangeLevelFunding())
+		s.PrintTotalResults(false)
 	}
 
 	return nil
@@ -228,31 +226,31 @@ func (s *Statistic) PrintTotalResults(isUsingExchangeLevelFunding bool) {
 	log.Infof(log.BackTester, "Strategy Name: %v", s.StrategyName)
 	log.Infof(log.BackTester, "Strategy Nickname: %v", s.StrategyNickname)
 	log.Infof(log.BackTester, "Strategy Goal: %v\n\n", s.StrategyGoal)
-	log.Info(log.BackTester, "------------------Funding------------------------------------")
-	for i := range s.Funding.Items {
-		log.Infof(log.BackTester, "Exchange: %v", s.Funding.Items[i].Exchange)
-		log.Infof(log.BackTester, "Asset: %v", s.Funding.Items[i].Asset)
-		log.Infof(log.BackTester, "Currency: %v", s.Funding.Items[i].Currency)
-		if !s.Funding.Items[i].PairedWith.IsEmpty() {
-			log.Infof(log.BackTester, "Paired with: %v", s.Funding.Items[i].PairedWith)
-		}
-		log.Infof(log.BackTester, "Initial funds: %v", s.Funding.Items[i].InitialFunds)
-		log.Infof(log.BackTester, "Initial funds in USD: $%v", s.Funding.Items[i].InitialFundsUSD)
-		log.Infof(log.BackTester, "Final funds: %v", s.Funding.Items[i].FinalFunds)
-		log.Infof(log.BackTester, "Final funds in USD: $%v", s.Funding.Items[i].FinalFundsUSD)
-		if s.Funding.Items[i].InitialFunds.IsZero() {
-			log.Info(log.BackTester, "Difference: ∞%")
-		} else {
-			log.Infof(log.BackTester, "Difference: %v%%", s.Funding.Items[i].Difference)
-		}
-		if s.Funding.Items[i].TransferFee.GreaterThan(decimal.Zero) {
-			log.Infof(log.BackTester, "Transfer fee: %v", s.Funding.Items[i].TransferFee)
-		}
-		log.Info(log.BackTester, "")
-	}
-	log.Infof(log.BackTester, "Initial total funds in USD: $%v", s.Funding.InitialTotalUSD)
-	log.Infof(log.BackTester, "Final total funds in USD: $%v", s.Funding.FinalTotalUSD)
-	log.Infof(log.BackTester, "Difference: %v%%\n", s.Funding.Difference)
+	// log.Info(log.BackTester, "------------------Funding------------------------------------")
+	// for i := range s.Funding.Items {
+	// 	log.Infof(log.BackTester, "Exchange: %v", s.Funding.Items[i].Exchange)
+	// 	log.Infof(log.BackTester, "Asset: %v", s.Funding.Items[i].Asset)
+	// 	log.Infof(log.BackTester, "Currency: %v", s.Funding.Items[i].Currency)
+	// 	if !s.Funding.Items[i].PairedWith.IsEmpty() {
+	// 		log.Infof(log.BackTester, "Paired with: %v", s.Funding.Items[i].PairedWith)
+	// 	}
+	// 	log.Infof(log.BackTester, "Initial funds: %v", s.Funding.Items[i].InitialFunds)
+	// 	log.Infof(log.BackTester, "Initial funds in USD: $%v", s.Funding.Items[i].InitialFundsUSD)
+	// 	log.Infof(log.BackTester, "Final funds: %v", s.Funding.Items[i].FinalFunds)
+	// 	log.Infof(log.BackTester, "Final funds in USD: $%v", s.Funding.Items[i].FinalFundsUSD)
+	// 	if s.Funding.Items[i].InitialFunds.IsZero() {
+	// 		log.Info(log.BackTester, "Difference: ∞%")
+	// 	} else {
+	// 		log.Infof(log.BackTester, "Difference: %v%%", s.Funding.Items[i].Difference)
+	// 	}
+	// 	if s.Funding.Items[i].TransferFee.GreaterThan(decimal.Zero) {
+	// 		log.Infof(log.BackTester, "Transfer fee: %v", s.Funding.Items[i].TransferFee)
+	// 	}
+	// 	log.Info(log.BackTester, "")
+	// }
+	// log.Infof(log.BackTester, "Initial total funds in USD: $%v", s.Funding.InitialTotalUSD)
+	// log.Infof(log.BackTester, "Final total funds in USD: $%v", s.Funding.FinalTotalUSD)
+	// log.Infof(log.BackTester, "Difference: %v%%\n", s.Funding.Difference)
 
 	log.Info(log.BackTester, "------------------Total Results------------------------------")
 	log.Info(log.BackTester, "------------------Orders-------------------------------------")

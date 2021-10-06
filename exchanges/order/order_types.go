@@ -56,6 +56,7 @@ type Submit struct {
 	Side              Side
 	Status            Status
 	AssetType         asset.Item
+	Strategy          string
 	Date              time.Time
 	LastUpdated       time.Time
 	Pair              currency.Pair
@@ -138,6 +139,7 @@ type Detail struct {
 	FeeAsset             currency.Code
 	Exchange             string
 	InternalOrderID      string
+	Strategy             string
 	ID                   string
 	ClientOrderID        string
 	AccountID            string

@@ -21,6 +21,16 @@ func (s *Signal) GetDirection() order.Side {
 	return s.Direction
 }
 
+// SetStrategy sets the direction
+func (s *Signal) SetStrategy(name string) {
+	s.Strategy = name
+}
+
+// GetStrategy returns the direction
+func (s *Signal) GetStrategy() string {
+	return s.Strategy
+}
+
 // SetBuyLimit sets the buy limit
 func (s *Signal) SetBuyLimit(f decimal.Decimal) {
 	s.BuyLimit = f

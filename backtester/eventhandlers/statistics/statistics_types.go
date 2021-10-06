@@ -10,7 +10,6 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/holdings"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/statistics/currencystatistics"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/fill"
-	"github.com/thrasher-corp/gocryptotrader/backtester/funding"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	gctorder "github.com/thrasher-corp/gocryptotrader/exchanges/order"
@@ -40,7 +39,6 @@ type Statistic struct {
 	BestMarketMovement          *FinalResultsHolder                                                               `json:"best-market-movement,omitempty"`
 	AllStats                    []currencystatistics.CurrencyStatistic                                            `json:"results"` // as ExchangeAssetPairStatistics cannot be rendered via json.Marshall, we append all result to this slice instead
 	WasAnyDataMissing           bool                                                                              `json:"was-any-data-missing"`
-	Funding                     *funding.Report                                                                   `json:"funding"`
 }
 
 // FinalResultsHolder holds important stats about a currency's performance
@@ -60,7 +58,7 @@ type Handler interface {
 	SetEventForOffset(common.EventHandler) error
 	AddHoldingsForTime(*holdings.Holding) error
 	AddComplianceSnapshotForTime(compliance.Snapshot, fill.Event) error
-	CalculateAllResults(funding.IFundingManager) error
+	CalculateAllResults() error
 	Reset()
 	Serialise() (string, error)
 }

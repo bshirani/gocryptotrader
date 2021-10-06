@@ -14,6 +14,7 @@ import (
 type Base struct {
 	Offset       int64          `json:"-"`
 	Exchange     string         `json:"exchange"`
+	Strategy     string         `json:"strategy"`
 	Time         time.Time      `json:"timestamp"`
 	Interval     kline.Interval `json:"interval-size"`
 	CurrencyPair currency.Pair  `json:"pair"`

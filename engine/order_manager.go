@@ -516,7 +516,7 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 	if newOrder.Date.IsZero() {
 		newOrder.Date = time.Now()
 	}
-	msg := fmt.Sprintf("Order manager: Exchange %s submitted order ID=%v [Ours: %v] pair=%v price=%v amount=%v side=%v type=%v for time %v.",
+	msg := fmt.Sprintf("Order manager: Strategy %s Exchange %s submitted order ID=%v [Ours: %v] pair=%v price=%v amount=%v side=%v type=%v for time %v.",
 		newOrder.Exchange,
 		result.OrderID,
 		id.String(),
@@ -525,7 +525,8 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 		newOrder.Amount,
 		newOrder.Side,
 		newOrder.Type,
-		newOrder.Date)
+		newOrder.Date,
+		newOrder.Strategy)
 
 	log.Debugln(log.OrderMgr, msg)
 	m.orderStore.commsManager.PushEvent(base.Event{
@@ -789,10 +790,10 @@ func (m *OrderManager) UpsertOrder(od *order.Detail) (resp *OrderUpsertResponse,
 	if upsertResponse.IsNewOrder {
 		status = "added"
 	}
-	msg = fmt.Sprintf("Order manager: Exchange %s %s order ID=%v internal ID=%v pair=%v price=%.8f amount=%.8f side=%v type=%v status=%v.",
+	msg = fmt.Sprintf("Order manager: Exchange !!! %s %s order ID=%v internal ID=%v pair=%v price=%.8f amount=%.8f side=%v type=%v status=%v strategy=%s.",
 		upsertResponse.OrderDetails.Exchange, status, upsertResponse.OrderDetails.ID, upsertResponse.OrderDetails.InternalOrderID,
 		upsertResponse.OrderDetails.Pair, upsertResponse.OrderDetails.Price, upsertResponse.OrderDetails.Amount,
-		upsertResponse.OrderDetails.Side, upsertResponse.OrderDetails.Type, upsertResponse.OrderDetails.Status)
+		upsertResponse.OrderDetails.Side, upsertResponse.OrderDetails.Type, upsertResponse.OrderDetails.Status, upsertResponse.OrderDetails.Strategy)
 	if upsertResponse.IsNewOrder {
 		log.Info(log.OrderMgr, msg)
 		return upsertResponse, nil

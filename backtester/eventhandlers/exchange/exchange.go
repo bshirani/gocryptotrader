@@ -13,7 +13,6 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/event"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/fill"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/order"
-	"github.com/thrasher-corp/gocryptotrader/backtester/funding"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/engine"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
@@ -28,7 +27,7 @@ func (e *Exchange) Reset() {
 
 // ExecuteOrder assesses the portfolio manager's order event and if it passes validation
 // will send an order to the exchange/fake order manager to be stored and raise a fill event
-func (e *Exchange) ExecuteOrder(o order.Event, data data.Handler, bot *engine.Engine, funds funding.IPairReleaser) (*fill.Fill, error) {
+func (e *Exchange) ExecuteOrder(o order.Event, data data.Handler, bot *engine.Engine) (*fill.Fill, error) {
 	f := &fill.Fill{
 		Base: event.Base{
 			Offset:       o.GetOffset(),
@@ -39,10 +38,12 @@ func (e *Exchange) ExecuteOrder(o order.Event, data data.Handler, bot *engine.En
 			Interval:     o.GetInterval(),
 			Reason:       o.GetReason(),
 		},
+		Strategy:   o.GetStrategy(),
 		Direction:  o.GetDirection(),
 		Amount:     o.GetAmount(),
 		ClosePrice: data.Latest().ClosePrice(),
 	}
+
 	eventFunds := o.GetAllocatedFunds()
 	cs, err := e.GetCurrencySettings(o.GetExchange(), o.GetAssetType(), o.Pair())
 	if err != nil {
@@ -113,30 +114,12 @@ func (e *Exchange) ExecuteOrder(o order.Event, data data.Handler, bot *engine.En
 
 	orderID, err := e.placeOrder(context.TODO(), adjustedPrice, limitReducedAmount, cs.UseRealOrders, cs.CanUseExchangeLimits, f, bot)
 	if err != nil {
-		fundErr := funds.Release(eventFunds, eventFunds, f.GetDirection())
-		if fundErr != nil {
-			f.AppendReason(fundErr.Error())
-		}
 		if f.GetDirection() == gctorder.Buy {
 			f.SetDirection(common.CouldNotBuy)
 		} else if f.GetDirection() == gctorder.Sell {
 			f.SetDirection(common.CouldNotSell)
 		}
 		return f, err
-	}
-	switch f.GetDirection() {
-	case gctorder.Buy:
-		err = funds.Release(eventFunds, eventFunds.Sub(limitReducedAmount.Mul(adjustedPrice)), f.GetDirection())
-		if err != nil {
-			return f, err
-		}
-		funds.IncreaseAvailable(limitReducedAmount, f.GetDirection())
-	case gctorder.Sell:
-		err = funds.Release(eventFunds, eventFunds.Sub(limitReducedAmount), f.GetDirection())
-		if err != nil {
-			return f, err
-		}
-		funds.IncreaseAvailable(limitReducedAmount.Mul(adjustedPrice), f.GetDirection())
 	}
 
 	ords, _ := bot.OrderManager.GetOrdersSnapshot("")
@@ -245,6 +228,7 @@ func (e *Exchange) placeOrder(ctx context.Context, price, amount decimal.Decimal
 		LastUpdated: f.GetTime(),
 		Pair:        f.Pair(),
 		Type:        gctorder.Market,
+		Strategy:    f.Strategy,
 	}
 
 	if useRealOrders {

@@ -8,8 +8,6 @@ import (
 	"strings"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/strategies"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/strategies/base"
 	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/common/file"
 	"github.com/thrasher-corp/gocryptotrader/log"
@@ -52,18 +50,6 @@ func (c *Config) PrintSetting() {
 		log.Info(log.BackTester, "Custom strategy variables: unset")
 	}
 	log.Infof(log.BackTester, "Simultaneous Signal Processing: %v", c.StrategySettings.SimultaneousSignalProcessing)
-	log.Infof(log.BackTester, "Use Exchange Level Funding: %v", c.StrategySettings.UseExchangeLevelFunding)
-	if c.StrategySettings.UseExchangeLevelFunding && c.StrategySettings.SimultaneousSignalProcessing {
-		log.Info(log.BackTester, "-------------------------------------------------------------")
-		log.Info(log.BackTester, "------------------Funding Settings---------------------------")
-		for i := range c.StrategySettings.ExchangeLevelFunding {
-			log.Infof(log.BackTester, "Initial funds for %v %v %v: %v",
-				c.StrategySettings.ExchangeLevelFunding[i].ExchangeName,
-				c.StrategySettings.ExchangeLevelFunding[i].Asset,
-				c.StrategySettings.ExchangeLevelFunding[i].Currency,
-				c.StrategySettings.ExchangeLevelFunding[i].InitialFunds.Round(8))
-		}
-	}
 
 	for i := range c.CurrencySettings {
 		log.Info(log.BackTester, "-------------------------------------------------------------")
@@ -74,22 +60,6 @@ func (c *Config) PrintSetting() {
 		log.Infof(log.BackTester, currStr[:61])
 		log.Info(log.BackTester, "-------------------------------------------------------------")
 		log.Infof(log.BackTester, "Exchange: %v", c.CurrencySettings[i].ExchangeName)
-		if !c.StrategySettings.UseExchangeLevelFunding {
-			if c.CurrencySettings[i].InitialBaseFunds != nil {
-				log.Infof(log.BackTester, "Initial base funds: %v %v",
-					c.CurrencySettings[i].InitialBaseFunds.Round(8),
-					c.CurrencySettings[i].Base)
-			}
-			if c.CurrencySettings[i].InitialQuoteFunds != nil {
-				log.Infof(log.BackTester, "Initial quote funds: %v %v",
-					c.CurrencySettings[i].InitialQuoteFunds.Round(8),
-					c.CurrencySettings[i].Quote)
-			}
-		}
-		log.Infof(log.BackTester, "Maker fee: %v", c.CurrencySettings[i].TakerFee.Round(8))
-		log.Infof(log.BackTester, "Taker fee: %v", c.CurrencySettings[i].MakerFee.Round(8))
-		log.Infof(log.BackTester, "Minimum slippage percent %v", c.CurrencySettings[i].MinimumSlippagePercent.Round(8))
-		log.Infof(log.BackTester, "Maximum slippage percent: %v", c.CurrencySettings[i].MaximumSlippagePercent.Round(8))
 		log.Infof(log.BackTester, "Buy rules: %+v", c.CurrencySettings[i].BuySide)
 		log.Infof(log.BackTester, "Sell rules: %+v", c.CurrencySettings[i].SellSide)
 		log.Infof(log.BackTester, "Leverage rules: %+v", c.CurrencySettings[i].Leverage)
@@ -227,14 +197,15 @@ func (c *Config) validateStrategySettings() error {
 			}
 		}
 	}
-	strats := strategies.GetStrategies()
-	for i := range strats {
-		if strings.EqualFold(strats[i].Name(), c.StrategySettings.Name) {
-			return nil
-		}
-	}
+	// strats := strategies.GetStrategies()
+	// for i := range strats {
+	// 	if strings.EqualFold(strats[i].Name(), c.StrategySettings.Name) {
+	// 		return nil
+	// 	}
+	// }
 
-	return fmt.Errorf("strategty %v %w", c.StrategySettings.Name, base.ErrStrategyNotFound)
+	return nil
+	// return fmt.Errorf("non-nil quote %w", errBadInitialFunds)
 }
 
 // validateDate checks whether someone has set a date poorly in their config
