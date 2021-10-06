@@ -114,16 +114,11 @@ Linux:
 ```shell script
 sqlboiler -o database/models/postgres -p postgres --no-auto-timestamps --wipe psql
 ```
-Windows:
-```sh
-sqlboiler -o database\\models\\postgres -p postgres --no-auto-timestamps --wipe psql
-```
 
 Helpers have been provided in the Makefile for linux users
 ```
 make gen_db_models
 ```
-And in the contrib/sqlboiler.cmd for windows users
 
 ##### Adding a Repository
 + Create Repository directory in github.com/thrasher-corp/gocryptotrader/database/repository/
@@ -131,5 +126,3 @@ And in the contrib/sqlboiler.cmd for windows users
 
 ##### DBSeed helper
 A helper tool [cmd/dbseed](../cmd/dbseed/README.md) has been created for assisting with data migration
-
-

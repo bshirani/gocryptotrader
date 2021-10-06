@@ -511,10 +511,10 @@ func (bt *BackTest) loadData(cfg *config.Config, exch gctexchange.IBotExchange, 
 		return nil, err
 	}
 
-	log.Infof(log.BackTester, "loading data for %v %v %v...\n", exch.GetName(), a, fPair)
 	resp := &kline.DataFromKline{}
 	switch {
 	case cfg.DataSettings.CSVData != nil:
+		log.Infof(log.BackTester, "loading csv data for %v %v %v...\n", exch.GetName(), a, fPair)
 		if cfg.DataSettings.Interval <= 0 {
 			return nil, errIntervalUnset
 		}
@@ -545,6 +545,7 @@ func (bt *BackTest) loadData(cfg *config.Config, exch gctexchange.IBotExchange, 
 			log.Warnf(log.BackTester, "%v", summary)
 		}
 	case cfg.DataSettings.DatabaseData != nil:
+		log.Infof(log.BackTester, "loading db data for %v %v %v...\n", exch.GetName(), a, fPair)
 		if cfg.DataSettings.DatabaseData.InclusiveEndDate {
 			cfg.DataSettings.DatabaseData.EndDate = cfg.DataSettings.DatabaseData.EndDate.Add(cfg.DataSettings.Interval)
 		}
@@ -593,6 +594,7 @@ func (bt *BackTest) loadData(cfg *config.Config, exch gctexchange.IBotExchange, 
 			log.Warnf(log.BackTester, "%v", summary)
 		}
 	case cfg.DataSettings.APIData != nil:
+		log.Infof(log.BackTester, "loading api data for %v %v %v...\n", exch.GetName(), a, fPair)
 		if cfg.DataSettings.APIData.InclusiveEndDate {
 			cfg.DataSettings.APIData.EndDate = cfg.DataSettings.APIData.EndDate.Add(cfg.DataSettings.Interval)
 		}

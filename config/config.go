@@ -294,6 +294,7 @@ func (c *Config) CheckCommunicationsConfig() {
 		c.Communications.TelegramConfig = base.TelegramConfig{
 			Name:              "Telegram",
 			VerificationToken: "testest",
+			AuthorisedClients: 2,
 		}
 	}
 

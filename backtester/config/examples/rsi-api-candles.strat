@@ -13,10 +13,10 @@
  },
  "currency-settings": [
   {
-   "exchange-name": "binance",
+   "exchange-name": "kraken",
    "asset": "spot",
-   "base": "BTC",
-   "quote": "USDT",
+   "base": "XBT",
+   "quote": "USD",
    "initial-quote-funds": "100000",
    "leverage": {
     "can-use-leverage": false,
@@ -45,10 +45,22 @@
  "data-settings": {
   "interval": 60000000000,
   "data-type": "candle",
-  "api-data": {
-   "start-date": "2020-01-01T00:00:00+10:00",
-   "end-date": "2020-01-02T00:00:00+11:00",
-   "inclusive-end-date": false
+  "database-data": {
+   "start-date": "2020-08-01T00:00:00+10:00",
+   "end-date": "2020-12-01T00:00:00+11:00",
+   "config-override": {
+    "enabled": true,
+    "verbose": false,
+    "driver": "sqlite",
+    "connectionDetails": {
+     "host": "localhost",
+     "port": 0,
+     "username": "",
+     "password": "",
+     "database": "XBTUSD.db",
+     "sslmode": ""
+    }
+   }
   }
  },
  "portfolio-settings": {

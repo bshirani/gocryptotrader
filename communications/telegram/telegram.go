@@ -52,7 +52,7 @@ type Telegram struct {
 	initConnected     bool
 	Token             string
 	Offset            int64
-	AuthorisedClients []int64
+	AuthorisedClients int64
 }
 
 // IsConnected returns whether or not the connection is connected
@@ -64,6 +64,7 @@ func (t *Telegram) Setup(cfg *base.CommunicationsConfig) {
 	t.Enabled = cfg.TelegramConfig.Enabled
 	t.Token = cfg.TelegramConfig.VerificationToken
 	t.Verbose = cfg.TelegramConfig.Verbose
+	t.AuthorisedClients = cfg.TelegramConfig.AuthorisedClients
 }
 
 // Connect starts an initial connection
@@ -82,11 +83,9 @@ func (t *Telegram) Connect() error {
 func (t *Telegram) PushEvent(event base.Event) error {
 	msg := fmt.Sprintf("Type: %s Message: %s",
 		event.Type, event.Message)
-	for i := range t.AuthorisedClients {
-		err := t.SendMessage(msg, t.AuthorisedClients[i])
-		if err != nil {
-			return err
-		}
+	err := t.SendMessage(msg, 1172801516)
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -141,19 +140,20 @@ func (t *Telegram) InitialConnect() error {
 		return errors.New(resp.Description)
 	}
 
-	warmWelcomeList := make(map[string]int64)
-	for i := range resp.Result {
-		if resp.Result[i].Message.From.ID != 0 {
-			warmWelcomeList[resp.Result[i].Message.From.UserName] = resp.Result[i].Message.From.ID
-		}
-	}
+	// warmWelcomeList := make(map[string]int64)
+	// for i := range resp.Result {
+	// 	if resp.Result[i].Message.From.ID != 0 {
+	// 		warmWelcomeList[resp.Result[i].Message.From.UserName] = resp.Result[i].Message.From.ID
+	// 	}
+	// }
 
-	for userName, ID := range warmWelcomeList {
-		err = t.SendMessage(fmt.Sprintf("GoCryptoTrader bot has connected: Hello, %s!", userName), ID)
-		if err != nil {
-			log.Errorf(log.CommunicationMgr, "Telegram: Unable to send welcome message. Error: %s\n", err)
-			continue
-		}
+	// for userName, ID := range warmWelcomeList {
+	// continue
+	// }
+
+	err = t.SendMessage(fmt.Sprintf("bot start"), 1172801516)
+	if err != nil {
+		log.Errorf(log.CommunicationMgr, "Telegram: Unable to send welcome message. Error: %s\n", err)
 	}
 
 	if len(resp.Result) == 0 {
