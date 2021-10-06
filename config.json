@@ -207,6 +207,10 @@
    "grpcProxyListenAddress": "localhost:9053",
    "timeInNanoSeconds": false
   },
+  "deprecatedRPC": {
+   "enabled": false,
+   "listenAddress": ""
+  },
   "websocketRPC": {
    "enabled": true,
    "listenAddress": "localhost:9051",

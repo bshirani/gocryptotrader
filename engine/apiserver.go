@@ -154,39 +154,6 @@ func (m *apiServerManager) newRouter(isREST bool) *mux.Router {
 	return router
 }
 
-// StartRESTServer starts a REST handler
-func (m *apiServerManager) StartRESTServer() error {
-	if !atomic.CompareAndSwapInt32(&m.restStarted, 0, 1) {
-		return fmt.Errorf("rest server %w", errAlreadyRunning)
-	}
-	if !m.remoteConfig.DeprecatedRPC.Enabled {
-		atomic.StoreInt32(&m.restStarted, 0)
-		return fmt.Errorf("rest %w", errServerDisabled)
-	}
-	log.Debugf(log.RESTSys,
-		"Deprecated RPC handler support enabled. Listen URL: http://%s:%d\n",
-		common.ExtractHost(m.restListenAddress), common.ExtractPort(m.restListenAddress))
-	m.restRouter = m.newRouter(true)
-	if m.restHTTPServer == nil {
-		m.restHTTPServer = &http.Server{
-			Addr:    m.restListenAddress,
-			Handler: m.restRouter,
-		}
-	}
-	m.wgRest.Add(1)
-	go func() {
-		defer m.wgRest.Done()
-		err := m.restHTTPServer.ListenAndServe()
-		if err != nil {
-			atomic.StoreInt32(&m.restStarted, 0)
-			if !errors.Is(err, http.ErrServerClosed) {
-				log.Error(log.APIServerMgr, err)
-			}
-		}
-	}()
-	return nil
-}
-
 // restLogger logs the requests internally
 func restLogger(inner http.Handler, name string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
