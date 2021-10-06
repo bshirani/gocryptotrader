@@ -104,6 +104,7 @@ func (m *CommunicationManager) run() {
 	}()
 
 	for {
+		fmt.Println("checking comm manager")
 		select {
 		case msg := <-m.relayMsg:
 			m.comms.PushEvent(msg)

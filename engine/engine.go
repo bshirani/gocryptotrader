@@ -501,6 +501,13 @@ func (bot *Engine) Start() error {
 		}()
 	}
 
+	// my codt
+	worker := NewWorker(
+		30*time.Second,
+		bot.CommunicationsManager)
+	go worker.Run()
+	// end my code
+
 	if bot.Settings.EnableOrderManager {
 		bot.OrderManager, err = SetupOrderManager(
 			bot.ExchangeManager,
