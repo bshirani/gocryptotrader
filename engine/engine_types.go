@@ -25,7 +25,6 @@ type Settings struct {
 	EnableGRPC                  bool
 	EnableGRPCProxy             bool
 	EnableWebsocketRPC          bool
-	EnableDeprecatedRPC         bool
 	EnableCommsRelayer          bool
 	EnableExchangeSyncManager   bool
 	EnableDepositAddressManager bool

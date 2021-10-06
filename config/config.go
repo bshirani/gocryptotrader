@@ -11,7 +11,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"strconv"
 	"strings"
 	"time"
 
@@ -1710,49 +1709,6 @@ func (c *Config) Save(writerProvider func() (io.Writer, error), keyProvider func
 	return err
 }
 
-// CheckRemoteControlConfig checks to see if the old c.Webserver field is used
-// and migrates the existing settings to the new RemoteControl struct
-func (c *Config) CheckRemoteControlConfig() {
-	m.Lock()
-	defer m.Unlock()
-
-	if c.Webserver != nil {
-		port := common.ExtractPort(c.Webserver.ListenAddress)
-		host := common.ExtractHost(c.Webserver.ListenAddress)
-
-		c.RemoteControl = RemoteControlConfig{
-			Username: c.Webserver.AdminUsername,
-			Password: c.Webserver.AdminPassword,
-
-			DeprecatedRPC: DepcrecatedRPCConfig{
-				Enabled:       c.Webserver.Enabled,
-				ListenAddress: host + ":" + strconv.Itoa(port),
-			},
-		}
-
-		port++
-		c.RemoteControl.WebsocketRPC = WebsocketRPCConfig{
-			Enabled:             c.Webserver.Enabled,
-			ListenAddress:       host + ":" + strconv.Itoa(port),
-			ConnectionLimit:     c.Webserver.WebsocketConnectionLimit,
-			MaxAuthFailures:     c.Webserver.WebsocketMaxAuthFailures,
-			AllowInsecureOrigin: c.Webserver.WebsocketAllowInsecureOrigin,
-		}
-
-		port++
-		gRPCProxyPort := port + 1
-		c.RemoteControl.GRPC = GRPCConfig{
-			Enabled:                c.Webserver.Enabled,
-			ListenAddress:          host + ":" + strconv.Itoa(port),
-			GRPCProxyEnabled:       c.Webserver.Enabled,
-			GRPCProxyListenAddress: host + ":" + strconv.Itoa(gRPCProxyPort),
-		}
-
-		// Then flush the old webserver settings
-		c.Webserver = nil
-	}
-}
-
 // CheckConfig checks all config settings
 func (c *Config) CheckConfig() error {
 	err := c.CheckLoggerConfig()
@@ -1787,7 +1743,6 @@ func (c *Config) CheckConfig() error {
 	c.CheckCommunicationsConfig()
 	c.CheckClientBankAccounts()
 	c.CheckBankAccountConfig()
-	c.CheckRemoteControlConfig()
 
 	err = c.CheckCurrencyConfigValues()
 	if err != nil {

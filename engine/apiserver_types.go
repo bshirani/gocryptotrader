@@ -17,7 +17,6 @@ import (
 const (
 	WebsocketResponseSuccess = "OK"
 	restIndexResponse        = "<html>GoCryptoTrader RESTful interface. For the web GUI, please visit the <a href=https://github.com/thrasher-corp/gocryptotrader/blob/master/web/README.md>web GUI readme.</a></html>"
-	DeprecatedName           = "deprecated_rpc"
 	WebsocketName            = "websocket_rpc"
 )
 

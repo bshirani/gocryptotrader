@@ -55,7 +55,6 @@ func (bot *Engine) GetSubsystemsStatus() map[string]bool {
 		grpcName:                      bot.Settings.EnableGRPC,
 		grpcProxyName:                 bot.Settings.EnableGRPCProxy,
 		vm.Name:                       bot.gctScriptManager.IsRunning(),
-		DeprecatedName:                bot.Settings.EnableDeprecatedRPC,
 		WebsocketName:                 bot.Settings.EnableWebsocketRPC,
 		dispatch.Name:                 dispatch.IsRunning(),
 		dataHistoryManagerName:        bot.dataHistoryManager.IsRunning(),
@@ -82,10 +81,6 @@ func (bot *Engine) GetRPCEndpoints() (map[string]RPCEndpoint, error) {
 		grpcProxyName: {
 			Started:    bot.Settings.EnableGRPCProxy,
 			ListenAddr: "http://" + bot.Config.RemoteControl.GRPC.GRPCProxyListenAddress,
-		},
-		DeprecatedName: {
-			Started:    bot.Settings.EnableDeprecatedRPC,
-			ListenAddr: "http://" + bot.Config.RemoteControl.DeprecatedRPC.ListenAddress,
 		},
 		WebsocketName: {
 			Started:    bot.Settings.EnableWebsocketRPC,
@@ -147,7 +142,7 @@ func (bot *Engine) SetSubsystem(subSystemName string, enable bool) error {
 	case PortfolioManagerName:
 		if enable {
 			if bot.portfolioManager == nil {
-				bot.portfolioManager, err = setupPortfolioManager(bot.ExchangeManager, bot.Settings.PortfolioManagerDelay, &bot.Config.Portfolio)
+				bot.portfolioManager, err = setupPortfolioManager(bot.ExchangeManager, bot.Settings.PortfolioManagerDelay, &bot.Config.Portfolio, bot.CommunicationsManager)
 				if err != nil {
 					return err
 				}
@@ -209,22 +204,6 @@ func (bot *Engine) SetSubsystem(subSystemName string, enable bool) error {
 			return dispatch.Start(bot.Settings.DispatchMaxWorkerAmount, bot.Settings.DispatchJobsLimit)
 		}
 		return dispatch.Stop()
-	case DeprecatedName:
-		if enable {
-			if bot.apiServer == nil {
-				var filePath string
-				filePath, err = config.GetAndMigrateDefaultPath(bot.Settings.ConfigFile)
-				if err != nil {
-					return err
-				}
-				bot.apiServer, err = setupAPIServerManager(&bot.Config.RemoteControl, &bot.Config.Profiler, bot.ExchangeManager, bot, bot.portfolioManager, filePath)
-				if err != nil {
-					return err
-				}
-			}
-			return bot.apiServer.StartRESTServer()
-		}
-		return bot.apiServer.StopRESTServer()
 	case WebsocketName:
 		if enable {
 			if bot.apiServer == nil {

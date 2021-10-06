@@ -67,7 +67,7 @@
   "mutex_profile_fraction": 0
  },
  "ntpclient": {
-  "enabled": -1,
+  "enabled": 1,
   "pool": [
    "pool.ntp.org:123"
   ],
@@ -206,10 +206,6 @@
    "grpcProxyEnabled": false,
    "grpcProxyListenAddress": "localhost:9053",
    "timeInNanoSeconds": false
-  },
-  "deprecatedRPC": {
-   "enabled": true,
-   "listenAddress": "localhost:9050"
   },
   "websocketRPC": {
    "enabled": true,

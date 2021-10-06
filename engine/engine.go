@@ -171,10 +171,6 @@ func validateSettings(b *Engine, s *Settings, flagSet map[string]bool) {
 		b.Settings.EnableWebsocketRPC = b.Config.RemoteControl.WebsocketRPC.Enabled
 	}
 
-	if !flagSet["deprecatedrpc"] {
-		b.Settings.EnableDeprecatedRPC = b.Config.RemoteControl.DeprecatedRPC.Enabled
-	}
-
 	if flagSet["maxvirtualmachines"] {
 		maxMachines := uint8(b.Settings.MaxVirtualMachines)
 		b.gctScriptManager.MaxVirtualMachines = &maxMachines
@@ -252,7 +248,6 @@ func PrintSettings(s *Settings) {
 	gctlog.Debugf(gctlog.Global, "\t Enable gPRC: %v", s.EnableGRPC)
 	gctlog.Debugf(gctlog.Global, "\t Enable gRPC Proxy: %v", s.EnableGRPCProxy)
 	gctlog.Debugf(gctlog.Global, "\t Enable websocket RPC: %v", s.EnableWebsocketRPC)
-	gctlog.Debugf(gctlog.Global, "\t Enable deprecated RPC: %v", s.EnableDeprecatedRPC)
 	gctlog.Debugf(gctlog.Global, "\t Enable comms relayer: %v", s.EnableCommsRelayer)
 	gctlog.Debugf(gctlog.Global, "\t Enable event manager: %v", s.EnableEventManager)
 	gctlog.Debugf(gctlog.Global, "\t Event manager sleep delay: %v", s.EventManagerDelay)
@@ -435,7 +430,11 @@ func (bot *Engine) Start() error {
 
 	if bot.Settings.EnablePortfolioManager {
 		if bot.portfolioManager == nil {
-			bot.portfolioManager, err = setupPortfolioManager(bot.ExchangeManager, bot.Settings.PortfolioManagerDelay, &bot.Config.Portfolio)
+			bot.portfolioManager, err = setupPortfolioManager(
+				bot.ExchangeManager,
+				bot.Settings.PortfolioManagerDelay,
+				&bot.Config.Portfolio,
+				bot.CommunicationsManager)
 			if err != nil {
 				gctlog.Errorf(gctlog.Global, "portfolio manager unable to setup: %s", err)
 			} else {
@@ -466,7 +465,7 @@ func (bot *Engine) Start() error {
 		return err
 	}
 
-	if bot.Settings.EnableDeprecatedRPC || bot.Settings.EnableWebsocketRPC {
+	if bot.Settings.EnableWebsocketRPC {
 		var filePath string
 		filePath, err = config.GetAndMigrateDefaultPath(bot.Settings.ConfigFile)
 		if err != nil {
@@ -476,12 +475,6 @@ func (bot *Engine) Start() error {
 		if err != nil {
 			gctlog.Errorf(gctlog.Global, "API Server unable to start: %s", err)
 		} else {
-			if bot.Settings.EnableDeprecatedRPC {
-				err = bot.apiServer.StartRESTServer()
-				if err != nil {
-					gctlog.Errorf(gctlog.Global, "could not start REST API server: %s", err)
-				}
-			}
 			if bot.Settings.EnableWebsocketRPC {
 				err = bot.apiServer.StartWebsocketServer()
 				if err != nil {
@@ -502,10 +495,10 @@ func (bot *Engine) Start() error {
 	}
 
 	// my codt
-	worker := NewWorker(
-		30*time.Second,
-		bot.CommunicationsManager)
-	go worker.Run()
+	// worker := NewWorker(
+	// 	30*time.Second,
+	// 	bot.CommunicationsManager)
+	// go worker.Run()
 	// end my code
 
 	if bot.Settings.EnableOrderManager {

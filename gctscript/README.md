@@ -1,7 +1,3 @@
-# GoCryptoTrader package gctscript
-
-This gctscript package is part of the GoCryptoTrader codebase.
-
 ## Current Features for gctscript package
 
 + Execute scripts

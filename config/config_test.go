@@ -1868,44 +1868,6 @@ func TestGetFilePath(t *testing.T) {
 	}
 }
 
-func TestCheckRemoteControlConfig(t *testing.T) {
-	t.Parallel()
-
-	var c Config
-	c.Webserver = &WebserverConfig{
-		Enabled:                      true,
-		AdminUsername:                "satoshi",
-		AdminPassword:                "ultrasecurepassword",
-		ListenAddress:                ":9050",
-		WebsocketConnectionLimit:     5,
-		WebsocketMaxAuthFailures:     10,
-		WebsocketAllowInsecureOrigin: true,
-	}
-
-	c.CheckRemoteControlConfig()
-
-	if c.RemoteControl.Username != "satoshi" ||
-		c.RemoteControl.Password != "ultrasecurepassword" ||
-		!c.RemoteControl.GRPC.Enabled ||
-		c.RemoteControl.GRPC.ListenAddress != "localhost:9052" ||
-		!c.RemoteControl.GRPC.GRPCProxyEnabled ||
-		c.RemoteControl.GRPC.GRPCProxyListenAddress != "localhost:9053" ||
-		!c.RemoteControl.DeprecatedRPC.Enabled ||
-		c.RemoteControl.DeprecatedRPC.ListenAddress != "localhost:9050" ||
-		!c.RemoteControl.WebsocketRPC.Enabled ||
-		c.RemoteControl.WebsocketRPC.ListenAddress != "localhost:9051" ||
-		!c.RemoteControl.WebsocketRPC.AllowInsecureOrigin ||
-		c.RemoteControl.WebsocketRPC.ConnectionLimit != 5 ||
-		c.RemoteControl.WebsocketRPC.MaxAuthFailures != 10 {
-		t.Error("unexpected results")
-	}
-
-	// Now test to ensure the previous settings are flushed
-	if c.Webserver != nil {
-		t.Error("old webserver settings should be nil")
-	}
-}
-
 func TestCheckConfig(t *testing.T) {
 	t.Parallel()
 	cp1 := currency.NewPair(currency.DOGE, currency.XRP)

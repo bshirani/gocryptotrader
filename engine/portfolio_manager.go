@@ -7,6 +7,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/thrasher-corp/gocryptotrader/communications/base"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/account"
@@ -32,10 +33,11 @@ type portfolioManager struct {
 	shutdown              chan struct{}
 	base                  *portfolio.Base
 	m                     sync.Mutex
+	commsManager          iCommsManager
 }
 
 // setupPortfolioManager creates a new portfolio manager
-func setupPortfolioManager(e *ExchangeManager, portfolioManagerDelay time.Duration, cfg *portfolio.Base) (*portfolioManager, error) {
+func setupPortfolioManager(e *ExchangeManager, portfolioManagerDelay time.Duration, cfg *portfolio.Base, commsManager iCommsManager) (*portfolioManager, error) {
 	if e == nil {
 		return nil, errNilExchangeManager
 	}
@@ -50,6 +52,7 @@ func setupPortfolioManager(e *ExchangeManager, portfolioManagerDelay time.Durati
 		exchangeManager:       e,
 		shutdown:              make(chan struct{}),
 		base:                  cfg,
+		commsManager:          commsManager,
 	}
 	return m, nil
 }
@@ -107,6 +110,8 @@ func (m *portfolioManager) run(wg *sync.WaitGroup) {
 		wg.Done()
 		log.Debugf(log.PortfolioMgr, "Portfolio manager shutdown.")
 	}()
+
+	go m.commsManager.PushEvent(base.Event{Type: "event", Message: "portfolio check"})
 
 	go m.processPortfolio()
 	for {
