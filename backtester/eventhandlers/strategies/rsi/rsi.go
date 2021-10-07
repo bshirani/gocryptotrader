@@ -68,7 +68,6 @@ func (s *Strategy) OnData(d data.Handler) (signal.Event, error) {
 
 	if offset <= int(s.rsiPeriod.IntPart()) {
 		es.AppendReason("Not enough data for signal generation")
-		es.SetDirection(common.DoNothing)
 		return &es, nil
 	}
 
@@ -95,37 +94,32 @@ func (s *Strategy) OnData(d data.Handler) (signal.Event, error) {
 		return &es, nil
 	}
 
-	p, err := s.GetPosition()
-
-	if !p.Active {
-		// no trade
-		if s.Direction() == order.Sell && latestRSIValue.GreaterThanOrEqual(s.rsiHigh) {
+	// no trade
+	if s.Direction() == order.Sell {
+		if latestRSIValue.GreaterThanOrEqual(s.rsiHigh) {
+			es.SetDecision(signal.Enter)
 			es.SetDirection(order.Sell)
-		} else if s.Direction() == order.Buy && latestRSIValue.LessThanOrEqual(s.rsiLow) {
-			es.SetDirection(order.Buy)
-		} else {
-			es.SetDirection(common.DoNothing)
 		}
-		es.AppendReason(fmt.Sprintf("RSI at %v", latestRSIValue))
-	} else {
-		// in trade, check for exit
-		if !s.GetIsClosing() {
-			fmt.Println("close trade here, pos:", p)
+	} else if s.Direction() == order.Buy {
+		if latestRSIValue.LessThanOrEqual(s.rsiLow) {
+			es.SetDecision(signal.Enter)
 			es.SetDirection(order.Sell)
-			s.SetIsClosing(true)
-		} else {
-			es.SetDirection(common.DoNothing)
-			es.AppendReason(fmt.Sprintf("in process of closing trade"))
 		}
-		// if t.NetProfit.GreaterThanOrEqual(decimal.NewFromFloat(10.0)) {
-		// 	// s.Close()
-		// 	// fmt.Println(s)
-		// } else {
-		// 	// fmt.Println(es.GetPrice())
-		// 	es.SetDirection(common.DoNothing)
-		// 	es.AppendReason(fmt.Sprintf("Already in a trade %v", t))
-		// }
 	}
+
+	if es.GetDecision() == "" {
+		es.SetDecision(signal.DoNothing)
+		es.SetDirection(common.DoNothing)
+	}
+
+	// if t.NetProfit.GreaterThanOrEqual(decimal.NewFromFloat(10.0)) {
+	// 	// s.Close()
+	// 	// fmt.Println(s)
+	// } else {
+	// 	// fmt.Println(es.GetPrice())
+	// 	es.SetDirection(common.DoNothing)
+	// 	es.AppendReason(fmt.Sprintf("Already in a trade %v", t))
+	// }
 	// fmt.Println(s.GetPosition())
 	// fmt.Printf("%s@%v@%s now:%v pl:%v\n", t.Direction, t.EntryPrice, t.Timestamp, t.CurrentPrice, t.NetProfit)
 

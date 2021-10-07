@@ -21,6 +21,7 @@ import (
 )
 
 var (
+	errNoDecision           = errors.New("signal has no decision")
 	errInvalidDirection     = errors.New("invalid direction")
 	errRiskManagerUnset     = errors.New("risk manager unset")
 	errAlreadyInTrade       = errors.New("already in trade")

@@ -56,6 +56,19 @@ func (p *Portfolio) Reset() {
 // the portfolio manager's recommendations
 func (p *Portfolio) OnSignal(ev signal.Event, cs *exchange.Settings) (*order.Order, error) {
 
+	switch ev.GetDecision() {
+	case signal.Enter:
+		fmt.Println("enter, get strategy direction")
+	case signal.Exit:
+		fmt.Println("exit")
+	case signal.DoNothing:
+		return nil, nil
+	default:
+		return nil, errNoDecision
+	}
+
+	fmt.Println("received signal: ", ev.GetStrategy(), ev.GetDecision(), ev.GetDirection())
+
 	if ev == nil || cs == nil {
 		return nil, common.ErrNilArguments
 	}

@@ -61,6 +61,14 @@ func (s *Signal) GetPrice() decimal.Decimal {
 	return s.ClosePrice
 }
 
+func (s *Signal) GetDecision() Decision {
+	return s.Decision
+}
+
+func (s *Signal) SetDecision(d Decision) {
+	s.Decision = d
+}
+
 // SetPrice sets the price
 func (s *Signal) SetPrice(f decimal.Decimal) {
 	s.ClosePrice = f

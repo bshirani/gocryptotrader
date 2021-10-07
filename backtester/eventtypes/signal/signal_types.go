@@ -7,6 +7,14 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
 
+type Decision string
+
+const (
+	Enter     Decision = "ENTER"
+	DoNothing Decision = "DO_NOTHING"
+	Exit      Decision = "EXIT"
+)
+
 // Event handler is used for getting trade signal details
 // Example Amount and Price of current candle tick
 type Event interface {
@@ -17,12 +25,18 @@ type Event interface {
 	IsSignal() bool
 	GetSellLimit() decimal.Decimal
 	GetBuyLimit() decimal.Decimal
+	GetDecision() Decision
+	GetStrategy() string
+	SetDecision(Decision)
 }
 
 // Signal contains everything needed for a strategy to raise a signal event
 type Signal struct {
 	event.Base
 	Strategy   string
+	Direction  order.Side
+	Decision   Decision
+	Amount     decimal.Decimal
 	OpenPrice  decimal.Decimal
 	HighPrice  decimal.Decimal
 	LowPrice   decimal.Decimal
@@ -30,5 +44,4 @@ type Signal struct {
 	Volume     decimal.Decimal
 	BuyLimit   decimal.Decimal
 	SellLimit  decimal.Decimal
-	Direction  order.Side
 }
