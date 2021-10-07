@@ -134,7 +134,7 @@ func (p *Portfolio) OnFill(ev fill.Event) (*fill.Fill, error) {
 		return nil, fmt.Errorf("%w for %v %v %v", errNoPortfolioSettings, ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 	}
 	var err error
-	p.store.UpdatePositions(ev)
+	// p.store.UpdatePositions(ev)
 
 	// Get the holding from the previous iteration, create it if it doesn't yet have a timestamp
 	h := lookup.GetHoldingsForTime(ev.GetTime().Add(-ev.GetInterval().Duration()))

@@ -2,17 +2,15 @@ package portfolio
 
 import (
 	"errors"
-	"sync"
 
 	"github.com/shopspring/decimal"
 	"github.com/thrasher-corp/gocryptotrader/backtester/common"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/exchange"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/compliance"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/holdings"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/positions"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/risk"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/settings"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/trades"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/store"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/strategies"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/fill"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/order"
@@ -41,15 +39,6 @@ var (
 	errTradesAlreadySet     = errors.New("trade already set")
 )
 
-type store struct {
-	m            sync.RWMutex
-	Positions    map[string][]*positions.Position
-	Trades       map[string][]*trades.Trade
-	openTrade    trades.Trade
-	closedTrades []trades.Trade
-	wg           *sync.WaitGroup
-}
-
 // Portfolio stores all holdings and rules to assess orders, allowing the portfolio manager to
 // modify, accept or reject strategy signals
 type Portfolio struct {
@@ -57,7 +46,7 @@ type Portfolio struct {
 	sizeManager               SizeHandler
 	riskManager               risk.Handler
 	bot                       engine.Engine
-	store                     store
+	store                     store.Store
 	exchangeAssetPairSettings map[string]map[asset.Item]map[currency.Pair]*settings.Settings
 	strategies                []strategies.Handler
 }
