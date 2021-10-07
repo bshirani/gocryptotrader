@@ -2,19 +2,23 @@ package portfolio
 
 import (
 	"errors"
+	"sync"
 
 	"github.com/shopspring/decimal"
 	"github.com/thrasher-corp/gocryptotrader/backtester/common"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/exchange"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/compliance"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/holdings"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/positions"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/risk"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/settings"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/trades"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/strategies"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/fill"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/order"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/signal"
 	"github.com/thrasher-corp/gocryptotrader/currency"
+	"github.com/thrasher-corp/gocryptotrader/engine"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 )
 
@@ -37,19 +41,25 @@ var (
 	errTradesAlreadySet     = errors.New("trade already set")
 )
 
+type store struct {
+	m            sync.RWMutex
+	Positions    map[string][]*positions.Position
+	Trades       map[string][]*trades.Trade
+	openTrade    trades.Trade
+	closedTrades []trades.Trade
+	wg           *sync.WaitGroup
+}
+
 // Portfolio stores all holdings and rules to assess orders, allowing the portfolio manager to
 // modify, accept or reject strategy signals
 type Portfolio struct {
 	riskFreeRate              decimal.Decimal
 	sizeManager               SizeHandler
 	riskManager               risk.Handler
+	bot                       engine.Engine
+	store                     store
 	exchangeAssetPairSettings map[string]map[asset.Item]map[currency.Pair]*settings.Settings
-	openTrade                 trades.Trade
-	closedTrades              []Trade
-}
-
-type Trade struct {
-	id decimal.Decimal
+	strategies                []strategies.Handler
 }
 
 // Handler contains all functions expected to operate a portfolio manager
@@ -61,7 +71,8 @@ type Handler interface {
 	setHoldingsForOffset(*holdings.Holding, bool) error
 	UpdateHoldings(common.DataEventHandler) error
 	UpdateTrades(common.DataEventHandler)
-	GetOpenTrade() (trades.Trade, error)
+	UpdatePositions(common.DataEventHandler)
+	// GetOpenTrade() (trades.Trade, error)
 
 	GetComplianceManager(string, asset.Item, currency.Pair) (*compliance.Manager, error)
 

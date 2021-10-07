@@ -20,15 +20,15 @@ func LoadStrategyByName(name string, direction order.Side, useSimultaneousProces
 		if !strings.EqualFold(name, strats[i].Name()) {
 			continue
 		}
-		if useSimultaneousProcessing {
-			if !strats[i].SupportsSimultaneousProcessing() {
-				return nil, fmt.Errorf(
-					"strategy '%v' %w",
-					name,
-					base.ErrSimultaneousProcessingNotSupported)
-			}
-			strats[i].SetSimultaneousProcessing(useSimultaneousProcessing)
-		}
+		// if useSimultaneousProcessing {
+		// 	if !strats[i].SupportsSimultaneousProcessing() {
+		// 		return nil, fmt.Errorf(
+		// 			"strategy '%v' %w",
+		// 			name,
+		// 			base.ErrSimultaneousProcessingNotSupported)
+		// 	}
+		// 	strats[i].SetSimultaneousProcessing(useSimultaneousProcessing)
+		// }
 		return strats[i], nil
 	}
 	return nil, fmt.Errorf("strategy '%v' %w", name, base.ErrStrategyNotFound)

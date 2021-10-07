@@ -23,12 +23,10 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/exchange/slippage"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/compliance"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/holdings"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/risk"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/settings"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/size"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/statistics"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/statistics/currencystatistics"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/strategies"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/strategies/base"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/fill"
@@ -60,7 +58,7 @@ func (bt *BackTest) Reset() {
 	bt.EventQueue.Reset()
 	bt.Datas.Reset()
 	bt.Portfolio.Reset()
-	bt.Statistic.Reset()
+	// bt.Statistic.Reset()
 	bt.Exchange.Reset()
 	bt.Bot = nil
 }
@@ -225,33 +223,42 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *engine.
 		}
 	}
 
+	// LOAD ALL STRATEGIES HERE
+	var slit []strategies.Handler
+
+	s, err := strategies.LoadStrategyByName("rsi", "SELL", false)
+	s.SetDefaults()
+	slit = append(slit, s)
+
+	s, err = strategies.LoadStrategyByName("rsi", "BUY", false)
+	s.SetDefaults()
+	slit = append(slit, s)
+
+	bt.Strategies = slit
+
+	// PASS ALL STRATEGIES TO PORTFOLIO
 	var p *portfolio.Portfolio
-	p, err = portfolio.Setup(sizeManager, portfolioRisk, cfg.StatisticSettings.RiskFreeRate)
+	p, err = portfolio.Setup(*bot, bt.Strategies, sizeManager, portfolioRisk, cfg.StatisticSettings.RiskFreeRate)
 	if err != nil {
 		return nil, err
 	}
 
-	bt.Strategy, err = strategies.LoadStrategyByName(cfg.StrategySettings.Name, cfg.StrategySettings.Direction, cfg.StrategySettings.SimultaneousSignalProcessing)
-	if err != nil {
-		return nil, err
-	}
-	bt.Strategy.SetDefaults()
 	if cfg.StrategySettings.CustomSettings != nil {
-		err = bt.Strategy.SetCustomSettings(cfg.StrategySettings.CustomSettings)
+		err = bt.Strategies[0].SetCustomSettings(cfg.StrategySettings.CustomSettings)
 		if err != nil && !errors.Is(err, base.ErrCustomSettingsUnsupported) {
 			return nil, err
 		}
 	}
-	stats := &statistics.Statistic{
-		StrategyName:                bt.Strategy.Name(),
-		StrategyNickname:            cfg.Nickname,
-		StrategyDescription:         bt.Strategy.Description(),
-		StrategyGoal:                cfg.Goal,
-		ExchangeAssetPairStatistics: make(map[string]map[asset.Item]map[currency.Pair]*currencystatistics.CurrencyStatistic),
-		RiskFreeRate:                cfg.StatisticSettings.RiskFreeRate,
-	}
-	bt.Statistic = stats
-	reports.Statistics = stats
+	// stats := &statistics.Statistic{
+	// 	StrategyName:                s.Name(),
+	// 	StrategyNickname:            cfg.Nickname,
+	// 	StrategyDescription:         bt.Strategy.Description(),
+	// 	StrategyGoal:                cfg.Goal,
+	// 	ExchangeAssetPairStatistics: make(map[string]map[asset.Item]map[currency.Pair]*currencystatistics.CurrencyStatistic),
+	// 	RiskFreeRate:                cfg.StatisticSettings.RiskFreeRate,
+	// }
+	// bt.Statistic = stats
+	// reports.Statistics = stats
 
 	e, err := bt.setupExchangeSettings(cfg)
 	if err != nil {
@@ -278,6 +285,136 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *engine.
 	cfg.PrintSetting()
 
 	return bt, nil
+}
+
+// Run will iterate over loaded data events
+// save them and then handle the event based on its type
+func (bt *BackTest) Run() error {
+	log.Info(log.BackTester, "running backtester against pre-defined data")
+dataLoadingIssue:
+	for ev := bt.EventQueue.NextEvent(); ; ev = bt.EventQueue.NextEvent() {
+		if ev == nil {
+			dataHandlerMap := bt.Datas.GetAllData()
+			for exchangeName, exchangeMap := range dataHandlerMap {
+				for assetItem, assetMap := range exchangeMap {
+					// var hasProcessedData bool
+					for currencyPair, dataHandler := range assetMap {
+						d := dataHandler.Next()
+						if d == nil {
+							if !bt.hasHandledEvent {
+								log.Errorf(log.BackTester, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
+							}
+							break dataLoadingIssue
+						}
+						// if bt.Strategies[0].UsingSimultaneousProcessing() && hasProcessedData {
+						// 	continue
+						// }
+						bt.EventQueue.AppendEvent(d)
+						// hasProcessedData = true
+					}
+				}
+			}
+		}
+		if ev != nil {
+			err := bt.handleEvent(ev)
+			if err != nil {
+				return err
+			}
+		}
+		if !bt.hasHandledEvent {
+			bt.hasHandledEvent = true
+		}
+	}
+
+	return nil
+}
+
+// RunLive is a proof of concept function that does not yet support multi currency usage
+// It runs by constantly checking for new live datas and running through the list of events
+// once new data is processed. It will run until application close event has been received
+func (bt *BackTest) RunLive() error {
+	log.Info(log.BackTester, "running backtester against live data")
+	timeoutTimer := time.NewTimer(time.Minute * 1)
+
+	bt.Bot.CommunicationsManager.PushEvent(gctbase.Event{Type: "event", Message: "run backtest live"})
+	// a frequent timer so that when a new candle is released by an exchange
+	// that it can be processed quickly
+	processEventTicker := time.NewTicker(time.Second)
+	doneARun := false
+	for {
+		select {
+		case <-bt.shutdown:
+			return nil
+		case <-timeoutTimer.C:
+			return errLiveDataTimeout
+		case <-processEventTicker.C:
+			for ev := bt.EventQueue.NextEvent(); ; ev = bt.EventQueue.NextEvent() {
+				if ev == nil {
+					dataHandlerMap := bt.Datas.GetAllData()
+					for exchangeName, exchangeMap := range dataHandlerMap {
+						for assetItem, assetMap := range exchangeMap {
+							// var hasProcessedData bool
+							for currencyPair, dataHandler := range assetMap {
+								d := dataHandler.Next()
+								if d == nil {
+									if !bt.hasHandledEvent {
+										log.Errorf(log.BackTester, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
+									}
+									// break dataLoadingIssue
+								}
+								// if bt.Strategies[0].UsingSimultaneousProcessing() && hasProcessedData {
+								// 	continue
+								// }
+
+								bt.EventQueue.AppendEvent(d)
+								// hasProcessedData = true
+							}
+						}
+					}
+				}
+				// if ev == nil {
+				// 	// as live only supports singular currency, just get the proper reference manually
+				// 	var d data.Handler
+				// 	dd := bt.Datas.GetAllData()
+				//
+				// 	for k1, v1 := range dd {
+				// 		for k2, v2 := range v1 {
+				// 			for k3 := range v2 {
+				// 				d = dd[k1][k2][k3]
+				// 			}
+				// 		}
+				// 	}
+				// 	de := d.Next()
+				// 	if de == nil {
+				// 		break
+				// 	}
+				//
+				// 	bt.EventQueue.AppendEvent(de)
+				// 	doneARun = true
+				// 	continue
+				// }
+
+				if ev != nil {
+					err := bt.handleEvent(ev)
+					if err != nil {
+						return err
+					}
+				}
+				if !bt.hasHandledEvent {
+					bt.hasHandledEvent = true
+				}
+			}
+			if doneARun {
+				timeoutTimer = time.NewTimer(time.Minute * 5)
+			}
+		}
+	}
+}
+
+// Stop shuts down the live data loop
+func (bt *BackTest) Stop() {
+	bt.Strategies[0].Stop()
+	close(bt.shutdown)
 }
 
 func (bt *BackTest) setupExchangeSettings(cfg *config.Config) (exchange.Exchange, error) {
@@ -742,48 +879,6 @@ func loadLiveData(cfg *config.Config, base *gctexchange.Base) error {
 	return nil
 }
 
-// Run will iterate over loaded data events
-// save them and then handle the event based on its type
-func (bt *BackTest) Run() error {
-	log.Info(log.BackTester, "running backtester against pre-defined data")
-dataLoadingIssue:
-	for ev := bt.EventQueue.NextEvent(); ; ev = bt.EventQueue.NextEvent() {
-		if ev == nil {
-			dataHandlerMap := bt.Datas.GetAllData()
-			for exchangeName, exchangeMap := range dataHandlerMap {
-				for assetItem, assetMap := range exchangeMap {
-					var hasProcessedData bool
-					for currencyPair, dataHandler := range assetMap {
-						d := dataHandler.Next()
-						if d == nil {
-							if !bt.hasHandledEvent {
-								log.Errorf(log.BackTester, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
-							}
-							break dataLoadingIssue
-						}
-						if bt.Strategy.UsingSimultaneousProcessing() && hasProcessedData {
-							continue
-						}
-						bt.EventQueue.AppendEvent(d)
-						hasProcessedData = true
-					}
-				}
-			}
-		}
-		if ev != nil {
-			err := bt.handleEvent(ev)
-			if err != nil {
-				return err
-			}
-		}
-		if !bt.hasHandledEvent {
-			bt.hasHandledEvent = true
-		}
-	}
-
-	return nil
-}
-
 // handleEvent is the main processor of data for the backtester
 // after data has been loaded and Run has appended a data event to the queue,
 // handle event will process events and add further events to the queue if they
@@ -791,9 +886,9 @@ dataLoadingIssue:
 func (bt *BackTest) handleEvent(ev common.EventHandler) error {
 	switch eType := ev.(type) {
 	case common.DataEventHandler:
-		if bt.Strategy.UsingSimultaneousProcessing() {
-			return bt.processSimultaneousDataEvents()
-		}
+		// if bt.Strategies[0].UsingSimultaneousProcessing() {
+		// 	return bt.processSimultaneousDataEvents()
+		// }
 		return bt.processSingleDataEvent(eType)
 	case signal.Event:
 		bt.processSignalEvent(eType)
@@ -816,22 +911,28 @@ func (bt *BackTest) processSingleDataEvent(ev common.DataEventHandler) error {
 		return err
 	}
 	bt.Portfolio.UpdateTrades(ev)
-	d := bt.Datas.GetDataForCurrency(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
-	s, err := bt.Strategy.OnSignal(d, bt.Portfolio)
+	bt.Portfolio.UpdatePositions(ev)
 
-	if err != nil {
-		if errors.Is(err, base.ErrTooMuchBadData) {
-			// too much bad data is a severe error and backtesting must cease
-			return err
-		}
-		log.Error(log.BackTester, err)
-		return nil
+	d := bt.Datas.GetDataForCurrency(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
+
+	var s signal.Event
+	for _, strategy := range bt.Strategies {
+		s, err = strategy.OnData(d)
+		bt.EventQueue.AppendEvent(s)
 	}
-	err = bt.Statistic.SetEventForOffset(s)
-	if err != nil {
-		log.Error(log.BackTester, err)
-	}
-	bt.EventQueue.AppendEvent(s)
+
+	// if err != nil {
+	// 	if errors.Is(err, base.ErrTooMuchBadData) {
+	// 		// too much bad data is a severe error and backtesting must cease
+	// 		return err
+	// 	}
+	// 	log.Error(log.BackTester, err)
+	// 	return nil
+	// }
+	// err = bt.Statistic.SetEventForOffset(s)
+	// if err != nil {
+	// 	log.Error(log.BackTester, err)
+	// }
 
 	return nil
 }
@@ -859,7 +960,7 @@ func (bt *BackTest) processSimultaneousDataEvents() error {
 			}
 		}
 	}
-	signals, err := bt.Strategy.OnSimultaneousSignals(dataEvents, bt.Portfolio)
+	signals, err := bt.Strategies[0].OnSimultaneousSignals(dataEvents)
 	if err != nil {
 		if errors.Is(err, base.ErrTooMuchBadData) {
 			// too much bad data is a severe error and backtesting must cease
@@ -881,16 +982,16 @@ func (bt *BackTest) processSimultaneousDataEvents() error {
 // updateStatsForDataEvent makes various systems aware of price movements from
 // data events
 func (bt *BackTest) updateStatsForDataEvent(ev common.DataEventHandler) error {
-	// update statistics with the latest price
-	err := bt.Statistic.SetupEventForTime(ev)
-	if err != nil {
-		if err == statistics.ErrAlreadyProcessed {
-			return err
-		}
-		log.Error(log.BackTester, err)
-	}
+	// // update statistics with the latest price
+	// err := bt.Statistic.SetupEventForTime(ev)
+	// if err != nil {
+	// 	if err == statistics.ErrAlreadyProcessed {
+	// 		return err
+	// 	}
+	// 	log.Error(log.BackTester, err)
+	// }
 	// update portfolio manager with the latest price
-	err = bt.Portfolio.UpdateHoldings(ev)
+	err := bt.Portfolio.UpdateHoldings(ev)
 	if err != nil {
 		log.Error(log.BackTester, err)
 	}
@@ -910,12 +1011,14 @@ func (bt *BackTest) processSignalEvent(ev signal.Event) {
 		log.Error(log.BackTester, err)
 		return
 	}
-	err = bt.Statistic.SetEventForOffset(o)
 	if err != nil {
 		log.Error(log.BackTester, err)
 	}
 
-	bt.EventQueue.AppendEvent(o)
+	if o != nil {
+		// err = bt.Statistic.SetEventForOffset(o)
+		bt.EventQueue.AppendEvent(o)
+	}
 }
 
 func (bt *BackTest) processOrderEvent(ev order.Event) {
@@ -928,129 +1031,47 @@ func (bt *BackTest) processOrderEvent(ev order.Event) {
 		}
 		log.Errorf(log.BackTester, "%v %v %v %v", f.GetExchange(), f.GetAssetType(), f.Pair(), err)
 	}
-	err = bt.Statistic.SetEventForOffset(f)
-	if err != nil {
-		log.Error(log.BackTester, err)
-	}
+	// err = bt.Statistic.SetEventForOffset(f)
+	// if err != nil {
+	// 	log.Error(log.BackTester, err)
+	// }
 	bt.EventQueue.AppendEvent(f)
 }
 
 func (bt *BackTest) processFillEvent(ev fill.Event) {
-	t, err := bt.Portfolio.OnFill(ev)
+	_, err := bt.Portfolio.OnFill(ev)
 	if err != nil {
 		log.Error(log.BackTester, err)
 		return
 	}
 
-	err = bt.Statistic.SetEventForOffset(t)
-	if err != nil {
-		log.Error(log.BackTester, err)
-	}
+	// err = bt.Statistic.SetEventForOffset(t)
+	// if err != nil {
+	// 	log.Error(log.BackTester, err)
+	// }
 
-	var holding *holdings.Holding
-	holding, err = bt.Portfolio.ViewHoldingAtTimePeriod(ev)
-	if err != nil {
-		log.Error(log.BackTester, err)
-	}
+	// var holding *holdings.Holding
+	// holding, err = bt.Portfolio.ViewHoldingAtTimePeriod(ev)
+	// if err != nil {
+	// 	log.Error(log.BackTester, err)
+	// }
 
-	err = bt.Statistic.AddHoldingsForTime(holding)
-	if err != nil {
-		log.Error(log.BackTester, err)
-	}
+	// err = bt.Statistic.AddHoldingsForTime(holding)
+	// if err != nil {
+	// 	log.Error(log.BackTester, err)
+	// }
 
-	var cp *compliance.Manager
-	cp, err = bt.Portfolio.GetComplianceManager(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
-	if err != nil {
-		log.Error(log.BackTester, err)
-	}
+	// var cp *compliance.Manager
+	// cp, err = bt.Portfolio.GetComplianceManager(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
+	// if err != nil {
+	// 	log.Error(log.BackTester, err)
+	// }
 
-	snap := cp.GetLatestSnapshot()
-	err = bt.Statistic.AddComplianceSnapshotForTime(snap, ev)
-	if err != nil {
-		log.Error(log.BackTester, err)
-	}
-}
-
-// RunLive is a proof of concept function that does not yet support multi currency usage
-// It runs by constantly checking for new live datas and running through the list of events
-// once new data is processed. It will run until application close event has been received
-func (bt *BackTest) RunLive() error {
-	log.Info(log.BackTester, "running backtester against live data")
-	timeoutTimer := time.NewTimer(time.Minute * 1)
-
-	bt.Bot.CommunicationsManager.PushEvent(gctbase.Event{Type: "event", Message: "run backtest live"})
-	// a frequent timer so that when a new candle is released by an exchange
-	// that it can be processed quickly
-	processEventTicker := time.NewTicker(time.Second)
-	doneARun := false
-	for {
-		select {
-		case <-bt.shutdown:
-			return nil
-		case <-timeoutTimer.C:
-			return errLiveDataTimeout
-		case <-processEventTicker.C:
-			for ev := bt.EventQueue.NextEvent(); ; ev = bt.EventQueue.NextEvent() {
-				if ev == nil {
-					dataHandlerMap := bt.Datas.GetAllData()
-					for exchangeName, exchangeMap := range dataHandlerMap {
-						for assetItem, assetMap := range exchangeMap {
-							var hasProcessedData bool
-							for currencyPair, dataHandler := range assetMap {
-								d := dataHandler.Next()
-								if d == nil {
-									if !bt.hasHandledEvent {
-										log.Errorf(log.BackTester, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
-									}
-									// break dataLoadingIssue
-								}
-								if bt.Strategy.UsingSimultaneousProcessing() && hasProcessedData {
-									continue
-								}
-
-								bt.EventQueue.AppendEvent(d)
-								hasProcessedData = true
-							}
-						}
-					}
-				}
-				// if ev == nil {
-				// 	// as live only supports singular currency, just get the proper reference manually
-				// 	var d data.Handler
-				// 	dd := bt.Datas.GetAllData()
-				//
-				// 	for k1, v1 := range dd {
-				// 		for k2, v2 := range v1 {
-				// 			for k3 := range v2 {
-				// 				d = dd[k1][k2][k3]
-				// 			}
-				// 		}
-				// 	}
-				// 	de := d.Next()
-				// 	if de == nil {
-				// 		break
-				// 	}
-				//
-				// 	bt.EventQueue.AppendEvent(de)
-				// 	doneARun = true
-				// 	continue
-				// }
-
-				if ev != nil {
-					err := bt.handleEvent(ev)
-					if err != nil {
-						return err
-					}
-				}
-				if !bt.hasHandledEvent {
-					bt.hasHandledEvent = true
-				}
-			}
-			if doneARun {
-				timeoutTimer = time.NewTimer(time.Minute * 5)
-			}
-		}
-	}
+	// snap := cp.GetLatestSnapshot()
+	// err = bt.Statistic.AddComplianceSnapshotForTime(snap, ev)
+	// if err != nil {
+	// 	log.Error(log.BackTester, err)
+	// }
 }
 
 // loadLiveDataLoop is an incomplete function to continuously retrieve exchange data on a loop
@@ -1123,10 +1144,4 @@ func (bt *BackTest) loadLiveData(resp *kline.DataFromKline, cfg *config.Config, 
 	bt.Reports.UpdateItem(&resp.Item)
 	log.Info(log.BackTester, "sleeping for 30 seconds before checking for new candle data")
 	return nil
-}
-
-// Stop shuts down the live data loop
-func (bt *BackTest) Stop() {
-	bt.Strategy.Stop()
-	close(bt.shutdown)
 }

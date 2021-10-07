@@ -12,18 +12,20 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/risk"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/settings"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/trades"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/strategies"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/event"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/fill"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/order"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/signal"
 	"github.com/thrasher-corp/gocryptotrader/currency"
+	"github.com/thrasher-corp/gocryptotrader/engine"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	gctorder "github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"github.com/thrasher-corp/gocryptotrader/log"
 )
 
 // Setup creates a portfolio manager instance and sets private fields
-func Setup(sh SizeHandler, r risk.Handler, riskFreeRate decimal.Decimal) (*Portfolio, error) {
+func Setup(bot engine.Engine, s []strategies.Handler, sh SizeHandler, r risk.Handler, riskFreeRate decimal.Decimal) (*Portfolio, error) {
 	if sh == nil {
 		return nil, errSizeManagerUnset
 	}
@@ -34,6 +36,8 @@ func Setup(sh SizeHandler, r risk.Handler, riskFreeRate decimal.Decimal) (*Portf
 		return nil, errRiskManagerUnset
 	}
 	p := &Portfolio{}
+	p.bot = bot
+	p.strategies = s
 	p.sizeManager = sh
 	p.riskManager = r
 	p.riskFreeRate = riskFreeRate
@@ -62,17 +66,6 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *exchange.Settings) (*order.Ord
 		return nil, errRiskManagerUnset
 	}
 
-	// _, err := p.GetTradeForStrategy(ev.GetStrategy())
-	// if err != nil {
-	// 	return nil, errAlreadyInTrade
-	// }
-
-	t, err := p.GetOpenTrade()
-	if err != nil && ev.GetDirection() != common.DoNothing {
-		t, _ = trades.Create(ev)
-		p.openTrade = t
-	}
-
 	o := &order.Order{
 		Base: event.Base{
 			Offset:       ev.GetOffset(),
@@ -98,11 +91,20 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *exchange.Settings) (*order.Ord
 			ev.Pair())
 	}
 
+	sdir := p.strategies[0].Direction()
+	pos, _ := p.strategies[0].GetPosition()
+
+	if pos.Active {
+		if (sdir == gctorder.Buy && ev.GetDirection() == gctorder.Buy) || (sdir == gctorder.Sell && ev.GetDirection() == gctorder.Sell) {
+			return nil, errAlreadyInTrade
+		}
+	}
+
 	if ev.GetDirection() == common.DoNothing ||
 		ev.GetDirection() == common.MissingData ||
 		ev.GetDirection() == common.TransferredFunds ||
 		ev.GetDirection() == "" {
-		return o, nil
+		return nil, nil
 	}
 
 	o.Price = ev.GetPrice()
@@ -121,6 +123,291 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *exchange.Settings) (*order.Ord
 
 	return p.evaluateOrder(ev, o, sizedOrder)
 }
+
+// OnFill processes the event after an order has been placed by the exchange. Its purpose is to track holdings for future portfolio decisions.
+func (p *Portfolio) OnFill(ev fill.Event) (*fill.Fill, error) {
+	if ev == nil {
+		return nil, common.ErrNilEvent
+	}
+	lookup := p.exchangeAssetPairSettings[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
+	if lookup == nil {
+		return nil, fmt.Errorf("%w for %v %v %v", errNoPortfolioSettings, ev.GetExchange(), ev.GetAssetType(), ev.Pair())
+	}
+	var err error
+	p.store.UpdatePositions(ev)
+
+	// Get the holding from the previous iteration, create it if it doesn't yet have a timestamp
+	h := lookup.GetHoldingsForTime(ev.GetTime().Add(-ev.GetInterval().Duration()))
+	if !h.Timestamp.IsZero() {
+		h.Update(ev)
+	} else {
+		h = lookup.GetLatestHoldings()
+		if h.Timestamp.IsZero() {
+			h, err = holdings.Create(ev, decimal.NewFromFloat(1000.0), p.riskFreeRate)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			h.Update(ev)
+		}
+	}
+	err = p.setHoldingsForOffset(&h, true)
+	if errors.Is(err, errNoHoldings) {
+		err = p.setHoldingsForOffset(&h, false)
+	}
+	if err != nil {
+		log.Error(log.BackTester, err)
+	}
+
+	err = p.addComplianceSnapshot(ev)
+	if err != nil {
+		log.Error(log.BackTester, err)
+	}
+
+	direction := ev.GetDirection()
+	if direction == common.DoNothing ||
+		direction == common.CouldNotBuy ||
+		direction == common.CouldNotSell ||
+		direction == common.MissingData ||
+		direction == "" {
+		fe, ok := ev.(*fill.Fill)
+		if !ok {
+			return nil, fmt.Errorf("%w expected fill event", common.ErrInvalidDataType)
+		}
+		fe.ExchangeFee = decimal.Zero
+		return fe, nil
+	}
+
+	fe, ok := ev.(*fill.Fill)
+	if !ok {
+		return nil, fmt.Errorf("%w expected fill event", common.ErrInvalidDataType)
+	}
+	return fe, nil
+}
+
+// GetComplianceManager returns the order snapshots for a given exchange, asset, pair
+func (p *Portfolio) GetComplianceManager(exchangeName string, a asset.Item, cp currency.Pair) (*compliance.Manager, error) {
+	lookup := p.exchangeAssetPairSettings[exchangeName][a][cp]
+	if lookup == nil {
+		return nil, fmt.Errorf("%w for %v %v %v could not retrieve compliance manager", errNoPortfolioSettings, exchangeName, a, cp)
+	}
+	return &lookup.ComplianceManager, nil
+}
+
+// SetFee sets the fee rate
+func (p *Portfolio) SetFee(exch string, a asset.Item, cp currency.Pair, fee decimal.Decimal) {
+	lookup := p.exchangeAssetPairSettings[exch][a][cp]
+	lookup.Fee = fee
+}
+
+// GetFee can panic for bad requests, but why are you getting things that don't exist?
+func (p *Portfolio) GetFee(exchangeName string, a asset.Item, cp currency.Pair) decimal.Decimal {
+	if p.exchangeAssetPairSettings == nil {
+		return decimal.Zero
+	}
+	lookup := p.exchangeAssetPairSettings[exchangeName][a][cp]
+	if lookup == nil {
+		return decimal.Zero
+	}
+	return lookup.Fee
+}
+
+// UpdateHoldings updates the portfolio holdings for the data event
+func (p *Portfolio) UpdateHoldings(ev common.DataEventHandler) error {
+	if ev == nil {
+		return common.ErrNilEvent
+	}
+	lookup, ok := p.exchangeAssetPairSettings[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
+	if !ok {
+		return fmt.Errorf("%w for %v %v %v",
+			errNoPortfolioSettings,
+			ev.GetExchange(),
+			ev.GetAssetType(),
+			ev.Pair())
+	}
+	h := lookup.GetLatestHoldings()
+	if h.Timestamp.IsZero() {
+		var err error
+		h, err = holdings.Create(ev, decimal.NewFromFloat(1000.0), p.riskFreeRate)
+		if err != nil {
+			return err
+		}
+	}
+	h.UpdateValue(ev)
+	err := p.setHoldingsForOffset(&h, true)
+	if errors.Is(err, errNoHoldings) {
+		err = p.setHoldingsForOffset(&h, false)
+	}
+	return err
+}
+
+// UpdateTrades updates the portfolio trades for the data event
+func (p *Portfolio) UpdateTrades(ev common.DataEventHandler) {
+	if ev == nil {
+		return
+	}
+	// return nil
+	_, ok := p.exchangeAssetPairSettings[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
+	if !ok {
+		return
+		// return fmt.Errorf("%w for %v %v %v",
+		// 	errNoPortfolioSettings,
+		// 	ev.GetExchange(),
+		// 	ev.GetAssetType(),
+		// 	ev.Pair())
+	}
+	// t, _ := p.GetOpenTrade()
+
+	// if err != nil {
+	// 	// fmt.Println("error", t)
+	// 	// t, _ = trades.Create(ev)
+	// }
+
+	// p.openTrade = t
+	// t, _ = p.GetOpenTrade()
+	// p.openTrade.UpdateValue(ev)
+
+	// if t.Strategy != nil {
+	// 	// if err != nil {
+	// 	// 	return err
+	// 	// }
+	// }
+	// err := p.setTradesForOffset(&t, true)
+	// if errors.Is(err, errNoTrades) {
+	// 	err = p.setTradesForOffset(&t, false)
+	// }
+	// return err
+}
+
+// UpdatePositions updates the strategy's position for the data event
+func (p *Portfolio) UpdatePositions(ev common.DataEventHandler) {
+	if ev == nil {
+		return
+	}
+
+	pos, _ := p.strategies[0].GetPosition()
+	// pos.Amount = decimal.NewFromFloat(123.0)
+	// pos.Active = false
+	p.strategies[0].SetPosition(pos)
+
+	// return nil
+	_, ok := p.exchangeAssetPairSettings[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
+	if !ok {
+		return
+		// return fmt.Errorf("%w for %v %v %v",
+		// 	errNoPortfolioSettings,
+		// 	ev.GetExchange(),
+		// 	ev.GetAssetType(),
+		// 	ev.Pair())
+	}
+	// t, _ := p.GetOpenTrade()
+
+	// if err != nil {
+	// 	// fmt.Println("error", t)
+	// 	// t, _ = trades.Create(ev)
+	// }
+
+	// p.openTrade = t
+	// t, _ = p.GetOpenTrade()
+	// p.openTrade.UpdateValue(ev)
+	//
+	// if t.Strategy != nil {
+	// 	// if err != nil {
+	// 	// 	return err
+	// 	// }
+	// }
+	// err := p.setTradesForOffset(&t, true)
+	// if errors.Is(err, errNoTrades) {
+	// 	err = p.setTradesForOffset(&t, false)
+	// }
+	// return err
+}
+
+// GetLatestHoldingsForAllCurrencies will return the current holdings for all loaded currencies
+// this is useful to assess the position of your entire portfolio in order to help with risk decisions
+func (p *Portfolio) GetLatestHoldingsForAllCurrencies() []holdings.Holding {
+	var resp []holdings.Holding
+	for _, x := range p.exchangeAssetPairSettings {
+		for _, y := range x {
+			for _, z := range y {
+				holds := z.GetLatestHoldings()
+				if !holds.Timestamp.IsZero() {
+					resp = append(resp, holds)
+				}
+			}
+		}
+	}
+	return resp
+}
+
+// GetLatestTradesForAllCurrencies will return the current holdings for all loaded currencies
+// this is useful to assess the position of your entire portfolio in order to help with risk decisions
+func (p *Portfolio) GetLatestTradesForAllCurrencies() []holdings.Holding {
+	var resp []holdings.Holding
+	for _, x := range p.exchangeAssetPairSettings {
+		for _, y := range x {
+			for _, z := range y {
+				holds := z.GetLatestHoldings()
+				if !holds.Timestamp.IsZero() {
+					resp = append(resp, holds)
+				}
+			}
+		}
+	}
+	return resp
+}
+
+// ViewHoldingAtTimePeriod retrieves a snapshot of holdings at a specific time period,
+// returning empty when not found
+func (p *Portfolio) ViewHoldingAtTimePeriod(ev common.EventHandler) (*holdings.Holding, error) {
+	exchangeAssetPairSettings := p.exchangeAssetPairSettings[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
+	if exchangeAssetPairSettings == nil {
+		return nil, fmt.Errorf("%w for %v %v %v", errNoHoldings, ev.GetExchange(), ev.GetAssetType(), ev.Pair())
+	}
+
+	for i := len(exchangeAssetPairSettings.HoldingsSnapshots) - 1; i >= 0; i-- {
+		if ev.GetTime().Equal(exchangeAssetPairSettings.HoldingsSnapshots[i].Timestamp) {
+			return &exchangeAssetPairSettings.HoldingsSnapshots[i], nil
+		}
+	}
+
+	return nil, fmt.Errorf("%w for %v %v %v at %v", errNoHoldings, ev.GetExchange(), ev.GetAssetType(), ev.Pair(), ev.GetTime())
+}
+
+// SetupCurrencySettingsMap ensures a map is created and no panics happen
+func (p *Portfolio) SetupCurrencySettingsMap(exch string, a asset.Item, cp currency.Pair) (*settings.Settings, error) {
+	if exch == "" {
+		return nil, errExchangeUnset
+	}
+	if a == "" {
+		return nil, errAssetUnset
+	}
+	if cp.IsEmpty() {
+		return nil, errCurrencyPairUnset
+	}
+	if p.exchangeAssetPairSettings == nil {
+		p.exchangeAssetPairSettings = make(map[string]map[asset.Item]map[currency.Pair]*settings.Settings)
+	}
+	if p.exchangeAssetPairSettings[exch] == nil {
+		p.exchangeAssetPairSettings[exch] = make(map[asset.Item]map[currency.Pair]*settings.Settings)
+	}
+	if p.exchangeAssetPairSettings[exch][a] == nil {
+		p.exchangeAssetPairSettings[exch][a] = make(map[currency.Pair]*settings.Settings)
+	}
+	if _, ok := p.exchangeAssetPairSettings[exch][a][cp]; !ok {
+		p.exchangeAssetPairSettings[exch][a][cp] = &settings.Settings{}
+	}
+
+	return p.exchangeAssetPairSettings[exch][a][cp], nil
+}
+
+// // GetOpenTrades returns the latest holdings after being sorted by time
+// func (p *Portfolio) GetOpenTrade() (trades.Trade, error) {
+// 	if p.openTrade.EntryPrice.IsZero() {
+// 		return trades.Trade{}, errNoOpenTrade
+// 	}
+// 	return p.openTrade, nil
+// }
 
 func (p *Portfolio) recordTrade(ev signal.Event) {
 	direction := ev.GetDirection()
@@ -199,67 +486,6 @@ func (p *Portfolio) sizeOrder(d common.Directioner, cs *exchange.Settings, origi
 	return sizedOrder
 }
 
-// OnFill processes the event after an order has been placed by the exchange. Its purpose is to track holdings for future portfolio decisions.
-func (p *Portfolio) OnFill(ev fill.Event) (*fill.Fill, error) {
-
-	if ev == nil {
-		return nil, common.ErrNilEvent
-	}
-	lookup := p.exchangeAssetPairSettings[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
-	if lookup == nil {
-		return nil, fmt.Errorf("%w for %v %v %v", errNoPortfolioSettings, ev.GetExchange(), ev.GetAssetType(), ev.Pair())
-	}
-	var err error
-
-	// Get the holding from the previous iteration, create it if it doesn't yet have a timestamp
-	h := lookup.GetHoldingsForTime(ev.GetTime().Add(-ev.GetInterval().Duration()))
-	if !h.Timestamp.IsZero() {
-		h.Update(ev)
-	} else {
-		h = lookup.GetLatestHoldings()
-		if h.Timestamp.IsZero() {
-			h, err = holdings.Create(ev, decimal.NewFromFloat(1000.0), p.riskFreeRate)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			h.Update(ev)
-		}
-	}
-	err = p.setHoldingsForOffset(&h, true)
-	if errors.Is(err, errNoHoldings) {
-		err = p.setHoldingsForOffset(&h, false)
-	}
-	if err != nil {
-		log.Error(log.BackTester, err)
-	}
-
-	err = p.addComplianceSnapshot(ev)
-	if err != nil {
-		log.Error(log.BackTester, err)
-	}
-
-	direction := ev.GetDirection()
-	if direction == common.DoNothing ||
-		direction == common.CouldNotBuy ||
-		direction == common.CouldNotSell ||
-		direction == common.MissingData ||
-		direction == "" {
-		fe, ok := ev.(*fill.Fill)
-		if !ok {
-			return nil, fmt.Errorf("%w expected fill event", common.ErrInvalidDataType)
-		}
-		fe.ExchangeFee = decimal.Zero
-		return fe, nil
-	}
-
-	fe, ok := ev.(*fill.Fill)
-	if !ok {
-		return nil, fmt.Errorf("%w expected fill event", common.ErrInvalidDataType)
-	}
-	return fe, nil
-}
-
 // addComplianceSnapshot gets the previous snapshot of compliance events, updates with the latest fillevent
 // then saves the snapshot to the c
 func (p *Portfolio) addComplianceSnapshot(fillEvent fill.Event) error {
@@ -286,134 +512,6 @@ func (p *Portfolio) addComplianceSnapshot(fillEvent fill.Event) error {
 		prevSnap.Orders = append(prevSnap.Orders, snapOrder)
 	}
 	return complianceManager.AddSnapshot(prevSnap.Orders, fillEvent.GetTime(), fillEvent.GetOffset(), false)
-}
-
-// GetComplianceManager returns the order snapshots for a given exchange, asset, pair
-func (p *Portfolio) GetComplianceManager(exchangeName string, a asset.Item, cp currency.Pair) (*compliance.Manager, error) {
-	lookup := p.exchangeAssetPairSettings[exchangeName][a][cp]
-	if lookup == nil {
-		return nil, fmt.Errorf("%w for %v %v %v could not retrieve compliance manager", errNoPortfolioSettings, exchangeName, a, cp)
-	}
-	return &lookup.ComplianceManager, nil
-}
-
-// SetFee sets the fee rate
-func (p *Portfolio) SetFee(exch string, a asset.Item, cp currency.Pair, fee decimal.Decimal) {
-	lookup := p.exchangeAssetPairSettings[exch][a][cp]
-	lookup.Fee = fee
-}
-
-// GetFee can panic for bad requests, but why are you getting things that don't exist?
-func (p *Portfolio) GetFee(exchangeName string, a asset.Item, cp currency.Pair) decimal.Decimal {
-	if p.exchangeAssetPairSettings == nil {
-		return decimal.Zero
-	}
-	lookup := p.exchangeAssetPairSettings[exchangeName][a][cp]
-	if lookup == nil {
-		return decimal.Zero
-	}
-	return lookup.Fee
-}
-
-// UpdateHoldings updates the portfolio holdings for the data event
-func (p *Portfolio) UpdateHoldings(ev common.DataEventHandler) error {
-	if ev == nil {
-		return common.ErrNilEvent
-	}
-	lookup, ok := p.exchangeAssetPairSettings[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
-	if !ok {
-		return fmt.Errorf("%w for %v %v %v",
-			errNoPortfolioSettings,
-			ev.GetExchange(),
-			ev.GetAssetType(),
-			ev.Pair())
-	}
-	h := lookup.GetLatestHoldings()
-	if h.Timestamp.IsZero() {
-		var err error
-		h, err = holdings.Create(ev, decimal.NewFromFloat(1000.0), p.riskFreeRate)
-		if err != nil {
-			return err
-		}
-	}
-	h.UpdateValue(ev)
-	err := p.setHoldingsForOffset(&h, true)
-	if errors.Is(err, errNoHoldings) {
-		err = p.setHoldingsForOffset(&h, false)
-	}
-	return err
-}
-
-// UpdateTrades updates the portfolio trades for the data event
-func (p *Portfolio) UpdateTrades(ev common.DataEventHandler) {
-	if ev == nil {
-		return
-	}
-	// return nil
-	_, ok := p.exchangeAssetPairSettings[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
-	if !ok {
-		return
-		// return fmt.Errorf("%w for %v %v %v",
-		// 	errNoPortfolioSettings,
-		// 	ev.GetExchange(),
-		// 	ev.GetAssetType(),
-		// 	ev.Pair())
-	}
-	t, err := p.GetOpenTrade()
-
-	if err != nil {
-		fmt.Println("error", t)
-		// t, _ = trades.Create(ev)
-	}
-
-	p.openTrade = t
-	t, err = p.GetOpenTrade()
-	p.openTrade.UpdateValue(ev)
-
-	// if t.Strategy != nil {
-	// 	// if err != nil {
-	// 	// 	return err
-	// 	// }
-	// }
-	// err := p.setTradesForOffset(&t, true)
-	// if errors.Is(err, errNoTrades) {
-	// 	err = p.setTradesForOffset(&t, false)
-	// }
-	// return err
-}
-
-// GetLatestHoldingsForAllCurrencies will return the current holdings for all loaded currencies
-// this is useful to assess the position of your entire portfolio in order to help with risk decisions
-func (p *Portfolio) GetLatestHoldingsForAllCurrencies() []holdings.Holding {
-	var resp []holdings.Holding
-	for _, x := range p.exchangeAssetPairSettings {
-		for _, y := range x {
-			for _, z := range y {
-				holds := z.GetLatestHoldings()
-				if !holds.Timestamp.IsZero() {
-					resp = append(resp, holds)
-				}
-			}
-		}
-	}
-	return resp
-}
-
-// GetLatestTradesForAllCurrencies will return the current holdings for all loaded currencies
-// this is useful to assess the position of your entire portfolio in order to help with risk decisions
-func (p *Portfolio) GetLatestTradesForAllCurrencies() []holdings.Holding {
-	var resp []holdings.Holding
-	for _, x := range p.exchangeAssetPairSettings {
-		for _, y := range x {
-			for _, z := range y {
-				holds := z.GetLatestHoldings()
-				if !holds.Timestamp.IsZero() {
-					resp = append(resp, holds)
-				}
-			}
-		}
-	}
-	return resp
 }
 
 func (p *Portfolio) setHoldingsForOffset(h *holdings.Holding, overwriteExisting bool) error {
@@ -446,56 +544,4 @@ func (p *Portfolio) setHoldingsForOffset(h *holdings.Holding, overwriteExisting 
 
 	lookup.HoldingsSnapshots = append(lookup.HoldingsSnapshots, *h)
 	return nil
-}
-
-// ViewHoldingAtTimePeriod retrieves a snapshot of holdings at a specific time period,
-// returning empty when not found
-func (p *Portfolio) ViewHoldingAtTimePeriod(ev common.EventHandler) (*holdings.Holding, error) {
-	exchangeAssetPairSettings := p.exchangeAssetPairSettings[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
-	if exchangeAssetPairSettings == nil {
-		return nil, fmt.Errorf("%w for %v %v %v", errNoHoldings, ev.GetExchange(), ev.GetAssetType(), ev.Pair())
-	}
-
-	for i := len(exchangeAssetPairSettings.HoldingsSnapshots) - 1; i >= 0; i-- {
-		if ev.GetTime().Equal(exchangeAssetPairSettings.HoldingsSnapshots[i].Timestamp) {
-			return &exchangeAssetPairSettings.HoldingsSnapshots[i], nil
-		}
-	}
-
-	return nil, fmt.Errorf("%w for %v %v %v at %v", errNoHoldings, ev.GetExchange(), ev.GetAssetType(), ev.Pair(), ev.GetTime())
-}
-
-// SetupCurrencySettingsMap ensures a map is created and no panics happen
-func (p *Portfolio) SetupCurrencySettingsMap(exch string, a asset.Item, cp currency.Pair) (*settings.Settings, error) {
-	if exch == "" {
-		return nil, errExchangeUnset
-	}
-	if a == "" {
-		return nil, errAssetUnset
-	}
-	if cp.IsEmpty() {
-		return nil, errCurrencyPairUnset
-	}
-	if p.exchangeAssetPairSettings == nil {
-		p.exchangeAssetPairSettings = make(map[string]map[asset.Item]map[currency.Pair]*settings.Settings)
-	}
-	if p.exchangeAssetPairSettings[exch] == nil {
-		p.exchangeAssetPairSettings[exch] = make(map[asset.Item]map[currency.Pair]*settings.Settings)
-	}
-	if p.exchangeAssetPairSettings[exch][a] == nil {
-		p.exchangeAssetPairSettings[exch][a] = make(map[currency.Pair]*settings.Settings)
-	}
-	if _, ok := p.exchangeAssetPairSettings[exch][a][cp]; !ok {
-		p.exchangeAssetPairSettings[exch][a][cp] = &settings.Settings{}
-	}
-
-	return p.exchangeAssetPairSettings[exch][a][cp], nil
-}
-
-// GetOpenTrades returns the latest holdings after being sorted by time
-func (p *Portfolio) GetOpenTrade() (trades.Trade, error) {
-	if p.openTrade.EntryPrice.IsZero() {
-		return trades.Trade{}, errNoOpenTrade
-	}
-	return p.openTrade, nil
 }

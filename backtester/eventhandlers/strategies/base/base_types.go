@@ -1,6 +1,10 @@
 package base
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/shopspring/decimal"
+)
 
 var (
 	// ErrCustomSettingsUnsupported used when custom settings are found in the start config when they shouldn't be
@@ -15,3 +19,8 @@ var (
 	// ErrTooMuchBadData used when there is too much missing data
 	ErrTooMuchBadData = errors.New("backtesting cannot continue as there is too much invalid data. Please review your dataset")
 )
+
+type Position struct {
+	Amount decimal.Decimal
+	Active bool
+}

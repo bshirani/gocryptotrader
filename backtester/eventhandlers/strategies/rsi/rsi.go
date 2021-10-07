@@ -7,7 +7,6 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/thrasher-corp/gocryptotrader/backtester/common"
 	"github.com/thrasher-corp/gocryptotrader/backtester/data"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/strategies/base"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/signal"
 	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
@@ -33,6 +32,7 @@ type IndicatorValues struct {
 // Strategy is an implementation of the Handler interface
 type Strategy struct {
 	base.Strategy
+	isClosing       bool
 	rsiPeriod       decimal.Decimal
 	rsiLow          decimal.Decimal
 	rsiHigh         decimal.Decimal
@@ -50,10 +50,10 @@ func (s *Strategy) Description() string {
 	return description
 }
 
-// OnSignal handles a data event and returns what action the strategy believes should occur
+// OnData handles a data event and returns what action the strategy believes should occur
 // For rsi, this means returning a buy signal when rsi is at or below a certain level, and a
 // sell signal when it is at or above a certain level
-func (s *Strategy) OnSignal(d data.Handler, p portfolio.Handler) (signal.Event, error) {
+func (s *Strategy) OnData(d data.Handler) (signal.Event, error) {
 	// fmt.Printf("%s %s\n", d.Latest().GetTime(), d.Latest().ClosePrice())
 	if d == nil {
 		return nil, common.ErrNilEvent
@@ -95,9 +95,9 @@ func (s *Strategy) OnSignal(d data.Handler, p portfolio.Handler) (signal.Event, 
 		return &es, nil
 	}
 
-	t, err := p.GetOpenTrade()
+	p, err := s.GetPosition()
 
-	if err != nil {
+	if !p.Active {
 		// no trade
 		if s.Direction() == order.Sell && latestRSIValue.GreaterThanOrEqual(s.rsiHigh) {
 			es.SetDirection(order.Sell)
@@ -109,16 +109,25 @@ func (s *Strategy) OnSignal(d data.Handler, p portfolio.Handler) (signal.Event, 
 		es.AppendReason(fmt.Sprintf("RSI at %v", latestRSIValue))
 	} else {
 		// in trade, check for exit
-		if t.NetProfit.GreaterThanOrEqual(decimal.NewFromFloat(10.0)) {
-			// s.Close()
+		if !s.GetIsClosing() {
+			fmt.Println("close trade here, pos:", p)
 			es.SetDirection(order.Sell)
+			s.SetIsClosing(true)
 		} else {
-			fmt.Println(es.GetPrice())
-			fmt.Printf("%s@%v@%s now:%v pl:%v\n", t.Direction, t.EntryPrice, t.Timestamp, t.CurrentPrice, t.NetProfit)
 			es.SetDirection(common.DoNothing)
-			es.AppendReason(fmt.Sprintf("Already in a trade %v", t))
+			es.AppendReason(fmt.Sprintf("in process of closing trade"))
 		}
+		// if t.NetProfit.GreaterThanOrEqual(decimal.NewFromFloat(10.0)) {
+		// 	// s.Close()
+		// 	// fmt.Println(s)
+		// } else {
+		// 	// fmt.Println(es.GetPrice())
+		// 	es.SetDirection(common.DoNothing)
+		// 	es.AppendReason(fmt.Sprintf("Already in a trade %v", t))
+		// }
 	}
+	// fmt.Println(s.GetPosition())
+	// fmt.Printf("%s@%v@%s now:%v pl:%v\n", t.Direction, t.EntryPrice, t.Timestamp, t.CurrentPrice, t.NetProfit)
 
 	return &es, nil
 }
@@ -132,11 +141,11 @@ func (s *Strategy) SupportsSimultaneousProcessing() bool {
 
 // OnSimultaneousSignals analyses multiple data points simultaneously, allowing flexibility
 // in allowing a strategy to only place an order for X currency if Y currency's price is Z
-func (s *Strategy) OnSimultaneousSignals(d []data.Handler, p portfolio.Handler) ([]signal.Event, error) {
+func (s *Strategy) OnSimultaneousSignals(d []data.Handler) ([]signal.Event, error) {
 	var resp []signal.Event
 	var errs gctcommon.Errors
 	for i := range d {
-		sigEvent, err := s.OnSignal(d[i], p)
+		sigEvent, err := s.OnData(d[i])
 		if err != nil {
 			errs = append(errs, fmt.Errorf("%v %v %v %w", d[i].Latest().GetExchange(), d[i].Latest().GetAssetType(), d[i].Latest().Pair(), err))
 		} else {

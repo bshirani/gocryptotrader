@@ -17,3 +17,51 @@ when dry run is disabled
 when the portfolio starts, it loads the trades from the trades table
 it keeps a map of strategies to their trades
 it updates trades in the trades table every 30 seconds
+
+backtester has exchange and portfolio
+
+backtester handle event ->
+    signal ->  portfolio.OnSignal
+    order ->  exchange.ExecuteOrder, submits fake order
+    fill -> portfolio.OnFill
+
+
+exchange.ExecuteOrder is where the trade should be saved to the database
+exchange is a fake broker
+
+for live trading our positions are updated from the real broker
+
+
+backtester has an event queue which is continuously pulls from and processes
+it can process one of three event types, signal order fill
+
+we need the backtester to keep track of the trades that it's in
+if it gives a signal to trade, it should record that trade in the database and in memory for future reference
+
+the best place to keep track of this kind of information is in the portfolio
+
+when we create a new order, we should keep track of that order until it's been processed
+
+strategy can have an empty order
+
+strategy needs to keep track of its order
+strategy needs to keep track of its position/trade
+
+the order manager (writes the order to the database) and executes the order
+receive a fill event
+(update the order in the database)
+
+portfolio has many orders, positions, and strategies
+can retrieve orders and positions per strategy, or per currency
+when an order is created, we also create a position with the appropriate state
+as we receive updates on the order, we update the position
+when the order is filled, we track the position updates
+we must exit the position
+strategies
+
+
+strategy callbacks
+on_start
+on_order
+on_trade/on_position
+on_stop

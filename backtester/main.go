@@ -77,9 +77,9 @@ func main() {
 	// }
 
 	path := gctconfig.DefaultFilePath()
-	if cfg.GoCryptoTraderConfigPath != "" {
-		path = cfg.GoCryptoTraderConfigPath
-	}
+	// if cfg.GoCryptoTraderConfigPath != "" {
+	// path = cfg.GoCryptoTraderConfigPath
+	// }
 
 	var bot *engine.Engine
 	flags := map[string]bool{

@@ -32,7 +32,7 @@ type BackTest struct {
 	hasHandledEvent bool
 	shutdown        chan struct{}
 	Datas           data.Holder
-	Strategy        strategies.Handler
+	Strategies      []strategies.Handler
 	Portfolio       portfolio.Handler
 	Exchange        exchange.ExecutionHandler
 	Statistic       statistics.Handler

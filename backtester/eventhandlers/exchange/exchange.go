@@ -141,6 +141,39 @@ func (e *Exchange) ExecuteOrder(o order.Event, data data.Handler, bot *engine.En
 	return f, nil
 }
 
+// SetExchangeAssetCurrencySettings sets the settings for an exchange, asset, currency
+func (e *Exchange) SetExchangeAssetCurrencySettings(exch string, a asset.Item, cp currency.Pair, c *Settings) {
+	if c.ExchangeName == "" ||
+		c.AssetType == "" ||
+		c.CurrencyPair.IsEmpty() {
+		return
+	}
+
+	for i := range e.CurrencySettings {
+		if e.CurrencySettings[i].CurrencyPair == cp &&
+			e.CurrencySettings[i].AssetType == a &&
+			exch == e.CurrencySettings[i].ExchangeName {
+			e.CurrencySettings[i] = *c
+			return
+		}
+	}
+	e.CurrencySettings = append(e.CurrencySettings, *c)
+}
+
+// GetCurrencySettings returns the settings for an exchange, asset currency
+func (e *Exchange) GetCurrencySettings(exch string, a asset.Item, cp currency.Pair) (Settings, error) {
+	for i := range e.CurrencySettings {
+		if e.CurrencySettings[i].CurrencyPair.Equal(cp) {
+			if e.CurrencySettings[i].AssetType == a {
+				if exch == e.CurrencySettings[i].ExchangeName {
+					return e.CurrencySettings[i], nil
+				}
+			}
+		}
+	}
+	return Settings{}, fmt.Errorf("no currency settings found for %v %v %v", exch, a, cp)
+}
+
 // verifyOrderWithinLimits conforms the amount to fall into the minimum size and maximum size limit after reduced
 func verifyOrderWithinLimits(f *fill.Fill, limitReducedAmount decimal.Decimal, cs *Settings) error {
 	if f == nil {
@@ -248,6 +281,9 @@ func (e *Exchange) placeOrder(ctx context.Context, price, amount decimal.Decimal
 			Cost:          p,
 			FullyMatched:  true,
 		}
+
+		// store the position of this fake order
+		// we need the strategy id
 		resp, err := bot.OrderManager.SubmitFakeOrder(o, submitResponse, useExchangeLimits)
 		if resp != nil {
 			orderID = resp.OrderID
@@ -293,39 +329,6 @@ func applySlippageToPrice(direction gctorder.Side, price, slippageRate decimal.D
 		adjustedPrice = price.Mul(slippageRate)
 	}
 	return adjustedPrice
-}
-
-// SetExchangeAssetCurrencySettings sets the settings for an exchange, asset, currency
-func (e *Exchange) SetExchangeAssetCurrencySettings(exch string, a asset.Item, cp currency.Pair, c *Settings) {
-	if c.ExchangeName == "" ||
-		c.AssetType == "" ||
-		c.CurrencyPair.IsEmpty() {
-		return
-	}
-
-	for i := range e.CurrencySettings {
-		if e.CurrencySettings[i].CurrencyPair == cp &&
-			e.CurrencySettings[i].AssetType == a &&
-			exch == e.CurrencySettings[i].ExchangeName {
-			e.CurrencySettings[i] = *c
-			return
-		}
-	}
-	e.CurrencySettings = append(e.CurrencySettings, *c)
-}
-
-// GetCurrencySettings returns the settings for an exchange, asset currency
-func (e *Exchange) GetCurrencySettings(exch string, a asset.Item, cp currency.Pair) (Settings, error) {
-	for i := range e.CurrencySettings {
-		if e.CurrencySettings[i].CurrencyPair.Equal(cp) {
-			if e.CurrencySettings[i].AssetType == a {
-				if exch == e.CurrencySettings[i].ExchangeName {
-					return e.CurrencySettings[i], nil
-				}
-			}
-		}
-	}
-	return Settings{}, fmt.Errorf("no currency settings found for %v %v %v", exch, a, cp)
 }
 
 func ensureOrderFitsWithinHLV(slippagePrice, amount, high, low, volume decimal.Decimal) (adjustedPrice, adjustedAmount decimal.Decimal) {
