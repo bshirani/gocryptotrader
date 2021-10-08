@@ -23,6 +23,8 @@ type Event interface {
 
 	GetPrice() decimal.Decimal
 	IsSignal() bool
+	GetAmount() decimal.Decimal
+	SetAmount(decimal.Decimal)
 	GetSellLimit() decimal.Decimal
 	GetBuyLimit() decimal.Decimal
 	GetDecision() Decision

@@ -2,7 +2,7 @@ package strategies
 
 import (
 	"github.com/thrasher-corp/gocryptotrader/backtester/data"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies/base"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/signal"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
@@ -14,8 +14,8 @@ type Handler interface {
 	Name() string
 	Stop()
 	Description() string
-	OnData(data.Handler, portfolio.Handler) (signal.Event, error)
-	OnSimultaneousSignals([]data.Handler, portfolio.Handler) ([]signal.Event, error)
+	OnData(data.Handler, base.PortfolioHandler) (signal.Event, error)
+	OnSimultaneousSignals([]data.Handler, base.PortfolioHandler) ([]signal.Event, error)
 	UsingSimultaneousProcessing() bool
 	SupportsSimultaneousProcessing() bool
 	SetSimultaneousProcessing(bool)

@@ -62,6 +62,16 @@ func (o *Order) GetID() string {
 }
 
 // SetID sets the order id
+func (o *Order) SetStrategyID(id string) {
+	o.StrategyID = id
+}
+
+// GetID returns the ID
+func (o *Order) GetStrategyID() string {
+	return o.StrategyID
+}
+
+// SetID sets the order id
 func (o *Order) SetStrategy(name string) {
 	o.Strategy = name
 }

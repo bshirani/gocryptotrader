@@ -66,10 +66,10 @@ func (f *Fill) GetSlippageRate() decimal.Decimal {
 }
 
 // GetSlippageRate returns the slippage rate
-func (f *Fill) GetStrategyID() int64 {
+func (f *Fill) GetStrategyID() string {
 	return f.StrategyID
 }
 
-func (f *Fill) SetStrategyID(sid int64) {
+func (f *Fill) SetStrategyID(sid string) {
 	f.StrategyID = sid
 }

@@ -226,11 +226,11 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *engine.
 	// LOAD ALL STRATEGIES HERE
 	var slit []strategies.Handler
 
-	s, err := strategies.LoadStrategyByName("rsi", "SELL", false)
-	s.SetDefaults()
-	slit = append(slit, s)
+	// s, err := strategies.LoadStrategyByName("rsi", "SELL", false)
+	// s.SetDefaults()
+	// slit = append(slit, s)
 
-	s, err = strategies.LoadStrategyByName("rsi", "BUY", false)
+	s, err := strategies.LoadStrategyByName("rsi", "BUY", false)
 	s.SetDefaults()
 	slit = append(slit, s)
 
@@ -238,7 +238,7 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *engine.
 
 	// PASS ALL STRATEGIES TO PORTFOLIO
 	var p *portfolio.Portfolio
-	p, err = portfolio.Setup(*bot, sizeManager, portfolioRisk, cfg.StatisticSettings.RiskFreeRate)
+	p, err = portfolio.Setup(bt.Strategies, *bot, sizeManager, portfolioRisk, cfg.StatisticSettings.RiskFreeRate)
 	if err != nil {
 		return nil, err
 	}
@@ -306,9 +306,6 @@ dataLoadingIssue:
 							}
 							break dataLoadingIssue
 						}
-						// if bt.Strategies[0].UsingSimultaneousProcessing() && hasProcessedData {
-						// 	continue
-						// }
 						bt.EventQueue.AppendEvent(d)
 						// hasProcessedData = true
 					}
@@ -362,9 +359,6 @@ func (bt *BackTest) RunLive() error {
 									}
 									// break dataLoadingIssue
 								}
-								// if bt.Strategies[0].UsingSimultaneousProcessing() && hasProcessedData {
-								// 	continue
-								// }
 
 								bt.EventQueue.AppendEvent(d)
 								// hasProcessedData = true
@@ -413,7 +407,9 @@ func (bt *BackTest) RunLive() error {
 
 // Stop shuts down the live data loop
 func (bt *BackTest) Stop() {
-	bt.Strategies[0].Stop()
+	for _, s := range bt.Strategies {
+		s.Stop()
+	}
 	close(bt.shutdown)
 }
 

@@ -3,14 +3,22 @@ package base
 import (
 	"github.com/thrasher-corp/gocryptotrader/backtester/common"
 	"github.com/thrasher-corp/gocryptotrader/backtester/data"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/positions"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/trades"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/event"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/signal"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
 
+// Handler contains all functions expected to operate a portfolio manager
+type PortfolioHandler interface {
+	GetPositionForStrategy(int64) *positions.Position
+	GetTradeForStrategy(int64) *trades.Trade
+}
+
 // Strategy is base implementation of the Handler interface
 type Strategy struct {
-	id                        int64
+	id                        string
 	direction                 order.Side
 	useSimultaneousProcessing bool
 	usingExchangeLevelFunding bool
@@ -81,4 +89,8 @@ func (s *Strategy) Stop() {
 	// 	x := s.indicatorValues[i]
 	// 	fmt.Printf("%d,%s,%s\n", x.Timestamp.Unix(), x.rsiValue, x.maValue)
 	// }
+}
+
+func (s *Strategy) GetID() string {
+	return s.id + " my id"
 }

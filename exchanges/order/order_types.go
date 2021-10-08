@@ -56,7 +56,7 @@ type Submit struct {
 	Side              Side
 	Status            Status
 	AssetType         asset.Item
-	Strategy          string
+	StrategyID        string
 	Date              time.Time
 	LastUpdated       time.Time
 	Pair              currency.Pair
@@ -154,6 +154,7 @@ type Detail struct {
 	LastUpdated          time.Time
 	Pair                 currency.Pair
 	Trades               []TradeHistory
+	StrategyID           string
 }
 
 // Filter contains all properties an order can be filtered for

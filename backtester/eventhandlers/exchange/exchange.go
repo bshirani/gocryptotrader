@@ -41,6 +41,11 @@ func (e *Exchange) ExecuteOrder(o order.Event, data data.Handler, bot *engine.En
 		Direction:  o.GetDirection(),
 		Amount:     o.GetAmount(),
 		ClosePrice: data.Latest().ClosePrice(),
+		StrategyID: o.GetStrategyID(),
+	}
+
+	if o.GetStrategyID() == "" {
+		return nil, fmt.Errorf("exchange:  order has no strategyid")
 	}
 
 	eventFunds := o.GetAllocatedFunds()
@@ -260,7 +265,7 @@ func (e *Exchange) placeOrder(ctx context.Context, price, amount decimal.Decimal
 		LastUpdated: f.GetTime(),
 		Pair:        f.Pair(),
 		Type:        gctorder.Market,
-		Strategy:    f.Strategy,
+		StrategyID:  f.GetStrategyID(),
 	}
 
 	if useRealOrders {

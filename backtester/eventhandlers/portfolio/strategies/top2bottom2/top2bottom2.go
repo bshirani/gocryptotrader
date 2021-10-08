@@ -10,7 +10,6 @@ import (
 	"github.com/thrasher-corp/gct-ta/indicators"
 	"github.com/thrasher-corp/gocryptotrader/backtester/common"
 	"github.com/thrasher-corp/gocryptotrader/backtester/data"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies/base"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/signal"
 	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
@@ -52,7 +51,7 @@ func (s *Strategy) Description() string {
 
 // OnData handles a data event and returns what action the strategy believes should occur
 // however,this complex strategy cannot function on an individual basis
-func (s *Strategy) OnData(_ data.Handler, _ portfolio.Handler) (signal.Event, error) {
+func (s *Strategy) OnData(_ data.Handler, _ base.PortfolioHandler) (signal.Event, error) {
 	return nil, errStrategyOnlySupportsSimultaneousProcessing
 }
 
@@ -86,7 +85,7 @@ func sortByMFI(o *[]mfiFundEvent, reverse bool) {
 
 // OnSimultaneousSignals analyses multiple data points simultaneously, allowing flexibility
 // in allowing a strategy to only place an order for X currency if Y currency's price is Z
-func (s *Strategy) OnSimultaneousSignals(d []data.Handler, p portfolio.Handler) ([]signal.Event, error) {
+func (s *Strategy) OnSimultaneousSignals(d []data.Handler, p base.PortfolioHandler) ([]signal.Event, error) {
 	if len(d) < 4 {
 		return nil, errStrategyCurrencyRequirements
 	}

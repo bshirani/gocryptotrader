@@ -516,7 +516,13 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 	if newOrder.Date.IsZero() {
 		newOrder.Date = time.Now()
 	}
-	msg := fmt.Sprintf("Order manager: Strategy %s Exchange %s submitted order ID=%v [Ours: %v] pair=%v price=%v amount=%v side=%v type=%v for time %v.",
+
+	if newOrder.StrategyID == "" {
+		return nil, errors.New("order must have a strategy")
+	}
+
+	msg := fmt.Sprintf("Order manager: Strategy=%s Exchange=%s submitted order ID=%v [Ours: %v] pair=%v price=%v amount=%v side=%v type=%v for time %v.",
+		newOrder.StrategyID,
 		newOrder.Exchange,
 		result.OrderID,
 		id.String(),
@@ -525,8 +531,7 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 		newOrder.Amount,
 		newOrder.Side,
 		newOrder.Type,
-		newOrder.Date,
-		newOrder.Strategy)
+		newOrder.Date)
 
 	log.Debugln(log.OrderMgr, msg)
 	m.orderStore.commsManager.PushEvent(base.Event{

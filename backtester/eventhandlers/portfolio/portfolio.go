@@ -44,6 +44,8 @@ func Setup(st []strategies.Handler, bot engine.Engine, sh SizeHandler, r risk.Ha
 	p.store.positions = make(map[int64]*positions.Position)
 	p.store.positions[123] = &positions.Position{}
 	p.store.openTrade = make(map[int64]*trades.Trade)
+	p.store.closedTrades = make(map[int64][]*trades.Trade)
+	p.store.closedTrades[123] = make([]*trades.Trade, 10)
 
 	p.bot = bot
 	p.sizeManager = sh
@@ -100,6 +102,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *exchange.Settings) (*order.Ord
 			Reason:       ev.GetReason(),
 		},
 		Direction: ev.GetDirection(),
+		Amount:    ev.GetAmount(),
 	}
 	if ev.GetDirection() == "" {
 		return o, errInvalidDirection
@@ -133,13 +136,9 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *exchange.Settings) (*order.Ord
 	o.OrderType = gctorder.Market
 	o.BuyLimit = ev.GetBuyLimit()
 	o.SellLimit = ev.GetSellLimit()
-	// prevHolding := lookup.GetLatestHoldings()
-	// var sizingFunds decimal.Decimal
-	// if ev.GetDirection() == gctorder.Sell {
-	// 	sizingFunds = prevHolding.BaseValue
-	// }
+	o.StrategyID = "my_strategyxxx"
 	sizedOrder := p.sizeOrder(ev, cs, o, decimal.NewFromFloat(100))
-	sizedOrder.Amount = decimal.NewFromFloat(0.001)
+	sizedOrder.Amount = ev.GetAmount()
 
 	p.recordTrade(ev)
 
@@ -166,22 +165,33 @@ func (p *Portfolio) OnFill(f fill.Event) (*fill.Fill, error) {
 	// what was the direction of the fill?
 	// what is the direction of the strategy?
 
-	fmt.Println("direction of fill: , strategy:", f.GetDirection())
-
 	// create or update position
-	for i, x := range p.store.positions {
+	for i, pos := range p.store.positions {
 		if i == 123 {
-			pos := p.store.positions[i]
-			pos.Amount = x.Amount.Add(decimal.NewFromFloat(10.0))
+			if f.GetDirection() == gctorder.Sell {
+				pos.Amount = pos.Amount.Sub(f.GetAmount())
+			} else if f.GetDirection() == gctorder.Buy {
+				pos.Amount = pos.Amount.Add(f.GetAmount())
+			}
+
 			if !pos.Amount.IsZero() {
 				pos.Active = true
+			} else {
+				pos.Active = false
 			}
 		}
 	}
 
 	t := p.store.openTrade[123]
 
-	t.Status = trades.Open
+	if f.GetDirection() == gctorder.Buy {
+		p.store.openTrade[123] = &trades.Trade{Status: trades.Open}
+	} else if f.GetDirection() == gctorder.Sell {
+		t.Status = trades.Closed
+		p.store.closedTrades[123] = append(p.store.closedTrades[123], t)
+		p.store.openTrade[123] = nil
+	}
+
 	// t.Status = trades.Open
 	// whats the strategy id of this fill?
 

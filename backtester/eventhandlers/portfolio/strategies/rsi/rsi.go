@@ -7,7 +7,6 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/thrasher-corp/gocryptotrader/backtester/common"
 	"github.com/thrasher-corp/gocryptotrader/backtester/data"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies/base"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/signal"
 	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
@@ -54,7 +53,7 @@ func (s *Strategy) Description() string {
 // OnData handles a data event and returns what action the strategy believes should occur
 // For rsi, this means returning a buy signal when rsi is at or below a certain level, and a
 // sell signal when it is at or above a certain level
-func (s *Strategy) OnData(d data.Handler, p portfolio.Handler) (signal.Event, error) {
+func (s *Strategy) OnData(d data.Handler, p base.PortfolioHandler) (signal.Event, error) {
 
 	// fmt.Printf("%s %s\n", d.Latest().GetTime(), d.Latest().ClosePrice())
 
@@ -97,8 +96,7 @@ func (s *Strategy) OnData(d data.Handler, p portfolio.Handler) (signal.Event, er
 		return &es, nil
 	}
 
-	// t := p.GetTradeForStrategy(123)
-	// fmt.Println(t)
+	es.SetAmount(decimal.NewFromFloat(1.0))
 
 	pos := p.GetPositionForStrategy(123)
 	if !pos.Active {
@@ -113,6 +111,12 @@ func (s *Strategy) OnData(d data.Handler, p portfolio.Handler) (signal.Event, er
 				es.SetDecision(signal.Enter)
 				es.SetDirection(order.Buy)
 			}
+		}
+	} else {
+		// check for exit
+		if latestRSIValue.GreaterThanOrEqual(s.rsiHigh) {
+			es.SetDecision(signal.Exit)
+			es.SetDirection(order.Sell)
 		}
 	}
 
@@ -137,7 +141,7 @@ func (s *Strategy) SupportsSimultaneousProcessing() bool {
 
 // OnSimultaneousSignals analyses multiple data points simultaneously, allowing flexibility
 // in allowing a strategy to only place an order for X currency if Y currency's price is Z
-func (s *Strategy) OnSimultaneousSignals(d []data.Handler, p portfolio.Handler) ([]signal.Event, error) {
+func (s *Strategy) OnSimultaneousSignals(d []data.Handler, p base.PortfolioHandler) ([]signal.Event, error) {
 	var resp []signal.Event
 	var errs gctcommon.Errors
 	for i := range d {

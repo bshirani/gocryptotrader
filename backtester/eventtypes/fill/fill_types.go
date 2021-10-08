@@ -11,7 +11,7 @@ import (
 type Fill struct {
 	event.Base
 	Direction           order.Side      `json:"side"`
-	StrategyID          int64           `json:"strategy-id"`
+	StrategyID          string          `json:"strategy-id"`
 	Amount              decimal.Decimal `json:"amount"`
 	ClosePrice          decimal.Decimal `json:"close-price"`
 	VolumeAdjustedPrice decimal.Decimal `json:"volume-adjusted-price"`
@@ -27,8 +27,8 @@ type Event interface {
 	common.EventHandler
 	common.Directioner
 
-	GetStrategyID() int64
-	SetStrategyID(int64)
+	GetStrategyID() string
+	SetStrategyID(string)
 	SetAmount(decimal.Decimal)
 	GetAmount() decimal.Decimal
 	GetClosePrice() decimal.Decimal

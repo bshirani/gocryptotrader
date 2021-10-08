@@ -73,3 +73,11 @@ func (s *Signal) SetDecision(d Decision) {
 func (s *Signal) SetPrice(f decimal.Decimal) {
 	s.ClosePrice = f
 }
+
+func (s *Signal) GetAmount() decimal.Decimal {
+	return s.Amount
+}
+
+func (s *Signal) SetAmount(d decimal.Decimal) {
+	s.Amount = d
+}

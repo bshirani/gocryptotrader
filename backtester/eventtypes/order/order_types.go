@@ -12,7 +12,7 @@ type Order struct {
 	event.Base
 	ID             string
 	Direction      order.Side
-	Strategy       string
+	StrategyID     string
 	Status         order.Status
 	Price          decimal.Decimal
 	Amount         decimal.Decimal
@@ -35,6 +35,8 @@ type Event interface {
 	GetStatus() order.Status
 	SetID(id string)
 	GetID() string
+	SetStrategyID(id string)
+	GetStrategyID() string
 	IsLeveraged() bool
 	GetAllocatedFunds() decimal.Decimal
 }
