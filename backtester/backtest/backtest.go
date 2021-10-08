@@ -238,7 +238,7 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *engine.
 
 	// PASS ALL STRATEGIES TO PORTFOLIO
 	var p *portfolio.Portfolio
-	p, err = portfolio.Setup(*bot, bt.Strategies, sizeManager, portfolioRisk, cfg.StatisticSettings.RiskFreeRate)
+	p, err = portfolio.Setup(*bot, sizeManager, portfolioRisk, cfg.StatisticSettings.RiskFreeRate)
 	if err != nil {
 		return nil, err
 	}
@@ -886,9 +886,6 @@ func loadLiveData(cfg *config.Config, base *gctexchange.Base) error {
 func (bt *BackTest) handleEvent(ev common.EventHandler) error {
 	switch eType := ev.(type) {
 	case common.DataEventHandler:
-		// if bt.Strategies[0].UsingSimultaneousProcessing() {
-		// 	return bt.processSimultaneousDataEvents()
-		// }
 		return bt.processSingleDataEvent(eType)
 	case signal.Event:
 		bt.processSignalEvent(eType)
@@ -910,14 +907,12 @@ func (bt *BackTest) processSingleDataEvent(ev common.DataEventHandler) error {
 	if err != nil {
 		return err
 	}
-	bt.Portfolio.UpdateTrades(ev)
-	bt.Portfolio.UpdatePositions(ev)
 
 	d := bt.Datas.GetDataForCurrency(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 
 	var s signal.Event
 	for _, strategy := range bt.Strategies {
-		s, err = strategy.OnData(d)
+		s, err = strategy.OnData(d, bt.Portfolio)
 		bt.EventQueue.AppendEvent(s)
 	}
 
@@ -960,7 +955,7 @@ func (bt *BackTest) processSimultaneousDataEvents() error {
 			}
 		}
 	}
-	signals, err := bt.Strategies[0].OnSimultaneousSignals(dataEvents)
+	signals, err := bt.Strategies[0].OnSimultaneousSignals(dataEvents, bt.Portfolio)
 	if err != nil {
 		if errors.Is(err, base.ErrTooMuchBadData) {
 			// too much bad data is a severe error and backtesting must cease

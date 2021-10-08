@@ -2,8 +2,6 @@ package base
 
 import (
 	"errors"
-
-	"github.com/shopspring/decimal"
 )
 
 var (
@@ -19,8 +17,3 @@ var (
 	// ErrTooMuchBadData used when there is too much missing data
 	ErrTooMuchBadData = errors.New("backtesting cannot continue as there is too much invalid data. Please review your dataset")
 )
-
-type Position struct {
-	Amount decimal.Decimal
-	Active bool
-}

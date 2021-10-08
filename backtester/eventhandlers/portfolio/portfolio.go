@@ -9,10 +9,10 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/exchange"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/compliance"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/holdings"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/positions"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/risk"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/settings"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/trades"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/strategies"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/event"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/fill"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/order"
@@ -25,7 +25,7 @@ import (
 )
 
 // Setup creates a portfolio manager instance and sets private fields
-func Setup(bot engine.Engine, s []strategies.Handler, sh SizeHandler, r risk.Handler, riskFreeRate decimal.Decimal) (*Portfolio, error) {
+func Setup(bot engine.Engine, sh SizeHandler, r risk.Handler, riskFreeRate decimal.Decimal) (*Portfolio, error) {
 	if sh == nil {
 		return nil, errSizeManagerUnset
 	}
@@ -36,8 +36,9 @@ func Setup(bot engine.Engine, s []strategies.Handler, sh SizeHandler, r risk.Han
 		return nil, errRiskManagerUnset
 	}
 	p := &Portfolio{}
+	p.store.Positions = make(map[int64]*positions.Position)
+	p.store.Positions[123] = &positions.Position{}
 	p.bot = bot
-	p.strategies = s
 	p.sizeManager = sh
 	p.riskManager = r
 	p.riskFreeRate = riskFreeRate
@@ -58,7 +59,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *exchange.Settings) (*order.Ord
 
 	switch ev.GetDecision() {
 	case signal.Enter:
-		fmt.Println("enter, get strategy direction")
+		fmt.Println("enter")
 	case signal.Exit:
 		fmt.Println("exit")
 	case signal.DoNothing:
@@ -66,8 +67,6 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *exchange.Settings) (*order.Ord
 	default:
 		return nil, errNoDecision
 	}
-
-	fmt.Println("received signal: ", ev.GetStrategy(), ev.GetDecision(), ev.GetDirection())
 
 	if ev == nil || cs == nil {
 		return nil, common.ErrNilArguments
@@ -104,14 +103,13 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *exchange.Settings) (*order.Ord
 			ev.Pair())
 	}
 
-	sdir := p.strategies[0].Direction()
-	pos, _ := p.strategies[0].GetPosition()
+	// sdir := p.strategies[0].Direction()
 
-	if pos.Active {
-		if (sdir == gctorder.Buy && ev.GetDirection() == gctorder.Buy) || (sdir == gctorder.Sell && ev.GetDirection() == gctorder.Sell) {
-			return nil, errAlreadyInTrade
-		}
-	}
+	// if pos.Active {
+	// if (sdir == gctorder.Buy && ev.GetDirection() == gctorder.Buy) || (sdir == gctorder.Sell && ev.GetDirection() == gctorder.Sell) {
+	// 	return nil, errAlreadyInTrade
+	// }
+	// }
 
 	if ev.GetDirection() == common.DoNothing ||
 		ev.GetDirection() == common.MissingData ||
@@ -137,31 +135,50 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *exchange.Settings) (*order.Ord
 	return p.evaluateOrder(ev, o, sizedOrder)
 }
 
+func (p *Portfolio) updatePosition(pos *positions.Position, amount decimal.Decimal) {
+	pos.Amount = decimal.NewFromFloat(100.0)
+}
+
 // OnFill processes the event after an order has been placed by the exchange. Its purpose is to track holdings for future portfolio decisions.
-func (p *Portfolio) OnFill(ev fill.Event) (*fill.Fill, error) {
-	if ev == nil {
+func (p *Portfolio) OnFill(f fill.Event) (*fill.Fill, error) {
+	if f == nil {
 		return nil, common.ErrNilEvent
 	}
-	lookup := p.exchangeAssetPairSettings[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
+	lookup := p.exchangeAssetPairSettings[f.GetExchange()][f.GetAssetType()][f.Pair()]
 	if lookup == nil {
-		return nil, fmt.Errorf("%w for %v %v %v", errNoPortfolioSettings, ev.GetExchange(), ev.GetAssetType(), ev.Pair())
+		return nil, fmt.Errorf("%w for %v %v %v", errNoPortfolioSettings, f.GetExchange(), f.GetAssetType(), f.Pair())
 	}
 	var err error
-	// p.store.UpdatePositions(ev)
+
+	// which strategy was filled?
+	// what was the amount filled?
+	// what was the direction of the fill?
+
+	// create or update position
+	for i, x := range p.store.Positions {
+		if i == 123 {
+			pos := p.store.Positions[i]
+			pos.Amount = x.Amount.Add(decimal.NewFromFloat(10.0))
+			if !pos.Amount.IsZero() {
+				pos.Active = true
+			}
+		}
+	}
+	// whats the strategy id of this fill?
 
 	// Get the holding from the previous iteration, create it if it doesn't yet have a timestamp
-	h := lookup.GetHoldingsForTime(ev.GetTime().Add(-ev.GetInterval().Duration()))
+	h := lookup.GetHoldingsForTime(f.GetTime().Add(-f.GetInterval().Duration()))
 	if !h.Timestamp.IsZero() {
-		h.Update(ev)
+		h.Update(f)
 	} else {
 		h = lookup.GetLatestHoldings()
 		if h.Timestamp.IsZero() {
-			h, err = holdings.Create(ev, decimal.NewFromFloat(1000.0), p.riskFreeRate)
+			h, err = holdings.Create(f, decimal.NewFromFloat(1000.0), p.riskFreeRate)
 			if err != nil {
 				return nil, err
 			}
 		} else {
-			h.Update(ev)
+			h.Update(f)
 		}
 	}
 	err = p.setHoldingsForOffset(&h, true)
@@ -172,18 +189,18 @@ func (p *Portfolio) OnFill(ev fill.Event) (*fill.Fill, error) {
 		log.Error(log.BackTester, err)
 	}
 
-	err = p.addComplianceSnapshot(ev)
+	err = p.addComplianceSnapshot(f)
 	if err != nil {
 		log.Error(log.BackTester, err)
 	}
 
-	direction := ev.GetDirection()
+	direction := f.GetDirection()
 	if direction == common.DoNothing ||
 		direction == common.CouldNotBuy ||
 		direction == common.CouldNotSell ||
 		direction == common.MissingData ||
 		direction == "" {
-		fe, ok := ev.(*fill.Fill)
+		fe, ok := f.(*fill.Fill)
 		if !ok {
 			return nil, fmt.Errorf("%w expected fill event", common.ErrInvalidDataType)
 		}
@@ -191,7 +208,7 @@ func (p *Portfolio) OnFill(ev fill.Event) (*fill.Fill, error) {
 		return fe, nil
 	}
 
-	fe, ok := ev.(*fill.Fill)
+	fe, ok := f.(*fill.Fill)
 	if !ok {
 		return nil, fmt.Errorf("%w expected fill event", common.ErrInvalidDataType)
 	}
@@ -292,16 +309,36 @@ func (p *Portfolio) UpdateTrades(ev common.DataEventHandler) {
 	// return err
 }
 
+// func (p *Portfolio) GetStrategies() []strategies.Handler {
+// 	return p.strategies
+// }
+
+func (p *Portfolio) GetPositionForStrategy(sid int64) *positions.Position {
+	return p.store.Positions[sid]
+	// return pos
+}
+
 // UpdatePositions updates the strategy's position for the data event
 func (p *Portfolio) UpdatePositions(ev common.DataEventHandler) {
 	if ev == nil {
 		return
 	}
 
-	pos, _ := p.strategies[0].GetPosition()
+	// for _, s := range p.GetStrategies() {
+	// 	// update the strategies positions
+	// 	fmt.Println("update position for ", s.Name)
+	// }
+
+	// portfolio has many strategies
+	// we keep the position for each strategy
+	for i, p := range p.store.Positions {
+		fmt.Println(i, p)
+	}
+
+	// pos := p.GetPositionForStrategy(p.strategies[0].ID())
+	// fmt.Println("position:", pos.Amount)
 	// pos.Amount = decimal.NewFromFloat(123.0)
 	// pos.Active = false
-	p.strategies[0].SetPosition(pos)
 
 	// return nil
 	_, ok := p.exchangeAssetPairSettings[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]

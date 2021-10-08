@@ -64,3 +64,12 @@ func (f *Fill) GetOrder() *order.Detail {
 func (f *Fill) GetSlippageRate() decimal.Decimal {
 	return f.Slippage
 }
+
+// GetSlippageRate returns the slippage rate
+func (f *Fill) GetStrategyID() int64 {
+	return f.StrategyID
+}
+
+func (f *Fill) SetStrategyID(sid int64) {
+	f.StrategyID = sid
+}

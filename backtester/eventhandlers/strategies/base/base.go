@@ -10,12 +10,10 @@ import (
 
 // Strategy is base implementation of the Handler interface
 type Strategy struct {
+	id                        int64
 	direction                 order.Side
 	useSimultaneousProcessing bool
 	usingExchangeLevelFunding bool
-	position                  Position
-	isClosing                 bool
-	pendingOrders             []order.Detail
 }
 
 // GetBaseData returns the non-interface version of the Handler
@@ -44,20 +42,8 @@ func (s *Strategy) GetBaseData(d data.Handler) (signal.Signal, error) {
 	}, nil
 }
 
-func (s *Strategy) GetPosition() (Position, error) {
-	return s.position, nil
-}
-
-func (s *Strategy) GetIsClosing() bool {
-	return s.isClosing
-}
-
-func (s *Strategy) SetIsClosing(i bool) {
-	s.isClosing = i
-}
-
-func (s *Strategy) SetPosition(p Position) {
-	s.position = p
+func (s *Strategy) ID() int64 {
+	return 123
 }
 
 // UsingSimultaneousProcessing returns whether multiple currencies can be assessed in one go
