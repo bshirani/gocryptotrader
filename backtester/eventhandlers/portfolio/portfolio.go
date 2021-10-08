@@ -12,6 +12,7 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/positions"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/risk"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/settings"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/trades"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/event"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/fill"
@@ -25,7 +26,7 @@ import (
 )
 
 // Setup creates a portfolio manager instance and sets private fields
-func Setup(bot engine.Engine, sh SizeHandler, r risk.Handler, riskFreeRate decimal.Decimal) (*Portfolio, error) {
+func Setup(st []strategies.Handler, bot engine.Engine, sh SizeHandler, r risk.Handler, riskFreeRate decimal.Decimal) (*Portfolio, error) {
 	if sh == nil {
 		return nil, errSizeManagerUnset
 	}
@@ -42,8 +43,7 @@ func Setup(bot engine.Engine, sh SizeHandler, r risk.Handler, riskFreeRate decim
 	// you need the strategy IDS here
 	p.store.positions = make(map[int64]*positions.Position)
 	p.store.positions[123] = &positions.Position{}
-	p.store.openTrades = make(map[int64][]*trades.Trade)
-	p.store.openTrades[123] = make([]*trades.Trade, 1)
+	p.store.openTrade = make(map[int64]*trades.Trade)
 
 	p.bot = bot
 	p.sizeManager = sh
@@ -66,9 +66,13 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *exchange.Settings) (*order.Ord
 
 	switch ev.GetDecision() {
 	case signal.Enter:
-		fmt.Println("enter")
+		// fmt.Println("enter")
+		//raise error if we already have an open trade
+		// find or create new trade here
+		// create a new trade struct and store it
+		p.store.openTrade[123] = &trades.Trade{Status: trades.Pending}
 	case signal.Exit:
-		fmt.Println("exit")
+		// fmt.Println("exit")
 	case signal.DoNothing:
 		return nil, nil
 	default:
@@ -160,6 +164,9 @@ func (p *Portfolio) OnFill(f fill.Event) (*fill.Fill, error) {
 	// which strategy was filled?
 	// what was the amount filled?
 	// what was the direction of the fill?
+	// what is the direction of the strategy?
+
+	fmt.Println("direction of fill: , strategy:", f.GetDirection())
 
 	// create or update position
 	for i, x := range p.store.positions {
@@ -171,6 +178,11 @@ func (p *Portfolio) OnFill(f fill.Event) (*fill.Fill, error) {
 			}
 		}
 	}
+
+	t := p.store.openTrade[123]
+
+	t.Status = trades.Open
+	// t.Status = trades.Open
 	// whats the strategy id of this fill?
 
 	// Get the holding from the previous iteration, create it if it doesn't yet have a timestamp
@@ -322,7 +334,10 @@ func (p *Portfolio) UpdateTrades(ev common.DataEventHandler) {
 
 func (p *Portfolio) GetPositionForStrategy(sid int64) *positions.Position {
 	return p.store.positions[sid]
-	// return pos
+}
+
+func (p *Portfolio) GetTradeForStrategy(sid int64) *trades.Trade {
+	return p.store.openTrade[sid]
 }
 
 // UpdatePositions updates the strategy's position for the data event

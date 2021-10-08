@@ -21,6 +21,7 @@ const (
 // Trade contains trade data for a given time
 // for a given exchange asset pair
 type Trade struct {
+	Status       Status
 	Offset       int64
 	Item         currency.Code
 	Pair         currency.Pair

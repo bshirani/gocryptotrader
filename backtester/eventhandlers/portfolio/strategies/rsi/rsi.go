@@ -8,7 +8,7 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/backtester/common"
 	"github.com/thrasher-corp/gocryptotrader/backtester/data"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/strategies/base"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies/base"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/signal"
 	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
@@ -96,6 +96,9 @@ func (s *Strategy) OnData(d data.Handler, p portfolio.Handler) (signal.Event, er
 		es.AppendReason(fmt.Sprintf("missing data at %v, cannot perform any actions. RSI %v", d.Latest().GetTime(), latestRSIValue))
 		return &es, nil
 	}
+
+	// t := p.GetTradeForStrategy(123)
+	// fmt.Println(t)
 
 	pos := p.GetPositionForStrategy(123)
 	if !pos.Active {

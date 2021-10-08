@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/strategies/base"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/strategies/dollarcostaverage"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/strategies/rsi"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/strategies/top2bottom2"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies/base"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies/dollarcostaverage"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies/rsi"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies/top2bottom2"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
 

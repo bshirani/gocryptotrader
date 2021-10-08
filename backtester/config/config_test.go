@@ -11,8 +11,8 @@ import (
 
 	"github.com/shopspring/decimal"
 	"github.com/thrasher-corp/gocryptotrader/backtester/common"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/strategies/base"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/strategies/top2bottom2"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies/base"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies/top2bottom2"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/database"
 	"github.com/thrasher-corp/gocryptotrader/database/drivers"

@@ -44,7 +44,7 @@ var (
 type store struct {
 	m            sync.RWMutex
 	positions    map[int64]*positions.Position
-	openTrades   map[int64][]*trades.Trade
+	openTrade    map[int64]*trades.Trade
 	closedTrades map[int64][]*trades.Trade
 	wg           *sync.WaitGroup
 }
@@ -69,6 +69,7 @@ type Handler interface {
 	setHoldingsForOffset(*holdings.Holding, bool) error
 	UpdateHoldings(common.DataEventHandler) error
 	GetPositionForStrategy(int64) *positions.Position
+	GetTradeForStrategy(int64) *trades.Trade
 
 	GetComplianceManager(string, asset.Item, currency.Pair) (*compliance.Manager, error)
 

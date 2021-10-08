@@ -16,7 +16,7 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/thrasher-corp/gocryptotrader/backtester/common"
 	"github.com/thrasher-corp/gocryptotrader/backtester/config"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/strategies"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies"
 	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
 	gctconfig "github.com/thrasher-corp/gocryptotrader/config"
 	"github.com/thrasher-corp/gocryptotrader/database"

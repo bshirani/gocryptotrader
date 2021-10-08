@@ -10,7 +10,7 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/backtester/common"
 	"github.com/thrasher-corp/gocryptotrader/backtester/data"
 	"github.com/thrasher-corp/gocryptotrader/backtester/data/kline"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/strategies/base"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies/base"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/event"
 	eventkline "github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/kline"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/signal"
