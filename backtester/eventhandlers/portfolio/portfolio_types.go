@@ -44,9 +44,8 @@ var (
 type store struct {
 	m            sync.RWMutex
 	positions    map[int64]*positions.Position
-	Trades       map[int64][]trades.Trade
-	openTrade    trades.Trade
-	closedTrades []trades.Trade
+	openTrades   map[int64][]*trades.Trade
+	closedTrades map[int64][]*trades.Trade
 	wg           *sync.WaitGroup
 }
 
