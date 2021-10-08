@@ -9,6 +9,15 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
 
+type Status string
+
+// Order side types
+const (
+	Pending Status = "PENDING"
+	Open    Status = "OPEN"
+	Closed  Status = "CLOSED"
+)
+
 // Trade contains trade data for a given time
 // for a given exchange asset pair
 type Trade struct {

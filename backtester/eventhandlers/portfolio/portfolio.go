@@ -36,8 +36,15 @@ func Setup(bot engine.Engine, sh SizeHandler, r risk.Handler, riskFreeRate decim
 		return nil, errRiskManagerUnset
 	}
 	p := &Portfolio{}
+
+	// create position for every strategy
+	// create open trades array for every strategy
+	// you need the strategy IDS here
 	p.store.positions = make(map[int64]*positions.Position)
 	p.store.positions[123] = &positions.Position{}
+	p.store.openTrades = make(map[int64][]*trades.Trade)
+	p.store.openTrades[123] = make([]*trades.Trade, 1)
+
 	p.bot = bot
 	p.sizeManager = sh
 	p.riskManager = r
