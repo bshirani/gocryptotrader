@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/go-gota/gota/series"
+	"github.com/shopspring/decimal"
 	"github.com/thrasher-corp/gocryptotrader/backtester/data"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/factors/dataframe"
 )
@@ -16,6 +17,9 @@ type Engine struct {
 type DataFrameHandler interface {
 	Last() series.Series
 	LastDate() time.Time
+	CurrentDate() time.Time
+	CurrentDateHigh() decimal.Decimal
+	CurrentDateLow() decimal.Decimal
 }
 
 type Handler interface {

@@ -83,7 +83,9 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *engine.
 	}
 	bt.Reports = reports
 
+	fmt.Println(123)
 	err := bt.setupBot(cfg, bot)
+	fmt.Println(1234123)
 	if err != nil {
 		return nil, err
 	}
