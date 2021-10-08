@@ -111,16 +111,6 @@ func (s *Strategy) OnData(d data.Handler, p portfolio.Handler) (signal.Event, er
 				es.SetDirection(order.Buy)
 			}
 		}
-	} else {
-		// check for exit
-		if s.Direction() == order.Sell {
-			es.SetDecision(signal.Exit)
-			es.SetDirection(order.Buy)
-		} else if s.Direction() == order.Buy {
-			es.SetDecision(signal.Exit)
-			es.SetDirection(order.Sell)
-		}
-
 	}
 
 	// no trade
