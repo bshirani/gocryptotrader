@@ -32,7 +32,6 @@ type IndicatorValues struct {
 // Strategy is an implementation of the Handler interface
 type Strategy struct {
 	base.Strategy
-	id              int64
 	rsiPeriod       decimal.Decimal
 	rsiLow          decimal.Decimal
 	rsiHigh         decimal.Decimal
@@ -55,20 +54,25 @@ func (s *Strategy) Description() string {
 // sell signal when it is at or above a certain level
 func (s *Strategy) OnData(d data.Handler, p base.PortfolioHandler) (signal.Event, error) {
 
+	fmt.Println("checking strategy", s.Strategy.ID())
 	// fmt.Printf("%s %s\n", d.Latest().GetTime(), d.Latest().ClosePrice())
 
 	if d == nil {
 		return nil, common.ErrNilEvent
 	}
 	es, err := s.GetBaseData(d)
-	es.SetStrategy(Name)
 	if err != nil {
 		return nil, err
 	}
+
+	es.SetStrategy(Name)
+	es.SetStrategyID(s.ID())
 	es.SetPrice(d.Latest().ClosePrice())
+
 	offset := d.Offset()
 
 	if offset <= int(s.rsiPeriod.IntPart()) {
+		es.SetDecision(signal.DoNothing)
 		es.AppendReason("Not enough data for signal generation")
 		return &es, nil
 	}
@@ -92,6 +96,7 @@ func (s *Strategy) OnData(d data.Handler, p base.PortfolioHandler) (signal.Event
 
 	if !d.HasDataAtTime(d.Latest().GetTime()) {
 		es.SetDirection(common.MissingData)
+		es.SetDecision(signal.DoNothing)
 		es.AppendReason(fmt.Sprintf("missing data at %v, cannot perform any actions. RSI %v", d.Latest().GetTime(), latestRSIValue))
 		return &es, nil
 	}
@@ -99,8 +104,8 @@ func (s *Strategy) OnData(d data.Handler, p base.PortfolioHandler) (signal.Event
 	es.SetAmount(decimal.NewFromFloat(1.0))
 
 	// fmt.Println("pair", d.Latest().Pair())
-	// m := p.GetFactorEngine().Minute()
-	// fmt.Println(s.Strategy.GetWeight(), m.LastUpdate, m.Close.Last(1))
+	m := p.GetFactorEngine().Minute()
+	fmt.Println(s.Strategy.GetWeight(), m.LastUpdate, m.Close.Last(1))
 
 	pos := p.GetPositionForStrategy(s.Strategy.ID())
 	if !pos.Active {

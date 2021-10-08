@@ -32,7 +32,6 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/fill"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/order"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/signal"
-	"github.com/thrasher-corp/gocryptotrader/backtester/funding"
 	"github.com/thrasher-corp/gocryptotrader/backtester/report"
 	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
 	gctbase "github.com/thrasher-corp/gocryptotrader/communications/base"
@@ -169,74 +168,23 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *engine.
 				cfg.CurrencySettings[i].MakerFee,
 				cfg.CurrencySettings[i].TakerFee)
 		}
-
-		var baseItem, quoteItem *funding.Item
-		if useExchangeLevelFunding {
-			// add any remaining currency items that have no funding data in the strategy config
-			baseItem, err = funding.CreateItem(cfg.CurrencySettings[i].ExchangeName,
-				a,
-				b,
-				decimal.Zero,
-				decimal.Zero)
-			if err != nil {
-				return nil, err
-			}
-			quoteItem, err = funding.CreateItem(cfg.CurrencySettings[i].ExchangeName,
-				a,
-				q,
-				decimal.Zero,
-				decimal.Zero)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			var bFunds, qFunds decimal.Decimal
-			if cfg.CurrencySettings[i].InitialBaseFunds != nil {
-				bFunds = *cfg.CurrencySettings[i].InitialBaseFunds
-			}
-			if cfg.CurrencySettings[i].InitialQuoteFunds != nil {
-				qFunds = *cfg.CurrencySettings[i].InitialQuoteFunds
-			}
-			baseItem, err = funding.CreateItem(
-				cfg.CurrencySettings[i].ExchangeName,
-				a,
-				curr.Base,
-				bFunds,
-				decimal.Zero)
-			if err != nil {
-				return nil, err
-			}
-			quoteItem, err = funding.CreateItem(
-				cfg.CurrencySettings[i].ExchangeName,
-				a,
-				curr.Quote,
-				qFunds,
-				decimal.Zero)
-			if err != nil {
-				return nil, err
-			}
-			// var pair *funding.Pair
-			_, err = funding.CreatePair(baseItem, quoteItem)
-			if err != nil {
-				return nil, err
-			}
-		}
 	}
 
 	// LOAD ALL STRATEGIES HERE
 	var slit []strategies.Handler
 
 	s, err := strategies.LoadStrategyByName("rsi", "SELL", false)
+	s.SetID("rsi_SELL")
 	s.SetDefaults()
 	slit = append(slit, s)
 
 	s, err = strategies.LoadStrategyByName("rsi", "BUY", false)
 	s.SetDefaults()
+	s.SetID("rsi_BUY")
 	slit = append(slit, s)
 
 	bt.Strategies = slit
 
-	// PASS ALL STRATEGIES TO PORTFOLIO
 	var p *portfolio.Portfolio
 	p, err = portfolio.Setup(bt.Strategies, *bot, sizeManager, portfolioRisk, cfg.StatisticSettings.RiskFreeRate)
 	if err != nil {
@@ -326,11 +274,21 @@ dataLoadingIssue:
 	return nil
 }
 
-// RunLive is a proof of concept function that does not yet support multi currency usage
-// It runs by constantly checking for new live datas and running through the list of events
-// once new data is processed. It will run until application close event has been received
-func (bt *BackTest) RunLive() error {
-	log.Info(log.BackTester, "running backtester against live data")
+func (bt *BackTest) Start() error {
+	log.Info(log.BackTester, "LIVE MODE")
+	// whats are the currencies traded
+	// what are the strategies traded
+	// fmt.Println("symbols", bt.Strategies)
+	cs, _ := bt.Exchange.GetAllCurrencySettings()
+
+	var symbols []string
+	symbols = make([]string, 200)
+	for _, c := range cs {
+		x := fmt.Sprintf("%s", c.CurrencyPair)
+		symbols = append(symbols, x)
+	}
+	fmt.Println("SYMBOLS TRADED:", symbols)
+
 	timeoutTimer := time.NewTimer(time.Minute * 1)
 
 	bt.Bot.CommunicationsManager.PushEvent(gctbase.Event{Type: "event", Message: "run backtest live"})
@@ -642,14 +600,14 @@ func (bt *BackTest) loadData(cfg *config.Config, exch gctexchange.IBotExchange, 
 		cfg.DataSettings.CSVData == nil {
 		return nil, errNoDataSource
 	}
-	if (cfg.DataSettings.APIData != nil && cfg.DataSettings.DatabaseData != nil) ||
-		(cfg.DataSettings.APIData != nil && cfg.DataSettings.LiveData != nil) ||
-		(cfg.DataSettings.APIData != nil && cfg.DataSettings.CSVData != nil) ||
-		(cfg.DataSettings.DatabaseData != nil && cfg.DataSettings.LiveData != nil) ||
-		(cfg.DataSettings.CSVData != nil && cfg.DataSettings.LiveData != nil) ||
-		(cfg.DataSettings.CSVData != nil && cfg.DataSettings.DatabaseData != nil) {
-		return nil, errAmbiguousDataSource
-	}
+	// if (cfg.DataSettings.APIData != nil && cfg.DataSettings.DatabaseData != nil) ||
+	// 	(cfg.DataSettings.APIData != nil && cfg.DataSettings.LiveData != nil) ||
+	// 	(cfg.DataSettings.APIData != nil && cfg.DataSettings.CSVData != nil) ||
+	// 	(cfg.DataSettings.DatabaseData != nil && cfg.DataSettings.LiveData != nil) ||
+	// 	(cfg.DataSettings.CSVData != nil && cfg.DataSettings.LiveData != nil) ||
+	// 	(cfg.DataSettings.CSVData != nil && cfg.DataSettings.DatabaseData != nil) {
+	// 	return nil, errAmbiguousDataSource
+	// }
 
 	dataType, err := common.DataTypeToInt(cfg.DataSettings.DataType)
 	if err != nil {
@@ -754,9 +712,49 @@ func (bt *BackTest) loadData(cfg *config.Config, exch gctexchange.IBotExchange, 
 			return resp, err
 		}
 	case cfg.DataSettings.LiveData != nil:
-		if len(cfg.CurrencySettings) > 1 {
-			return nil, errors.New("live data simulation only supports one currency")
+		log.Infof(log.BackTester, "loading db data for %v %v %v...\n", exch.GetName(), a, fPair)
+		if cfg.DataSettings.DatabaseData.InclusiveEndDate {
+			cfg.DataSettings.DatabaseData.EndDate = cfg.DataSettings.DatabaseData.EndDate.Add(cfg.DataSettings.Interval)
 		}
+		if cfg.DataSettings.DatabaseData.ConfigOverride != nil {
+			bt.Bot.Config.Database = *cfg.DataSettings.DatabaseData.ConfigOverride
+			gctdatabase.DB.DataPath = filepath.Join(gctcommon.GetDefaultDataDir(runtime.GOOS), "database")
+			err = gctdatabase.DB.SetConfig(cfg.DataSettings.DatabaseData.ConfigOverride)
+			if err != nil {
+				return nil, err
+			}
+		}
+		bt.Bot.DatabaseManager, err = engine.SetupDatabaseConnectionManager(gctdatabase.DB.GetConfig())
+		if err != nil {
+			return nil, err
+		}
+
+		err = bt.Bot.DatabaseManager.Start(&bt.Bot.ServicesWG)
+		if err != nil {
+			return nil, err
+		}
+
+		resp, err = loadDatabaseData(cfg, exch.GetName(), fPair, a, dataType)
+		if err != nil {
+			return nil, fmt.Errorf("unable to retrieve data from GoCryptoTrader database. Error: %v. Please ensure the database is setup correctly and has data before use", err)
+		}
+
+		resp.Item.RemoveDuplicates()
+		resp.Item.SortCandlesByTimestamp(false)
+		resp.RangeHolder, err = gctkline.CalculateCandleDateRanges(
+			cfg.DataSettings.DatabaseData.StartDate,
+			cfg.DataSettings.DatabaseData.EndDate,
+			gctkline.Interval(cfg.DataSettings.Interval),
+			0,
+		)
+		if err != nil {
+			return nil, err
+		}
+		resp.RangeHolder.SetHasDataFromCandles(resp.Item.Candles)
+		// if len(cfg.CurrencySettings) > 1 {
+		// 	return nil, errors.New("live data simulation only supports one currency")
+		// }
+
 		err = loadLiveData(cfg, b)
 		if err != nil {
 			return nil, err

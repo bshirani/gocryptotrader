@@ -179,6 +179,10 @@ func (e *Exchange) GetCurrencySettings(exch string, a asset.Item, cp currency.Pa
 	return Settings{}, fmt.Errorf("no currency settings found for %v %v %v", exch, a, cp)
 }
 
+func (e *Exchange) GetAllCurrencySettings() ([]Settings, error) {
+	return e.CurrencySettings, nil
+}
+
 // verifyOrderWithinLimits conforms the amount to fall into the minimum size and maximum size limit after reduced
 func verifyOrderWithinLimits(f *fill.Fill, limitReducedAmount decimal.Decimal, cs *Settings) error {
 	if f == nil {

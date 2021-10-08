@@ -82,6 +82,18 @@ func (p *Portfolio) GetFactorEngine() *factors.Engine {
 // the portfolio manager's recommendations
 func (p *Portfolio) OnSignal(ev signal.Event, cs *exchange.Settings) (*order.Order, error) {
 
+	if ev == nil || cs == nil {
+		return nil, common.ErrNilArguments
+	}
+	if p.sizeManager == nil {
+		return nil, errSizeManagerUnset
+	}
+	if p.riskManager == nil {
+		return nil, errRiskManagerUnset
+	}
+	if ev.GetStrategyID() == "" {
+		return nil, errStrategyIDUnset
+	}
 	switch ev.GetDecision() {
 	case signal.Enter:
 		// fmt.Println("enter")
@@ -92,19 +104,11 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *exchange.Settings) (*order.Ord
 	case signal.Exit:
 		// fmt.Println("exit")
 	case signal.DoNothing:
+		fmt.Println("portfolio: do nothing", ev.GetReason())
 		return nil, nil
 	default:
+		fmt.Println("no decision for", ev.GetStrategyID())
 		return nil, errNoDecision
-	}
-
-	if ev == nil || cs == nil {
-		return nil, common.ErrNilArguments
-	}
-	if p.sizeManager == nil {
-		return nil, errSizeManagerUnset
-	}
-	if p.riskManager == nil {
-		return nil, errRiskManagerUnset
 	}
 
 	o := &order.Order{

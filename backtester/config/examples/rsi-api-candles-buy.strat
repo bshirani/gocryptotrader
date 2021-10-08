@@ -78,6 +78,14 @@
      "sslmode": ""
     }
    }
+  },
+  "live-data": {
+   "api-key-override": "",
+   "api-secret-override": "",
+   "api-client-id-override": "",
+   "api-2fa-override": "",
+   "api-sub-account-override": "",
+   "real-orders": false
   }
  },
  "portfolio-settings": {

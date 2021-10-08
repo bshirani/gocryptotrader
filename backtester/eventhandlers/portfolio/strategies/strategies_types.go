@@ -5,6 +5,7 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/backtester/data"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies/base"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/signal"
+	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
 
@@ -13,6 +14,8 @@ type Handler interface {
 	ID() string
 	SetID(string)
 	Direction() order.Side
+	GetPair() currency.Pair
+	SetPair(currency.Pair)
 	Name() string
 	Stop()
 	Description() string

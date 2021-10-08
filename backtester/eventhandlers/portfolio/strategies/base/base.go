@@ -6,12 +6,14 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/backtester/data"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/event"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/signal"
+	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
 
 // Strategy is base implementation of the Handler interface
 type Strategy struct {
 	id                        string
+	pair                      currency.Pair
 	weight                    decimal.Decimal
 	direction                 order.Side
 	useSimultaneousProcessing bool
@@ -51,6 +53,15 @@ func (s *Strategy) ID() string {
 func (s *Strategy) SetID(id string) {
 	s.id = id
 }
+
+func (s *Strategy) GetPair() currency.Pair {
+	return s.pair
+}
+
+func (s *Strategy) SetPair(p currency.Pair) {
+	s.pair = p
+}
+
 func (s *Strategy) SetWeight(d decimal.Decimal) {
 	s.weight = d
 }

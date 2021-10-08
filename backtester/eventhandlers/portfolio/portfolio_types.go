@@ -27,6 +27,7 @@ var (
 	errNoDecision           = errors.New("signal has no decision")
 	errInvalidDirection     = errors.New("invalid direction")
 	errRiskManagerUnset     = errors.New("risk manager unset")
+	errStrategyIDUnset      = errors.New("strategy id unset")
 	errAlreadyInTrade       = errors.New("already in trade")
 	errSizeManagerUnset     = errors.New("size manager unset")
 	errAssetUnset           = errors.New("asset unset")

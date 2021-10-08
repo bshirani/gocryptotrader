@@ -16,7 +16,7 @@ import (
 
 func main() {
 	var configPath, templatePath, reportOutput string
-	var printLogo, generateReport, darkReport bool
+	var printLogo, generateReport, darkReport, liveMode bool
 	wd, err := os.Getwd()
 	if err != nil {
 		fmt.Printf("Could not get working directory. Error: %v.\n", err)
@@ -39,6 +39,11 @@ func main() {
 			"report",
 			"tpl.gohtml"),
 		"the report template to use")
+	flag.BoolVar(
+		&liveMode,
+		"livemode",
+		false,
+		"whether to generate the report file")
 	flag.BoolVar(
 		&generateReport,
 		"generatereport",
@@ -112,9 +117,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	if cfg.DataSettings.LiveData != nil {
+	if liveMode {
+		fmt.Println("live mode")
 		go func() {
-			err = bt.RunLive()
+			err = bt.Start()
 			if err != nil {
 				fmt.Printf("Could not complete live run. Error: %v.\n", err)
 				os.Exit(-1)
@@ -124,6 +130,7 @@ func main() {
 		gctlog.Infof(gctlog.Global, "Captured %v, shutdown requested.\n", interrupt)
 		bt.Stop()
 	} else {
+		fmt.Println("not-live mode")
 		err = bt.Run()
 		if err != nil {
 			fmt.Printf("Could not complete run. Error: %v.\n", err)
