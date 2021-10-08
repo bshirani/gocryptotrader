@@ -23,6 +23,7 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/exchange/slippage"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/compliance"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/factors"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/risk"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/settings"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/size"
@@ -60,6 +61,7 @@ func (bt *BackTest) Reset() {
 	// bt.Statistic.Reset()
 	bt.Exchange.Reset()
 	bt.Bot = nil
+	bt.FactorEngine = nil
 }
 
 // NewFromConfig takes a strategy config and configures a backtester variable to run
@@ -197,6 +199,10 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *engine.
 			return nil, err
 		}
 	}
+	bt.FactorEngine, err = factors.Setup()
+	if err != nil {
+		return nil, err
+	}
 	// stats := &statistics.Statistic{
 	// 	StrategyName:                s.Name(),
 	// 	StrategyNickname:            cfg.Nickname,
@@ -276,10 +282,13 @@ dataLoadingIssue:
 
 func (bt *BackTest) Start() error {
 	log.Info(log.BackTester, "LIVE MODE")
+
+	bt.FactorEngine.Start()
 	// whats are the currencies traded
 	// what are the strategies traded
 	// fmt.Println("symbols", bt.Strategies)
 	cs, _ := bt.Exchange.GetAllCurrencySettings()
+	// run catchup here
 
 	var symbols []string
 	symbols = make([]string, 200)
@@ -712,45 +721,6 @@ func (bt *BackTest) loadData(cfg *config.Config, exch gctexchange.IBotExchange, 
 			return resp, err
 		}
 	case cfg.DataSettings.LiveData != nil:
-		log.Infof(log.BackTester, "loading db data for %v %v %v...\n", exch.GetName(), a, fPair)
-		if cfg.DataSettings.DatabaseData.InclusiveEndDate {
-			cfg.DataSettings.DatabaseData.EndDate = cfg.DataSettings.DatabaseData.EndDate.Add(cfg.DataSettings.Interval)
-		}
-		if cfg.DataSettings.DatabaseData.ConfigOverride != nil {
-			bt.Bot.Config.Database = *cfg.DataSettings.DatabaseData.ConfigOverride
-			gctdatabase.DB.DataPath = filepath.Join(gctcommon.GetDefaultDataDir(runtime.GOOS), "database")
-			err = gctdatabase.DB.SetConfig(cfg.DataSettings.DatabaseData.ConfigOverride)
-			if err != nil {
-				return nil, err
-			}
-		}
-		bt.Bot.DatabaseManager, err = engine.SetupDatabaseConnectionManager(gctdatabase.DB.GetConfig())
-		if err != nil {
-			return nil, err
-		}
-
-		err = bt.Bot.DatabaseManager.Start(&bt.Bot.ServicesWG)
-		if err != nil {
-			return nil, err
-		}
-
-		resp, err = loadDatabaseData(cfg, exch.GetName(), fPair, a, dataType)
-		if err != nil {
-			return nil, fmt.Errorf("unable to retrieve data from GoCryptoTrader database. Error: %v. Please ensure the database is setup correctly and has data before use", err)
-		}
-
-		resp.Item.RemoveDuplicates()
-		resp.Item.SortCandlesByTimestamp(false)
-		resp.RangeHolder, err = gctkline.CalculateCandleDateRanges(
-			cfg.DataSettings.DatabaseData.StartDate,
-			cfg.DataSettings.DatabaseData.EndDate,
-			gctkline.Interval(cfg.DataSettings.Interval),
-			0,
-		)
-		if err != nil {
-			return nil, err
-		}
-		resp.RangeHolder.SetHasDataFromCandles(resp.Item.Candles)
 		// if len(cfg.CurrencySettings) > 1 {
 		// 	return nil, errors.New("live data simulation only supports one currency")
 		// }
@@ -906,12 +876,15 @@ func (bt *BackTest) processSingleDataEvent(ev common.DataEventHandler) error {
 	d := bt.Datas.GetDataForCurrency(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 
 	// update factor engine
-	bt.Portfolio.GetFactorEngine().OnBar(d)
+	// fmt.Println(len(d.History()))
+	bt.FactorEngine.OnBar(d)
 
-	var s signal.Event
-	for _, strategy := range bt.Strategies {
-		s, err = strategy.OnData(d, bt.Portfolio)
-		bt.EventQueue.AppendEvent(s)
+	if !bt.catchup {
+		var s signal.Event
+		for _, strategy := range bt.Strategies {
+			s, err = strategy.OnData(d, bt.Portfolio, bt.FactorEngine)
+			bt.EventQueue.AppendEvent(s)
+		}
 	}
 
 	// if err != nil {
@@ -953,7 +926,7 @@ func (bt *BackTest) processSimultaneousDataEvents() error {
 			}
 		}
 	}
-	signals, err := bt.Strategies[0].OnSimultaneousSignals(dataEvents, bt.Portfolio)
+	signals, err := bt.Strategies[0].OnSimultaneousSignals(dataEvents, bt.Portfolio, bt.FactorEngine)
 	if err != nil {
 		if errors.Is(err, base.ErrTooMuchBadData) {
 			// too much bad data is a severe error and backtesting must cease

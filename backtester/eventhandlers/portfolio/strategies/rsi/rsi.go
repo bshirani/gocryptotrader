@@ -7,11 +7,11 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/thrasher-corp/gocryptotrader/backtester/common"
 	"github.com/thrasher-corp/gocryptotrader/backtester/data"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/factors"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies/base"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/signal"
 	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
-	"github.com/thrasher-corp/gocryptotrader/gct-ta/indicators"
 )
 
 const (
@@ -32,10 +32,9 @@ type IndicatorValues struct {
 // Strategy is an implementation of the Handler interface
 type Strategy struct {
 	base.Strategy
-	rsiPeriod       decimal.Decimal
-	rsiLow          decimal.Decimal
-	rsiHigh         decimal.Decimal
-	indicatorValues []IndicatorValues
+	rsiPeriod decimal.Decimal
+	rsiLow    decimal.Decimal
+	rsiHigh   decimal.Decimal
 }
 
 // Name returns the name of the strategy
@@ -52,9 +51,9 @@ func (s *Strategy) Description() string {
 // OnData handles a data event and returns what action the strategy believes should occur
 // For rsi, this means returning a buy signal when rsi is at or below a certain level, and a
 // sell signal when it is at or above a certain level
-func (s *Strategy) OnData(d data.Handler, p base.PortfolioHandler) (signal.Event, error) {
+func (s *Strategy) OnData(d data.Handler, p base.PortfolioHandler, fe *factors.Engine) (signal.Event, error) {
 
-	fmt.Println("checking strategy", s.Strategy.ID())
+	// fmt.Println("checking strategy", s.Strategy.ID())
 	// fmt.Printf("%s %s\n", d.Latest().GetTime(), d.Latest().ClosePrice())
 
 	if d == nil {
@@ -65,9 +64,11 @@ func (s *Strategy) OnData(d data.Handler, p base.PortfolioHandler) (signal.Event
 		return nil, err
 	}
 
+	// set defaults
 	es.SetStrategy(Name)
 	es.SetStrategyID(s.ID())
 	es.SetPrice(d.Latest().ClosePrice())
+	es.SetAmount(decimal.NewFromFloat(1.0))
 
 	offset := d.Offset()
 
@@ -77,22 +78,8 @@ func (s *Strategy) OnData(d data.Handler, p base.PortfolioHandler) (signal.Event
 		return &es, nil
 	}
 
-	dataRange := d.StreamClose()
-	// fmt.Println("bars", len(dataRange))
-	var massagedData []float64
-	massagedData, err = s.massageMissingData(dataRange, es.GetTime())
-	if err != nil {
-		return nil, err
-	}
-	rsi := indicators.RSI(massagedData, int(s.rsiPeriod.IntPart()))
-	ma := indicators.MA(massagedData, int(s.rsiPeriod.IntPart()), indicators.Sma)
-	latestRSIValue := decimal.NewFromFloat(rsi[len(rsi)-1])
-	latestMAValue := decimal.NewFromFloat(ma[len(ma)-1])
-	i := IndicatorValues{}
-	i.Timestamp = d.Latest().GetTime()
-	i.rsiValue = latestRSIValue
-	i.maValue = latestMAValue
-	s.indicatorValues = append(s.indicatorValues, i)
+	latestRSIValue := fe.Minute().RSI[len(fe.Minute().RSI)-1]
+	fmt.Println("rsi ondata", latestRSIValue)
 
 	if !d.HasDataAtTime(d.Latest().GetTime()) {
 		es.SetDirection(common.MissingData)
@@ -101,11 +88,8 @@ func (s *Strategy) OnData(d data.Handler, p base.PortfolioHandler) (signal.Event
 		return &es, nil
 	}
 
-	es.SetAmount(decimal.NewFromFloat(1.0))
-
 	// fmt.Println("pair", d.Latest().Pair())
-	m := p.GetFactorEngine().Minute()
-	fmt.Println(s.Strategy.GetWeight(), m.LastUpdate, m.Close.Last(1))
+	// fmt.Println(s.Strategy.GetWeight(), m.LastUpdate, m.Close.Last(1))
 
 	pos := p.GetPositionForStrategy(s.Strategy.ID())
 	if !pos.Active {
@@ -150,11 +134,11 @@ func (s *Strategy) SupportsSimultaneousProcessing() bool {
 
 // OnSimultaneousSignals analyses multiple data points simultaneously, allowing flexibility
 // in allowing a strategy to only place an order for X currency if Y currency's price is Z
-func (s *Strategy) OnSimultaneousSignals(d []data.Handler, p base.PortfolioHandler) ([]signal.Event, error) {
+func (s *Strategy) OnSimultaneousSignals(d []data.Handler, p base.PortfolioHandler, fe *factors.Engine) ([]signal.Event, error) {
 	var resp []signal.Event
 	var errs gctcommon.Errors
 	for i := range d {
-		sigEvent, err := s.OnData(d[i], p)
+		sigEvent, err := s.OnData(d[i], p, fe)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("%v %v %v %w", d[i].Latest().GetExchange(), d[i].Latest().GetAssetType(), d[i].Latest().Pair(), err))
 		} else {
@@ -203,30 +187,4 @@ func (s *Strategy) SetDefaults() {
 	s.rsiHigh = decimal.NewFromInt(70)
 	s.rsiLow = decimal.NewFromInt(30)
 	s.rsiPeriod = decimal.NewFromInt(14)
-}
-
-// massageMissingData will replace missing data with the previous candle's data
-// this will ensure that RSI can be calculated correctly
-// the decision to handle missing data occurs at the strategy level, not all strategies
-// may wish to modify data
-func (s *Strategy) massageMissingData(data []decimal.Decimal, t time.Time) ([]float64, error) {
-	var resp []float64
-	var missingDataStreak int64
-	for i := range data {
-		if data[i].IsZero() && i > int(s.rsiPeriod.IntPart()) {
-			data[i] = data[i-1]
-			missingDataStreak++
-		} else {
-			missingDataStreak = 0
-		}
-		if missingDataStreak >= s.rsiPeriod.IntPart() {
-			return nil, fmt.Errorf("missing data exceeds RSI period length of %v at %s and will distort results. %w",
-				s.rsiPeriod,
-				t.Format(gctcommon.SimpleTimeFormat),
-				base.ErrTooMuchBadData)
-		}
-		d, _ := data[i].Float64()
-		resp = append(resp, d)
-	}
-	return resp, nil
 }

@@ -8,7 +8,6 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/backtester/common"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/exchange"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/compliance"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/factors"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/holdings"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/positions"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/risk"
@@ -53,7 +52,6 @@ func Setup(st []strategies.Handler, bot engine.Engine, sh SizeHandler, r risk.Ha
 	p.riskManager = r
 	p.riskFreeRate = riskFreeRate
 	p.strategies = st
-	p.factorEngine, _ = factors.Setup()
 
 	for _, s := range p.strategies {
 		s.SetID(fmt.Sprintf("%s_%s", s.Name(), s.Direction()))
@@ -69,11 +67,6 @@ func Setup(st []strategies.Handler, bot engine.Engine, sh SizeHandler, r risk.Ha
 // Reset returns the portfolio manager to its default state
 func (p *Portfolio) Reset() {
 	p.exchangeAssetPairSettings = nil
-}
-
-// Reset returns the portfolio manager to its default state
-func (p *Portfolio) GetFactorEngine() *factors.Engine {
-	return p.factorEngine
 }
 
 // OnSignal receives the event from the strategy on whether it has signalled to buy, do nothing or sell
@@ -104,7 +97,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *exchange.Settings) (*order.Ord
 	case signal.Exit:
 		// fmt.Println("exit")
 	case signal.DoNothing:
-		fmt.Println("portfolio: do nothing", ev.GetReason())
+		// fmt.Println("portfolio: do nothing", ev.GetReason())
 		return nil, nil
 	default:
 		fmt.Println("no decision for", ev.GetStrategyID())
@@ -200,14 +193,15 @@ func (p *Portfolio) OnFill(f fill.Event) (*fill.Fill, error) {
 		}
 	}
 
-	st := p.GetStrategy(f.GetStrategyID())
-	fmt.Println("strategy", st)
+	// st := p.GetStrategy(f.GetStrategyID())
+	// fmt.Println("strategy", st)
 
 	t := p.store.openTrade[f.GetStrategyID()]
 
-	if f.GetDirection() == gctorder.Buy {
+	if t == nil {
 		p.store.openTrade[f.GetStrategyID()] = &trades.Trade{Status: trades.Open}
-	} else if f.GetDirection() == gctorder.Sell {
+	} else {
+		// fmt.Println("open trade", t)
 		t.Status = trades.Closed
 		p.store.closedTrades[f.GetStrategyID()] = append(p.store.closedTrades[f.GetStrategyID()], t)
 		p.store.openTrade[f.GetStrategyID()] = nil

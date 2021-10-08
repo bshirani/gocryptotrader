@@ -3,6 +3,7 @@ package strategies
 import (
 	"github.com/shopspring/decimal"
 	"github.com/thrasher-corp/gocryptotrader/backtester/data"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/factors"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies/base"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/signal"
 	"github.com/thrasher-corp/gocryptotrader/currency"
@@ -19,8 +20,8 @@ type Handler interface {
 	Name() string
 	Stop()
 	Description() string
-	OnData(data.Handler, base.PortfolioHandler) (signal.Event, error)
-	OnSimultaneousSignals([]data.Handler, base.PortfolioHandler) ([]signal.Event, error)
+	OnData(data.Handler, base.PortfolioHandler, *factors.Engine) (signal.Event, error)
+	OnSimultaneousSignals([]data.Handler, base.PortfolioHandler, *factors.Engine) ([]signal.Event, error)
 	UsingSimultaneousProcessing() bool
 	SupportsSimultaneousProcessing() bool
 	SetSimultaneousProcessing(bool)

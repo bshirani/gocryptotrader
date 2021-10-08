@@ -8,6 +8,7 @@ import (
 
 	"github.com/thrasher-corp/gocryptotrader/backtester/backtest"
 	"github.com/thrasher-corp/gocryptotrader/backtester/config"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/factors"
 	gctconfig "github.com/thrasher-corp/gocryptotrader/config"
 	"github.com/thrasher-corp/gocryptotrader/engine"
 	gctlog "github.com/thrasher-corp/gocryptotrader/log"
@@ -118,7 +119,12 @@ func main() {
 	}
 
 	if liveMode {
-		fmt.Println("live mode")
+		e, _ := factors.Setup()
+		bt.FactorEngine = e
+		// run catchup here
+		// fmt.Println("live mode, running catchup")
+		// bt.Catchup()
+		// fmt.Println("catchup completed")
 		go func() {
 			err = bt.Start()
 			if err != nil {

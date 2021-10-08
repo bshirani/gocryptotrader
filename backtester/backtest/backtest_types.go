@@ -7,8 +7,9 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/eventholder"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/exchange"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/statistics"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/factors"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/statistics"
 	"github.com/thrasher-corp/gocryptotrader/backtester/report"
 	"github.com/thrasher-corp/gocryptotrader/engine"
 )
@@ -29,6 +30,7 @@ var (
 // BackTest is the main holder of all backtesting functionality
 type BackTest struct {
 	Bot             *engine.Engine
+	FactorEngine    *factors.Engine
 	hasHandledEvent bool
 	shutdown        chan struct{}
 	Datas           data.Holder
@@ -38,4 +40,5 @@ type BackTest struct {
 	Statistic       statistics.Handler
 	EventQueue      eventholder.EventHolder
 	Reports         report.Handler
+	catchup         bool
 }

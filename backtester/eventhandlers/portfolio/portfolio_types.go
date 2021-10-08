@@ -75,7 +75,6 @@ type Handler interface {
 	UpdateHoldings(common.DataEventHandler) error
 	GetPositionForStrategy(string) *positions.Position
 	GetTradeForStrategy(string) *trades.Trade
-	GetFactorEngine() *factors.Engine
 
 	GetComplianceManager(string, asset.Item, currency.Pair) (*compliance.Manager, error)
 

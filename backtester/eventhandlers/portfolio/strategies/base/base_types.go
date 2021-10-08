@@ -7,7 +7,6 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/backtester/common"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/exchange"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/compliance"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/factors"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/holdings"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/positions"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/trades"
@@ -41,7 +40,6 @@ type PortfolioHandler interface {
 	UpdateHoldings(common.DataEventHandler) error
 	GetPositionForStrategy(string) *positions.Position
 	GetTradeForStrategy(string) *trades.Trade
-	GetFactorEngine() *factors.Engine
 
 	GetComplianceManager(string, asset.Item, currency.Pair) (*compliance.Manager, error)
 

@@ -5,9 +5,7 @@ import (
 	"strings"
 
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies/base"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies/dollarcostaverage"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies/rsi"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies/top2bottom2"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
 
@@ -38,9 +36,9 @@ func LoadStrategyByName(name string, direction order.Side, useSimultaneousProces
 // they must be set in here for the backtester to recognise them
 func GetStrategies() []Handler {
 	x := []Handler{
-		new(dollarcostaverage.Strategy),
+		// new(dollarcostaverage.Strategy),
 		new(rsi.Strategy),
-		new(top2bottom2.Strategy),
+		// new(top2bottom2.Strategy),
 	}
 	// for i := range x {
 	// 	fmt.Println(x[i])
