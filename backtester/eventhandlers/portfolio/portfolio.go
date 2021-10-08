@@ -36,8 +36,8 @@ func Setup(bot engine.Engine, sh SizeHandler, r risk.Handler, riskFreeRate decim
 		return nil, errRiskManagerUnset
 	}
 	p := &Portfolio{}
-	p.store.Positions = make(map[int64]*positions.Position)
-	p.store.Positions[123] = &positions.Position{}
+	p.store.positions = make(map[int64]*positions.Position)
+	p.store.positions[123] = &positions.Position{}
 	p.bot = bot
 	p.sizeManager = sh
 	p.riskManager = r
@@ -155,9 +155,9 @@ func (p *Portfolio) OnFill(f fill.Event) (*fill.Fill, error) {
 	// what was the direction of the fill?
 
 	// create or update position
-	for i, x := range p.store.Positions {
+	for i, x := range p.store.positions {
 		if i == 123 {
-			pos := p.store.Positions[i]
+			pos := p.store.positions[i]
 			pos.Amount = x.Amount.Add(decimal.NewFromFloat(10.0))
 			if !pos.Amount.IsZero() {
 				pos.Active = true
@@ -314,7 +314,7 @@ func (p *Portfolio) UpdateTrades(ev common.DataEventHandler) {
 // }
 
 func (p *Portfolio) GetPositionForStrategy(sid int64) *positions.Position {
-	return p.store.Positions[sid]
+	return p.store.positions[sid]
 	// return pos
 }
 
@@ -331,7 +331,7 @@ func (p *Portfolio) UpdatePositions(ev common.DataEventHandler) {
 
 	// portfolio has many strategies
 	// we keep the position for each strategy
-	for i, p := range p.store.Positions {
+	for i, p := range p.store.positions {
 		fmt.Println(i, p)
 	}
 

@@ -43,7 +43,7 @@ var (
 
 type store struct {
 	m            sync.RWMutex
-	Positions    map[int64]*positions.Position
+	positions    map[int64]*positions.Position
 	Trades       map[int64][]trades.Trade
 	openTrade    trades.Trade
 	closedTrades []trades.Trade
