@@ -6,6 +6,7 @@ import (
 
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies/base"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies/rsi"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies/trend"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
 
@@ -38,6 +39,7 @@ func GetStrategies() []Handler {
 	x := []Handler{
 		// new(dollarcostaverage.Strategy),
 		new(rsi.Strategy),
+		new(trend.Strategy),
 		// new(top2bottom2.Strategy),
 	}
 	// for i := range x {

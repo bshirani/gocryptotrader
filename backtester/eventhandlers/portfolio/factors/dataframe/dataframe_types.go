@@ -11,7 +11,7 @@ type DataFrame struct {
 
 	Time       []time.Time
 	LastUpdate time.Time
-
+	Date       []time.Time
 	// Custom user metadata
 	Metadata map[string]Series
 

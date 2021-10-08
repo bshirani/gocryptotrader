@@ -10,6 +10,14 @@ func (s Series) Values() []decimal.Decimal {
 	return s
 }
 
+func (s Series) ToFloats() []float64 {
+	x := make([]float64, len(s))
+	for i, si := range s {
+		x[i], _ = si.Float64()
+	}
+	return x
+}
+
 func (s Series) Last(position int) decimal.Decimal {
 	return s[len(s)-1-position]
 }

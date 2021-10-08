@@ -1,35 +1,23 @@
 package factors
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/shopspring/decimal"
 	"github.com/thrasher-corp/gocryptotrader/backtester/data"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/factors/dataframe"
-	"github.com/thrasher-corp/gocryptotrader/gct-ta/indicators"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies/base"
+	"github.com/thrasher-corp/gocryptotrader/common"
 )
 
-// Setup creates a portfolio manager instance and sets private fields
+// initialize minute and daily data series here
+// load data from cache here
 func Setup() (*Engine, error) {
 	f := &Engine{}
 
-	// initialize minute and daily data series here
-	// load data from cache here
-
-	// values := [][]string{}
-	// df := dataframe.LoadRecords(values)
-
 	f.minute = &dataframe.DataFrame{}
 	f.daily = &dataframe.DataFrame{}
-
-	// f.minute = dataframe.New(
-	// 	series.New([]string{"b", "a"}, series.String, "COL.1"),
-	// 	series.New([]int{1, 2}, series.Int, "COL.2"),
-	// 	series.New([]float64{3.0, 4.0}, series.Float, "COL.3"),
-	// )
-	// f.daily = dataframe.New(
-	// 	series.New([]string{"b", "a"}, series.String, "COL.1"),
-	// 	series.New([]int{1, 2}, series.Int, "COL.2"),
-	// 	series.New([]float64{3.0, 4.0}, series.Float, "COL.3"),
-	// )
 
 	return f, nil
 }
@@ -55,6 +43,13 @@ func (f *Engine) OnBar(d data.Handler) {
 	// f.minute.Volume = append(f.minute.Volume, bar.GetVolume())
 	f.minute.Time = append(f.minute.Time, bar.GetTime())
 	f.minute.LastUpdate = bar.GetTime()
+
+	t := bar.GetTime()
+	td := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, t.Nanosecond(), t.Location())
+	if len(d.History()) > 1 && td != f.minute.LastDate() {
+		fmt.Println("NEW DATE", f.minute.LastDate())
+	}
+	f.minute.Date = append(f.minute.Date, td)
 	// add bar to minute dataframe
 
 	// dataRange := d.StreamClose()
@@ -65,13 +60,15 @@ func (f *Engine) OnBar(d data.Handler) {
 	// }
 
 	// calculate RSI
-	rsi := indicators.RSI(f.minute.Close, 14)
-	ma := indicators.MA(f.minute.Close, 14, indicators.Sma)
-	latestRSIValue := decimal.NewFromFloat(rsi[len(rsi)-1])
-	latestMAValue := decimal.NewFromFloat(ma[len(ma)-1])
+	// fmt.Println(len(dataRange))
+	// rsi := indicators.RSI(f.minute.Close.ToFloats(), 14)
+	// latestRSIValue := decimal.NewFromFloat(rsi[len(rsi)-1])
+	// f.minute.RSI = append(f.minute.RSI, latestRSIValue)
 
-	f.minute.RSI = append(f.minute.RSI, latestRSIValue)
-	f.minute.MA = append(f.minute.MA, latestMAValue)
+	// calcMA
+	// ma := indicators.MA(f.minute.Close.ToFloats(), 15, indicators.Sma)
+	// latestMAValue := decimal.NewFromFloat(ma[len(ma)-1])
+	// f.minute.MA = append(f.minute.MA, latestMAValue)
 
 	// i := IndicatorValues{}
 	// i.Timestamp = d.Latest().GetTime()
@@ -82,28 +79,28 @@ func (f *Engine) OnBar(d data.Handler) {
 	// f.minute
 }
 
-// // massageMissingData will replace missing data with the previous candle's data
-// // this will ensure that RSI can be calculated correctly
-// // the decision to handle missing data occurs at the strategy level, not all strategies
-// // may wish to modify data
-// func (f *Engine) massageMissingData(data []decimal.Decimal, t time.Time) ([]float64, error) {
-// 	var resp []float64
-// 	var missingDataStreak int64
-// 	for i := range data {
-// 		if data[i].IsZero() && i > 14 {
-// 			data[i] = data[i-1]
-// 			missingDataStreak++
-// 		} else {
-// 			missingDataStreak = 0
-// 		}
-// 		if missingDataStreak >= 14 {
-// 			return nil, fmt.Errorf("missing data exceeds RSI period length of %d at %s and will distort results. %w",
-// 				14,
-// 				t.Format(gctcommon.SimpleTimeFormat),
-// 				base.ErrTooMuchBadData)
-// 		}
-// 		d, _ := data[i].Float64()
-// 		resp = append(resp, d)
-// 	}
-// 	return resp, nil
-// }
+// massageMissingData will replace missing data with the previous candle's data
+// this will ensure that RSI can be calculated correctly
+// the decision to handle missing data occurs at the strategy level, not all strategies
+// may wish to modify data
+func (f *Engine) massageMissingData(data []decimal.Decimal, t time.Time) ([]float64, error) {
+	var resp []float64
+	var missingDataStreak int64
+	for i := range data {
+		if data[i].IsZero() && i > 14 {
+			data[i] = data[i-1]
+			missingDataStreak++
+		} else {
+			missingDataStreak = 0
+		}
+		if missingDataStreak >= 14 {
+			return nil, fmt.Errorf("missing data exceeds RSI period length of %d at %s and will distort results. %w",
+				14,
+				t.Format(common.SimpleTimeFormat),
+				base.ErrTooMuchBadData)
+		}
+		d, _ := data[i].Float64()
+		resp = append(resp, d)
+	}
+	return resp, nil
+}

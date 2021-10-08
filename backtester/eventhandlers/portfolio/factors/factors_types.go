@@ -1,6 +1,9 @@
 package factors
 
 import (
+	"time"
+
+	"github.com/go-gota/gota/series"
 	"github.com/thrasher-corp/gocryptotrader/backtester/data"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/factors/dataframe"
 )
@@ -10,10 +13,15 @@ type Engine struct {
 	daily  *dataframe.DataFrame
 }
 
+type DataFrameHandler interface {
+	Last() series.Series
+	LastDate() time.Time
+}
+
 type Handler interface {
 	Setup()
 	Start()
 	OnBar(data.Handler)
-	Minute() *dataframe.DataFrame
-	Daily() *dataframe.DataFrame
+	Minute() *DataFrameHandler
+	Daily() *DataFrameHandler
 }

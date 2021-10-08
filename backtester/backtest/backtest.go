@@ -175,14 +175,14 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *engine.
 	// LOAD ALL STRATEGIES HERE
 	var slit []strategies.Handler
 
-	s, err := strategies.LoadStrategyByName("rsi", "SELL", false)
-	s.SetID("rsi_SELL")
+	s, err := strategies.LoadStrategyByName("trend", "SELL", false)
+	s.SetID("trend_SELL")
 	s.SetDefaults()
 	slit = append(slit, s)
 
-	s, err = strategies.LoadStrategyByName("rsi", "BUY", false)
+	s, err = strategies.LoadStrategyByName("trend", "BUY", false)
 	s.SetDefaults()
-	s.SetID("rsi_BUY")
+	s.SetID("trend_BUY")
 	slit = append(slit, s)
 
 	bt.Strategies = slit
