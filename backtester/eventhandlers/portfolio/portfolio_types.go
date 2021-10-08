@@ -8,10 +8,12 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/backtester/common"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/exchange"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/compliance"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/factors"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/holdings"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/positions"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/risk"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/settings"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/trades"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/fill"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/order"
@@ -43,9 +45,9 @@ var (
 
 type store struct {
 	m            sync.RWMutex
-	positions    map[int64]*positions.Position
-	openTrade    map[int64]*trades.Trade
-	closedTrades map[int64][]*trades.Trade
+	positions    map[string]*positions.Position
+	openTrade    map[string]*trades.Trade
+	closedTrades map[string][]*trades.Trade
 	wg           *sync.WaitGroup
 }
 
@@ -55,7 +57,9 @@ type Portfolio struct {
 	riskFreeRate              decimal.Decimal
 	sizeManager               SizeHandler
 	riskManager               risk.Handler
+	factorEngine              *factors.Engine
 	bot                       engine.Engine
+	strategies                []strategies.Handler
 	store                     store
 	exchangeAssetPairSettings map[string]map[asset.Item]map[currency.Pair]*settings.Settings
 }
@@ -68,8 +72,9 @@ type Handler interface {
 	ViewHoldingAtTimePeriod(common.EventHandler) (*holdings.Holding, error)
 	setHoldingsForOffset(*holdings.Holding, bool) error
 	UpdateHoldings(common.DataEventHandler) error
-	GetPositionForStrategy(int64) *positions.Position
-	GetTradeForStrategy(int64) *trades.Trade
+	GetPositionForStrategy(string) *positions.Position
+	GetTradeForStrategy(string) *trades.Trade
+	GetFactorEngine() *factors.Engine
 
 	GetComplianceManager(string, asset.Item, currency.Pair) (*compliance.Manager, error)
 

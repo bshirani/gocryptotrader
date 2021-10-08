@@ -8,6 +8,7 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/backtester/common"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/exchange"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/compliance"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/factors"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/holdings"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/positions"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/risk"
@@ -41,16 +42,26 @@ func Setup(st []strategies.Handler, bot engine.Engine, sh SizeHandler, r risk.Ha
 	// create position for every strategy
 	// create open trades array for every strategy
 	// you need the strategy IDS here
-	p.store.positions = make(map[int64]*positions.Position)
-	p.store.positions[123] = &positions.Position{}
-	p.store.openTrade = make(map[int64]*trades.Trade)
-	p.store.closedTrades = make(map[int64][]*trades.Trade)
-	p.store.closedTrades[123] = make([]*trades.Trade, 10)
+	p.store.positions = make(map[string]*positions.Position)
+	p.store.openTrade = make(map[string]*trades.Trade)
+	p.store.closedTrades = make(map[string][]*trades.Trade)
+
+	// bt.Datas.Setup()
 
 	p.bot = bot
 	p.sizeManager = sh
 	p.riskManager = r
 	p.riskFreeRate = riskFreeRate
+	p.strategies = st
+	p.factorEngine, _ = factors.Setup()
+
+	for _, s := range p.strategies {
+		s.SetID(fmt.Sprintf("%s_%s", s.Name(), s.Direction()))
+		p.store.positions[s.ID()] = &positions.Position{}
+		p.store.closedTrades[s.ID()] = make([]*trades.Trade, 10)
+		s.SetWeight(decimal.NewFromFloat(1.5))
+		fmt.Println("init strategy", s.ID())
+	}
 
 	return p, nil
 }
@@ -58,6 +69,11 @@ func Setup(st []strategies.Handler, bot engine.Engine, sh SizeHandler, r risk.Ha
 // Reset returns the portfolio manager to its default state
 func (p *Portfolio) Reset() {
 	p.exchangeAssetPairSettings = nil
+}
+
+// Reset returns the portfolio manager to its default state
+func (p *Portfolio) GetFactorEngine() *factors.Engine {
+	return p.factorEngine
 }
 
 // OnSignal receives the event from the strategy on whether it has signalled to buy, do nothing or sell
@@ -72,7 +88,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *exchange.Settings) (*order.Ord
 		//raise error if we already have an open trade
 		// find or create new trade here
 		// create a new trade struct and store it
-		p.store.openTrade[123] = &trades.Trade{Status: trades.Pending}
+		p.store.openTrade[ev.GetStrategyID()] = &trades.Trade{Status: trades.Pending}
 	case signal.Exit:
 		// fmt.Println("exit")
 	case signal.DoNothing:
@@ -136,7 +152,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *exchange.Settings) (*order.Ord
 	o.OrderType = gctorder.Market
 	o.BuyLimit = ev.GetBuyLimit()
 	o.SellLimit = ev.GetSellLimit()
-	o.StrategyID = "my_strategyxxx"
+	o.StrategyID = ev.GetStrategyID()
 	sizedOrder := p.sizeOrder(ev, cs, o, decimal.NewFromFloat(100))
 	sizedOrder.Amount = ev.GetAmount()
 
@@ -166,30 +182,31 @@ func (p *Portfolio) OnFill(f fill.Event) (*fill.Fill, error) {
 	// what is the direction of the strategy?
 
 	// create or update position
-	for i, pos := range p.store.positions {
-		if i == 123 {
-			if f.GetDirection() == gctorder.Sell {
-				pos.Amount = pos.Amount.Sub(f.GetAmount())
-			} else if f.GetDirection() == gctorder.Buy {
-				pos.Amount = pos.Amount.Add(f.GetAmount())
-			}
+	for _, pos := range p.store.positions {
+		if f.GetDirection() == gctorder.Sell {
+			pos.Amount = pos.Amount.Sub(f.GetAmount())
+		} else if f.GetDirection() == gctorder.Buy {
+			pos.Amount = pos.Amount.Add(f.GetAmount())
+		}
 
-			if !pos.Amount.IsZero() {
-				pos.Active = true
-			} else {
-				pos.Active = false
-			}
+		if !pos.Amount.IsZero() {
+			pos.Active = true
+		} else {
+			pos.Active = false
 		}
 	}
 
-	t := p.store.openTrade[123]
+	st := p.GetStrategy(f.GetStrategyID())
+	fmt.Println("strategy", st)
+
+	t := p.store.openTrade[f.GetStrategyID()]
 
 	if f.GetDirection() == gctorder.Buy {
-		p.store.openTrade[123] = &trades.Trade{Status: trades.Open}
+		p.store.openTrade[f.GetStrategyID()] = &trades.Trade{Status: trades.Open}
 	} else if f.GetDirection() == gctorder.Sell {
 		t.Status = trades.Closed
-		p.store.closedTrades[123] = append(p.store.closedTrades[123], t)
-		p.store.openTrade[123] = nil
+		p.store.closedTrades[f.GetStrategyID()] = append(p.store.closedTrades[f.GetStrategyID()], t)
+		p.store.openTrade[f.GetStrategyID()] = nil
 	}
 
 	// t.Status = trades.Open
@@ -242,6 +259,16 @@ func (p *Portfolio) OnFill(f fill.Event) (*fill.Fill, error) {
 		return nil, fmt.Errorf("%w expected fill event", common.ErrInvalidDataType)
 	}
 	return fe, nil
+}
+
+func (p *Portfolio) GetStrategy(id string) *strategies.Handler {
+	for _, s := range p.strategies {
+		fmt.Println("checking", s.ID(), id)
+		if s.ID() == id {
+			return &s
+		}
+	}
+	return nil
 }
 
 // GetComplianceManager returns the order snapshots for a given exchange, asset, pair
@@ -342,11 +369,11 @@ func (p *Portfolio) UpdateTrades(ev common.DataEventHandler) {
 // 	return p.strategies
 // }
 
-func (p *Portfolio) GetPositionForStrategy(sid int64) *positions.Position {
+func (p *Portfolio) GetPositionForStrategy(sid string) *positions.Position {
 	return p.store.positions[sid]
 }
 
-func (p *Portfolio) GetTradeForStrategy(sid int64) *trades.Trade {
+func (p *Portfolio) GetTradeForStrategy(sid string) *trades.Trade {
 	return p.store.openTrade[sid]
 }
 

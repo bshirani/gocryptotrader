@@ -8,6 +8,7 @@ require (
 	github.com/d5/tengo/v2 v2.8.0
 	github.com/erning/gorun v0.0.0-20210818030522-61436867ff54 // indirect
 	github.com/friendsofgo/errors v0.9.2 // indirect
+	github.com/go-gota/gota v0.11.0 // indirect
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/golangci/golangci-lint v1.31.0 // indirect
 	github.com/google/go-querystring v1.1.0

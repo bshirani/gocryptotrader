@@ -26,9 +26,12 @@ func (s *Signal) SetStrategy(name string) {
 	s.Strategy = name
 }
 
-// GetStrategy returns the direction
-func (s *Signal) GetStrategy() string {
-	return s.Strategy
+func (s *Signal) GetStrategyID() string {
+	return s.StrategyID
+}
+
+func (s *Signal) SetStrategyID(st string) {
+	s.StrategyID = st
 }
 
 // SetBuyLimit sets the buy limit

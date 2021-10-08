@@ -28,14 +28,15 @@ type Event interface {
 	GetSellLimit() decimal.Decimal
 	GetBuyLimit() decimal.Decimal
 	GetDecision() Decision
-	GetStrategy() string
+	GetStrategyID() string
+	SetStrategyID(string)
 	SetDecision(Decision)
 }
 
 // Signal contains everything needed for a strategy to raise a signal event
 type Signal struct {
 	event.Base
-	Strategy   string
+	StrategyID string
 	Direction  order.Side
 	Decision   Decision
 	Amount     decimal.Decimal

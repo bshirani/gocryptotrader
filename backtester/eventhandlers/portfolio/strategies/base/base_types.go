@@ -2,6 +2,20 @@ package base
 
 import (
 	"errors"
+
+	"github.com/shopspring/decimal"
+	"github.com/thrasher-corp/gocryptotrader/backtester/common"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/exchange"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/compliance"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/factors"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/holdings"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/positions"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/trades"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/fill"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/order"
+	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/signal"
+	"github.com/thrasher-corp/gocryptotrader/currency"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 )
 
 var (
@@ -17,3 +31,22 @@ var (
 	// ErrTooMuchBadData used when there is too much missing data
 	ErrTooMuchBadData = errors.New("backtesting cannot continue as there is too much invalid data. Please review your dataset")
 )
+
+// Handler contains all functions expected to operate a portfolio manager
+type PortfolioHandler interface {
+	OnSignal(signal.Event, *exchange.Settings) (*order.Order, error)
+	OnFill(fill.Event) (*fill.Fill, error)
+
+	ViewHoldingAtTimePeriod(common.EventHandler) (*holdings.Holding, error)
+	UpdateHoldings(common.DataEventHandler) error
+	GetPositionForStrategy(string) *positions.Position
+	GetTradeForStrategy(string) *trades.Trade
+	GetFactorEngine() *factors.Engine
+
+	GetComplianceManager(string, asset.Item, currency.Pair) (*compliance.Manager, error)
+
+	SetFee(string, asset.Item, currency.Pair, decimal.Decimal)
+	GetFee(string, asset.Item, currency.Pair) decimal.Decimal
+
+	Reset()
+}

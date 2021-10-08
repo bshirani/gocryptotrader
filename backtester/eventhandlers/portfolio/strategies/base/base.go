@@ -1,24 +1,18 @@
 package base
 
 import (
+	"github.com/shopspring/decimal"
 	"github.com/thrasher-corp/gocryptotrader/backtester/common"
 	"github.com/thrasher-corp/gocryptotrader/backtester/data"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/positions"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/trades"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/event"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/signal"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
 
-// Handler contains all functions expected to operate a portfolio manager
-type PortfolioHandler interface {
-	GetPositionForStrategy(int64) *positions.Position
-	GetTradeForStrategy(int64) *trades.Trade
-}
-
 // Strategy is base implementation of the Handler interface
 type Strategy struct {
 	id                        string
+	weight                    decimal.Decimal
 	direction                 order.Side
 	useSimultaneousProcessing bool
 	usingExchangeLevelFunding bool
@@ -50,8 +44,19 @@ func (s *Strategy) GetBaseData(d data.Handler) (signal.Signal, error) {
 	}, nil
 }
 
-func (s *Strategy) ID() int64 {
-	return 123
+func (s *Strategy) ID() string {
+	return s.id
+}
+
+func (s *Strategy) SetID(id string) {
+	s.id = id
+}
+func (s *Strategy) SetWeight(d decimal.Decimal) {
+	s.weight = d
+}
+
+func (s *Strategy) GetWeight() decimal.Decimal {
+	return s.weight
 }
 
 // UsingSimultaneousProcessing returns whether multiple currencies can be assessed in one go

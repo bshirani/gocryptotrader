@@ -65,3 +65,11 @@ on_start
 on_order
 on_trade/on_position
 on_stop
+
+
+the portfolio has a DataManager
+BarManager
+
+BarDataSeriesManager
+minute
+daily

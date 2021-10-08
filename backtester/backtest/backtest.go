@@ -226,11 +226,11 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *engine.
 	// LOAD ALL STRATEGIES HERE
 	var slit []strategies.Handler
 
-	// s, err := strategies.LoadStrategyByName("rsi", "SELL", false)
-	// s.SetDefaults()
-	// slit = append(slit, s)
+	s, err := strategies.LoadStrategyByName("rsi", "SELL", false)
+	s.SetDefaults()
+	slit = append(slit, s)
 
-	s, err := strategies.LoadStrategyByName("rsi", "BUY", false)
+	s, err = strategies.LoadStrategyByName("rsi", "BUY", false)
 	s.SetDefaults()
 	slit = append(slit, s)
 
@@ -899,12 +899,16 @@ func (bt *BackTest) handleEvent(ev common.EventHandler) error {
 }
 
 func (bt *BackTest) processSingleDataEvent(ev common.DataEventHandler) error {
+
 	err := bt.updateStatsForDataEvent(ev)
 	if err != nil {
 		return err
 	}
 
 	d := bt.Datas.GetDataForCurrency(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
+
+	// update factor engine
+	bt.Portfolio.GetFactorEngine().OnBar(d)
 
 	var s signal.Event
 	for _, strategy := range bt.Strategies {

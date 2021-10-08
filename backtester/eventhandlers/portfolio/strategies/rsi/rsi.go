@@ -98,7 +98,11 @@ func (s *Strategy) OnData(d data.Handler, p base.PortfolioHandler) (signal.Event
 
 	es.SetAmount(decimal.NewFromFloat(1.0))
 
-	pos := p.GetPositionForStrategy(123)
+	// fmt.Println("pair", d.Latest().Pair())
+	// m := p.GetFactorEngine().Minute()
+	// fmt.Println(s.Strategy.GetWeight(), m.LastUpdate, m.Close.Last(1))
+
+	pos := p.GetPositionForStrategy(s.Strategy.ID())
 	if !pos.Active {
 		// check for entry
 		if s.Direction() == order.Sell {
