@@ -29,6 +29,13 @@ func LoadData(ctx context.Context, exch exchange.IBotExchange, dataType int64, i
 		if err != nil {
 			return nil, fmt.Errorf("could not retrieve live candle data for %v %v %v, %v", exch.GetName(), a, fPair, err)
 		}
+
+		go func(candles kline.Item) {
+			_, err = kline.StoreInDatabase(&candles, true)
+			if err != nil {
+				fmt.Println("problem saving", err)
+			}
+		}(candles)
 	case common.DataTrade:
 		var trades []trade.Data
 		trades, err = exch.GetHistoricTrades(ctx,

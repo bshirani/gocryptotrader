@@ -71,7 +71,6 @@ func main() {
 
 	var bt *backtest.BackTest
 	var cfg *config.Config
-	fmt.Println("reading config...")
 	cfg, err = config.ReadConfigFromFile(configPath)
 	if err != nil {
 		fmt.Printf("Could not read config. Error: %v.\n", err)
@@ -83,9 +82,9 @@ func main() {
 	// }
 
 	path := gctconfig.DefaultFilePath()
-	// if cfg.GoCryptoTraderConfigPath != "" {
-	// path = cfg.GoCryptoTraderConfigPath
-	// }
+	if cfg.GoCryptoTraderConfigPath != "" {
+		path = cfg.GoCryptoTraderConfigPath
+	}
 
 	var bot *engine.Engine
 	flags := map[string]bool{
@@ -126,7 +125,7 @@ func main() {
 		// bt.Catchup()
 		// fmt.Println("catchup completed")
 		go func() {
-			err = bt.Start()
+			err = bt.RunLive()
 			if err != nil {
 				fmt.Printf("Could not complete live run. Error: %v.\n", err)
 				os.Exit(-1)
@@ -136,7 +135,6 @@ func main() {
 		gctlog.Infof(gctlog.Global, "Captured %v, shutdown requested.\n", interrupt)
 		bt.Stop()
 	} else {
-		fmt.Println("not-live mode")
 		err = bt.Run()
 		if err != nil {
 			fmt.Printf("Could not complete run. Error: %v.\n", err)

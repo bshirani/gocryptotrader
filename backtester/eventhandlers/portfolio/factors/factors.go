@@ -86,17 +86,15 @@ func (f *Engine) OnBar(d data.Handler) {
 func (f *Engine) createNewDailyBar(m *MinuteDataFrame, d *DailyDataFrame) *DailyDataFrame {
 	// d.Open = append(a.Date, decimal.NewFromFloat(421.0))
 
-	newDate := m.Date[len(m.Date)-1]
-	var ydayDate time.Time
-
-	for i := len(m.Close) - 1; i >= 0; i-- {
-		if newDate != m.Date[i] {
-			ydayDate = m.Date[i]
-			break
-		}
-	}
-
-	fmt.Println("createNewDailyBar", newDate, ydayDate)
+	// newDate := m.Date[len(m.Date)-1]
+	// var ydayDate time.Time
+	//
+	// for i := len(m.Close) - 1; i >= 0; i-- {
+	// 	if newDate != m.Date[i] {
+	// 		ydayDate = m.Date[i]
+	// 		break
+	// 	}
+	// }
 
 	// calculate open here
 	d.Open = append(d.Open, decimal.NewFromFloat(421.0))

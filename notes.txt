@@ -73,3 +73,9 @@ BarManager
 BarDataSeriesManager
 minute
 daily
+
+backtest:
+    load bars from database
+live:
+    catchup
+    save the live bars in the database

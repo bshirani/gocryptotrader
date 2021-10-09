@@ -173,6 +173,7 @@ func (bot *Engine) SetSubsystem(subSystemName string, enable bool) error {
 			}
 			return bot.DatabaseManager.Start(&bot.ServicesWG)
 		}
+		fmt.Println("12313")
 		return bot.DatabaseManager.Stop()
 	case SyncManagerName:
 		if enable {

@@ -37,6 +37,7 @@ type Config struct {
 	PortfolioSettings        PortfolioSettings  `json:"portfolio-settings"`
 	StatisticSettings        StatisticSettings  `json:"statistic-settings"`
 	GoCryptoTraderConfigPath string             `json:"gocryptotrader-config-path"`
+	IsLive                   bool
 }
 
 // DataSettings is a container for each type of data retrieval setting.

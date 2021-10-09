@@ -4,5 +4,3 @@ This package is responsible for the loading of kline data via the API. It can re
 This package uses existing GoCryptoTrader exchange implementations.
 
 See individual exchange implementations [here](/exchanges) and the interface used [here](/exchanges/interfaces.go)
-
-

@@ -40,23 +40,6 @@
  "data-settings": {
   "interval": 60000000000,
   "data-type": "candle",
-  "database-data": {
-   "start-date": "2020-12-01T00:00:00+10:00",
-   "end-date": "2020-12-02T00:00:00+11:00",
-   "config-override": {
-    "enabled": true,
-    "verbose": false,
-    "driver": "sqlite",
-    "connectionDetails": {
-     "host": "localhost",
-     "port": 0,
-     "username": "",
-     "password": "",
-     "database": "XBTUSD.db",
-     "sslmode": ""
-    }
-   }
-  },
   "live-data": {
    "api-key-override": "",
    "api-secret-override": "",
@@ -86,5 +69,5 @@
  "statistic-settings": {
   "risk-free-rate": "0.03"
  },
- "gocryptotrader-config-path": ""
+ "gocryptotrader-config-path": "./config.backtest.json"
 }

@@ -35,7 +35,6 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/signal"
 	"github.com/thrasher-corp/gocryptotrader/backtester/report"
 	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
-	gctbase "github.com/thrasher-corp/gocryptotrader/communications/base"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	gctdatabase "github.com/thrasher-corp/gocryptotrader/database"
 	"github.com/thrasher-corp/gocryptotrader/engine"
@@ -280,9 +279,17 @@ dataLoadingIssue:
 	return nil
 }
 
-func (bt *BackTest) Start() error {
-	log.Info(log.BackTester, "LIVE MODE")
-
+// uses a single database
+// load the data from the database
+// do catchup before starting
+// trades/activeOrderse are always loaded from the database in case system shut down with trades/orders
+// data is always written to the database in the background after receiving it
+// this will not need more than 60 days of data at the most to operate
+// this should be able to handle 50-100+ instruments without a problem
+// this database will not save the factors, unlike in backtests
+// if the system is shut down, it will have to recalculate the factors from scratch from the data after catchup process is completed
+// the first step is to write the data in the database as it comes in
+func (bt *BackTest) RunLive() error {
 	bt.FactorEngine.Start()
 	// whats are the currencies traded
 	// what are the strategies traded
@@ -296,11 +303,9 @@ func (bt *BackTest) Start() error {
 		x := fmt.Sprintf("%s", c.CurrencyPair)
 		symbols = append(symbols, x)
 	}
-	fmt.Println("SYMBOLS TRADED:", symbols)
 
 	timeoutTimer := time.NewTimer(time.Minute * 1)
 
-	bt.Bot.CommunicationsManager.PushEvent(gctbase.Event{Type: "event", Message: "run backtest live"})
 	// a frequent timer so that when a new candle is released by an exchange
 	// that it can be processed quickly
 	processEventTicker := time.NewTicker(time.Second)
@@ -542,14 +547,24 @@ func (bt *BackTest) setupBot(cfg *config.Config, bot *engine.Engine) error {
 		}
 	}
 
-	// if !bt.Bot.CommunicationsManager.IsRunning() {
-	// 	communicationsConfig := bot.Config.GetCommunicationsConfig()
-	// 	bot.CommunicationsManager, err = engine.SetupCommunicationManager(&communicationsConfig)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	bot.CommunicationsManager.Start()
-	// }
+	bt.Bot.DatabaseManager, err = engine.SetupDatabaseConnectionManager(gctdatabase.DB.GetConfig())
+	if err != nil {
+		return err
+	}
+
+	err = bt.Bot.DatabaseManager.Start(&bt.Bot.ServicesWG)
+	if err != nil {
+		return err
+	}
+
+	if !cfg.IsLive && !bt.Bot.CommunicationsManager.IsRunning() {
+		communicationsConfig := bot.Config.GetCommunicationsConfig()
+		bot.CommunicationsManager, err = engine.SetupCommunicationManager(&communicationsConfig)
+		if err != nil {
+			return err
+		}
+		bot.CommunicationsManager.Start()
+	}
 
 	if !bt.Bot.OrderManager.IsRunning() {
 		bt.Bot.OrderManager, err = engine.SetupOrderManager(
@@ -610,14 +625,14 @@ func (bt *BackTest) loadData(cfg *config.Config, exch gctexchange.IBotExchange, 
 		cfg.DataSettings.CSVData == nil {
 		return nil, errNoDataSource
 	}
-	// if (cfg.DataSettings.APIData != nil && cfg.DataSettings.DatabaseData != nil) ||
-	// 	(cfg.DataSettings.APIData != nil && cfg.DataSettings.LiveData != nil) ||
-	// 	(cfg.DataSettings.APIData != nil && cfg.DataSettings.CSVData != nil) ||
-	// 	(cfg.DataSettings.DatabaseData != nil && cfg.DataSettings.LiveData != nil) ||
-	// 	(cfg.DataSettings.CSVData != nil && cfg.DataSettings.LiveData != nil) ||
-	// 	(cfg.DataSettings.CSVData != nil && cfg.DataSettings.DatabaseData != nil) {
-	// 	return nil, errAmbiguousDataSource
-	// }
+	if (cfg.DataSettings.APIData != nil && cfg.DataSettings.DatabaseData != nil) ||
+		(cfg.DataSettings.APIData != nil && cfg.DataSettings.LiveData != nil) ||
+		(cfg.DataSettings.APIData != nil && cfg.DataSettings.CSVData != nil) ||
+		(cfg.DataSettings.DatabaseData != nil && cfg.DataSettings.LiveData != nil) ||
+		(cfg.DataSettings.CSVData != nil && cfg.DataSettings.LiveData != nil) ||
+		(cfg.DataSettings.CSVData != nil && cfg.DataSettings.DatabaseData != nil) {
+		return nil, errAmbiguousDataSource
+	}
 
 	dataType, err := common.DataTypeToInt(cfg.DataSettings.DataType)
 	if err != nil {
@@ -722,9 +737,9 @@ func (bt *BackTest) loadData(cfg *config.Config, exch gctexchange.IBotExchange, 
 			return resp, err
 		}
 	case cfg.DataSettings.LiveData != nil:
-		// if len(cfg.CurrencySettings) > 1 {
-		// 	return nil, errors.New("live data simulation only supports one currency")
-		// }
+		if len(cfg.CurrencySettings) > 1 {
+			return nil, errors.New("live data simulation only supports one currency")
+		}
 
 		err = loadLiveData(cfg, b)
 		if err != nil {

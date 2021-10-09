@@ -58,7 +58,6 @@ func Setup(st []strategies.Handler, bot engine.Engine, sh SizeHandler, r risk.Ha
 		p.store.positions[s.ID()] = &positions.Position{}
 		p.store.closedTrades[s.ID()] = make([]*trades.Trade, 10)
 		s.SetWeight(decimal.NewFromFloat(1.5))
-		fmt.Println("init strategy", s.ID())
 	}
 
 	return p, nil

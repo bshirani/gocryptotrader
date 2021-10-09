@@ -156,28 +156,6 @@
   "foreignExchangeUpdateDuration": 0
  },
  "communications": {
-  "slack": {
-   "name": "Slack",
-   "enabled": false,
-   "verbose": false,
-   "targetChannel": "general",
-   "verificationToken": "testtest"
-  },
-  "smsGlobal": {
-   "name": "SMSGlobal",
-   "from": "Skynet",
-   "enabled": false,
-   "verbose": false,
-   "username": "Username",
-   "password": "Password",
-   "contacts": [
-    {
-     "name": "Bob",
-     "number": "12345",
-     "enabled": false
-    }
-   ]
-  },
   "smtp": {
    "name": "SMTP",
    "enabled": false,

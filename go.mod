@@ -24,6 +24,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/otp v1.3.0
 	github.com/shopspring/decimal v1.2.0
+	github.com/spf13/cobra v1.2.1 // indirect
 	github.com/spf13/viper v1.9.0
 	github.com/thrasher-corp/gct-ta v0.0.0-20200623072738-f2b55b7f9f41
 	github.com/thrasher-corp/goose v2.7.0-rc4.0.20191002032028-0f2c2a27abdb+incompatible
@@ -34,7 +35,7 @@ require (
 	github.com/volatiletech/sqlboiler v3.7.1+incompatible // indirect
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
 	golang.org/x/net v0.0.0-20211004195052-b30845b58a23
-	golang.org/x/sys v0.0.0-20211004093028-2c5d950f24ef // indirect
+	golang.org/x/sys v0.0.0-20211007075335-d3039528d8ac // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac
 	google.golang.org/genproto v0.0.0-20211001223012-bfb93cce50d9

@@ -120,7 +120,7 @@ func loadConfigWithSettings(settings *Settings, flagSet map[string]bool) (*confi
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("Loading config file %s..\n", filePath)
+	gctlog.Info(gctlog.Global, fmt.Sprintf("Loading config file %s..\n", filePath))
 
 	conf := &config.Config{}
 	err = conf.ReadConfigFromFile(filePath, settings.EnableDryRun)
@@ -131,7 +131,7 @@ func loadConfigWithSettings(settings *Settings, flagSet map[string]bool) (*confi
 	if flagSet["datadir"] {
 		// warn if dryrun isn't enabled
 		if !settings.EnableDryRun {
-			log.Println("Command line argument '-datadir' induces dry run mode.")
+			gctlog.Warn(gctlog.Global, "Command line argument '-datadir' induces dry run mode.")
 		}
 		settings.EnableDryRun = true
 		conf.DataDirectory = settings.DataDir
@@ -195,8 +195,8 @@ func validateSettings(b *Engine, s *Settings, flagSet map[string]bool) {
 			trade.BufferProcessorIntervalTime = b.Settings.TradeBufferProcessingInterval
 		} else {
 			b.Settings.TradeBufferProcessingInterval = trade.DefaultProcessorIntervalTime
-			gctlog.Warnf(gctlog.Global, "-tradeprocessinginterval must be >= to 1 second, using default value of %v",
-				trade.DefaultProcessorIntervalTime)
+			// gctlog.Warnf(gctlog.Global, "-tradeprocessinginterval must be >= to 1 second, using default value of %v",
+			// 	trade.DefaultProcessorIntervalTime)
 		}
 	}
 

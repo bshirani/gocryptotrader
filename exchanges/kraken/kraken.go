@@ -37,6 +37,7 @@ type Kraken struct {
 
 // GetServerTime returns current server time
 func (k *Kraken) GetServerTime(ctx context.Context) (TimeResponse, error) {
+	fmt.Println("get server time")
 	path := fmt.Sprintf("/%s/public/%s", krakenAPIVersion, krakenServerTime)
 
 	var response struct {
