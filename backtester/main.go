@@ -83,6 +83,7 @@ func main() {
 
 	path := gctconfig.DefaultFilePath()
 	if cfg.GoCryptoTraderConfigPath != "" {
+		fmt.Println("using custom config", path)
 		path = cfg.GoCryptoTraderConfigPath
 	}
 
@@ -92,7 +93,7 @@ func main() {
 		"orderbooksync":      false,
 		"tradesync":          false,
 		"ratelimiter":        true,
-		"ordermanager":       false,
+		"ordermanager":       true,
 		"enablecommsrelayer": true,
 	}
 	bot, err = engine.NewFromSettings(&engine.Settings{
@@ -100,7 +101,7 @@ func main() {
 		EnableDryRun:                  true,
 		EnableAllPairs:                true,
 		EnableExchangeHTTPRateLimiter: true,
-		IsLive:                        true,
+		IsLive:                        live,
 	}, flags)
 	if err != nil {
 		fmt.Printf("Could not load backtester. Error: %v.\n", err)
@@ -116,6 +117,16 @@ func main() {
 	if err != nil {
 		fmt.Printf("Could not setup backtester from config. Error: %v.\n", err)
 		os.Exit(1)
+	}
+
+	bt.DataHistoryManager, err = engine.SetupDataHistoryManager(bot.ExchangeManager, bot.DatabaseManager, &bot.Config.DataHistoryManager)
+	if err != nil {
+		gctlog.Errorf(gctlog.Global, "database history manager unable to setup: %s", err)
+	} else {
+		err = bt.DataHistoryManager.Start()
+		if err != nil {
+			gctlog.Errorf(gctlog.Global, "database history manager unable to start: %s", err)
+		}
 	}
 
 	if live {
@@ -150,6 +161,7 @@ func main() {
 	// 	os.Exit(1)
 	// }
 
+	// BACKTEST ONLY
 	if generateReport {
 		bt.Reports.UseDarkMode(darkReport)
 		err = bt.Reports.GenerateReport()

@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/thrasher-corp/gocryptotrader/backtester/backtest"
 	"github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/config"
 	"github.com/thrasher-corp/gocryptotrader/currency"
@@ -33,6 +34,7 @@ type Engine struct {
 	IsLive                  bool
 	Config                  *config.Config
 	apiServer               *apiServerManager
+	Backtester              *backtest.BackTest
 	CommunicationsManager   *CommunicationManager
 	connectionManager       *connectionManager
 	currencyPairSyncer      *syncManager
@@ -85,6 +87,7 @@ func NewFromSettings(settings *Settings, flagSet map[string]bool) (*Engine, erro
 
 	b.Config, err = loadConfigWithSettings(settings, flagSet)
 	if err != nil {
+		fmt.Println(2)
 		return nil, fmt.Errorf("failed to load config. Err: %s", err)
 	}
 
@@ -121,7 +124,9 @@ func loadConfigWithSettings(settings *Settings, flagSet map[string]bool) (*confi
 	if err != nil {
 		return nil, err
 	}
-	gctlog.Info(gctlog.Global, fmt.Sprintf("Loading config file %s..\n", filePath))
+	//logger hasn't been initizled yet
+	// gctlog.Info(gctlog.Global, fmt.Sprintf("Loading config file %s..\n", filePath))
+	fmt.Printf("Loading config file %s\n", filePath)
 
 	conf := &config.Config{}
 	err = conf.ReadConfigFromFile(filePath, settings.EnableDryRun)
@@ -132,7 +137,8 @@ func loadConfigWithSettings(settings *Settings, flagSet map[string]bool) (*confi
 	if flagSet["datadir"] {
 		// warn if dryrun isn't enabled
 		if !settings.EnableDryRun {
-			gctlog.Warn(gctlog.Global, "Command line argument '-datadir' induces dry run mode.")
+			// gctlog.Warn(gctlog.Global, "Command line argument '-datadir' induces dry run mode.")
+			fmt.Println("Command line argument '-datadir' induces dry run mode.")
 		}
 		settings.EnableDryRun = true
 		conf.DataDirectory = settings.DataDir
@@ -426,9 +432,10 @@ func (bot *Engine) Start() error {
 		}
 	}
 
-	if bot.Settings.EnableGRPC {
-		go StartRPCServer(bot)
-	}
+	// if bot.Settings.EnableGRPC {
+	// 	fmt.Println("START GRPC00000000000000000")
+	// 	go StartRPCServer(bot)
+	// }
 
 	if bot.Settings.EnablePortfolioManager {
 		if bot.portfolioManager == nil {

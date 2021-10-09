@@ -186,7 +186,7 @@
    "timeInNanoSeconds": false
   },
   "deprecatedRPC": {
-   "enabled": false,
+   "enabled": true,
    "listenAddress": ""
   },
   "websocketRPC": {

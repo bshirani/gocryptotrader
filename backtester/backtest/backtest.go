@@ -65,7 +65,7 @@ func (bt *BackTest) Reset() {
 
 // NewFromConfig takes a strategy config and configures a backtester variable to run
 func NewFromConfig(cfg *config.Config, templatePath, output string, bot *engine.Engine) (*BackTest, error) {
-	log.Infoln(log.BackTester, "loading config...")
+	log.Infoln(log.BackTester, "bt:loading config...")
 	if cfg == nil {
 		return nil, errNilConfig
 	}
@@ -232,6 +232,54 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *engine.
 		lookup.ComplianceManager = compliance.Manager{
 			Snapshots: []compliance.Snapshot{},
 		}
+
+		dataType, _ := common.DataTypeToInt(cfg.DataSettings.DataType)
+		resp, _ := database.LoadData(
+			cfg.DataSettings.DatabaseData.StartDate,
+			cfg.DataSettings.DatabaseData.EndDate,
+			cfg.DataSettings.Interval,
+			strings.ToLower(e.CurrencySettings[i].ExchangeName),
+			dataType,
+			e.CurrencySettings[i].CurrencyPair,
+			e.CurrencySettings[i].AssetType)
+
+		lastBar := resp.Item.Candles[len(resp.Item.Candles)-1]
+
+		// how much do we have to catchup?
+
+		// what's the current date?
+		fmt.Println("catchup range", time.Now(), lastBar.Time)
+
+		// perform the catchup
+		// request the data missing from the broker
+
+		// ask the data history manager to perform the catchup
+
+		// warm the factor engine
+
+		// then start the damn thing
+		// strategies are stateless, and the factor engine is warmed up outside of the backtest
+		// so we do not need any dataevents to trigger during catchup
+		// we only need to make sure the factor engine is updated to the current time/last bar time
+		// so that it can respond to queries
+
+		// resp.Item.RemoveDuplicates()
+		// resp.Item.SortCandlesByTimestamp(false)
+		// resp.RangeHolder, err = gctkline.CalculateCandleDateRanges(
+		// 	cfg.DataSettings.DatabaseData.StartDate,
+		// 	cfg.DataSettings.DatabaseData.EndDate,
+		// 	gctkline.Interval(cfg.DataSettings.Interval),
+		// 	0,
+		// )
+		// if err != nil {
+		// 	return nil, err
+		// }
+		// resp.RangeHolder.SetHasDataFromCandles(resp.Item.Candles)
+		// summary := resp.RangeHolder.DataSummary(false)
+		// if len(summary) > 0 {
+		// 	log.Warnf(log.BackTester, "%v", summary)
+		// }
+
 	}
 	bt.Portfolio = p
 
@@ -291,18 +339,7 @@ dataLoadingIssue:
 // the first step is to write the data in the database as it comes in
 func (bt *BackTest) RunLive() error {
 	bt.FactorEngine.Start()
-	// whats are the currencies traded
-	// what are the strategies traded
-	// fmt.Println("symbols", bt.Strategies)
-	cs, _ := bt.Exchange.GetAllCurrencySettings()
-	// run catchup here
-
-	var symbols []string
-	symbols = make([]string, 200)
-	for _, c := range cs {
-		x := fmt.Sprintf("%s", c.CurrencyPair)
-		symbols = append(symbols, x)
-	}
+	bt.liveDataCatchup()
 
 	timeoutTimer := time.NewTimer(time.Minute * 1)
 
@@ -391,6 +428,11 @@ func (bt *BackTest) Stop() {
 	}()
 
 	close(bt.shutdown)
+}
+
+func (bt *BackTest) liveDataCatchup() error {
+
+	return nil
 }
 
 func (bt *BackTest) setupExchangeSettings(cfg *config.Config) (exchange.Exchange, error) {
@@ -484,6 +526,7 @@ func (bt *BackTest) setupExchangeSettings(cfg *config.Config) (exchange.Exchange
 				cfg.CurrencySettings[i].ShowExchangeOrderLimitWarning = true
 			}
 		}
+
 		resp.CurrencySettings = append(resp.CurrencySettings, exchange.Settings{
 			ExchangeName:        cfg.CurrencySettings[i].ExchangeName,
 			MinimumSlippageRate: cfg.CurrencySettings[i].MinimumSlippagePercent,
