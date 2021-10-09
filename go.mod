@@ -19,7 +19,7 @@ require (
 	github.com/kat-co/vala v0.0.0-20170210184112-42e1d8b61f12
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lib/pq v1.10.3
-	github.com/mattn/go-sqlite3 v1.14.8
+	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/otp v1.3.0
@@ -33,6 +33,8 @@ require (
 	github.com/volatiletech/inflect v0.0.1 // indirect
 	github.com/volatiletech/null v8.0.0+incompatible
 	github.com/volatiletech/sqlboiler v3.7.1+incompatible // indirect
+	github.com/volatiletech/sqlboiler-sqlite3 v0.0.0-20210926160607-d4f525dbbc6b // indirect
+	github.com/volatiletech/sqlboiler/v4 v4.7.1 // indirect
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
 	golang.org/x/net v0.0.0-20211004195052-b30845b58a23
 	golang.org/x/sys v0.0.0-20211007075335-d3039528d8ac // indirect
