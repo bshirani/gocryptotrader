@@ -2,9 +2,6 @@ package factors
 
 import (
 	"time"
-
-	"github.com/go-gota/gota/series"
-	"github.com/shopspring/decimal"
 )
 
 type DailyDataFrame struct {
@@ -20,20 +17,10 @@ type DailyDataFrame struct {
 	// Custom user metadata
 	Metadata map[string]Series
 
-	RSI             Series
-	MA              Series
-	Past24HourHigh  Series
-	Past24HourLow   Series
-	CurrentDateOpen Series
-	CurrentDateLow  Series
-	CurrentDateHigh Series
+	RSI   Series
+	MA    Series
+	Range Series
 }
 
 type DailyDataFrameHandler interface {
-	Last() series.Series
-	LastDate() time.Time
-	CurrentDate() time.Time
-	CurrentDateHigh() decimal.Decimal
-	CurrentDateLow() decimal.Decimal
-	CurrentDateOpen() decimal.Decimal
 }

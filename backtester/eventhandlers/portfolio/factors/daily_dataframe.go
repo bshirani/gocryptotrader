@@ -61,18 +61,9 @@ func (d *DailyDataFrame) GetCurrentDateLow() decimal.Decimal {
 	return min
 }
 
-func (d *DailyDataFrame) GetCurrentDateOpen() decimal.Decimal {
-	date := d.LastDate()
-	var open decimal.Decimal
-	for i := len(d.Close) - 1; i >= 0; i-- {
-		if d.Date[i] == date {
-			continue
-		} else {
-			open = d.Open[i]
-		}
-	}
-	return open
-}
+// func (d *DailyDataFrame) GetOpen() decimal.Decimal {
+// 	return d.Open
+// }
 
 func (d *DailyDataFrame) LastTime() time.Time {
 	return d.Time[len(d.Time)-1]

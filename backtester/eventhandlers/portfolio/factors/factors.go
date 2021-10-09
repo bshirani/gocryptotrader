@@ -48,14 +48,13 @@ func (f *Engine) OnBar(d data.Handler) {
 
 	// logic to create a new daily dataframe
 	if len(d.History()) > 1 && td != f.minute.LastDate() {
-		fmt.Println("NEW DATE", f.minute.LastDate())
-		f.daily.Close = append(f.daily.Close, decimal.NewFromFloat(1.0))
-		// update daily dataframe
-		// f.daily = append(f.daily,
+		f.minute.Date = append(f.minute.Date, td)
+		f.daily = f.createNewDailyBar(f.minute, f.daily)
+	} else {
+		f.minute.Date = append(f.minute.Date, td)
 	}
 
-	f.minute.Date = append(f.minute.Date, td)
-	// add bar to minute dataframe
+	// change date after checking for/creating new daily bar
 
 	// dataRange := d.StreamClose()
 	// var massagedData []float64
@@ -82,6 +81,36 @@ func (f *Engine) OnBar(d data.Handler) {
 	// s.indicatorValues = append(s.indicatorValues, i)
 
 	// f.minute
+}
+
+func (f *Engine) createNewDailyBar(m *MinuteDataFrame, d *DailyDataFrame) *DailyDataFrame {
+	// d.Open = append(a.Date, decimal.NewFromFloat(421.0))
+
+	newDate := m.Date[len(m.Date)-1]
+	var ydayDate time.Time
+
+	for i := len(m.Close) - 1; i >= 0; i-- {
+		if newDate != m.Date[i] {
+			ydayDate = m.Date[i]
+			break
+		}
+	}
+
+	fmt.Println("createNewDailyBar", newDate, ydayDate)
+
+	// calculate open here
+	d.Open = append(d.Open, decimal.NewFromFloat(421.0))
+
+	// calculate range here
+	d.Range = append(d.Range, decimal.NewFromFloat(421.0))
+
+	// fmt.Println("NEW DATE", f.minute.LastDate())
+	// // get high/open/low/close
+	// f.daily.Open = append(f.daily.Range,.GetOpenPrice()
+	// f.daily.Range = append(f.daily.Range, decimal.NewFromFloat(1.0))
+	return d
+	// update daily dataframe
+	// f.daily = append(f.daily,
 }
 
 // massageMissingData will replace missing data with the previous candle's data

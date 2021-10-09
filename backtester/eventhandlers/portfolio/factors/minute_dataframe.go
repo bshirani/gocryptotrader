@@ -68,11 +68,23 @@ func (d *MinuteDataFrame) GetCurrentDateOpen() decimal.Decimal {
 		if d.Date[i] == date {
 			continue
 		} else {
-			open = d.Open[i]
+			open = d.Open[i] // this is wrong, it should be the one before this
 		}
 	}
 	return open
 }
+
+// func (d *MinuteDataFrame) GetDateOpen(date time.Time) decimal.Decimal {
+// 	var open decimal.Decimal
+// 	for i := len(d.Close) - 1; i >= 0; i-- {
+// 		if d.Date[i] == date {
+// 			continue
+// 		} else {
+// 			open = d.Open[i]
+// 		}
+// 	}
+// 	return open
+// }
 
 func (d *MinuteDataFrame) LastTime() time.Time {
 	return d.Time[len(d.Time)-1]

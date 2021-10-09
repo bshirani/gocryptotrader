@@ -17,7 +17,7 @@ import (
 
 func main() {
 	var configPath, templatePath, reportOutput string
-	var printLogo, generateReport, darkReport, liveMode bool
+	var printLogo, generateReport, darkReport, live bool
 	wd, err := os.Getwd()
 	if err != nil {
 		fmt.Printf("Could not get working directory. Error: %v.\n", err)
@@ -41,10 +41,10 @@ func main() {
 			"tpl.gohtml"),
 		"the report template to use")
 	flag.BoolVar(
-		&liveMode,
-		"livemode",
+		&live,
+		"live",
 		false,
-		"whether to generate the report file")
+		"run the system live")
 	flag.BoolVar(
 		&generateReport,
 		"generatereport",
@@ -118,7 +118,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if liveMode {
+	if live {
 		e, _ := factors.Setup()
 		bt.FactorEngine = e
 		// run catchup here
