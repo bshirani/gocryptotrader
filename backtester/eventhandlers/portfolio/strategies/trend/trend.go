@@ -68,10 +68,11 @@ func (s *Strategy) OnData(d data.Handler, p base.PortfolioHandler, fe *factors.E
 	if !pos.Active {
 		es.SetDecision(signal.Enter)
 		es.SetDirection(order.Buy)
-	} else {
-		es.SetDecision(signal.Exit)
-		es.SetDirection(order.Sell)
 	}
+	// else {
+	// 	es.SetDecision(signal.Exit)
+	// 	es.SetDirection(order.Sell)
+	// }
 	// 	// fmt.Println("check for entry")
 	// 	// whats the current date
 	// 	// fmt.Println("bar time: ", d.Latest().GetTime())
