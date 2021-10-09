@@ -236,7 +236,7 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *engine.
 	}
 	bt.Portfolio = p
 
-	cfg.PrintSetting()
+	// cfg.PrintSetting()
 
 	return bt, nil
 }
