@@ -43,21 +43,13 @@ func Setup(st []strategies.Handler, bot engine.Engine, sh SizeHandler, r risk.Ha
 	// create open trades array for every strategy
 	// you need the strategy IDS here
 	p.store.positions = make(map[string]*positions.Position)
-	p.store.openTrade = make(map[string]*trades.Trade)
-	p.store.closedTrades = make(map[string][]*trades.Trade)
+	p.store.openTrade = make(map[string]*livetrade.Details)
+	p.store.closedTrades = make(map[string][]*livetrade.Details)
 
 	// load open trade from the database
 	log.Infof(log.BackTester, "there are %d trades running", livetrade.Count())
 
-	// load all pending and open trades from the database
-	// s, err := livetrade.OneByStrategyID("trend_BUY")
-	// s, err := livetrade.OneByStrategyID("trend_BUY")
-	// if err != nil {
-	// 	return nil, errSizeManagerUnset
-	// }
-
-	openTrades, _ := livetrade.Active()
-	log.Infof(log.BackTester, "there are %d trades running for strategy", len(openTrades))
+	// load all pending and open trades from the database into positions and trades
 
 	// what does this do?
 	// bt.Datas.Setup()
@@ -68,11 +60,20 @@ func Setup(st []strategies.Handler, bot engine.Engine, sh SizeHandler, r risk.Ha
 	p.riskFreeRate = riskFreeRate
 	p.strategies = st
 
+	// set initial opentrade/positions
 	for _, s := range p.strategies {
 		s.SetID(fmt.Sprintf("%s_%s", s.Name(), s.Direction()))
 		p.store.positions[s.ID()] = &positions.Position{}
-		p.store.closedTrades[s.ID()] = make([]*trades.Trade, 10)
+		p.store.closedTrades[s.ID()] = make([]*livetrade.Details, 10)
 		s.SetWeight(decimal.NewFromFloat(1.5))
+	}
+
+	// load existing positions from database
+	activeTrades, _ := livetrade.Active()
+	for _, t := range activeTrades {
+		p.store.openTrade[t.StrategyID] = &t
+		pos := p.store.positions[t.StrategyID]
+		pos.Active = true
 	}
 
 	return p, nil
@@ -115,7 +116,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *exchange.Settings) (*order.Ord
 			}
 		}
 
-		p.store.openTrade[ev.GetStrategyID()] = &trades.Trade{Status: trades.Pending}
+		p.store.openTrade[ev.GetStrategyID()] = &livetrade.Details{Status: livetrade.Pending}
 
 	case signal.Exit:
 		// fmt.Println("exit")
@@ -222,10 +223,10 @@ func (p *Portfolio) OnFill(f fill.Event) (*fill.Fill, error) {
 	t := p.store.openTrade[f.GetStrategyID()]
 
 	if t == nil {
-		p.store.openTrade[f.GetStrategyID()] = &trades.Trade{Status: trades.Open}
+		p.store.openTrade[f.GetStrategyID()] = &livetrade.Details{Status: livetrade.Open}
 	} else {
 		// fmt.Println("open trade", t)
-		t.Status = trades.Closed
+		t.Status = livetrade.Closed
 		p.store.closedTrades[f.GetStrategyID()] = append(p.store.closedTrades[f.GetStrategyID()], t)
 		p.store.openTrade[f.GetStrategyID()] = nil
 	}
@@ -394,7 +395,7 @@ func (p *Portfolio) GetPositionForStrategy(sid string) *positions.Position {
 	return p.store.positions[sid]
 }
 
-func (p *Portfolio) GetTradeForStrategy(sid string) *trades.Trade {
+func (p *Portfolio) GetTradeForStrategy(sid string) *livetrade.Details {
 	return p.store.openTrade[sid]
 }
 
@@ -532,9 +533,9 @@ func (p *Portfolio) SetupCurrencySettingsMap(exch string, a asset.Item, cp curre
 }
 
 // // GetOpenTrades returns the latest holdings after being sorted by time
-// func (p *Portfolio) GetOpenTrade() (trades.Trade, error) {
+// func (p *Portfolio) GetOpenTrade() (livetrade.Details, error) {
 // 	if p.openTrade.EntryPrice.IsZero() {
-// 		return trades.Trade{}, errNoOpenTrade
+// 		return livetrade.Details{}, errNoOpenTrade
 // 	}
 // 	return p.openTrade, nil
 // }

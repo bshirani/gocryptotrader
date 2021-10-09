@@ -3,6 +3,7 @@ package livetrade
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/thrasher-corp/gocryptotrader/database"
 	modelSQLite "github.com/thrasher-corp/gocryptotrader/database/models/sqlite3"
@@ -53,6 +54,9 @@ func Active() (out []Details, err error) {
 	for _, x := range ret {
 		out = append(out, Details{
 			EntryPrice: x.EntryPrice,
+			ID:         x.ID,
+			StrategyID: x.StrategyID,
+			Status:     Status(x.Status),
 		})
 	}
 	if errS != nil {
@@ -101,7 +105,7 @@ func insertSQLite(ctx context.Context, tx *sql.Tx, in []Details) (err error) {
 			EntryPrice:    in[x].EntryPrice,
 			ExitPrice:     null.Float64{Float64: in[x].ExitPrice},
 			StopLossPrice: in[x].StopLossPrice,
-			Status:        in[x].Status,
+			Status:        fmt.Sprintf("%s", in[x].Status),
 			StrategyID:    in[x].StrategyID,
 		}
 
