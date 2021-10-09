@@ -13,9 +13,11 @@ var (
 
 // Item generic candle holder for modelPSQL & modelSQLite
 type Details struct {
-	ID         string
-	Name       string
-	EntryPrice float64
-	ExitPrice  float64
-	StopPrice  float64
+	ID            int64
+	Name          string
+	EntryPrice    float64
+	ExitPrice     float64
+	StopLossPrice float64
+	Status        string
+	StrategyID    string
 }

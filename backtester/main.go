@@ -100,6 +100,7 @@ func main() {
 		EnableDryRun:                  true,
 		EnableAllPairs:                true,
 		EnableExchangeHTTPRateLimiter: true,
+		IsLive:                        true,
 	}, flags)
 	if err != nil {
 		fmt.Printf("Could not load backtester. Error: %v.\n", err)

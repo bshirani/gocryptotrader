@@ -23,9 +23,11 @@ import (
 
 // LiveTrade is an object representing the database table.
 type LiveTrade struct {
-	ID              null.Int64   `boil:"id" json:"id,omitempty" toml:"id" yaml:"id,omitempty"`
+	ID              int64        `boil:"id" json:"id" toml:"id" yaml:"id"`
 	EntryPrice      float64      `boil:"entry_price" json:"entry_price" toml:"entry_price" yaml:"entry_price"`
 	StopLossPrice   float64      `boil:"stop_loss_price" json:"stop_loss_price" toml:"stop_loss_price" yaml:"stop_loss_price"`
+	StrategyID      string       `boil:"strategy_id" json:"strategy_id" toml:"strategy_id" yaml:"strategy_id"`
+	Status          string       `boil:"status" json:"status" toml:"status" yaml:"status"`
 	TakeProfitPrice null.Float64 `boil:"take_profit_price" json:"take_profit_price,omitempty" toml:"take_profit_price" yaml:"take_profit_price,omitempty"`
 	ExitPrice       null.Float64 `boil:"exit_price" json:"exit_price,omitempty" toml:"exit_price" yaml:"exit_price,omitempty"`
 
@@ -37,12 +39,16 @@ var LiveTradeColumns = struct {
 	ID              string
 	EntryPrice      string
 	StopLossPrice   string
+	StrategyID      string
+	Status          string
 	TakeProfitPrice string
 	ExitPrice       string
 }{
 	ID:              "id",
 	EntryPrice:      "entry_price",
 	StopLossPrice:   "stop_loss_price",
+	StrategyID:      "strategy_id",
+	Status:          "status",
 	TakeProfitPrice: "take_profit_price",
 	ExitPrice:       "exit_price",
 }
@@ -50,15 +56,19 @@ var LiveTradeColumns = struct {
 // Generated where
 
 var LiveTradeWhere = struct {
-	ID              whereHelpernull_Int64
+	ID              whereHelperint64
 	EntryPrice      whereHelperfloat64
 	StopLossPrice   whereHelperfloat64
+	StrategyID      whereHelperstring
+	Status          whereHelperstring
 	TakeProfitPrice whereHelpernull_Float64
 	ExitPrice       whereHelpernull_Float64
 }{
-	ID:              whereHelpernull_Int64{field: "\"live_trade\".\"id\""},
+	ID:              whereHelperint64{field: "\"live_trade\".\"id\""},
 	EntryPrice:      whereHelperfloat64{field: "\"live_trade\".\"entry_price\""},
 	StopLossPrice:   whereHelperfloat64{field: "\"live_trade\".\"stop_loss_price\""},
+	StrategyID:      whereHelperstring{field: "\"live_trade\".\"strategy_id\""},
+	Status:          whereHelperstring{field: "\"live_trade\".\"status\""},
 	TakeProfitPrice: whereHelpernull_Float64{field: "\"live_trade\".\"take_profit_price\""},
 	ExitPrice:       whereHelpernull_Float64{field: "\"live_trade\".\"exit_price\""},
 }
@@ -80,9 +90,9 @@ func (*liveTradeR) NewStruct() *liveTradeR {
 type liveTradeL struct{}
 
 var (
-	liveTradeAllColumns            = []string{"id", "entry_price", "stop_loss_price", "take_profit_price", "exit_price"}
+	liveTradeAllColumns            = []string{"id", "entry_price", "stop_loss_price", "strategy_id", "status", "take_profit_price", "exit_price"}
 	liveTradeColumnsWithoutDefault = []string{}
-	liveTradeColumnsWithDefault    = []string{"id", "entry_price", "stop_loss_price", "take_profit_price", "exit_price"}
+	liveTradeColumnsWithDefault    = []string{"id", "entry_price", "stop_loss_price", "strategy_id", "status", "take_profit_price", "exit_price"}
 	liveTradePrimaryKeyColumns     = []string{"id"}
 )
 
@@ -369,7 +379,7 @@ func LiveTrades(mods ...qm.QueryMod) liveTradeQuery {
 
 // FindLiveTrade retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindLiveTrade(ctx context.Context, exec boil.ContextExecutor, iD null.Int64, selectCols ...string) (*LiveTrade, error) {
+func FindLiveTrade(ctx context.Context, exec boil.ContextExecutor, iD int64, selectCols ...string) (*LiveTrade, error) {
 	liveTradeObj := &LiveTrade{}
 
 	sel := "*"
@@ -452,15 +462,26 @@ func (o *LiveTrade) Insert(ctx context.Context, exec boil.ContextExecutor, colum
 		fmt.Fprintln(boil.DebugWriter, vals)
 	}
 
-	_, err = exec.ExecContext(ctx, cache.query, vals...)
+	result, err := exec.ExecContext(ctx, cache.query, vals...)
 
 	if err != nil {
 		return errors.Wrap(err, "sqlite3: unable to insert into live_trade")
 	}
 
+	var lastID int64
 	var identifierCols []interface{}
 
 	if len(cache.retMapping) == 0 {
+		goto CacheNoHooks
+	}
+
+	lastID, err = result.LastInsertId()
+	if err != nil {
+		return ErrSyncFail
+	}
+
+	o.ID = int64(lastID)
+	if lastID != 0 && len(cache.retMapping) == 1 && cache.retMapping[0] == liveTradeMapping["ID"] {
 		goto CacheNoHooks
 	}
 
@@ -761,7 +782,7 @@ func (o *LiveTradeSlice) ReloadAll(ctx context.Context, exec boil.ContextExecuto
 }
 
 // LiveTradeExists checks if the LiveTrade row exists.
-func LiveTradeExists(ctx context.Context, exec boil.ContextExecutor, iD null.Int64) (bool, error) {
+func LiveTradeExists(ctx context.Context, exec boil.ContextExecutor, iD int64) (bool, error) {
 	var exists bool
 	sql := "select exists(select 1 from \"live_trade\" where \"id\"=? limit 1)"
 

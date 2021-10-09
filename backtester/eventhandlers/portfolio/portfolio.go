@@ -46,6 +46,20 @@ func Setup(st []strategies.Handler, bot engine.Engine, sh SizeHandler, r risk.Ha
 	p.store.openTrade = make(map[string]*trades.Trade)
 	p.store.closedTrades = make(map[string][]*trades.Trade)
 
+	// load open trade from the database
+	log.Infof(log.BackTester, "there are %d trades running", livetrade.Count())
+
+	// load all pending and open trades from the database
+	// s, err := livetrade.OneByStrategyID("trend_BUY")
+	// s, err := livetrade.OneByStrategyID("trend_BUY")
+	// if err != nil {
+	// 	return nil, errSizeManagerUnset
+	// }
+
+	openTrades, _ := livetrade.Active()
+	log.Infof(log.BackTester, "there are %d trades running for strategy", len(openTrades))
+
+	// what does this do?
 	// bt.Datas.Setup()
 
 	p.bot = bot
@@ -89,18 +103,16 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *exchange.Settings) (*order.Ord
 	}
 	switch ev.GetDecision() {
 	case signal.Enter:
-		//raise error if we already have an open trade
-		// find or create new trade here
-		// create a new trade struct and store it
-
-		// TODO only in live mode do we interact with the db, need live mode flag here
-		log.Warn(log.BackTester, "inserting trade")
-		err := livetrade.Insert(livetrade.Details{
-			EntryPrice: 123.0,
-		})
-		if err != nil {
-			log.Error(log.BackTester, "failed inserting trade")
-			return nil, errStrategyIDUnset
+		if p.bot.IsLive {
+			err := livetrade.Insert(livetrade.Details{
+				EntryPrice:    123.0,
+				StopLossPrice: 123.0,
+				Status:        "PENDING",
+				StrategyID:    ev.GetStrategyID(),
+			})
+			if err != nil {
+				return nil, errStrategyIDUnset
+			}
 		}
 
 		p.store.openTrade[ev.GetStrategyID()] = &trades.Trade{Status: trades.Pending}

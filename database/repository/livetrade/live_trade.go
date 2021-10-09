@@ -13,24 +13,52 @@ import (
 )
 
 func Count() int64 {
-	// whereQM := qm.Where("id = ?", 5)
 	i, _ := modelSQLite.LiveTrades().Count(context.Background(), database.DB.SQL)
 	return i
+}
+
+func OneByStrategyID(in string) (Details, error) {
+	return one(in, "strategy_id")
 }
 
 func OneByID(in string) (Details, error) {
 	return one(in, "id")
 }
 
-// one returns one exchange by clause
 func one(in, clause string) (out Details, err error) {
 	if database.DB.SQL == nil {
 		return out, database.ErrDatabaseSupportDisabled
 	}
+	// boil.DebugMode = true
 
 	whereQM := qm.Where(clause+"= ?", in)
-	ret, errS := modelSQLite.Exchanges(whereQM).One(context.Background(), database.DB.SQL)
+	ret, errS := modelSQLite.LiveTrades(whereQM).One(context.Background(), database.DB.SQL)
 	out.ID = ret.ID
+	if errS != nil {
+		return out, errS
+	}
+
+	return out, err
+}
+
+func Active() (out []Details, err error) {
+	// boil.DebugMode = true
+	if database.DB.SQL == nil {
+		return out, database.ErrDatabaseSupportDisabled
+	}
+
+	whereQM := qm.Where("status IN ('PENDING', 'ACTIVE')")
+	ret, errS := modelSQLite.LiveTrades(whereQM).All(context.Background(), database.DB.SQL)
+
+	for _, x := range ret {
+		out = append(out, Details{
+			EntryPrice: x.EntryPrice,
+		})
+	}
+	if errS != nil {
+		return out, errS
+	}
+
 	if errS != nil {
 		return out, errS
 	}
@@ -70,9 +98,11 @@ func Insert(in Details) error {
 func insertSQLite(ctx context.Context, tx *sql.Tx, in []Details) (err error) {
 	for x := range in {
 		var tempInsert = modelSQLite.LiveTrade{
-			EntryPrice: in[x].EntryPrice,
-			ExitPrice:  null.Float64{Float64: in[x].ExitPrice},
-			StopPrice:  in[x].StopPrice,
+			EntryPrice:    in[x].EntryPrice,
+			ExitPrice:     null.Float64{Float64: in[x].ExitPrice},
+			StopLossPrice: in[x].StopLossPrice,
+			Status:        in[x].Status,
+			StrategyID:    in[x].StrategyID,
 		}
 
 		err = tempInsert.Insert(ctx, tx, boil.Infer())

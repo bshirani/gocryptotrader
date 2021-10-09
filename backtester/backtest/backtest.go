@@ -589,7 +589,10 @@ func (bt *BackTest) setupBot(cfg *config.Config, bot *engine.Engine) error {
 		}
 	}
 
-	// fmt.Println("there are n trades running", livetrade.One(1))
+	// TODO
+	// DataCatchup()
+	// FactorEngineWarmup()
+	// EnsureSyncronized()
 
 	return nil
 }
@@ -635,7 +638,6 @@ func (bt *BackTest) loadData(cfg *config.Config, exch gctexchange.IBotExchange, 
 		cfg.DataSettings.CSVData == nil {
 		return nil, errNoDataSource
 	}
-	fmt.Println("live mode?", cfg.IsLive)
 	// if (cfg.DataSettings.APIData != nil && cfg.DataSettings.DatabaseData != nil) ||
 	// 	(cfg.DataSettings.APIData != nil && cfg.DataSettings.LiveData != nil) ||
 	// 	(cfg.DataSettings.APIData != nil && cfg.DataSettings.CSVData != nil) ||
