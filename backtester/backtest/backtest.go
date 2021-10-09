@@ -382,6 +382,14 @@ func (bt *BackTest) Stop() {
 	for _, s := range bt.Strategies {
 		s.Stop()
 	}
+
+	defer func() {
+		stopErr := bt.Bot.DatabaseManager.Stop()
+		if stopErr != nil {
+			log.Error(log.BackTester, stopErr)
+		}
+	}()
+
 	close(bt.shutdown)
 }
 
@@ -557,7 +565,7 @@ func (bt *BackTest) setupBot(cfg *config.Config, bot *engine.Engine) error {
 		return err
 	}
 
-	if !cfg.IsLive && !bt.Bot.CommunicationsManager.IsRunning() {
+	if cfg.IsLive && !bt.Bot.CommunicationsManager.IsRunning() {
 		communicationsConfig := bot.Config.GetCommunicationsConfig()
 		bot.CommunicationsManager, err = engine.SetupCommunicationManager(&communicationsConfig)
 		if err != nil {
@@ -580,6 +588,8 @@ func (bt *BackTest) setupBot(cfg *config.Config, bot *engine.Engine) error {
 			return err
 		}
 	}
+
+	// fmt.Println("there are n trades running", livetrade.One(1))
 
 	return nil
 }
@@ -625,14 +635,15 @@ func (bt *BackTest) loadData(cfg *config.Config, exch gctexchange.IBotExchange, 
 		cfg.DataSettings.CSVData == nil {
 		return nil, errNoDataSource
 	}
-	if (cfg.DataSettings.APIData != nil && cfg.DataSettings.DatabaseData != nil) ||
-		(cfg.DataSettings.APIData != nil && cfg.DataSettings.LiveData != nil) ||
-		(cfg.DataSettings.APIData != nil && cfg.DataSettings.CSVData != nil) ||
-		(cfg.DataSettings.DatabaseData != nil && cfg.DataSettings.LiveData != nil) ||
-		(cfg.DataSettings.CSVData != nil && cfg.DataSettings.LiveData != nil) ||
-		(cfg.DataSettings.CSVData != nil && cfg.DataSettings.DatabaseData != nil) {
-		return nil, errAmbiguousDataSource
-	}
+	fmt.Println("live mode?", cfg.IsLive)
+	// if (cfg.DataSettings.APIData != nil && cfg.DataSettings.DatabaseData != nil) ||
+	// 	(cfg.DataSettings.APIData != nil && cfg.DataSettings.LiveData != nil) ||
+	// 	(cfg.DataSettings.APIData != nil && cfg.DataSettings.CSVData != nil) ||
+	// 	(cfg.DataSettings.DatabaseData != nil && cfg.DataSettings.LiveData != nil) ||
+	// 	(cfg.DataSettings.CSVData != nil && cfg.DataSettings.LiveData != nil) ||
+	// 	(cfg.DataSettings.CSVData != nil && cfg.DataSettings.DatabaseData != nil) {
+	// 	return nil, errAmbiguousDataSource
+	// }
 
 	dataType, err := common.DataTypeToInt(cfg.DataSettings.DataType)
 	if err != nil {
@@ -672,7 +683,7 @@ func (bt *BackTest) loadData(cfg *config.Config, exch gctexchange.IBotExchange, 
 		if len(summary) > 0 {
 			log.Warnf(log.BackTester, "%v", summary)
 		}
-	case cfg.DataSettings.DatabaseData != nil:
+	case !cfg.IsLive && cfg.DataSettings.DatabaseData != nil:
 		log.Infof(log.BackTester, "loading db data for %v %v %v...\n", exch.GetName(), a, fPair)
 		if cfg.DataSettings.DatabaseData.InclusiveEndDate {
 			cfg.DataSettings.DatabaseData.EndDate = cfg.DataSettings.DatabaseData.EndDate.Add(cfg.DataSettings.Interval)
@@ -694,12 +705,6 @@ func (bt *BackTest) loadData(cfg *config.Config, exch gctexchange.IBotExchange, 
 		if err != nil {
 			return nil, err
 		}
-		defer func() {
-			stopErr := bt.Bot.DatabaseManager.Stop()
-			if stopErr != nil {
-				log.Error(log.BackTester, stopErr)
-			}
-		}()
 		resp, err = loadDatabaseData(cfg, exch.GetName(), fPair, a, dataType)
 		if err != nil {
 			return nil, fmt.Errorf("unable to retrieve data from GoCryptoTrader database. Error: %v. Please ensure the database is setup correctly and has data before use", err)
@@ -736,7 +741,7 @@ func (bt *BackTest) loadData(cfg *config.Config, exch gctexchange.IBotExchange, 
 		if err != nil {
 			return resp, err
 		}
-	case cfg.DataSettings.LiveData != nil:
+	case cfg.IsLive && cfg.DataSettings.LiveData != nil:
 		if len(cfg.CurrencySettings) > 1 {
 			return nil, errors.New("live data simulation only supports one currency")
 		}

@@ -19,6 +19,7 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/order"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/signal"
 	"github.com/thrasher-corp/gocryptotrader/currency"
+	"github.com/thrasher-corp/gocryptotrader/database/repository/livetrade"
 	"github.com/thrasher-corp/gocryptotrader/engine"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	gctorder "github.com/thrasher-corp/gocryptotrader/exchanges/order"
@@ -88,11 +89,22 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *exchange.Settings) (*order.Ord
 	}
 	switch ev.GetDecision() {
 	case signal.Enter:
-		// fmt.Println("enter")
 		//raise error if we already have an open trade
 		// find or create new trade here
 		// create a new trade struct and store it
+
+		// TODO only in live mode do we interact with the db, need live mode flag here
+		log.Warn(log.BackTester, "inserting trade")
+		err := livetrade.Insert(livetrade.Details{
+			EntryPrice: 123.0,
+		})
+		if err != nil {
+			log.Error(log.BackTester, "failed inserting trade")
+			return nil, errStrategyIDUnset
+		}
+
 		p.store.openTrade[ev.GetStrategyID()] = &trades.Trade{Status: trades.Pending}
+
 	case signal.Exit:
 		// fmt.Println("exit")
 	case signal.DoNothing:

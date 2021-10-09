@@ -19,32 +19,15 @@ import (
 	"github.com/thrasher-corp/sqlboiler/queries/qmhelper"
 	"github.com/thrasher-corp/sqlboiler/strmangle"
 	"github.com/volatiletech/null"
-	"github.com/volatiletech/sqlboiler/types"
 )
 
 // LiveTrade is an object representing the database table.
 type LiveTrade struct {
-	ID              null.Int64        `boil:"id" json:"id,omitempty" toml:"id" yaml:"id,omitempty"`
-	Action          string            `boil:"action" json:"action" toml:"action" yaml:"action"`
-	EntryTime       string            `boil:"entry_time" json:"entry_time" toml:"entry_time" yaml:"entry_time"`
-	EntryPrice      types.Decimal     `boil:"entry_price" json:"entry_price" toml:"entry_price" yaml:"entry_price"`
-	StopLossPrice   types.Decimal     `boil:"stop_loss_price" json:"stop_loss_price" toml:"stop_loss_price" yaml:"stop_loss_price"`
-	TakeProfitPrice types.NullDecimal `boil:"take_profit_price" json:"take_profit_price,omitempty" toml:"take_profit_price" yaml:"take_profit_price,omitempty"`
-	ExitTime        string            `boil:"exit_time" json:"exit_time" toml:"exit_time" yaml:"exit_time"`
-	ExitPrice       types.Decimal     `boil:"exit_price" json:"exit_price" toml:"exit_price" yaml:"exit_price"`
-	ProfitPTS       types.Decimal     `boil:"profit_pts" json:"profit_pts" toml:"profit_pts" yaml:"profit_pts"`
-	Risk            types.Decimal     `boil:"risk" json:"risk" toml:"risk" yaml:"risk"`
-	RiskPTS         types.Decimal     `boil:"risk_pts" json:"risk_pts" toml:"risk_pts" yaml:"risk_pts"`
-	ExitReason      string            `boil:"exit_reason" json:"exit_reason" toml:"exit_reason" yaml:"exit_reason"`
-	Units           types.NullDecimal `boil:"units" json:"units,omitempty" toml:"units" yaml:"units,omitempty"`
-	UnitProfit      types.NullDecimal `boil:"unit_profit" json:"unit_profit,omitempty" toml:"unit_profit" yaml:"unit_profit,omitempty"`
-	UnitRisk        types.NullDecimal `boil:"unit_risk" json:"unit_risk,omitempty" toml:"unit_risk" yaml:"unit_risk,omitempty"`
-	Prediction      types.NullDecimal `boil:"prediction" json:"prediction,omitempty" toml:"prediction" yaml:"prediction,omitempty"`
-	NetProfit       types.Decimal     `boil:"net_profit" json:"net_profit" toml:"net_profit" yaml:"net_profit"`
-	Weight          types.Decimal     `boil:"weight" json:"weight" toml:"weight" yaml:"weight"`
-	Quantity        types.Decimal     `boil:"quantity" json:"quantity" toml:"quantity" yaml:"quantity"`
-	CreatedAt       string            `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt       string            `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	ID              null.Int64   `boil:"id" json:"id,omitempty" toml:"id" yaml:"id,omitempty"`
+	EntryPrice      float64      `boil:"entry_price" json:"entry_price" toml:"entry_price" yaml:"entry_price"`
+	StopLossPrice   float64      `boil:"stop_loss_price" json:"stop_loss_price" toml:"stop_loss_price" yaml:"stop_loss_price"`
+	TakeProfitPrice null.Float64 `boil:"take_profit_price" json:"take_profit_price,omitempty" toml:"take_profit_price" yaml:"take_profit_price,omitempty"`
+	ExitPrice       null.Float64 `boil:"exit_price" json:"exit_price,omitempty" toml:"exit_price" yaml:"exit_price,omitempty"`
 
 	R *liveTradeR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L liveTradeL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -52,142 +35,32 @@ type LiveTrade struct {
 
 var LiveTradeColumns = struct {
 	ID              string
-	Action          string
-	EntryTime       string
 	EntryPrice      string
 	StopLossPrice   string
 	TakeProfitPrice string
-	ExitTime        string
 	ExitPrice       string
-	ProfitPTS       string
-	Risk            string
-	RiskPTS         string
-	ExitReason      string
-	Units           string
-	UnitProfit      string
-	UnitRisk        string
-	Prediction      string
-	NetProfit       string
-	Weight          string
-	Quantity        string
-	CreatedAt       string
-	UpdatedAt       string
 }{
 	ID:              "id",
-	Action:          "action",
-	EntryTime:       "entry_time",
 	EntryPrice:      "entry_price",
 	StopLossPrice:   "stop_loss_price",
 	TakeProfitPrice: "take_profit_price",
-	ExitTime:        "exit_time",
 	ExitPrice:       "exit_price",
-	ProfitPTS:       "profit_pts",
-	Risk:            "risk",
-	RiskPTS:         "risk_pts",
-	ExitReason:      "exit_reason",
-	Units:           "units",
-	UnitProfit:      "unit_profit",
-	UnitRisk:        "unit_risk",
-	Prediction:      "prediction",
-	NetProfit:       "net_profit",
-	Weight:          "weight",
-	Quantity:        "quantity",
-	CreatedAt:       "created_at",
-	UpdatedAt:       "updated_at",
 }
 
 // Generated where
 
-type whereHelpertypes_Decimal struct{ field string }
-
-func (w whereHelpertypes_Decimal) EQ(x types.Decimal) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.EQ, x)
-}
-func (w whereHelpertypes_Decimal) NEQ(x types.Decimal) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.NEQ, x)
-}
-func (w whereHelpertypes_Decimal) LT(x types.Decimal) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LT, x)
-}
-func (w whereHelpertypes_Decimal) LTE(x types.Decimal) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LTE, x)
-}
-func (w whereHelpertypes_Decimal) GT(x types.Decimal) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GT, x)
-}
-func (w whereHelpertypes_Decimal) GTE(x types.Decimal) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GTE, x)
-}
-
-type whereHelpertypes_NullDecimal struct{ field string }
-
-func (w whereHelpertypes_NullDecimal) EQ(x types.NullDecimal) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, false, x)
-}
-func (w whereHelpertypes_NullDecimal) NEQ(x types.NullDecimal) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, true, x)
-}
-func (w whereHelpertypes_NullDecimal) IsNull() qm.QueryMod { return qmhelper.WhereIsNull(w.field) }
-func (w whereHelpertypes_NullDecimal) IsNotNull() qm.QueryMod {
-	return qmhelper.WhereIsNotNull(w.field)
-}
-func (w whereHelpertypes_NullDecimal) LT(x types.NullDecimal) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LT, x)
-}
-func (w whereHelpertypes_NullDecimal) LTE(x types.NullDecimal) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LTE, x)
-}
-func (w whereHelpertypes_NullDecimal) GT(x types.NullDecimal) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GT, x)
-}
-func (w whereHelpertypes_NullDecimal) GTE(x types.NullDecimal) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GTE, x)
-}
-
 var LiveTradeWhere = struct {
 	ID              whereHelpernull_Int64
-	Action          whereHelperstring
-	EntryTime       whereHelperstring
-	EntryPrice      whereHelpertypes_Decimal
-	StopLossPrice   whereHelpertypes_Decimal
-	TakeProfitPrice whereHelpertypes_NullDecimal
-	ExitTime        whereHelperstring
-	ExitPrice       whereHelpertypes_Decimal
-	ProfitPTS       whereHelpertypes_Decimal
-	Risk            whereHelpertypes_Decimal
-	RiskPTS         whereHelpertypes_Decimal
-	ExitReason      whereHelperstring
-	Units           whereHelpertypes_NullDecimal
-	UnitProfit      whereHelpertypes_NullDecimal
-	UnitRisk        whereHelpertypes_NullDecimal
-	Prediction      whereHelpertypes_NullDecimal
-	NetProfit       whereHelpertypes_Decimal
-	Weight          whereHelpertypes_Decimal
-	Quantity        whereHelpertypes_Decimal
-	CreatedAt       whereHelperstring
-	UpdatedAt       whereHelperstring
+	EntryPrice      whereHelperfloat64
+	StopLossPrice   whereHelperfloat64
+	TakeProfitPrice whereHelpernull_Float64
+	ExitPrice       whereHelpernull_Float64
 }{
 	ID:              whereHelpernull_Int64{field: "\"live_trade\".\"id\""},
-	Action:          whereHelperstring{field: "\"live_trade\".\"action\""},
-	EntryTime:       whereHelperstring{field: "\"live_trade\".\"entry_time\""},
-	EntryPrice:      whereHelpertypes_Decimal{field: "\"live_trade\".\"entry_price\""},
-	StopLossPrice:   whereHelpertypes_Decimal{field: "\"live_trade\".\"stop_loss_price\""},
-	TakeProfitPrice: whereHelpertypes_NullDecimal{field: "\"live_trade\".\"take_profit_price\""},
-	ExitTime:        whereHelperstring{field: "\"live_trade\".\"exit_time\""},
-	ExitPrice:       whereHelpertypes_Decimal{field: "\"live_trade\".\"exit_price\""},
-	ProfitPTS:       whereHelpertypes_Decimal{field: "\"live_trade\".\"profit_pts\""},
-	Risk:            whereHelpertypes_Decimal{field: "\"live_trade\".\"risk\""},
-	RiskPTS:         whereHelpertypes_Decimal{field: "\"live_trade\".\"risk_pts\""},
-	ExitReason:      whereHelperstring{field: "\"live_trade\".\"exit_reason\""},
-	Units:           whereHelpertypes_NullDecimal{field: "\"live_trade\".\"units\""},
-	UnitProfit:      whereHelpertypes_NullDecimal{field: "\"live_trade\".\"unit_profit\""},
-	UnitRisk:        whereHelpertypes_NullDecimal{field: "\"live_trade\".\"unit_risk\""},
-	Prediction:      whereHelpertypes_NullDecimal{field: "\"live_trade\".\"prediction\""},
-	NetProfit:       whereHelpertypes_Decimal{field: "\"live_trade\".\"net_profit\""},
-	Weight:          whereHelpertypes_Decimal{field: "\"live_trade\".\"weight\""},
-	Quantity:        whereHelpertypes_Decimal{field: "\"live_trade\".\"quantity\""},
-	CreatedAt:       whereHelperstring{field: "\"live_trade\".\"created_at\""},
-	UpdatedAt:       whereHelperstring{field: "\"live_trade\".\"updated_at\""},
+	EntryPrice:      whereHelperfloat64{field: "\"live_trade\".\"entry_price\""},
+	StopLossPrice:   whereHelperfloat64{field: "\"live_trade\".\"stop_loss_price\""},
+	TakeProfitPrice: whereHelpernull_Float64{field: "\"live_trade\".\"take_profit_price\""},
+	ExitPrice:       whereHelpernull_Float64{field: "\"live_trade\".\"exit_price\""},
 }
 
 // LiveTradeRels is where relationship names are stored.
@@ -207,9 +80,9 @@ func (*liveTradeR) NewStruct() *liveTradeR {
 type liveTradeL struct{}
 
 var (
-	liveTradeAllColumns            = []string{"id", "action", "entry_time", "entry_price", "stop_loss_price", "take_profit_price", "exit_time", "exit_price", "profit_pts", "risk", "risk_pts", "exit_reason", "units", "unit_profit", "unit_risk", "prediction", "net_profit", "weight", "quantity", "created_at", "updated_at"}
-	liveTradeColumnsWithoutDefault = []string{"id", "action", "entry_time", "entry_price", "stop_loss_price", "take_profit_price", "exit_time", "exit_price", "profit_pts", "risk", "risk_pts", "exit_reason", "units", "unit_profit", "unit_risk", "prediction", "net_profit"}
-	liveTradeColumnsWithDefault    = []string{"weight", "quantity", "created_at", "updated_at"}
+	liveTradeAllColumns            = []string{"id", "entry_price", "stop_loss_price", "take_profit_price", "exit_price"}
+	liveTradeColumnsWithoutDefault = []string{}
+	liveTradeColumnsWithDefault    = []string{"id", "entry_price", "stop_loss_price", "take_profit_price", "exit_price"}
 	liveTradePrimaryKeyColumns     = []string{"id"}
 )
 

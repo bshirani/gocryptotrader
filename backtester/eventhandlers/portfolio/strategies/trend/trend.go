@@ -10,6 +10,7 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies/base"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/signal"
 	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
+	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
 
 const (
@@ -63,24 +64,32 @@ func (s *Strategy) OnData(d data.Handler, p base.PortfolioHandler, fe *factors.E
 		return &es, nil
 	}
 
-	// pos := p.GetPositionForStrategy(s.Strategy.ID())
-	// if !pos.Active {
+	pos := p.GetPositionForStrategy(s.Strategy.ID())
+	if !pos.Active {
+		es.SetDecision(signal.Enter)
+		es.SetDirection(order.Buy)
+	} else {
+		es.SetDecision(signal.Exit)
+		es.SetDirection(order.Sell)
+	}
 	// 	// fmt.Println("check for entry")
 	// 	// whats the current date
 	// 	// fmt.Println("bar time: ", d.Latest().GetTime())
 	// 	// get the current bar from the factor engine
 	// 	// bar := fe.Minute().LatestClose()
-	m := fe.Minute()
-	daily := fe.Daily()
-	factors := fmt.Sprintf(
-		"%s,%d,%v,%v,%v daily: %v",
-		s.ID(),
-		m.GetCurrentTime().Unix(),
-		m.GetCurrentDateOpen(),
-		m.GetCurrentDateHigh(),
-		m.GetCurrentDateLow(),
-		len(daily.Open))
-	fmt.Println(factors)
+
+	// m := fe.Minute()
+	// daily := fe.Daily()
+	// factors := fmt.Sprintf(
+	// 	"%s,%d,%v,%v,%v daily: %v",
+	// 	s.ID(),
+	// 	m.GetCurrentTime().Unix(),
+	// 	m.GetCurrentDateOpen(),
+	// 	m.GetCurrentDateHigh(),
+	// 	m.GetCurrentDateLow(),
+	// 	len(daily.Open))
+	// fmt.Println(factors)
+
 	// 	// fmt.Println("bar", m.LatestClose(), m.LastUpdate, d.Latest().GetTime())
 	// 	// what was the open of the day
 	// } else {
