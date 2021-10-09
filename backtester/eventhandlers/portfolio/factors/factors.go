@@ -6,7 +6,6 @@ import (
 
 	"github.com/shopspring/decimal"
 	"github.com/thrasher-corp/gocryptotrader/backtester/data"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/factors/dataframe"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies/base"
 	"github.com/thrasher-corp/gocryptotrader/common"
 )
@@ -16,8 +15,8 @@ import (
 func Setup() (*Engine, error) {
 	f := &Engine{}
 
-	f.minute = &dataframe.DataFrame{}
-	f.daily = &dataframe.DataFrame{}
+	f.minute = &MinuteDataFrame{}
+	f.daily = &DailyDataFrame{}
 
 	return f, nil
 }
@@ -25,11 +24,11 @@ func Setup() (*Engine, error) {
 func (e *Engine) Start() {
 }
 
-func (f *Engine) Minute() *dataframe.DataFrame {
+func (f *Engine) Minute() *MinuteDataFrame {
 	return f.minute
 }
 
-func (f *Engine) Daily() *dataframe.DataFrame {
+func (f *Engine) Daily() *DailyDataFrame {
 	return f.daily
 }
 
@@ -46,9 +45,15 @@ func (f *Engine) OnBar(d data.Handler) {
 
 	t := bar.GetTime()
 	td := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, t.Nanosecond(), t.Location())
+
+	// logic to create a new daily dataframe
 	if len(d.History()) > 1 && td != f.minute.LastDate() {
 		fmt.Println("NEW DATE", f.minute.LastDate())
+		f.daily.Close = append(f.daily.Close, decimal.NewFromFloat(1.0))
+		// update daily dataframe
+		// f.daily = append(f.daily,
 	}
+
 	f.minute.Date = append(f.minute.Date, td)
 	// add bar to minute dataframe
 

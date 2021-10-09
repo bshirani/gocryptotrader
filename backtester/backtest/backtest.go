@@ -83,9 +83,7 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *engine.
 	}
 	bt.Reports = reports
 
-	fmt.Println(123)
 	err := bt.setupBot(cfg, bot)
-	fmt.Println(1234123)
 	if err != nil {
 		return nil, err
 	}
@@ -536,6 +534,7 @@ func (bt *BackTest) setupBot(cfg *config.Config, bot *engine.Engine) error {
 	var err error
 	bt.Bot = bot
 	bt.Bot.ExchangeManager = engine.SetupExchangeManager()
+
 	for i := range cfg.CurrencySettings {
 		err = bt.Bot.LoadExchange(cfg.CurrencySettings[i].ExchangeName, nil)
 		if err != nil && !errors.Is(err, engine.ErrExchangeAlreadyLoaded) {

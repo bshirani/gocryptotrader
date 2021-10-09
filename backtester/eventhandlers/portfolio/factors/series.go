@@ -1,4 +1,4 @@
-package dataframe
+package factors
 
 import (
 	"github.com/shopspring/decimal"

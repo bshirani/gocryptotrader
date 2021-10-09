@@ -1,8 +1,13 @@
-package dataframe
+package factors
 
-import "time"
+import (
+	"time"
 
-type DataFrame struct {
+	"github.com/go-gota/gota/series"
+	"github.com/shopspring/decimal"
+)
+
+type MinuteDataFrame struct {
 	Close  Series
 	Open   Series
 	High   Series
@@ -22,4 +27,13 @@ type DataFrame struct {
 	CurrentDateOpen Series
 	CurrentDateLow  Series
 	CurrentDateHigh Series
+}
+
+type MinuteDataFrameHandler interface {
+	Last() series.Series
+	LastDate() time.Time
+	CurrentDate() time.Time
+	CurrentDateHigh() decimal.Decimal
+	CurrentDateLow() decimal.Decimal
+	CurrentDateOpen() decimal.Decimal
 }
