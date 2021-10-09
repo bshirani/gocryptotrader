@@ -895,6 +895,7 @@ func (bt *BackTest) processSingleDataEvent(ev common.DataEventHandler) error {
 	// fmt.Println(len(d.History()))
 	bt.FactorEngine.OnBar(d)
 
+	// HANDLE CATCHUP MODE
 	if !bt.catchup {
 		var s signal.Event
 		for _, strategy := range bt.Strategies {

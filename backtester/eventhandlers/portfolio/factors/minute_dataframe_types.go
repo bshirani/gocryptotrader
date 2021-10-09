@@ -3,7 +3,6 @@ package factors
 import (
 	"time"
 
-	"github.com/go-gota/gota/series"
 	"github.com/shopspring/decimal"
 )
 
@@ -30,7 +29,7 @@ type MinuteDataFrame struct {
 }
 
 type MinuteDataFrameHandler interface {
-	Last() series.Series
+	Last() Series
 	LastDate() time.Time
 	CurrentDate() time.Time
 	CurrentDateHigh() decimal.Decimal

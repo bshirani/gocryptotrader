@@ -70,16 +70,17 @@ func (s *Strategy) OnData(d data.Handler, p base.PortfolioHandler, fe *factors.E
 	// 	// fmt.Println("bar time: ", d.Latest().GetTime())
 	// 	// get the current bar from the factor engine
 	// 	// bar := fe.Minute().LatestClose()
-	// m := fe.Minute()
-	// daily := fe.Daily()
-	// factors := fmt.Sprintf(
-	// 	"%d,%v,%v,%v daily: %v",
-	// 	m.GetCurrentTime().Unix(),
-	// 	m.GetCurrentDateOpen(),
-	// 	m.GetCurrentDateHigh(),
-	// 	m.GetCurrentDateLow(),
-	// 	len(daily.Open))
-	// fmt.Println(factors)
+	m := fe.Minute()
+	daily := fe.Daily()
+	factors := fmt.Sprintf(
+		"%s,%d,%v,%v,%v daily: %v",
+		s.ID(),
+		m.GetCurrentTime().Unix(),
+		m.GetCurrentDateOpen(),
+		m.GetCurrentDateHigh(),
+		m.GetCurrentDateLow(),
+		len(daily.Open))
+	fmt.Println(factors)
 	// 	// fmt.Println("bar", m.LatestClose(), m.LastUpdate, d.Latest().GetTime())
 	// 	// what was the open of the day
 	// } else {
