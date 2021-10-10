@@ -31,11 +31,11 @@ import (
 	gctorder "github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"github.com/thrasher-corp/gocryptotrader/log"
 	"github.com/thrasher-corp/gocryptotrader/portfolio/compliance"
+	"github.com/thrasher-corp/gocryptotrader/portfolio/report"
 	"github.com/thrasher-corp/gocryptotrader/portfolio/risk"
 	"github.com/thrasher-corp/gocryptotrader/portfolio/slippage"
-	"github.com/thrasher-corp/gocryptotrader/report"
-	"github.com/thrasher-corp/gocryptotrader/strategies"
-	"github.com/thrasher-corp/gocryptotrader/strategies/base"
+	"github.com/thrasher-corp/gocryptotrader/portfolio/strategies"
+	"github.com/thrasher-corp/gocryptotrader/portfolio/strategies/base"
 )
 
 // New returns a new BackTest instance

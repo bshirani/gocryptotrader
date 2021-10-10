@@ -18,7 +18,7 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/portfolio/holdings"
 	"github.com/thrasher-corp/gocryptotrader/portfolio/positions"
 	"github.com/thrasher-corp/gocryptotrader/portfolio/risk"
-	"github.com/thrasher-corp/gocryptotrader/strategies"
+	"github.com/thrasher-corp/gocryptotrader/portfolio/strategies"
 )
 
 var (

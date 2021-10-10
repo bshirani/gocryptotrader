@@ -6,7 +6,7 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/data"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/signal"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
-	"github.com/thrasher-corp/gocryptotrader/strategies/base"
+	"github.com/thrasher-corp/gocryptotrader/portfolio/strategies/base"
 )
 
 // Handler defines all functions required to run strategies against data events

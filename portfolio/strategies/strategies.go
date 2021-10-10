@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/thrasher-corp/gocryptotrader/strategies/base"
-	"github.com/thrasher-corp/gocryptotrader/strategies/rsi"
-	"github.com/thrasher-corp/gocryptotrader/strategies/trend"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
+	"github.com/thrasher-corp/gocryptotrader/portfolio/strategies/base"
+	"github.com/thrasher-corp/gocryptotrader/portfolio/strategies/rsi"
+	"github.com/thrasher-corp/gocryptotrader/portfolio/strategies/trend"
 )
 
 // LoadStrategyByName returns the strategy by its name

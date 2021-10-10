@@ -5,8 +5,8 @@ import (
 
 	"github.com/thrasher-corp/gocryptotrader/backtester/statistics"
 	"github.com/thrasher-corp/gocryptotrader/data"
-	"github.com/thrasher-corp/gocryptotrader/report"
-	"github.com/thrasher-corp/gocryptotrader/strategies"
+	"github.com/thrasher-corp/gocryptotrader/portfolio/report"
+	"github.com/thrasher-corp/gocryptotrader/portfolio/strategies"
 )
 
 var (

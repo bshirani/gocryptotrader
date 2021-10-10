@@ -23,7 +23,7 @@ import (
 	dbsqlite3 "github.com/thrasher-corp/gocryptotrader/database/drivers/sqlite3"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	gctkline "github.com/thrasher-corp/gocryptotrader/exchanges/kline"
-	"github.com/thrasher-corp/gocryptotrader/strategies"
+	"github.com/thrasher-corp/gocryptotrader/portfolio/strategies"
 )
 
 const (
