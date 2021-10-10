@@ -431,10 +431,9 @@ func (bot *Engine) Start() error {
 		}
 	}
 
-	// if bot.Settings.EnableGRPC {
-	// 	fmt.Println("START GRPC00000000000000000")
-	// 	go StartRPCServer(bot)
-	// }
+	if bot.Settings.EnableGRPC {
+		go StartRPCServer(bot)
+	}
 
 	if bot.Settings.EnablePortfolioManager {
 		if bot.portfolioManager == nil {

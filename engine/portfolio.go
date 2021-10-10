@@ -515,16 +515,16 @@ func (p *Portfolio) SetupCurrencySettingsMap(exch string, a asset.Item, cp curre
 		return nil, errCurrencyPairUnset
 	}
 	if p.exchangeAssetPairSettings == nil {
-		p.exchangeAssetPairSettings = make(map[string]map[asset.Item]map[currency.Pair]*ExchangeAssetPairSettings)
+		p.exchangeAssetPairSettings = make(map[string]map[asset.Item]map[currency.Pair]*PortfolioSettings)
 	}
 	if p.exchangeAssetPairSettings[exch] == nil {
-		p.exchangeAssetPairSettings[exch] = make(map[asset.Item]map[currency.Pair]*ExchangeAssetPairSettings)
+		p.exchangeAssetPairSettings[exch] = make(map[asset.Item]map[currency.Pair]*PortfolioSettings)
 	}
 	if p.exchangeAssetPairSettings[exch][a] == nil {
-		p.exchangeAssetPairSettings[exch][a] = make(map[currency.Pair]*ExchangeAssetPairSettings)
+		p.exchangeAssetPairSettings[exch][a] = make(map[currency.Pair]*PortfolioSettings)
 	}
 	if _, ok := p.exchangeAssetPairSettings[exch][a][cp]; !ok {
-		p.exchangeAssetPairSettings[exch][a][cp] = &ExchangeAssetPairSettings{}
+		p.exchangeAssetPairSettings[exch][a][cp] = &PortfolioSettings{}
 	}
 
 	return p.exchangeAssetPairSettings[exch][a][cp], nil
@@ -699,7 +699,7 @@ func (e *PortfolioSettings) GetHoldingsForTime(t time.Time) holdings.Holding {
 }
 
 // Value returns the total value of the latest holdings
-func (e *ExchangeAssetPairSettings) Value() decimal.Decimal {
+func (e *PortfolioSettings) Value() decimal.Decimal {
 	latest := e.GetLatestHoldings()
 	if latest.Timestamp.IsZero() {
 		return decimal.Zero

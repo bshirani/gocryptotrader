@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/config"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/order"
@@ -21,7 +20,7 @@ func (s *Size) SizeOrder(o order.Event, amountAvailable decimal.Decimal, cs *Exc
 	}
 	retOrder, ok := o.(*order.Order)
 	if !ok {
-		return nil, fmt.Errorf("%w expected order event", common.ErrInvalidDataType)
+		return nil, fmt.Errorf("%w expected order event", eventtypes.ErrInvalidDataType)
 	}
 	var amount decimal.Decimal
 	var err error
