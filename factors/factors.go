@@ -5,9 +5,8 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/data"
-	"github.com/thrasher-corp/gocryptotrader/strategies/base"
 	"github.com/thrasher-corp/gocryptotrader/common"
+	"github.com/thrasher-corp/gocryptotrader/data"
 )
 
 // initialize minute and daily data series here
@@ -129,7 +128,7 @@ func (f *Engine) massageMissingData(data []decimal.Decimal, t time.Time) ([]floa
 			return nil, fmt.Errorf("missing data exceeds RSI period length of %d at %s and will distort results. %w",
 				14,
 				t.Format(common.SimpleTimeFormat),
-				base.ErrTooMuchBadData)
+				ErrTooMuchBadData)
 		}
 		d, _ := data[i].Float64()
 		resp = append(resp, d)
