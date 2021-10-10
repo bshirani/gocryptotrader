@@ -394,17 +394,17 @@ func (bot *Engine) Start() error {
 		return err
 	}
 
-	if bot.Settings.EnableCommsRelayer {
-		bot.CommunicationsManager, err = SetupCommunicationManager(&bot.Config.Communications)
-		if err != nil {
-			gctlog.Errorf(gctlog.Global, "Communications manager unable to setup: %s", err)
-		} else {
-			err = bot.CommunicationsManager.Start()
-			if err != nil {
-				gctlog.Errorf(gctlog.Global, "Communications manager unable to start: %s", err)
-			}
-		}
-	}
+	// if bot.Settings.EnableCommsRelayer {
+	// 	bot.CommunicationsManager, err = SetupCommunicationManager(&bot.Config.Communications)
+	// 	if err != nil {
+	// 		gctlog.Errorf(gctlog.Global, "Communications manager unable to setup: %s", err)
+	// 	} else {
+	// 		err = bot.CommunicationsManager.Start()
+	// 		if err != nil {
+	// 			gctlog.Errorf(gctlog.Global, "Communications manager unable to start: %s", err)
+	// 		}
+	// 	}
+	// }
 
 	if bot.Settings.EnableCoinmarketcapAnalysis ||
 		bot.Settings.EnableCurrencyConverter ||
@@ -489,13 +489,6 @@ func (bot *Engine) Start() error {
 			}
 		}()
 	}
-
-	// my codt
-	// worker := NewWorker(
-	// 	30*time.Second,
-	// 	bot.CommunicationsManager)
-	// go worker.Run()
-	// end my code
 
 	if bot.Settings.EnableOrderManager {
 		bot.OrderManager, err = SetupOrderManager(

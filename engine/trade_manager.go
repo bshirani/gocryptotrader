@@ -544,21 +544,22 @@ func (tm *TradeManager) setupBot(cfg *config.Config, bot *Engine) error {
 		if err != nil {
 			return err
 		}
-	}
 
-	// setup order manager so it can receive orders (and fill them?)
-	if !tm.Bot.OrderManager.IsRunning() {
-		tm.Bot.OrderManager, err = SetupOrderManager(
-			tm.Bot.ExchangeManager,
-			tm.Bot.CommunicationsManager,
-			&tm.Bot.ServicesWG,
-			bot.Settings.Verbose)
-		if err != nil {
-			return err
-		}
-		err = tm.Bot.OrderManager.Start()
-		if err != nil {
-			return err
+		// setup order manager so it can receive orders (and fill them?)
+		// when live, the engine starts its own order manager so we do it here for backtesting
+		if !tm.Bot.OrderManager.IsRunning() {
+			tm.Bot.OrderManager, err = SetupOrderManager(
+				tm.Bot.ExchangeManager,
+				tm.Bot.CommunicationsManager,
+				&tm.Bot.ServicesWG,
+				bot.Settings.Verbose)
+			if err != nil {
+				return err
+			}
+			err = tm.Bot.OrderManager.Start()
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -895,18 +896,18 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 		}
 	}
 
-	// if err != nil {
-	// 	if errors.Is(err, base.ErrTooMuchBadData) {
-	// 		// too much bad data is a severe error and backtesting must cease
-	// 		return err
-	// 	}
-	// 	log.Error(log.TradeManager, err)
-	// 	return nil
-	// }
-	// err = tm.Statistic.SetEventForOffset(s)
-	// if err != nil {
-	// 	log.Error(log.TradeManager, err)
-	// }
+	if err != nil {
+		if errors.Is(err, base.ErrTooMuchBadData) {
+			// too much bad data is a severe error and backtesting must cease
+			return err
+		}
+		log.Error(log.TradeManager, err)
+		return nil
+	}
+	err = tm.Statistic.SetEventForOffset(ev)
+	if err != nil {
+		log.Error(log.TradeManager, err)
+	}
 
 	return nil
 }
@@ -956,16 +957,16 @@ func (tm *TradeManager) processSimultaneousDataEvents() error {
 // updateStatsForDataEvent makes various systems aware of price movements from
 // data events
 func (tm *TradeManager) updateStatsForDataEvent(ev eventtypes.DataEventHandler) error {
-	// // update statistics with the latest price
-	// err := tm.Statistic.SetupEventForTime(ev)
-	// if err != nil {
-	// 	if err == statistics.ErrAlreadyProcessed {
-	// 		return err
-	// 	}
-	// 	log.Error(log.TradeManager, err)
-	// }
+	// update statistics with the latest price
+	err := tm.Statistic.SetupEventForTime(ev)
+	if err != nil {
+		if err == statistics.ErrAlreadyProcessed {
+			return err
+		}
+		log.Error(log.TradeManager, err)
+	}
 	// update portfolio manager with the latest price
-	err := tm.Portfolio.UpdateHoldings(ev)
+	err = tm.Portfolio.UpdateHoldings(ev)
 	if err != nil {
 		log.Error(log.TradeManager, err)
 	}
@@ -990,7 +991,7 @@ func (tm *TradeManager) processSignalEvent(ev signal.Event) {
 	}
 
 	if o != nil {
-		// err = tm.Statistic.SetEventForOffset(o)
+		err = tm.Statistic.SetEventForOffset(o)
 		tm.EventQueue.AppendEvent(o)
 	}
 }
@@ -1005,10 +1006,10 @@ func (tm *TradeManager) processOrderEvent(ev order.Event) {
 		}
 		log.Errorf(log.TradeManager, "%v %v %v %v", f.GetExchange(), f.GetAssetType(), f.Pair(), err)
 	}
-	// err = tm.Statistic.SetEventForOffset(f)
-	// if err != nil {
-	// 	log.Error(log.TradeManager, err)
-	// }
+	err = tm.Statistic.SetEventForOffset(f)
+	if err != nil {
+		log.Error(log.TradeManager, err)
+	}
 	tm.EventQueue.AppendEvent(f)
 }
 

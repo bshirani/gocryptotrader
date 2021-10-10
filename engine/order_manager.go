@@ -525,7 +525,8 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 	// formatting for backtest only
 	odate := newOrder.Date
 	dtime := fmt.Sprintf("%d-%02d-%02d %d:%02d", odate.Year(), odate.Month(), odate.Day(), odate.Hour(), odate.Minute())
-	msgInfo := fmt.Sprintf("%s %-10s %v %-5v %10v",
+	msgInfo := fmt.Sprintf("%v %s %-10s %v %-5v %10v",
+		newOrder.Pair,
 		dtime,
 		newOrder.StrategyID,
 		newOrder.Pair,
