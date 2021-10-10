@@ -339,7 +339,7 @@ func (bt *BackTest) Start() error {
 	}
 	log.Debugf(log.CommunicationMgr, "Backtester %s", MsgSubSystemStarting)
 	bt.shutdown = make(chan struct{})
-	go bt.RunLive()
+	go bt.runLive()
 	return nil
 }
 
@@ -353,8 +353,7 @@ func (bt *BackTest) Start() error {
 // this database will not save the factors, unlike in backtests
 // if the system is shut down, it will have to recalculate the factors from scratch from the data after catchup process is completed
 // the first step is to write the data in the database as it comes in
-func (bt *BackTest) RunLive() error {
-	fmt.Println("RUN LIVE")
+func (bt *BackTest) runLive() error {
 	bt.FactorEngine.Start()
 	bt.liveDataCatchup()
 
@@ -384,11 +383,11 @@ func (bt *BackTest) RunLive() error {
 									}
 								}
 
-								if d != nil {
-									fmt.Println("data event", d)
-								} else {
-									fmt.Println("nil event", d)
-								}
+								// if d != nil {
+								// 	fmt.Println("data event", d)
+								// } else {
+								// 	fmt.Println("nil event", d)
+								// }
 								bt.EventQueue.AppendEvent(d)
 							}
 						}
@@ -414,6 +413,7 @@ func (bt *BackTest) RunLive() error {
 
 // Stop shuts down the live data loop
 func (bt *BackTest) Stop() error {
+	log.Debugln(log.BackTester, "stopping backtester")
 
 	// if g == nil {
 	// 	return fmt.Errorf("%s %w", caseName, ErrNilSubsystem)
@@ -433,6 +433,8 @@ func (bt *BackTest) Stop() error {
 	for _, s := range bt.Strategies {
 		s.Stop()
 	}
+
+	// bt.Bot.DatabaseManager.Stop()
 
 	close(bt.shutdown)
 	return nil
@@ -605,16 +607,6 @@ func (bt *BackTest) setupBot(cfg *config.Config, bot *Engine) error {
 			return err
 		}
 	}
-
-	// bt.Bot.DatabaseManager, err = SetupDatabaseConnectionManager(gctdatabase.DB.GetConfig())
-	// if err != nil {
-	// 	return err
-	// }
-	//
-	// err = bt.Bot.DatabaseManager.Start(&bt.Bot.ServicesWG)
-	// if err != nil {
-	// 	return err
-	// }
 
 	if cfg.IsLive && !bt.Bot.CommunicationsManager.IsRunning() {
 		communicationsConfig := bot.Config.GetCommunicationsConfig()
@@ -795,6 +787,7 @@ func (bt *BackTest) loadData(cfg *config.Config, exch gctexchange.IBotExchange, 
 			return resp, err
 		}
 	case cfg.DataSettings.LiveData != nil:
+		log.Infof(log.BackTester, "loading live data for %v %v %v...\n", exch.GetName(), a, fPair)
 		if len(cfg.CurrencySettings) > 1 {
 			return nil, errors.New("live data simulation only supports one currency")
 		}
@@ -803,7 +796,6 @@ func (bt *BackTest) loadData(cfg *config.Config, exch gctexchange.IBotExchange, 
 		if err != nil {
 			return nil, err
 		}
-		fmt.Println("load live data!!!!!!!!!!!!!!!!!!!!!!!!!")
 		go bt.loadLiveDataLoop(
 			resp,
 			cfg,
@@ -818,7 +810,6 @@ func (bt *BackTest) loadData(cfg *config.Config, exch gctexchange.IBotExchange, 
 	}
 
 	err = b.ValidateKline(fPair, a, resp.Item.Interval)
-	fmt.Println("validate", resp.Item.Interval)
 	if err != nil {
 		if dataType != eventtypes.DataTrade || !strings.EqualFold(err.Error(), "interval not supported") {
 			return nil, err
@@ -926,16 +917,16 @@ func loadLiveData(cfg *config.Config, base *gctexchange.Base) error {
 func (bt *BackTest) handleEvent(ev eventtypes.EventHandler) error {
 	switch eType := ev.(type) {
 	case eventtypes.DataEventHandler:
-		fmt.Println("data event")
+		// fmt.Println("data event")
 		return bt.processSingleDataEvent(eType)
 	case signal.Event:
-		fmt.Println("signal event")
+		// fmt.Println("signal event")
 		bt.processSignalEvent(eType)
 	case order.Event:
-		fmt.Println("order event")
+		// fmt.Println("order event")
 		bt.processOrderEvent(eType)
 	case fill.Event:
-		fmt.Println("fill event")
+		// fmt.Println("fill event")
 		bt.processFillEvent(eType)
 	default:
 		return fmt.Errorf("%w %v received, could not process",
@@ -955,10 +946,7 @@ func (bt *BackTest) processSingleDataEvent(ev eventtypes.DataEventHandler) error
 
 	d := bt.Datas.GetDataForCurrency(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 
-	fmt.Println("event:", ev)
-
 	// update factor engine
-	fmt.Println(len(d.History()))
 	bt.FactorEngine.OnBar(d)
 
 	// HANDLE CATCHUP MODE

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/shopspring/decimal"
 	"gocryptotrader/currency"
 	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/eventtypes"
@@ -22,6 +21,8 @@ import (
 	"gocryptotrader/portfolio/risk"
 	"gocryptotrader/portfolio/strategies"
 	"gocryptotrader/portfolio/trades"
+
+	"github.com/shopspring/decimal"
 )
 
 // Setup creates a portfolio manager instance and sets private fields
@@ -50,7 +51,7 @@ func SetupPortfolio(st []strategies.Handler, bot Engine, sh SizeHandler, r risk.
 	// load all pending and open trades from the database into positions and trades
 
 	// what does this do?
-	// bt.Datas.Setup()
+	// bot.Backtest.Datas.Setup()
 
 	p.bot = bot
 	p.sizeManager = sh

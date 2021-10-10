@@ -608,7 +608,14 @@ func (bot *Engine) Start() error {
 		}
 	}
 
-	bot.Backtest, err = NewBacktestFromConfig(bot.Config, "xx", "xx", bot)
+	wd, err := os.Getwd()
+	configPath := filepath.Join(
+		wd,
+		"config",
+		"examples",
+		"trend.strat")
+	btcfg, err := config.ReadConfigFromFile(configPath)
+	bot.Backtest, err = NewBacktestFromConfig(btcfg, "xx", "xx", bot)
 	if err != nil {
 		fmt.Printf("Could not setup backtester from config. Error: %v.\n", err)
 		os.Exit(1)
@@ -617,18 +624,7 @@ func (bot *Engine) Start() error {
 	// run live
 	e, _ := SetupFactorEngine()
 	bot.Backtest.FactorEngine = e
-	// run catchup here
-	// fmt.Println("live mode, running catchup")
-	// bt.Catchup()
-	// fmt.Println("catchup completed")
-
-	go func() {
-		err = bot.Backtest.RunLive()
-		if err != nil {
-			fmt.Printf("Could not complete live run. Error: %v.\n", err)
-			os.Exit(-1)
-		}
-	}()
+	bot.Backtest.Start()
 
 	return nil
 }

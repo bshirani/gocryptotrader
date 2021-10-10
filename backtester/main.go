@@ -126,13 +126,14 @@ func main() {
 		// fmt.Println("live mode, running catchup")
 		// bt.Catchup()
 		// fmt.Println("catchup completed")
-		go func() {
-			err = bt.RunLive()
-			if err != nil {
-				fmt.Printf("Could not complete live run. Error: %v.\n", err)
-				os.Exit(-1)
-			}
-		}()
+		go bt.Start()
+		// go func() {
+		// 	err = bt.runLive()
+		// 	if err != nil {
+		// 		fmt.Printf("Could not complete live run. Error: %v.\n", err)
+		// 		os.Exit(-1)
+		// 	}
+		// }()
 		interrupt := signaler.WaitForInterrupt()
 		gctlog.Infof(gctlog.Global, "Captured %v, shutdown requested.\n", interrupt)
 		bt.Stop()
