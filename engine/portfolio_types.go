@@ -17,7 +17,6 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/holdings"
 	"github.com/thrasher-corp/gocryptotrader/positions"
 	"github.com/thrasher-corp/gocryptotrader/risk"
-	"github.com/thrasher-corp/gocryptotrader/settings"
 	"github.com/thrasher-corp/gocryptotrader/strategies"
 )
 
@@ -61,7 +60,7 @@ type Portfolio struct {
 	bot                       Engine
 	strategies                []strategies.Handler
 	store                     store
-	exchangeAssetPairSettings map[string]map[asset.Item]map[currency.Pair]*settings.Settings
+	exchangeAssetPairSettings map[string]map[asset.Item]map[currency.Pair]*FakeExchangeSettings
 }
 
 // Handler contains all functions expected to operate a portfolio manager

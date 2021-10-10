@@ -33,7 +33,6 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/log"
 	"github.com/thrasher-corp/gocryptotrader/report"
 	"github.com/thrasher-corp/gocryptotrader/risk"
-	"github.com/thrasher-corp/gocryptotrader/settings"
 	"github.com/thrasher-corp/gocryptotrader/slippage"
 	"github.com/thrasher-corp/gocryptotrader/statistics"
 	"github.com/thrasher-corp/gocryptotrader/strategies"
@@ -69,7 +68,7 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *Engine)
 	}
 	bt := NewBacktest()
 	bt.Datas = &data.HandlerPerCurrency{}
-	bt.EventQueue = &EventHolder{}
+	bt.EventQueue = &Holder{}
 	reports := &report.Data{
 		Config:       cfg,
 		TemplatePath: templatePath,
@@ -215,7 +214,7 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *Engine)
 
 	bt.Exchange = &e
 	for i := range e.CurrencySettings {
-		var lookup *settings.Settings
+		var lookup *FakeExchangeSettings
 		lookup, err = p.SetupCurrencySettingsMap(e.CurrencySettings[i].ExchangeName, e.CurrencySettings[i].AssetType, e.CurrencySettings[i].CurrencyPair)
 		if err != nil {
 			return nil, err

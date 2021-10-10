@@ -19,7 +19,6 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/log"
 	"github.com/thrasher-corp/gocryptotrader/positions"
 	"github.com/thrasher-corp/gocryptotrader/risk"
-	"github.com/thrasher-corp/gocryptotrader/settings"
 	"github.com/thrasher-corp/gocryptotrader/strategies"
 	"github.com/thrasher-corp/gocryptotrader/trades"
 )
@@ -504,7 +503,7 @@ func (p *Portfolio) ViewHoldingAtTimePeriod(ev eventtypes.EventHandler) (*holdin
 }
 
 // SetupCurrencySettingsMap ensures a map is created and no panics happen
-func (p *Portfolio) SetupCurrencySettingsMap(exch string, a asset.Item, cp currency.Pair) (*settings.Settings, error) {
+func (p *Portfolio) SetupCurrencySettingsMap(exch string, a asset.Item, cp currency.Pair) (*FakeExchangeSettings, error) {
 	if exch == "" {
 		return nil, errExchangeUnset
 	}
@@ -515,16 +514,16 @@ func (p *Portfolio) SetupCurrencySettingsMap(exch string, a asset.Item, cp curre
 		return nil, errCurrencyPairUnset
 	}
 	if p.exchangeAssetPairSettings == nil {
-		p.exchangeAssetPairSettings = make(map[string]map[asset.Item]map[currency.Pair]*settings.Settings)
+		p.exchangeAssetPairSettings = make(map[string]map[asset.Item]map[currency.Pair]*FakeExchangeSettings)
 	}
 	if p.exchangeAssetPairSettings[exch] == nil {
-		p.exchangeAssetPairSettings[exch] = make(map[asset.Item]map[currency.Pair]*settings.Settings)
+		p.exchangeAssetPairSettings[exch] = make(map[asset.Item]map[currency.Pair]*FakeExchangeSettings)
 	}
 	if p.exchangeAssetPairSettings[exch][a] == nil {
-		p.exchangeAssetPairSettings[exch][a] = make(map[currency.Pair]*settings.Settings)
+		p.exchangeAssetPairSettings[exch][a] = make(map[currency.Pair]*FakeExchangeSettings)
 	}
 	if _, ok := p.exchangeAssetPairSettings[exch][a][cp]; !ok {
-		p.exchangeAssetPairSettings[exch][a][cp] = &settings.Settings{}
+		p.exchangeAssetPairSettings[exch][a][cp] = &FakeExchangeSettings{}
 	}
 
 	return p.exchangeAssetPairSettings[exch][a][cp], nil
