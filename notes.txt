@@ -79,3 +79,13 @@ backtest:
 live:
     catchup
     save the live bars in the database
+
+
+print trades to csv
+print factors to csv
+run live with weights
+run portfolio backtest
+same as running multiple strategies
+do you want to analyze the results independently?
+can export both
+trades manager exports factors, portfolio_trades, trades_by_model

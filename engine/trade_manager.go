@@ -104,16 +104,6 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 		SellSide: sellRule,
 	}
 
-	useExchangeLevelFunding := cfg.StrategySettings.UseExchangeLevelFunding
-	if useExchangeLevelFunding {
-		for i := range cfg.StrategySettings.ExchangeLevelFunding {
-			_, err = asset.New(cfg.StrategySettings.ExchangeLevelFunding[i].Asset)
-			if err != nil {
-				return nil, err
-			}
-		}
-	}
-
 	portfolioRisk := &risk.Risk{
 		CurrencySettings: make(map[string]map[asset.Item]map[currency.Pair]*risk.CurrencySettings),
 	}
@@ -208,13 +198,6 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	p, err = SetupPortfolio(tm.Strategies, bot, sizeManager, portfolioRisk, cfg.StatisticSettings.RiskFreeRate, tm.IsLive)
 	if err != nil {
 		return nil, err
-	}
-
-	if cfg.StrategySettings.CustomSettings != nil {
-		err = tm.Strategies[0].SetCustomSettings(cfg.StrategySettings.CustomSettings)
-		if err != nil && !errors.Is(err, base.ErrCustomSettingsUnsupported) {
-			return nil, err
-		}
 	}
 
 	stats := &statistics.Statistic{

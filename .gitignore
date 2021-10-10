@@ -44,3 +44,5 @@ web/
 *_test.go
 *_test.go
 results/
+
+contrib/configbuilder

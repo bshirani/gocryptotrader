@@ -5,7 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/shopspring/decimal"
 	"gocryptotrader/communications/base"
 	"gocryptotrader/currency"
 	"gocryptotrader/database"
@@ -15,6 +14,8 @@ import (
 	"gocryptotrader/log"
 	"gocryptotrader/portfolio"
 	"gocryptotrader/portfolio/banking"
+
+	"github.com/shopspring/decimal"
 )
 
 // Constants declared here are filename strings and test strings

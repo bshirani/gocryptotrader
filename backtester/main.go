@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	var configPath, templatePath, reportOutput string
+	var configPath, templatePath, reportOutput, strategies, pairs string
 	var printLogo, generateReport, darkReport bool
 	wd, err := os.Getwd()
 	if err != nil {
@@ -51,6 +51,16 @@ func main() {
 			wd,
 			"results"),
 		"the path where to output results")
+	flag.StringVar(
+		&strategies,
+		"strategy",
+		"",
+		"strategies")
+	flag.StringVar(
+		&pairs,
+		"pairs",
+		"",
+		"pairs")
 	flag.BoolVar(
 		&printLogo,
 		"printlogo",
