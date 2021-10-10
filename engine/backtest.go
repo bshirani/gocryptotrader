@@ -296,11 +296,7 @@ dataLoadingIssue:
 							}
 							break dataLoadingIssue
 						}
-						// if bt.Strategies[0].UsingSimultaneousProcessing() && hasProcessedData {
-						// 	continue
-						// }
 						bt.EventQueue.AppendEvent(d)
-						// hasProcessedData = true
 					}
 				}
 			}
@@ -795,13 +791,14 @@ func (bt *BackTest) loadData(cfg *config.Config, exch gctexchange.IBotExchange, 
 }
 
 func loadDatabaseData(cfg *config.Config, name string, fPair currency.Pair, a asset.Item, dataType int64) (*kline.DataFromKline, error) {
-	fmt.Println("loading database data")
 	if cfg == nil || cfg.DataSettings.DatabaseData == nil {
 		return nil, errors.New("nil config data received")
 	}
 	if cfg.DataSettings.Interval <= 0 {
 		return nil, errIntervalUnset
 	}
+
+	fmt.Println(cfg.DataSettings.DatabaseData.StartDate, cfg.DataSettings.DatabaseData.EndDate)
 
 	return database.LoadData(
 		cfg.DataSettings.DatabaseData.StartDate,
@@ -888,13 +885,10 @@ func loadLiveData(cfg *config.Config, base *gctexchange.Base) error {
 func (bt *BackTest) handleEvent(ev eventtypes.EventHandler) error {
 	switch eType := ev.(type) {
 	case eventtypes.DataEventHandler:
-		// fmt.Println("data event")
 		return bt.processSingleDataEvent(eType)
 	case signal.Event:
-		// fmt.Println("signal event")
 		bt.processSignalEvent(eType)
 	case order.Event:
-		// fmt.Println("order event")
 		bt.processOrderEvent(eType)
 	case fill.Event:
 		// fmt.Println("fill event")

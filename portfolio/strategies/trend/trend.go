@@ -3,13 +3,13 @@ package trend
 import (
 	"fmt"
 
-	"github.com/shopspring/decimal"
 	"gocryptotrader/common"
 	"gocryptotrader/data"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/signal"
-	"gocryptotrader/exchanges/order"
 	"gocryptotrader/portfolio/strategies/base"
+
+	"github.com/shopspring/decimal"
 )
 
 const (
@@ -66,7 +66,8 @@ func (s *Strategy) OnData(d data.Handler, p base.PortfolioHandler, fe base.Facto
 	pos := p.GetPositionForStrategy(s.Strategy.ID())
 	if !pos.Active {
 		es.SetDecision(signal.Enter)
-		es.SetDirection(order.Buy)
+	} else {
+		es.SetDecision(signal.Exit)
 	}
 	// else {
 	// 	es.SetDecision(signal.Exit)

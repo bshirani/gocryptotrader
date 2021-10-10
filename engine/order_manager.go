@@ -9,7 +9,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/gofrs/uuid"
 	"gocryptotrader/common"
 	"gocryptotrader/communications/base"
 	"gocryptotrader/currency"
@@ -17,6 +16,8 @@ import (
 	"gocryptotrader/exchanges/asset"
 	"gocryptotrader/exchanges/order"
 	"gocryptotrader/log"
+
+	"github.com/gofrs/uuid"
 )
 
 // SetupOrderManager will boot up the OrderManager
@@ -521,22 +522,34 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 		return nil, errors.New("order must have a strategy")
 	}
 
-	msg := fmt.Sprintf("Order manager: Strategy=%s Exchange=%s submitted order ID=%v [Ours: %v] pair=%v price=%v amount=%v side=%v type=%v for time %v.",
+	// formatting for backtest only
+	odate := newOrder.Date
+	dtime := fmt.Sprintf("%d-%02d-%02d %d:%02d", odate.Year(), odate.Month(), odate.Day(), odate.Hour(), odate.Minute())
+	msgInfo := fmt.Sprintf("%s %-10s %v %-5v %10v",
+		dtime,
 		newOrder.StrategyID,
-		newOrder.Exchange,
-		result.OrderID,
-		id.String(),
 		newOrder.Pair,
-		newOrder.Price,
-		newOrder.Amount,
 		newOrder.Side,
-		newOrder.Type,
-		newOrder.Date)
+		newOrder.Price)
+	fmt.Println(msgInfo)
 
-	log.Debugln(log.OrderMgr, msg)
+	// msg := fmt.Sprintf("Order manager: Strategy=%s Exchange=%s submitted order ID=%v [Ours: %v] pair=%v price=%v amount=%v side=%v type=%v for time %v.",
+	// 	newOrder.StrategyID,
+	// 	newOrder.Exchange,
+	// 	result.OrderID,
+	// 	id.String(),
+	// 	newOrder.Pair,
+	// 	newOrder.Price,
+	// 	newOrder.Amount,
+	// 	newOrder.Side,
+	// 	newOrder.Type,
+	// 	newOrder.Date)
+	// log.Debugln(log.OrderMgr, msgInfo)
+
+	// not while backtesting
 	m.orderStore.commsManager.PushEvent(base.Event{
 		Type:    "order",
-		Message: msg,
+		Message: msgInfo,
 	})
 	status := order.New
 	if result.FullyMatched {

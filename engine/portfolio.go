@@ -27,6 +27,7 @@ import (
 
 // Setup creates a portfolio manager instance and sets private fields
 func SetupPortfolio(st []strategies.Handler, bot Engine, sh SizeHandler, r risk.Handler, riskFreeRate decimal.Decimal) (*Portfolio, error) {
+	log.Infof(log.BackTester, "Setting up Portfolio")
 	if sh == nil {
 		return nil, errSizeManagerUnset
 	}
@@ -88,7 +89,6 @@ func (p *Portfolio) Reset() {
 // if successful, it will pass on an order.Order to be used by the exchange event handler to place an order based on
 // the portfolio manager's recommendations
 func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*order.Order, error) {
-
 	if ev == nil || cs == nil {
 		return nil, eventtypes.ErrNilArguments
 	}
@@ -103,7 +103,9 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	}
 	switch ev.GetDecision() {
 	case signal.Enter:
+		ev.SetDirection(gctorder.Buy)
 		if p.bot.IsLive {
+			log.Infof(log.BackTester, "(live mode) insert trade to db")
 			err := livetrade.Insert(livetrade.Details{
 				EntryPrice:    123.0,
 				StopLossPrice: 123.0,
@@ -118,7 +120,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		p.store.openTrade[ev.GetStrategyID()] = &livetrade.Details{Status: livetrade.Pending}
 
 	case signal.Exit:
-		// fmt.Println("exit")
+		ev.SetDirection(gctorder.Sell)
 	case signal.DoNothing:
 		// fmt.Println("portfolio: do nothing", ev.GetReason())
 		return nil, nil
