@@ -137,7 +137,7 @@ func main() {
 		gctlog.Infof(gctlog.Global, "Captured %v, shutdown requested.\n", interrupt)
 		bt.Stop()
 	} else {
-		fmt.Printf("Running  offline backtest")
+		fmt.Println("Running  offline backtest")
 		err = bt.Run()
 		if err != nil {
 			fmt.Printf("Could not complete run. Error: %v.\n", err)

@@ -392,7 +392,7 @@ func (bt *BackTest) Stop() error {
 		s.Stop()
 	}
 
-	// bt.Bot.DatabaseManager.Stop()
+	bt.Bot.DatabaseManager.Stop()
 
 	close(bt.shutdown)
 	return nil
@@ -566,8 +566,9 @@ func (bt *BackTest) setupBot(cfg *config.Config, bot *Engine) error {
 		}
 	}
 
-	// if not live
+	// // if not live
 	if !bt.IsLive {
+
 		bt.Bot.DatabaseManager, err = SetupDatabaseConnectionManager(gctdatabase.DB.GetConfig())
 		if err != nil {
 			return err
@@ -579,7 +580,7 @@ func (bt *BackTest) setupBot(cfg *config.Config, bot *Engine) error {
 		}
 	}
 
-	if cfg.IsLive && !bt.Bot.CommunicationsManager.IsRunning() {
+	if !bt.IsLive && !bt.Bot.CommunicationsManager.IsRunning() {
 		communicationsConfig := bot.Config.GetCommunicationsConfig()
 		bot.CommunicationsManager, err = SetupCommunicationManager(&communicationsConfig)
 		if err != nil {
@@ -712,15 +713,21 @@ func (bt *BackTest) loadData(cfg *config.Config, exch gctexchange.IBotExchange, 
 				return nil, err
 			}
 		}
-		bt.Bot.DatabaseManager, err = SetupDatabaseConnectionManager(gctdatabase.DB.GetConfig())
-		if err != nil {
-			return nil, err
-		}
-
-		err = bt.Bot.DatabaseManager.Start(&bt.Bot.ServicesWG)
-		if err != nil {
-			return nil, err
-		}
+		// bt.Bot.DatabaseManager, err = SetupDatabaseConnectionManager(gctdatabase.DB.GetConfig())
+		// if err != nil {
+		// 	return nil, err
+		// }
+		//
+		// err = bt.Bot.DatabaseManager.Start(&bt.Bot.ServicesWG)
+		// if err != nil {
+		// 	return nil, err
+		// }
+		// defer func() {
+		// 	stopErr := bt.Bot.DatabaseManager.Stop()
+		// 	if stopErr != nil {
+		// 		log.Error(log.BackTester, stopErr)
+		// 	}
+		// }()
 		resp, err = loadDatabaseData(cfg, exch.GetName(), fPair, a, dataType)
 		if err != nil {
 			return nil, fmt.Errorf("unable to retrieve data from GoCryptoTrader database. Error: %v. Please ensure the database is setup correctly and has data before use", err)
@@ -781,6 +788,7 @@ func (bt *BackTest) loadData(cfg *config.Config, exch gctexchange.IBotExchange, 
 }
 
 func loadDatabaseData(cfg *config.Config, name string, fPair currency.Pair, a asset.Item, dataType int64) (*kline.DataFromKline, error) {
+	fmt.Println("loading database data")
 	if cfg == nil || cfg.DataSettings.DatabaseData == nil {
 		return nil, errors.New("nil config data received")
 	}
