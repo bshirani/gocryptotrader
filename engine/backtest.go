@@ -55,6 +55,7 @@ func (bt *BackTest) Reset() {
 	bt.Portfolio.Reset()
 	bt.Statistic.Reset()
 	bt.Exchange.Reset()
+	// reset live trades here
 	bt.Bot = nil
 	bt.FactorEngine = nil
 }
@@ -250,24 +251,6 @@ func NewBacktestFromConfig(cfg *config.Config, templatePath, output string, bot 
 		//
 		// lastBar := resp.Item.Candles[len(resp.Item.Candles)-1]
 
-		// how much do we have to catchup?
-
-		// what's the current date?
-		// fmt.Println("catchup range", time.Now(), lastBar.Time)
-
-		// perform the catchup
-		// request the data missing from the broker
-
-		// ask the data history manager to perform the catchup
-
-		// warm the factor engine
-
-		// then start the damn thing
-		// strategies are stateless, and the factor engine is warmed up outside of the backtest
-		// so we do not need any dataevents to trigger during catchup
-		// we only need to make sure the factor engine is updated to the current time/last bar time
-		// so that it can respond to queries
-
 		// resp.Item.RemoveDuplicates()
 		// resp.Item.SortCandlesByTimestamp(false)
 		// resp.RangeHolder, err = gctkline.CalculateCandleDateRanges(
@@ -297,9 +280,43 @@ func NewBacktestFromConfig(cfg *config.Config, templatePath, output string, bot 
 // Run will iterate over loaded data events
 // save them and then handle the event based on its type
 func (bt *BackTest) Run() error {
-	log.Info(log.BackTester, "Backtest.Run()")
-	return bt.processEvent()
+	log.Info(log.BackTester, "running backtester against pre-defined data")
+dataLoadingIssue:
+	for ev := bt.EventQueue.NextEvent(); ; ev = bt.EventQueue.NextEvent() {
+		if ev == nil {
+			dataHandlerMap := bt.Datas.GetAllData()
+			for exchangeName, exchangeMap := range dataHandlerMap {
+				for assetItem, assetMap := range exchangeMap {
+					// var hasProcessedData bool
+					for currencyPair, dataHandler := range assetMap {
+						d := dataHandler.Next()
+						if d == nil {
+							if !bt.hasHandledEvent {
+								log.Errorf(log.BackTester, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
+							}
+							break dataLoadingIssue
+						}
+						// if bt.Strategies[0].UsingSimultaneousProcessing() && hasProcessedData {
+						// 	continue
+						// }
+						bt.EventQueue.AppendEvent(d)
+						// hasProcessedData = true
+					}
+				}
+			}
+		}
+		if ev != nil {
+			err := bt.handleEvent(ev)
+			if err != nil {
+				return err
+			}
+		}
+		if !bt.hasHandledEvent {
+			bt.hasHandledEvent = true
+		}
+	}
 
+	return nil
 }
 
 func (bt *BackTest) Start() error {
@@ -315,16 +332,6 @@ func (bt *BackTest) Start() error {
 	return nil
 }
 
-// uses a single database
-// load the data from the database
-// do catchup before starting
-// trades/activeOrderse are always loaded from the database in case system shut down with trades/orders
-// data is always written to the database in the background after receiving it
-// this will not need more than 60 days of data at the most to operate
-// this should be able to handle 50-100+ instruments without a problem
-// this database will not save the factors, unlike in backtests
-// if the system is shut down, it will have to recalculate the factors from scratch from the data after catchup process is completed
-// the first step is to write the data in the database as it comes in
 func (bt *BackTest) runLive() error {
 	processEventTicker := time.NewTicker(time.Second)
 	for {
@@ -580,7 +587,7 @@ func (bt *BackTest) setupBot(cfg *config.Config, bot *Engine) error {
 		}
 	}
 
-	if !bt.IsLive && !bt.Bot.CommunicationsManager.IsRunning() {
+	if bt.IsLive && !bt.Bot.CommunicationsManager.IsRunning() {
 		communicationsConfig := bot.Config.GetCommunicationsConfig()
 		bot.CommunicationsManager, err = SetupCommunicationManager(&communicationsConfig)
 		if err != nil {

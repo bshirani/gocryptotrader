@@ -92,7 +92,7 @@ func main() {
 		"orderbooksync":      false,
 		"tradesync":          false,
 		"ratelimiter":        false,
-		"ordermanager":       true,
+		"ordermanager":       false,
 		"enablecommsrelayer": false,
 	}
 	bot, err = engine.NewFromSettings(&engine.Settings{
