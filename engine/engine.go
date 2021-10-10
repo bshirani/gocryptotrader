@@ -608,8 +608,8 @@ func (bot *Engine) Start() error {
 		}
 	}
 
-	bot.Backtest, err = NewBacktestFromConfig(bot.Config, "xx", "xx", bot)
-	bot.Backtest.Start()
+	// bot.Backtest, err = NewBacktestFromConfig(bot.Config, "xx", "xx", bot)
+	// bot.Backtest.RunLive()
 	if err != nil {
 		fmt.Printf("Could not setup backtester from config. Error: %v.\n", err)
 		os.Exit(1)
@@ -703,7 +703,7 @@ func (bot *Engine) Stop() {
 	}
 	if bot.Backtest.IsRunning() {
 		if err := bot.Backtest.Stop(); err != nil {
-			gctlog.Errorf(gctlog.Global, "GCTScript manager unable to stop. Error: %v", err)
+			gctlog.Errorf(gctlog.Global, "bt unable to stop. Error: %v", err)
 		}
 	}
 
