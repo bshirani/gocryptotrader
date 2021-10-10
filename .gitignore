@@ -43,3 +43,4 @@ coverage.txt
 web/
 *_test.go
 *_test.go
+results/
