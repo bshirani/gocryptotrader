@@ -12,7 +12,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/thrasher-corp/gocryptotrader/backtester/backtest"
 	"github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/config"
 	"github.com/thrasher-corp/gocryptotrader/currency"
@@ -34,7 +33,7 @@ type Engine struct {
 	IsLive                  bool
 	Config                  *config.Config
 	apiServer               *apiServerManager
-	Backtester              *backtest.BackTest
+	Backtester              *BackTest
 	CommunicationsManager   *CommunicationManager
 	connectionManager       *connectionManager
 	currencyPairSyncer      *syncManager

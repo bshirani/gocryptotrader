@@ -6,11 +6,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/thrasher-corp/gocryptotrader/backtester/backtest"
 	"github.com/thrasher-corp/gocryptotrader/backtester/config"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/factors"
 	gctconfig "github.com/thrasher-corp/gocryptotrader/config"
 	"github.com/thrasher-corp/gocryptotrader/engine"
+	"github.com/thrasher-corp/gocryptotrader/factors"
 	gctlog "github.com/thrasher-corp/gocryptotrader/log"
 	"github.com/thrasher-corp/gocryptotrader/signaler"
 )
@@ -69,7 +68,7 @@ func main() {
 		"sets the initial rerport to use a dark theme")
 	flag.Parse()
 
-	var bt *backtest.BackTest
+	var bt *engine.BackTest
 	var cfg *config.Config
 	cfg, err = config.ReadConfigFromFile(configPath)
 	if err != nil {
