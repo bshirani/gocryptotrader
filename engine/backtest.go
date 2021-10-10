@@ -53,7 +53,7 @@ func (bt *BackTest) Reset() {
 	bt.EventQueue.Reset()
 	bt.Datas.Reset()
 	bt.Portfolio.Reset()
-	// bt.Statistic.Reset()
+	bt.Statistic.Reset()
 	bt.Exchange.Reset()
 	bt.Bot = nil
 	bt.FactorEngine = nil
@@ -603,10 +603,10 @@ func (bt *BackTest) setupBot(cfg *config.Config, bot *Engine) error {
 		return err
 	}
 
-	// err = bt.Bot.DatabaseManager.Start(&bt.Bot.ServicesWG)
-	// if err != nil {
-	// 	return err
-	// }
+	err = bt.Bot.DatabaseManager.Start(&bt.Bot.ServicesWG)
+	if err != nil {
+		return err
+	}
 
 	if cfg.IsLive && !bt.Bot.CommunicationsManager.IsRunning() {
 		communicationsConfig := bot.Config.GetCommunicationsConfig()
