@@ -71,7 +71,6 @@ func NewBacktestFromConfig(cfg *config.Config, templatePath, output string, bot 
 	}
 	tm := NewBacktest()
 	tm.cfg = *cfg
-	fmt.Println("setting isLive", live)
 	tm.IsLive = live
 	tm.Warmup = live
 
@@ -1010,7 +1009,6 @@ func (tm *TradeManager) processFillEvent(ev fill.Event) {
 // loadLiveDataLoop is an incomplete function to continuously retrieve exchange data on a loop
 // from live. Its purpose is to be able to perform strategy analysis against current data
 func (tm *TradeManager) loadLiveDataLoop(resp *kline.DataFromKline, cfg *config.Config, exch gctexchange.IBotExchange, fPair currency.Pair, a asset.Item, dataType int64) {
-	fmt.Println("livedataloop")
 	startDate := time.Now().Add(-cfg.DataSettings.Interval * 2)
 	dates, err := gctkline.CalculateCandleDateRanges(
 		startDate,
