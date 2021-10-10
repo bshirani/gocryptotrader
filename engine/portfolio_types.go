@@ -5,8 +5,8 @@ import (
 	"sync"
 
 	"github.com/shopspring/decimal"
-	config "github.com/thrasher-corp/gocryptotrader/bt_config"
 	"github.com/thrasher-corp/gocryptotrader/compliance"
+	"github.com/thrasher-corp/gocryptotrader/config"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/database/repository/livetrade"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes"
@@ -54,7 +54,6 @@ type portfolioStore struct {
 // Portfolio stores all holdings and rules to assess orders, allowing the portfolio manager to
 // modify, accept or reject strategy signals
 type Portfolio struct {
-	isLive                    bool
 	riskFreeRate              decimal.Decimal
 	sizeManager               SizeHandler
 	riskManager               risk.Handler
@@ -62,7 +61,7 @@ type Portfolio struct {
 	bot                       Engine
 	strategies                []strategies.Handler
 	store                     portfolioStore
-	exchangeAssetPairSettings map[string]map[asset.Item]map[currency.Pair]*PortfolioExchangeSettings
+	exchangeAssetPairSettings map[string]map[asset.Item]map[currency.Pair]*PortfolioSettings
 }
 
 // Settings holds all important information for the portfolio manager
@@ -77,7 +76,7 @@ type PortfolioSettings struct {
 }
 
 // Settings allow the eventhandler to size an order within the limitations set by the config file
-type PortfolioExchangeSettings struct {
+type ExchangeAssetPairSettings struct {
 	ExchangeName  string
 	UseRealOrders bool
 
@@ -103,12 +102,12 @@ type PortfolioExchangeSettings struct {
 
 // Exchange contains all the currency settings
 type Exchange struct {
-	CurrencySettings []PortfolioExchangeSettings
+	CurrencySettings []ExchangeAssetPairSettings
 }
 
 // Handler contains all functions expected to operate a portfolio manager
 type PortfolioHandler interface {
-	OnSignal(signal.Event, *PortfolioExchangeSettings) (*order.Order, error)
+	OnSignal(signal.Event, *ExchangeAssetPairSettings) (*order.Order, error)
 	OnFill(fill.Event) (*fill.Fill, error)
 
 	ViewHoldingAtTimePeriod(eventtypes.EventHandler) (*holdings.Holding, error)
@@ -116,8 +115,6 @@ type PortfolioHandler interface {
 	UpdateHoldings(eventtypes.DataEventHandler) error
 	GetTradeForStrategy(string) *livetrade.Details
 	GetPositionForStrategy(string) *positions.Position
-
-	GetComplianceManager(string, asset.Item, currency.Pair) (*compliance.Manager, error)
 
 	SetFee(string, asset.Item, currency.Pair, decimal.Decimal)
 	GetFee(string, asset.Item, currency.Pair) decimal.Decimal
@@ -127,5 +124,5 @@ type PortfolioHandler interface {
 
 // SizeHandler is the interface to help size orders
 type SizeHandler interface {
-	SizeOrder(order.Event, decimal.Decimal, *PortfolioExchangeSettings) (*order.Order, error)
+	SizeOrder(order.Event, decimal.Decimal, *ExchangeAssetPairSettings) (*order.Order, error)
 }

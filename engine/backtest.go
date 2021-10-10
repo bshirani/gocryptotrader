@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	config "github.com/thrasher-corp/gocryptotrader/bt_config"
 	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/compliance"
+	"github.com/thrasher-corp/gocryptotrader/config"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/data"
 	"github.com/thrasher-corp/gocryptotrader/data/kline"
@@ -212,6 +212,8 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *Engine)
 		return nil, err
 	}
 
+	// load from configuration into datastructure
+	// currencysettings returns the data from the config, exchangeassetpairsettings
 	bt.Exchange = &e
 	for i := range e.CurrencySettings {
 		var lookup *PortfolioSettings
@@ -521,7 +523,7 @@ func (bt *BackTest) setupExchangeSettings(cfg *config.Config) (Exchange, error) 
 			}
 		}
 
-		resp.CurrencySettings = append(resp.CurrencySettings, PortfolioExchangeSettings{
+		resp.CurrencySettings = append(resp.CurrencySettings, ExchangeAssetPairSettings{
 			ExchangeName:        cfg.CurrencySettings[i].ExchangeName,
 			MinimumSlippageRate: cfg.CurrencySettings[i].MinimumSlippagePercent,
 			MaximumSlippageRate: cfg.CurrencySettings[i].MaximumSlippagePercent,
@@ -1084,12 +1086,6 @@ func (bt *BackTest) processFillEvent(ev fill.Event) {
 	// }
 
 	// err = bt.Statistic.AddHoldingsForTime(holding)
-	// if err != nil {
-	// 	log.Error(log.BackTester, err)
-	// }
-
-	// var cp *compliance.Manager
-	// cp, err = bt.Portfolio.GetComplianceManager(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 	// if err != nil {
 	// 	log.Error(log.BackTester, err)
 	// }

@@ -3,11 +3,8 @@ package base
 import (
 	"errors"
 
-	"github.com/thrasher-corp/gocryptotrader/compliance"
-	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/database/repository/livetrade"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	"github.com/thrasher-corp/gocryptotrader/holdings"
 	"github.com/thrasher-corp/gocryptotrader/positions"
 )
@@ -31,5 +28,4 @@ type PortfolioHandler interface {
 	ViewHoldingAtTimePeriod(eventtypes.EventHandler) (*holdings.Holding, error)
 	GetPositionForStrategy(string) *positions.Position
 	GetTradeForStrategy(string) *livetrade.Details
-	GetComplianceManager(string, asset.Item, currency.Pair) (*compliance.Manager, error)
 }

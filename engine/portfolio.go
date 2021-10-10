@@ -86,7 +86,7 @@ func (p *Portfolio) Reset() {
 // on buy/sell, the portfolio manager will size the order and assess the risk of the order
 // if successful, it will pass on an order.Order to be used by the exchange event handler to place an order based on
 // the portfolio manager's recommendations
-func (p *Portfolio) OnSignal(ev signal.Event, cs *PortfolioExchangeSettings) (*order.Order, error) {
+func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*order.Order, error) {
 
 	if ev == nil || cs == nil {
 		return nil, eventtypes.ErrNilArguments
@@ -515,16 +515,16 @@ func (p *Portfolio) SetupCurrencySettingsMap(exch string, a asset.Item, cp curre
 		return nil, errCurrencyPairUnset
 	}
 	if p.exchangeAssetPairSettings == nil {
-		p.exchangeAssetPairSettings = make(map[string]map[asset.Item]map[currency.Pair]*PortfolioExchangeSettings)
+		p.exchangeAssetPairSettings = make(map[string]map[asset.Item]map[currency.Pair]*ExchangeAssetPairSettings)
 	}
 	if p.exchangeAssetPairSettings[exch] == nil {
-		p.exchangeAssetPairSettings[exch] = make(map[asset.Item]map[currency.Pair]*PortfolioExchangeSettings)
+		p.exchangeAssetPairSettings[exch] = make(map[asset.Item]map[currency.Pair]*ExchangeAssetPairSettings)
 	}
 	if p.exchangeAssetPairSettings[exch][a] == nil {
-		p.exchangeAssetPairSettings[exch][a] = make(map[currency.Pair]*PortfolioExchangeSettings)
+		p.exchangeAssetPairSettings[exch][a] = make(map[currency.Pair]*ExchangeAssetPairSettings)
 	}
 	if _, ok := p.exchangeAssetPairSettings[exch][a][cp]; !ok {
-		p.exchangeAssetPairSettings[exch][a][cp] = &PortfolioExchangeSettings{}
+		p.exchangeAssetPairSettings[exch][a][cp] = &ExchangeAssetPairSettings{}
 	}
 
 	return p.exchangeAssetPairSettings[exch][a][cp], nil
@@ -573,7 +573,7 @@ func (p *Portfolio) evaluateOrder(d eventtypes.Directioner, originalOrderSignal,
 	return evaluatedOrder, nil
 }
 
-func (p *Portfolio) sizeOrder(d eventtypes.Directioner, cs *PortfolioExchangeSettings, originalOrderSignal *order.Order, sizingFunds decimal.Decimal) *order.Order {
+func (p *Portfolio) sizeOrder(d eventtypes.Directioner, cs *ExchangeAssetPairSettings, originalOrderSignal *order.Order, sizingFunds decimal.Decimal) *order.Order {
 	sizedOrder, err := p.sizeManager.SizeOrder(originalOrderSignal, sizingFunds, cs)
 	if err != nil {
 		originalOrderSignal.AppendReason(err.Error())
@@ -676,7 +676,7 @@ func (p *Portfolio) setHoldingsForOffset(h *holdings.Holding, overwriteExisting 
 }
 
 // GetLatestHoldings returns the latest holdings after being sorted by time
-func (e *Settings) GetLatestHoldings() holdings.Holding {
+func (e *ExchangeAssetPairSettings) GetLatestHoldings() holdings.Holding {
 	if len(e.HoldingsSnapshots) == 0 {
 		return holdings.Holding{}
 	}
@@ -685,7 +685,7 @@ func (e *Settings) GetLatestHoldings() holdings.Holding {
 }
 
 // GetHoldingsForTime returns the holdings for a time period, or an empty holding if not found
-func (e *Settings) GetHoldingsForTime(t time.Time) holdings.Holding {
+func (e *ExchangeAssetPairSettings) GetHoldingsForTime(t time.Time) holdings.Holding {
 	if e.HoldingsSnapshots == nil {
 		// no holdings yet
 		return holdings.Holding{}
@@ -699,7 +699,7 @@ func (e *Settings) GetHoldingsForTime(t time.Time) holdings.Holding {
 }
 
 // Value returns the total value of the latest holdings
-func (e *Settings) Value() decimal.Decimal {
+func (e *ExchangeAssetPairSettings) Value() decimal.Decimal {
 	latest := e.GetLatestHoldings()
 	if latest.Timestamp.IsZero() {
 		return decimal.Zero

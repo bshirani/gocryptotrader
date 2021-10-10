@@ -6,7 +6,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/shopspring/decimal"
-	config "github.com/thrasher-corp/gocryptotrader/bt_config"
+	"github.com/thrasher-corp/gocryptotrader/config"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/data"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes"
@@ -146,7 +146,7 @@ func (e *Exchange) ExecuteOrder(o order.Event, data data.Handler, om *OrderManag
 }
 
 // SetExchangeAssetCurrencySettings sets the settings for an exchange, asset, currency
-func (e *Exchange) SetExchangeAssetCurrencySettings(exch string, a asset.Item, cp currency.Pair, c *PortfolioExchangeSettings) {
+func (e *Exchange) SetExchangeAssetCurrencySettings(exch string, a asset.Item, cp currency.Pair, c *ExchangeAssetPairSettings) {
 	if c.ExchangeName == "" ||
 		c.AssetType == "" ||
 		c.CurrencyPair.IsEmpty() {
@@ -165,7 +165,7 @@ func (e *Exchange) SetExchangeAssetCurrencySettings(exch string, a asset.Item, c
 }
 
 // GetCurrencySettings returns the settings for an exchange, asset currency
-func (e *Exchange) GetCurrencySettings(exch string, a asset.Item, cp currency.Pair) (PortfolioExchangeSettings, error) {
+func (e *Exchange) GetCurrencySettings(exch string, a asset.Item, cp currency.Pair) (ExchangeAssetPairSettings, error) {
 	for i := range e.CurrencySettings {
 		if e.CurrencySettings[i].CurrencyPair.Equal(cp) {
 			if e.CurrencySettings[i].AssetType == a {
@@ -175,15 +175,15 @@ func (e *Exchange) GetCurrencySettings(exch string, a asset.Item, cp currency.Pa
 			}
 		}
 	}
-	return PortfolioExchangeSettings{}, fmt.Errorf("no currency settings found for %v %v %v", exch, a, cp)
+	return ExchangeAssetPairSettings{}, fmt.Errorf("no currency settings found for %v %v %v", exch, a, cp)
 }
 
-func (e *Exchange) GetAllCurrencySettings() ([]PortfolioExchangeSettings, error) {
+func (e *Exchange) GetAllCurrencySettings() ([]ExchangeAssetPairSettings, error) {
 	return e.CurrencySettings, nil
 }
 
 // verifyOrderWithinLimits conforms the amount to fall into the minimum size and maximum size limit after reduced
-func verifyOrderWithinLimits(f *fill.Fill, limitReducedAmount decimal.Decimal, cs *PortfolioExchangeSettings) error {
+func verifyOrderWithinLimits(f *fill.Fill, limitReducedAmount decimal.Decimal, cs *ExchangeAssetPairSettings) error {
 	if f == nil {
 		return eventtypes.ErrNilEvent
 	}
@@ -303,7 +303,7 @@ func (e *Exchange) placeOrder(ctx context.Context, price, amount decimal.Decimal
 	return orderID, nil
 }
 
-func (e *Exchange) sizeOfflineOrder(high, low, volume decimal.Decimal, cs *PortfolioExchangeSettings, f *fill.Fill) (adjustedPrice, adjustedAmount decimal.Decimal, err error) {
+func (e *Exchange) sizeOfflineOrder(high, low, volume decimal.Decimal, cs *ExchangeAssetPairSettings, f *fill.Fill) (adjustedPrice, adjustedAmount decimal.Decimal, err error) {
 	if cs == nil || f == nil {
 		return decimal.Zero, decimal.Zero, eventtypes.ErrNilArguments
 	}

@@ -19,9 +19,9 @@ var (
 
 // ExecutionHandler interface dictates what functions are required to submit an order
 type ExecutionHandler interface {
-	SetExchangeAssetCurrencySettings(string, asset.Item, currency.Pair, *PortfolioExchangeSettings)
-	GetAllCurrencySettings() ([]PortfolioExchangeSettings, error)
-	GetCurrencySettings(string, asset.Item, currency.Pair) (PortfolioExchangeSettings, error)
+	SetExchangeAssetCurrencySettings(string, asset.Item, currency.Pair, *ExchangeAssetPairSettings)
+	GetAllCurrencySettings() ([]ExchangeAssetPairSettings, error)
+	GetCurrencySettings(string, asset.Item, currency.Pair) (ExchangeAssetPairSettings, error)
 	ExecuteOrder(order.Event, data.Handler, *OrderManager) (*fill.Fill, error)
 	Reset()
 }
