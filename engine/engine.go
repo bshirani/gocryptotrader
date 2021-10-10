@@ -609,11 +609,7 @@ func (bot *Engine) Start() error {
 	}
 
 	wd, err := os.Getwd()
-	configPath := filepath.Join(
-		wd,
-		"config",
-		"examples",
-		"trend.strat")
+	configPath := filepath.Join(wd, "config", "examples", "trend.strat")
 	btcfg, err := config.ReadConfigFromFile(configPath)
 	bot.Backtest, err = NewBacktestFromConfig(btcfg, "xx", "xx", bot, true)
 	if err != nil {
@@ -621,11 +617,22 @@ func (bot *Engine) Start() error {
 		os.Exit(1)
 	}
 
-	// run live
+	// catchup data
+	err = bot.catchup()
+	if err == nil {
+		fmt.Printf("could not catchup data", err)
+		os.Exit(1)
+	}
+
 	e, _ := SetupFactorEngine()
 	bot.Backtest.FactorEngine = e
 	bot.Backtest.Start()
 
+	return nil
+}
+
+func (bot *Engine) catchup() error {
+	fmt.Println("catchup")
 	return nil
 }
 

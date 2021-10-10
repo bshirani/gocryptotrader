@@ -323,7 +323,6 @@ func (bt *BackTest) Start() error {
 	log.Debugf(log.CommunicationMgr, "Backtester %s", MsgSubSystemStarting)
 	bt.shutdown = make(chan struct{})
 	bt.FactorEngine.Start()
-	bt.liveDataCatchup()
 	go bt.runLive()
 	return nil
 }
@@ -398,10 +397,6 @@ func (bt *BackTest) Stop() error {
 	bt.Bot.DatabaseManager.Stop()
 
 	close(bt.shutdown)
-	return nil
-}
-
-func (bt *BackTest) liveDataCatchup() error {
 	return nil
 }
 
@@ -608,7 +603,6 @@ func (bt *BackTest) setupBot(cfg *config.Config, bot *Engine) error {
 	}
 
 	// TODO
-	// DataCatchup()
 	// FactorEngineWarmup()
 	// EnsureSyncronized()
 
@@ -1046,28 +1040,6 @@ func (bt *BackTest) processFillEvent(ev fill.Event) {
 		log.Error(log.BackTester, err)
 		return
 	}
-
-	// err = bt.Statistic.SetEventForOffset(t)
-	// if err != nil {
-	// 	log.Error(log.BackTester, err)
-	// }
-
-	// var holding *holdings.Holding
-	// holding, err = bt.Portfolio.ViewHoldingAtTimePeriod(ev)
-	// if err != nil {
-	// 	log.Error(log.BackTester, err)
-	// }
-
-	// err = bt.Statistic.AddHoldingsForTime(holding)
-	// if err != nil {
-	// 	log.Error(log.BackTester, err)
-	// }
-
-	// snap := cp.GetLatestSnapshot()
-	// err = bt.Statistic.AddComplianceSnapshotForTime(snap, ev)
-	// if err != nil {
-	// 	log.Error(log.BackTester, err)
-	// }
 }
 
 // loadLiveDataLoop is an incomplete function to continuously retrieve exchange data on a loop
