@@ -119,11 +119,11 @@ func main() {
 	}
 	bt.Stop()
 
-	// err = bt.Statistic.CalculateAllResults()
-	// if err != nil {
-	// 	gctlog.Error(gctlog.TradeManager, err)
-	// 	os.Exit(1)
-	// }
+	err = bt.Statistic.CalculateAllResults()
+	if err != nil {
+		gctlog.Error(gctlog.TradeManager, err)
+		os.Exit(1)
+	}
 
 	// BACKTEST ONLY
 	if generateReport {

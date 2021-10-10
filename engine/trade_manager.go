@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"gocryptotrader/backtester/statistics"
+	"gocryptotrader/backtester/statistics/currencystatistics"
 	gctcommon "gocryptotrader/common"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
@@ -215,6 +216,17 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 			return nil, err
 		}
 	}
+
+	stats := &statistics.Statistic{
+		StrategyName:                "ok",
+		StrategyNickname:            cfg.Nickname,
+		StrategyDescription:         "ok",
+		StrategyGoal:                cfg.Goal,
+		ExchangeAssetPairStatistics: make(map[string]map[asset.Item]map[currency.Pair]*currencystatistics.CurrencyStatistic),
+		RiskFreeRate:                cfg.StatisticSettings.RiskFreeRate,
+	}
+	tm.Statistic = stats
+	// reports.Statistics = stats
 
 	e, err := tm.setupExchangeSettings(cfg)
 	if err != nil {
