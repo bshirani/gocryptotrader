@@ -214,7 +214,7 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *Engine)
 
 	bt.Exchange = &e
 	for i := range e.CurrencySettings {
-		var lookup *FakeExchangeSettings
+		var lookup *PortfolioExchangeSettings
 		lookup, err = p.SetupCurrencySettingsMap(e.CurrencySettings[i].ExchangeName, e.CurrencySettings[i].AssetType, e.CurrencySettings[i].CurrencyPair)
 		if err != nil {
 			return nil, err
@@ -521,7 +521,7 @@ func (bt *BackTest) setupExchangeSettings(cfg *config.Config) (FakeExchange, err
 			}
 		}
 
-		resp.CurrencySettings = append(resp.CurrencySettings, FakeExchangeSettings{
+		resp.CurrencySettings = append(resp.CurrencySettings, PortfolioExchangeSettings{
 			ExchangeName:        cfg.CurrencySettings[i].ExchangeName,
 			MinimumSlippageRate: cfg.CurrencySettings[i].MinimumSlippagePercent,
 			MaximumSlippageRate: cfg.CurrencySettings[i].MaximumSlippagePercent,

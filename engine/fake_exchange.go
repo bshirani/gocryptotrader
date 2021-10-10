@@ -147,7 +147,7 @@ func (e *FakeExchange) ExecuteOrder(o order.Event, data data.Handler, om *OrderM
 }
 
 // SetExchangeAssetCurrencySettings sets the settings for an exchange, asset, currency
-func (e *FakeExchange) SetExchangeAssetCurrencySettings(exch string, a asset.Item, cp currency.Pair, c *FakeExchangeSettings) {
+func (e *FakeExchange) SetExchangeAssetCurrencySettings(exch string, a asset.Item, cp currency.Pair, c *PortfolioExchangeSettings) {
 	if c.ExchangeName == "" ||
 		c.AssetType == "" ||
 		c.CurrencyPair.IsEmpty() {
@@ -166,7 +166,7 @@ func (e *FakeExchange) SetExchangeAssetCurrencySettings(exch string, a asset.Ite
 }
 
 // GetCurrencySettings returns the settings for an exchange, asset currency
-func (e *FakeExchange) GetCurrencySettings(exch string, a asset.Item, cp currency.Pair) (FakeExchangeSettings, error) {
+func (e *FakeExchange) GetCurrencySettings(exch string, a asset.Item, cp currency.Pair) (PortfolioExchangeSettings, error) {
 	for i := range e.CurrencySettings {
 		if e.CurrencySettings[i].CurrencyPair.Equal(cp) {
 			if e.CurrencySettings[i].AssetType == a {
@@ -176,15 +176,15 @@ func (e *FakeExchange) GetCurrencySettings(exch string, a asset.Item, cp currenc
 			}
 		}
 	}
-	return FakeExchangeSettings{}, fmt.Errorf("no currency settings found for %v %v %v", exch, a, cp)
+	return PortfolioExchangeSettings{}, fmt.Errorf("no currency settings found for %v %v %v", exch, a, cp)
 }
 
-func (e *FakeExchange) GetAllCurrencySettings() ([]FakeExchangeSettings, error) {
+func (e *FakeExchange) GetAllCurrencySettings() ([]PortfolioExchangeSettings, error) {
 	return e.CurrencySettings, nil
 }
 
 // verifyOrderWithinLimits conforms the amount to fall into the minimum size and maximum size limit after reduced
-func verifyOrderWithinLimits(f *fill.Fill, limitReducedAmount decimal.Decimal, cs *FakeExchangeSettings) error {
+func verifyOrderWithinLimits(f *fill.Fill, limitReducedAmount decimal.Decimal, cs *PortfolioExchangeSettings) error {
 	if f == nil {
 		return eventtypes.ErrNilEvent
 	}
@@ -304,7 +304,7 @@ func (e *FakeExchange) placeOrder(ctx context.Context, price, amount decimal.Dec
 	return orderID, nil
 }
 
-func (e *FakeExchange) sizeOfflineOrder(high, low, volume decimal.Decimal, cs *FakeExchangeSettings, f *fill.Fill) (adjustedPrice, adjustedAmount decimal.Decimal, err error) {
+func (e *FakeExchange) sizeOfflineOrder(high, low, volume decimal.Decimal, cs *PortfolioExchangeSettings, f *fill.Fill) (adjustedPrice, adjustedAmount decimal.Decimal, err error) {
 	if cs == nil || f == nil {
 		return decimal.Zero, decimal.Zero, eventtypes.ErrNilArguments
 	}

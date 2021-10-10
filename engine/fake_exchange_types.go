@@ -22,9 +22,9 @@ var (
 
 // ExecutionHandler interface dictates what functions are required to submit an order
 type ExecutionHandler interface {
-	SetExchangeAssetCurrencySettings(string, asset.Item, currency.Pair, *FakeExchangeSettings)
-	GetAllCurrencySettings() ([]FakeExchangeSettings, error)
-	GetCurrencySettings(string, asset.Item, currency.Pair) (FakeExchangeSettings, error)
+	SetExchangeAssetCurrencySettings(string, asset.Item, currency.Pair, *PortfolioExchangeSettings)
+	GetAllCurrencySettings() ([]PortfolioExchangeSettings, error)
+	GetCurrencySettings(string, asset.Item, currency.Pair) (PortfolioExchangeSettings, error)
 	ExecuteOrder(order.Event, data.Handler, *OrderManagerHandler) (*fill.Fill, error)
 	Reset()
 }
@@ -35,11 +35,11 @@ type OrderManagerHandler interface {
 
 // Exchange contains all the currency settings
 type FakeExchange struct {
-	CurrencySettings []FakeExchangeSettings
+	CurrencySettings []PortfolioExchangeSettings
 }
 
 // Settings allow the eventhandler to size an order within the limitations set by the config file
-type FakeExchangeSettings struct {
+type PortfolioExchangeSettings struct {
 	ExchangeName  string
 	UseRealOrders bool
 

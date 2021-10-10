@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/shopspring/decimal"
+	config "github.com/thrasher-corp/gocryptotrader/bt_config"
 	"github.com/thrasher-corp/gocryptotrader/compliance"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/database/repository/livetrade"
@@ -60,12 +61,23 @@ type Portfolio struct {
 	bot                       Engine
 	strategies                []strategies.Handler
 	store                     store
-	exchangeAssetPairSettings map[string]map[asset.Item]map[currency.Pair]*FakeExchangeSettings
+	exchangeAssetPairSettings map[string]map[asset.Item]map[currency.Pair]*PortfolioExchangeSettings
+}
+
+// Settings holds all important information for the portfolio manager
+// to assess purchasing decisions
+type PortfolioSettings struct {
+	Fee               decimal.Decimal
+	BuySideSizing     config.MinMax
+	SellSideSizing    config.MinMax
+	Leverage          config.Leverage
+	HoldingsSnapshots []holdings.Holding
+	ComplianceManager compliance.Manager
 }
 
 // Handler contains all functions expected to operate a portfolio manager
 type PortfolioHandler interface {
-	OnSignal(signal.Event, *FakeExchangeSettings) (*order.Order, error)
+	OnSignal(signal.Event, *PortfolioExchangeSettings) (*order.Order, error)
 	OnFill(fill.Event) (*fill.Fill, error)
 
 	ViewHoldingAtTimePeriod(eventtypes.EventHandler) (*holdings.Holding, error)
@@ -83,5 +95,5 @@ type PortfolioHandler interface {
 
 // SizeHandler is the interface to help size orders
 type SizeHandler interface {
-	SizeOrder(order.Event, decimal.Decimal, *FakeExchangeSettings) (*order.Order, error)
+	SizeOrder(order.Event, decimal.Decimal, *PortfolioExchangeSettings) (*order.Order, error)
 }
