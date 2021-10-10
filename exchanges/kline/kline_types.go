@@ -4,9 +4,10 @@ import (
 	"errors"
 	"time"
 
-	"github.com/gofrs/uuid"
 	"gocryptotrader/currency"
 	"gocryptotrader/exchanges/asset"
+
+	"github.com/gofrs/uuid"
 )
 
 // Consts here define basic time intervals

@@ -119,6 +119,7 @@ func main() {
 	}
 
 	if live {
+		fmt.Println("LIVE")
 		e, _ := engine.SetupFactorEngine()
 		bt.FactorEngine = e
 		// run catchup here
@@ -136,6 +137,7 @@ func main() {
 		gctlog.Infof(gctlog.Global, "Captured %v, shutdown requested.\n", interrupt)
 		bt.Stop()
 	} else {
+		fmt.Println("LHRE")
 		err = bt.Run()
 		if err != nil {
 			fmt.Printf("Could not complete run. Error: %v.\n", err)

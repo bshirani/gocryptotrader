@@ -608,12 +608,27 @@ func (bot *Engine) Start() error {
 		}
 	}
 
-	// bot.Backtest, err = NewBacktestFromConfig(bot.Config, "xx", "xx", bot)
-	// bot.Backtest.RunLive()
+	bot.Backtest, err = NewBacktestFromConfig(bot.Config, "xx", "xx", bot)
 	if err != nil {
 		fmt.Printf("Could not setup backtester from config. Error: %v.\n", err)
 		os.Exit(1)
 	}
+
+	// run live
+	e, _ := SetupFactorEngine()
+	bot.Backtest.FactorEngine = e
+	// run catchup here
+	// fmt.Println("live mode, running catchup")
+	// bt.Catchup()
+	// fmt.Println("catchup completed")
+
+	go func() {
+		err = bot.Backtest.RunLive()
+		if err != nil {
+			fmt.Printf("Could not complete live run. Error: %v.\n", err)
+			os.Exit(-1)
+		}
+	}()
 
 	return nil
 }
@@ -701,6 +716,7 @@ func (bot *Engine) Stop() {
 				err)
 		}
 	}
+
 	if bot.Backtest.IsRunning() {
 		if err := bot.Backtest.Stop(); err != nil {
 			gctlog.Errorf(gctlog.Global, "bt unable to stop. Error: %v", err)

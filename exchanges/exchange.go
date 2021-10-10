@@ -1144,6 +1144,7 @@ func (b *Base) AuthenticateWebsocket(_ context.Context) error {
 
 // KlineIntervalEnabled returns if requested interval is enabled on exchange
 func (b *Base) klineIntervalEnabled(in kline.Interval) bool {
+	fmt.Println("1231", in, in.Word(), b.Features.Enabled.Kline.Intervals)
 	return b.Features.Enabled.Kline.Intervals[in.Word()]
 }
 

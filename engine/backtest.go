@@ -198,6 +198,7 @@ func NewBacktestFromConfig(cfg *config.Config, templatePath, output string, bot 
 		}
 	}
 
+	// TODO move to engine
 	bt.FactorEngine, err = SetupFactorEngine()
 	if err != nil {
 		return nil, err
@@ -236,22 +237,22 @@ func NewBacktestFromConfig(cfg *config.Config, templatePath, output string, bot 
 			Snapshots: []compliance.Snapshot{},
 		}
 
-		dataType, _ := eventtypes.DataTypeToInt(cfg.DataSettings.DataType)
-		resp, _ := database.LoadData(
-			cfg.DataSettings.DatabaseData.StartDate,
-			cfg.DataSettings.DatabaseData.EndDate,
-			cfg.DataSettings.Interval,
-			strings.ToLower(e.CurrencySettings[i].ExchangeName),
-			dataType,
-			e.CurrencySettings[i].CurrencyPair,
-			e.CurrencySettings[i].AssetType)
-
-		lastBar := resp.Item.Candles[len(resp.Item.Candles)-1]
+		// dataType, _ := eventtypes.DataTypeToInt(cfg.DataSettings.DataType)
+		// resp, _ := database.LoadData(
+		// 	cfg.DataSettings.DatabaseData.StartDate,
+		// 	cfg.DataSettings.DatabaseData.EndDate,
+		// 	cfg.DataSettings.Interval,
+		// 	strings.ToLower(e.CurrencySettings[i].ExchangeName),
+		// 	dataType,
+		// 	e.CurrencySettings[i].CurrencyPair,
+		// 	e.CurrencySettings[i].AssetType)
+		//
+		// lastBar := resp.Item.Candles[len(resp.Item.Candles)-1]
 
 		// how much do we have to catchup?
 
 		// what's the current date?
-		fmt.Println("catchup range", time.Now(), lastBar.Time)
+		// fmt.Println("catchup range", time.Now(), lastBar.Time)
 
 		// perform the catchup
 		// request the data missing from the broker
@@ -353,6 +354,7 @@ func (bt *BackTest) Start() error {
 // if the system is shut down, it will have to recalculate the factors from scratch from the data after catchup process is completed
 // the first step is to write the data in the database as it comes in
 func (bt *BackTest) RunLive() error {
+	fmt.Println("RUN LIVE")
 	bt.FactorEngine.Start()
 	bt.liveDataCatchup()
 
@@ -382,6 +384,11 @@ func (bt *BackTest) RunLive() error {
 									}
 								}
 
+								if d != nil {
+									fmt.Println("data event", d)
+								} else {
+									fmt.Println("nil event", d)
+								}
 								bt.EventQueue.AppendEvent(d)
 							}
 						}
@@ -585,11 +592,12 @@ func (bt *BackTest) loadExchangePairAssetBase(exch, base, quote, ass string) (gc
 
 // setupBot sets up a basic bot to retrieve exchange data
 // as well as process orders
-// setup order manager and exchange manager
+// setup order manager, exchange manager, database manager
 func (bt *BackTest) setupBot(cfg *config.Config, bot *Engine) error {
 	var err error
 	bt.Bot = bot
 	bt.Bot.ExchangeManager = SetupExchangeManager()
+	go bt.heartBeat()
 
 	for i := range cfg.CurrencySettings {
 		err = bt.Bot.LoadExchange(cfg.CurrencySettings[i].ExchangeName, nil)
@@ -598,15 +606,15 @@ func (bt *BackTest) setupBot(cfg *config.Config, bot *Engine) error {
 		}
 	}
 
-	bt.Bot.DatabaseManager, err = SetupDatabaseConnectionManager(gctdatabase.DB.GetConfig())
-	if err != nil {
-		return err
-	}
-
-	err = bt.Bot.DatabaseManager.Start(&bt.Bot.ServicesWG)
-	if err != nil {
-		return err
-	}
+	// bt.Bot.DatabaseManager, err = SetupDatabaseConnectionManager(gctdatabase.DB.GetConfig())
+	// if err != nil {
+	// 	return err
+	// }
+	//
+	// err = bt.Bot.DatabaseManager.Start(&bt.Bot.ServicesWG)
+	// if err != nil {
+	// 	return err
+	// }
 
 	if cfg.IsLive && !bt.Bot.CommunicationsManager.IsRunning() {
 		communicationsConfig := bot.Config.GetCommunicationsConfig()
@@ -786,7 +794,7 @@ func (bt *BackTest) loadData(cfg *config.Config, exch gctexchange.IBotExchange, 
 		if err != nil {
 			return resp, err
 		}
-	case cfg.IsLive && cfg.DataSettings.LiveData != nil:
+	case cfg.DataSettings.LiveData != nil:
 		if len(cfg.CurrencySettings) > 1 {
 			return nil, errors.New("live data simulation only supports one currency")
 		}
@@ -795,6 +803,7 @@ func (bt *BackTest) loadData(cfg *config.Config, exch gctexchange.IBotExchange, 
 		if err != nil {
 			return nil, err
 		}
+		fmt.Println("load live data!!!!!!!!!!!!!!!!!!!!!!!!!")
 		go bt.loadLiveDataLoop(
 			resp,
 			cfg,
@@ -809,6 +818,7 @@ func (bt *BackTest) loadData(cfg *config.Config, exch gctexchange.IBotExchange, 
 	}
 
 	err = b.ValidateKline(fPair, a, resp.Item.Interval)
+	fmt.Println("validate", resp.Item.Interval)
 	if err != nil {
 		if dataType != eventtypes.DataTrade || !strings.EqualFold(err.Error(), "interval not supported") {
 			return nil, err
@@ -916,12 +926,16 @@ func loadLiveData(cfg *config.Config, base *gctexchange.Base) error {
 func (bt *BackTest) handleEvent(ev eventtypes.EventHandler) error {
 	switch eType := ev.(type) {
 	case eventtypes.DataEventHandler:
+		fmt.Println("data event")
 		return bt.processSingleDataEvent(eType)
 	case signal.Event:
+		fmt.Println("signal event")
 		bt.processSignalEvent(eType)
 	case order.Event:
+		fmt.Println("order event")
 		bt.processOrderEvent(eType)
 	case fill.Event:
+		fmt.Println("fill event")
 		bt.processFillEvent(eType)
 	default:
 		return fmt.Errorf("%w %v received, could not process",
@@ -941,8 +955,10 @@ func (bt *BackTest) processSingleDataEvent(ev eventtypes.DataEventHandler) error
 
 	d := bt.Datas.GetDataForCurrency(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 
+	fmt.Println("event:", ev)
+
 	// update factor engine
-	// fmt.Println(len(d.History()))
+	fmt.Println(len(d.History()))
 	bt.FactorEngine.OnBar(d)
 
 	// HANDLE CATCHUP MODE
@@ -1173,8 +1189,8 @@ func (bt *BackTest) loadLiveData(resp *kline.DataFromKline, cfg *config.Config, 
 	return nil
 }
 
-func heartBeat() {
-	for range time.Tick(time.Second * 1) {
+func (b *BackTest) heartBeat() {
+	for range time.Tick(time.Second * 15) {
 		log.Info(log.BackTester, "heartbeat")
 	}
 }
