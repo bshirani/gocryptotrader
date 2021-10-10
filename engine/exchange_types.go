@@ -22,7 +22,7 @@ type ExecutionHandler interface {
 	SetExchangeAssetCurrencySettings(string, asset.Item, currency.Pair, *PortfolioExchangeSettings)
 	GetAllCurrencySettings() ([]PortfolioExchangeSettings, error)
 	GetCurrencySettings(string, asset.Item, currency.Pair) (PortfolioExchangeSettings, error)
-	ExecuteOrder(order.Event, data.Handler, *OrderManagerHandler) (*fill.Fill, error)
+	ExecuteOrder(order.Event, data.Handler, *OrderManager) (*fill.Fill, error)
 	Reset()
 }
 

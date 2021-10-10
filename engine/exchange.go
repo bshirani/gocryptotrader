@@ -7,7 +7,6 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/shopspring/decimal"
 	config "github.com/thrasher-corp/gocryptotrader/bt_config"
-	"github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/data"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes"
@@ -27,7 +26,7 @@ func (e *Exchange) Reset() {
 
 // ExecuteOrder assesses the portfolio manager's order event and if it passes validation
 // will send an order to the exchange/fake order manager to be stored and raise a fill event
-func (e *Exchange) ExecuteOrder(o order.Event, data data.Handler, om *OrderManagerHandler) (*fill.Fill, error) {
+func (e *Exchange) ExecuteOrder(o order.Event, data data.Handler, om *OrderManager) (*fill.Fill, error) {
 	f := &fill.Fill{
 		Base: event.Base{
 			Offset:       o.GetOffset(),
@@ -116,7 +115,7 @@ func (e *Exchange) ExecuteOrder(o order.Event, data data.Handler, om *OrderManag
 	}
 	f.ExchangeFee = calculateExchangeFee(adjustedPrice, limitReducedAmount, cs.ExchangeFee)
 
-	orderID, err := e.placeOrder(context.TODO(), adjustedPrice, limitReducedAmount, cs.UseRealOrders, cs.CanUseExchangeLimits, f, bot)
+	orderID, err := e.placeOrder(context.TODO(), adjustedPrice, limitReducedAmount, cs.UseRealOrders, cs.CanUseExchangeLimits, f, om)
 	if err != nil {
 		if f.GetDirection() == gctorder.Buy {
 			f.SetDirection(eventtypes.CouldNotBuy)
@@ -126,7 +125,7 @@ func (e *Exchange) ExecuteOrder(o order.Event, data data.Handler, om *OrderManag
 		return f, err
 	}
 
-	ords, _ := bot.OrderManager.GetOrdersSnapshot("")
+	ords, _ := om.GetOrdersSnapshot("")
 	for i := range ords {
 		if ords[i].ID != orderID {
 			continue
@@ -245,7 +244,7 @@ func reduceAmountToFitPortfolioLimit(adjustedPrice, amount, sizedPortfolioTotal 
 	return amount
 }
 
-func (e *Exchange) placeOrder(ctx context.Context, price, amount decimal.Decimal, useRealOrders, useExchangeLimits bool, f *fill.Fill, om *OrderManagerHandler) (string, error) {
+func (e *Exchange) placeOrder(ctx context.Context, price, amount decimal.Decimal, useRealOrders, useExchangeLimits bool, f *fill.Fill, om *OrderManager) (string, error) {
 	if f == nil {
 		return "", eventtypes.ErrNilEvent
 	}
@@ -293,7 +292,7 @@ func (e *Exchange) placeOrder(ctx context.Context, price, amount decimal.Decimal
 
 		// store the position of this fake order
 		// we need the strategy id
-		resp, err := bot.OrderManager.SubmitFakeOrder(o, submitResponse, useExchangeLimits)
+		resp, err := om.SubmitFakeOrder(o, submitResponse, useExchangeLimits)
 		if resp != nil {
 			orderID = resp.OrderID
 		}

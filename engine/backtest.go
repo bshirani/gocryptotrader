@@ -1050,7 +1050,7 @@ func (bt *BackTest) processSignalEvent(ev signal.Event) {
 
 func (bt *BackTest) processOrderEvent(ev order.Event) {
 	d := bt.Datas.GetDataForCurrency(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
-	f, err := bt.Exchange.ExecuteOrder(ev, d, bt.Bot)
+	f, err := bt.Exchange.ExecuteOrder(ev, d, bt.Bot.OrderManager)
 	if err != nil {
 		if f == nil {
 			log.Errorf(log.BackTester, "fill event should always be returned, please fix, %v", err)

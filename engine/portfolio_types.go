@@ -115,6 +115,7 @@ type PortfolioHandler interface {
 	setHoldingsForOffset(*holdings.Holding, bool) error
 	UpdateHoldings(eventtypes.DataEventHandler) error
 	GetTradeForStrategy(string) *livetrade.Details
+	GetPositionForStrategy(string) *positions.Position
 
 	GetComplianceManager(string, asset.Item, currency.Pair) (*compliance.Manager, error)
 
