@@ -100,7 +100,6 @@ func main() {
 		EnableDryRun:                  true,
 		EnableAllPairs:                false,
 		EnableExchangeHTTPRateLimiter: false,
-		IsLive:                        live,
 	}, flags)
 	if err != nil {
 		fmt.Printf("Could not load backtester. Error: %v.\n", err)
@@ -112,7 +111,7 @@ func main() {
 		fmt.Printf("Could not read config. Error: %v.\n", err)
 		os.Exit(1)
 	}
-	bt, err = engine.NewBacktestFromConfig(cfg, templatePath, reportOutput, bot)
+	bt, err = engine.NewBacktestFromConfig(cfg, templatePath, reportOutput, bot, false)
 	if err != nil {
 		fmt.Printf("Could not setup backtester from config. Error: %v.\n", err)
 		os.Exit(1)
@@ -138,7 +137,7 @@ func main() {
 		gctlog.Infof(gctlog.Global, "Captured %v, shutdown requested.\n", interrupt)
 		bt.Stop()
 	} else {
-		fmt.Println("LHRE")
+		fmt.Printf("Running  offline backtest")
 		err = bt.Run()
 		if err != nil {
 			fmt.Printf("Could not complete run. Error: %v.\n", err)

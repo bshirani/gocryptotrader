@@ -36,4 +36,5 @@ type BackTest struct {
 	Reports            report.Handler
 	catchup            bool
 	started            int32
+	IsLive             bool
 }

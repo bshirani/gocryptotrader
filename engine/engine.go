@@ -615,7 +615,7 @@ func (bot *Engine) Start() error {
 		"examples",
 		"trend.strat")
 	btcfg, err := config.ReadConfigFromFile(configPath)
-	bot.Backtest, err = NewBacktestFromConfig(btcfg, "xx", "xx", bot)
+	bot.Backtest, err = NewBacktestFromConfig(btcfg, "xx", "xx", bot, true)
 	if err != nil {
 		fmt.Printf("Could not setup backtester from config. Error: %v.\n", err)
 		os.Exit(1)

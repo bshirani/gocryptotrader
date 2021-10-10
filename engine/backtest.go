@@ -60,7 +60,7 @@ func (bt *BackTest) Reset() {
 }
 
 // NewFromConfig takes a strategy config and configures a backtester variable to run
-func NewBacktestFromConfig(cfg *config.Config, templatePath, output string, bot *Engine) (*BackTest, error) {
+func NewBacktestFromConfig(cfg *config.Config, templatePath, output string, bot *Engine, live bool) (*BackTest, error) {
 	log.Infoln(log.BackTester, "Backtest: Loading config...")
 	if cfg == nil {
 		return nil, errNilConfig
@@ -69,6 +69,7 @@ func NewBacktestFromConfig(cfg *config.Config, templatePath, output string, bot 
 		return nil, errNilBot
 	}
 	bt := NewBacktest()
+	bt.IsLive = live
 	bt.Datas = &data.HandlerPerCurrency{}
 	bt.EventQueue = &Holder{}
 	reports := &report.Data{
@@ -297,48 +298,19 @@ func NewBacktestFromConfig(cfg *config.Config, templatePath, output string, bot 
 // save them and then handle the event based on its type
 func (bt *BackTest) Run() error {
 	log.Info(log.BackTester, "Backtest.Run()")
-dataLoadingIssue:
-	for ev := bt.EventQueue.NextEvent(); ; ev = bt.EventQueue.NextEvent() {
-		if ev == nil {
-			dataHandlerMap := bt.Datas.GetAllData()
-			for exchangeName, exchangeMap := range dataHandlerMap {
-				for assetItem, assetMap := range exchangeMap {
-					// var hasProcessedData bool
-					for currencyPair, dataHandler := range assetMap {
-						d := dataHandler.Next()
-						if d == nil {
-							if !bt.hasHandledEvent {
-								log.Errorf(log.BackTester, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
-							}
-							break dataLoadingIssue
-						}
-						bt.EventQueue.AppendEvent(d)
-						// hasProcessedData = true
-					}
-				}
-			}
-		}
-		if ev != nil {
-			err := bt.handleEvent(ev)
-			if err != nil {
-				return err
-			}
-		}
-		if !bt.hasHandledEvent {
-			bt.hasHandledEvent = true
-		}
-	}
-
-	return nil
+	return bt.processEvent()
 
 }
 
 func (bt *BackTest) Start() error {
+	// throw error if not live
 	if !atomic.CompareAndSwapInt32(&bt.started, 0, 1) {
 		return fmt.Errorf("backtester %w", ErrSubSystemAlreadyStarted)
 	}
 	log.Debugf(log.CommunicationMgr, "Backtester %s", MsgSubSystemStarting)
 	bt.shutdown = make(chan struct{})
+	bt.FactorEngine.Start()
+	bt.liveDataCatchup()
 	go bt.runLive()
 	return nil
 }
@@ -354,61 +326,47 @@ func (bt *BackTest) Start() error {
 // if the system is shut down, it will have to recalculate the factors from scratch from the data after catchup process is completed
 // the first step is to write the data in the database as it comes in
 func (bt *BackTest) runLive() error {
-	bt.FactorEngine.Start()
-	bt.liveDataCatchup()
-
-	timeoutTimer := time.NewTimer(time.Minute * 1)
-
-	// a frequent timer so that when a new candle is released by an exchange
-	// that it can be processed quickly
 	processEventTicker := time.NewTicker(time.Second)
-	doneARun := false
 	for {
 		select {
 		case <-bt.shutdown:
 			return nil
-		case <-timeoutTimer.C:
-			return errLiveDataTimeout
 		case <-processEventTicker.C:
-			for ev := bt.EventQueue.NextEvent(); ; ev = bt.EventQueue.NextEvent() {
-				if ev == nil {
-					dataHandlerMap := bt.Datas.GetAllData()
-					for exchangeName, exchangeMap := range dataHandlerMap {
-						for assetItem, assetMap := range exchangeMap {
-							for currencyPair, dataHandler := range assetMap {
-								d := dataHandler.Next()
-								if d == nil {
-									if !bt.hasHandledEvent {
-										log.Errorf(log.BackTester, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
-									}
-								}
-
-								// if d != nil {
-								// 	fmt.Println("data event", d)
-								// } else {
-								// 	fmt.Println("nil event", d)
-								// }
-								bt.EventQueue.AppendEvent(d)
-							}
-						}
-					}
-				}
-
-				if ev != nil {
-					err := bt.handleEvent(ev)
-					if err != nil {
-						return err
-					}
-				}
-				if !bt.hasHandledEvent {
-					bt.hasHandledEvent = true
-				}
-			}
-			if doneARun {
-				timeoutTimer = time.NewTimer(time.Minute * 5)
-			}
+			bt.processEvent()
 		}
 	}
+}
+
+func (bt *BackTest) processEvent() error {
+	for ev := bt.EventQueue.NextEvent(); ; ev = bt.EventQueue.NextEvent() {
+		if ev == nil {
+			dataHandlerMap := bt.Datas.GetAllData()
+			for exchangeName, exchangeMap := range dataHandlerMap {
+				for assetItem, assetMap := range exchangeMap {
+					for currencyPair, dataHandler := range assetMap {
+						d := dataHandler.Next()
+						if d == nil {
+							if !bt.hasHandledEvent {
+								log.Errorf(log.BackTester, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
+							}
+						}
+						bt.EventQueue.AppendEvent(d)
+					}
+				}
+			}
+		}
+
+		if ev != nil {
+			err := bt.handleEvent(ev)
+			if err != nil {
+				return err
+			}
+		}
+		if !bt.hasHandledEvent {
+			bt.hasHandledEvent = true
+		}
+	}
+	return nil
 }
 
 // Stop shuts down the live data loop
@@ -608,6 +566,19 @@ func (bt *BackTest) setupBot(cfg *config.Config, bot *Engine) error {
 		}
 	}
 
+	// if not live
+	if !bt.IsLive {
+		bt.Bot.DatabaseManager, err = SetupDatabaseConnectionManager(gctdatabase.DB.GetConfig())
+		if err != nil {
+			return err
+		}
+
+		err = bt.Bot.DatabaseManager.Start(&bt.Bot.ServicesWG)
+		if err != nil {
+			return err
+		}
+	}
+
 	if cfg.IsLive && !bt.Bot.CommunicationsManager.IsRunning() {
 		communicationsConfig := bot.Config.GetCommunicationsConfig()
 		bot.CommunicationsManager, err = SetupCommunicationManager(&communicationsConfig)
@@ -728,7 +699,7 @@ func (bt *BackTest) loadData(cfg *config.Config, exch gctexchange.IBotExchange, 
 		if len(summary) > 0 {
 			log.Warnf(log.BackTester, "%v", summary)
 		}
-	case !cfg.IsLive && cfg.DataSettings.DatabaseData != nil:
+	case !bt.IsLive:
 		log.Infof(log.BackTester, "loading db data for %v %v %v...\n", exch.GetName(), a, fPair)
 		if cfg.DataSettings.DatabaseData.InclusiveEndDate {
 			cfg.DataSettings.DatabaseData.EndDate = cfg.DataSettings.DatabaseData.EndDate.Add(cfg.DataSettings.Interval)
@@ -771,22 +742,7 @@ func (bt *BackTest) loadData(cfg *config.Config, exch gctexchange.IBotExchange, 
 		if len(summary) > 0 {
 			log.Warnf(log.BackTester, "%v", summary)
 		}
-	case cfg.DataSettings.APIData != nil:
-		log.Infof(log.BackTester, "loading api data for %v %v %v...\n", exch.GetName(), a, fPair)
-		if cfg.DataSettings.APIData.InclusiveEndDate {
-			cfg.DataSettings.APIData.EndDate = cfg.DataSettings.APIData.EndDate.Add(cfg.DataSettings.Interval)
-		}
-		resp, err = loadAPIData(
-			cfg,
-			exch,
-			fPair,
-			a,
-			b.Features.Enabled.Kline.ResultLimit,
-			dataType)
-		if err != nil {
-			return resp, err
-		}
-	case cfg.DataSettings.LiveData != nil:
+	case bt.IsLive:
 		log.Infof(log.BackTester, "loading live data for %v %v %v...\n", exch.GetName(), a, fPair)
 		if len(cfg.CurrencySettings) > 1 {
 			return nil, errors.New("live data simulation only supports one currency")
