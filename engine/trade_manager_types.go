@@ -2,7 +2,6 @@ package engine
 
 import (
 	"errors"
-
 	"gocryptotrader/backtester/statistics"
 	"gocryptotrader/data"
 	"gocryptotrader/portfolio/report"

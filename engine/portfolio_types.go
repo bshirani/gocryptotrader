@@ -4,7 +4,6 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/shopspring/decimal"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/database/repository/livetrade"
@@ -19,6 +18,8 @@ import (
 	"gocryptotrader/portfolio/positions"
 	"gocryptotrader/portfolio/risk"
 	"gocryptotrader/portfolio/strategies"
+
+	"github.com/shopspring/decimal"
 )
 
 var (

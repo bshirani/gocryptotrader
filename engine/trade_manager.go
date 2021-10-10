@@ -315,6 +315,7 @@ dataLoadingIssue:
 	return nil
 }
 
+// LIVE FUNCTIONALITY
 func (bt *BackTest) Start() error {
 	// throw error if not live
 	if !atomic.CompareAndSwapInt32(&bt.started, 0, 1) {
@@ -334,38 +335,34 @@ func (bt *BackTest) runLive() error {
 		case <-bt.shutdown:
 			return nil
 		case <-processEventTicker.C:
-			bt.processEvent()
-		}
-	}
-}
-
-func (bt *BackTest) processEvent() error {
-	for ev := bt.EventQueue.NextEvent(); ; ev = bt.EventQueue.NextEvent() {
-		if ev == nil {
-			dataHandlerMap := bt.Datas.GetAllData()
-			for exchangeName, exchangeMap := range dataHandlerMap {
-				for assetItem, assetMap := range exchangeMap {
-					for currencyPair, dataHandler := range assetMap {
-						d := dataHandler.Next()
-						if d == nil {
-							if !bt.hasHandledEvent {
-								log.Errorf(log.BackTester, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
+			for ev := bt.EventQueue.NextEvent(); ; ev = bt.EventQueue.NextEvent() {
+				if ev == nil {
+					dataHandlerMap := bt.Datas.GetAllData()
+					for exchangeName, exchangeMap := range dataHandlerMap {
+						for assetItem, assetMap := range exchangeMap {
+							for currencyPair, dataHandler := range assetMap {
+								d := dataHandler.Next()
+								if d == nil {
+									if !bt.hasHandledEvent {
+										log.Errorf(log.BackTester, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
+									}
+								}
+								bt.EventQueue.AppendEvent(d)
 							}
 						}
-						bt.EventQueue.AppendEvent(d)
 					}
 				}
-			}
-		}
 
-		if ev != nil {
-			err := bt.handleEvent(ev)
-			if err != nil {
-				return err
+				if ev != nil {
+					err := bt.handleEvent(ev)
+					if err != nil {
+						return err
+					}
+				}
+				if !bt.hasHandledEvent {
+					bt.hasHandledEvent = true
+				}
 			}
-		}
-		if !bt.hasHandledEvent {
-			bt.hasHandledEvent = true
 		}
 	}
 	return nil
@@ -564,7 +561,7 @@ func (bt *BackTest) setupBot(cfg *config.Config, bot *Engine) error {
 		}
 	}
 
-	// // if not live
+	// // if not live since we don't start the engine in backtest mode
 	if !bt.IsLive {
 
 		bt.Bot.DatabaseManager, err = SetupDatabaseConnectionManager(gctdatabase.DB.GetConfig())
@@ -576,15 +573,6 @@ func (bt *BackTest) setupBot(cfg *config.Config, bot *Engine) error {
 		if err != nil {
 			return err
 		}
-	}
-
-	if bt.IsLive && !bt.Bot.CommunicationsManager.IsRunning() {
-		communicationsConfig := bot.Config.GetCommunicationsConfig()
-		bot.CommunicationsManager, err = SetupCommunicationManager(&communicationsConfig)
-		if err != nil {
-			return err
-		}
-		bot.CommunicationsManager.Start()
 	}
 
 	if !bt.Bot.OrderManager.IsRunning() {
