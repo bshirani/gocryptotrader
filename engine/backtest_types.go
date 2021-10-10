@@ -3,11 +3,9 @@ package engine
 import (
 	"errors"
 
-	"github.com/thrasher-corp/gocryptotrader/backtester/report"
-	portfolio "github.com/thrasher-corp/gocryptotrader/bt_portfolio"
 	"github.com/thrasher-corp/gocryptotrader/data"
-	"github.com/thrasher-corp/gocryptotrader/engine"
 	"github.com/thrasher-corp/gocryptotrader/factors"
+	"github.com/thrasher-corp/gocryptotrader/report"
 	"github.com/thrasher-corp/gocryptotrader/statistics"
 	"github.com/thrasher-corp/gocryptotrader/strategies"
 )
@@ -29,12 +27,12 @@ var (
 type BackTest struct {
 	Bot                *Engine
 	FactorEngine       *factors.Engine
-	DataHistoryManager *engine.DataHistoryManager
+	DataHistoryManager *DataHistoryManager
 	hasHandledEvent    bool
 	shutdown           chan struct{}
 	Datas              data.Holder
 	Strategies         []strategies.Handler
-	Portfolio          portfolio.Handler
+	Portfolio          PortfolioHandler
 	Exchange           ExecutionHandler
 	Statistic          statistics.Handler
 	EventQueue         EventHolder

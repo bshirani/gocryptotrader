@@ -4,15 +4,14 @@ import (
 	"fmt"
 
 	"github.com/shopspring/decimal"
+	config "github.com/thrasher-corp/gocryptotrader/bt_config"
 	"github.com/thrasher-corp/gocryptotrader/common"
-	"github.com/thrasher-corp/gocryptotrader/bt_config"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/exchange"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/order"
 	gctorder "github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
 
 // SizeOrder is responsible for ensuring that the order size is within config limits
-func (s *Size) SizeOrder(o order.Event, amountAvailable decimal.Decimal, cs *exchange.Settings) (*order.Order, error) {
+func (s *Size) SizeOrder(o order.Event, amountAvailable decimal.Decimal, cs *FakeExchangeSettings) (*order.Order, error) {
 	if o == nil || cs == nil {
 		return nil, common.ErrNilArguments
 	}

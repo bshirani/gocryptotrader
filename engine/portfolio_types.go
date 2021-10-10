@@ -1,25 +1,23 @@
-package portfolio
+package engine
 
 import (
 	"errors"
 	"sync"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/compliance"
-	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/holdings"
-	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/positions"
-	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/risk"
-	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/settings"
 	"github.com/thrasher-corp/gocryptotrader/common"
+	"github.com/thrasher-corp/gocryptotrader/compliance"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/database/repository/livetrade"
-	"github.com/thrasher-corp/gocryptotrader/engine"
-	"github.com/thrasher-corp/gocryptotrader/eventhandlers/exchange"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/fill"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/order"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/signal"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	"github.com/thrasher-corp/gocryptotrader/factors"
+	"github.com/thrasher-corp/gocryptotrader/holdings"
+	"github.com/thrasher-corp/gocryptotrader/positions"
+	"github.com/thrasher-corp/gocryptotrader/risk"
+	"github.com/thrasher-corp/gocryptotrader/settings"
 	"github.com/thrasher-corp/gocryptotrader/strategies"
 )
 
@@ -60,15 +58,15 @@ type Portfolio struct {
 	sizeManager               SizeHandler
 	riskManager               risk.Handler
 	factorEngine              *factors.Engine
-	bot                       engine.Engine
+	bot                       Engine
 	strategies                []strategies.Handler
 	store                     store
 	exchangeAssetPairSettings map[string]map[asset.Item]map[currency.Pair]*settings.Settings
 }
 
 // Handler contains all functions expected to operate a portfolio manager
-type Handler interface {
-	OnSignal(signal.Event, *exchange.Settings) (*order.Order, error)
+type PortfolioHandler interface {
+	OnSignal(signal.Event, *FakeExchangeSettings) (*order.Order, error)
 	OnFill(fill.Event) (*fill.Fill, error)
 
 	ViewHoldingAtTimePeriod(common.EventHandler) (*holdings.Holding, error)
@@ -87,5 +85,5 @@ type Handler interface {
 
 // SizeHandler is the interface to help size orders
 type SizeHandler interface {
-	SizeOrder(order.Event, decimal.Decimal, *exchange.Settings) (*order.Order, error)
+	SizeOrder(order.Event, decimal.Decimal, *FakeExchangeSettings) (*order.Order, error)
 }

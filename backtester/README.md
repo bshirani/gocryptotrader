@@ -52,8 +52,8 @@ We welcome pull requests on any feature for the Backtester! We will be especiall
 - The data is converted into candles and each candle is streamed as a data event.
 - The data event is analysed by the strategy which will output a purchasing signal such as `BUY`, `SELL` or `DONOTHING` ([readme](/backtester/eventtypes/signal/README.md))
 - The purchase signal is then processed by the portfolio manager ([readme](/backtester/eventhandlers/portfolio/README.md)) which will size the order ([readme](/backtester/eventhandlers/portfolio/size/README.md)) and assess risk ([readme](/backtester/eventhandlers/portfolio/risk/README.md)) before sending it to the exchange
-- The exchange order event handler will size to the candle data and run a slippage estimator ([readme](/backtester/eventhandlers/exchange/slippage/README.md)) and place the order ([readme](/backtester/eventhandlers/exchange/README.md))
-- Upon an order being placed, the order is snapshot for analysis in both the statistics package ([readme](/backtester/eventhandlers/statistics/README.md)) and the report package ([readme](/backtester/report/README.md))
+- The exchange order event handler will size to the candle data and run a slippage estimator ([readme](/backtester/eventhandlers/exchange/slippage/README.md)) and place the order ([readme](/backtester/README.md))
+- Upon an order being placed, the order is snapshot for analysis in both the statistics package ([readme](/backtester/eventhandlers/statistics/README.md)) and the report package ([readme](/report/README.md))
 
 
 # Cool story, how do I use it?

@@ -1,4 +1,4 @@
-package eventholder
+package engine
 
 import (
 	"github.com/thrasher-corp/gocryptotrader/common"

@@ -1,4 +1,4 @@
-package portfolio
+package engine
 
 import (
 	"errors"
@@ -6,28 +6,26 @@ import (
 
 	"github.com/shopspring/decimal"
 	"github.com/thrasher-corp/gocryptotrader/common"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/exchange"
-	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/compliance"
-	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/holdings"
-	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/positions"
-	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/risk"
-	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/settings"
-	"github.com/thrasher-corp/gocryptotrader/strategies"
-	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/trades"
+	"github.com/thrasher-corp/gocryptotrader/compliance"
+	"github.com/thrasher-corp/gocryptotrader/currency"
+	"github.com/thrasher-corp/gocryptotrader/database/repository/livetrade"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/event"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/fill"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/order"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/signal"
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/database/repository/livetrade"
-	"github.com/thrasher-corp/gocryptotrader/engine"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	gctorder "github.com/thrasher-corp/gocryptotrader/exchanges/order"
+	"github.com/thrasher-corp/gocryptotrader/holdings"
 	"github.com/thrasher-corp/gocryptotrader/log"
+	"github.com/thrasher-corp/gocryptotrader/positions"
+	"github.com/thrasher-corp/gocryptotrader/risk"
+	"github.com/thrasher-corp/gocryptotrader/settings"
+	"github.com/thrasher-corp/gocryptotrader/strategies"
+	"github.com/thrasher-corp/gocryptotrader/trades"
 )
 
 // Setup creates a portfolio manager instance and sets private fields
-func Setup(st []strategies.Handler, bot engine.Engine, sh SizeHandler, r risk.Handler, riskFreeRate decimal.Decimal) (*Portfolio, error) {
+func SetupPortfolio(st []strategies.Handler, bot Engine, sh SizeHandler, r risk.Handler, riskFreeRate decimal.Decimal) (*Portfolio, error) {
 	if sh == nil {
 		return nil, errSizeManagerUnset
 	}
@@ -88,7 +86,7 @@ func (p *Portfolio) Reset() {
 // on buy/sell, the portfolio manager will size the order and assess the risk of the order
 // if successful, it will pass on an order.Order to be used by the exchange event handler to place an order based on
 // the portfolio manager's recommendations
-func (p *Portfolio) OnSignal(ev signal.Event, cs *exchange.Settings) (*order.Order, error) {
+func (p *Portfolio) OnSignal(ev signal.Event, cs *FakeExchangeSettings) (*order.Order, error) {
 
 	if ev == nil || cs == nil {
 		return nil, common.ErrNilArguments
@@ -575,7 +573,7 @@ func (p *Portfolio) evaluateOrder(d common.Directioner, originalOrderSignal, siz
 	return evaluatedOrder, nil
 }
 
-func (p *Portfolio) sizeOrder(d common.Directioner, cs *exchange.Settings, originalOrderSignal *order.Order, sizingFunds decimal.Decimal) *order.Order {
+func (p *Portfolio) sizeOrder(d common.Directioner, cs *FakeExchangeSettings, originalOrderSignal *order.Order, sizingFunds decimal.Decimal) *order.Order {
 	sizedOrder, err := p.sizeManager.SizeOrder(originalOrderSignal, sizingFunds, cs)
 	if err != nil {
 		originalOrderSignal.AppendReason(err.Error())

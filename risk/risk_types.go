@@ -4,8 +4,8 @@ import (
 	"errors"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/compliance"
-	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/holdings"
+	"github.com/thrasher-corp/gocryptotrader/compliance"
+	"github.com/thrasher-corp/gocryptotrader/holdings"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/order"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"

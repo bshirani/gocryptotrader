@@ -3,8 +3,8 @@ package settings
 import (
 	"github.com/shopspring/decimal"
 	"github.com/thrasher-corp/gocryptotrader/bt_config"
-	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/compliance"
-	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/holdings"
+	"github.com/thrasher-corp/gocryptotrader/compliance"
+	"github.com/thrasher-corp/gocryptotrader/holdings"
 )
 
 // Settings holds all important information for the portfolio manager

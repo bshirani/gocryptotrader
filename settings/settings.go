@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/holdings"
+	"github.com/thrasher-corp/gocryptotrader/holdings"
 )
 
 // GetLatestHoldings returns the latest holdings after being sorted by time

@@ -10,14 +10,10 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/backtester/report"
 	config "github.com/thrasher-corp/gocryptotrader/bt_config"
-	portfolio "github.com/thrasher-corp/gocryptotrader/bt_portfolio"
-	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/compliance"
-	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/risk"
-	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/settings"
 	"github.com/thrasher-corp/gocryptotrader/common"
 	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
+	"github.com/thrasher-corp/gocryptotrader/compliance"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/data"
 	"github.com/thrasher-corp/gocryptotrader/data/kline"
@@ -26,7 +22,6 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/data/kline/database"
 	"github.com/thrasher-corp/gocryptotrader/data/kline/live"
 	gctdatabase "github.com/thrasher-corp/gocryptotrader/database"
-	"github.com/thrasher-corp/gocryptotrader/engine"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/fill"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/order"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/signal"
@@ -36,6 +31,9 @@ import (
 	gctorder "github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"github.com/thrasher-corp/gocryptotrader/factors"
 	"github.com/thrasher-corp/gocryptotrader/log"
+	"github.com/thrasher-corp/gocryptotrader/report"
+	"github.com/thrasher-corp/gocryptotrader/risk"
+	"github.com/thrasher-corp/gocryptotrader/settings"
 	"github.com/thrasher-corp/gocryptotrader/size"
 	"github.com/thrasher-corp/gocryptotrader/slippage"
 	"github.com/thrasher-corp/gocryptotrader/statistics"
@@ -62,7 +60,7 @@ func (bt *BackTest) Reset() {
 }
 
 // NewFromConfig takes a strategy config and configures a backtester variable to run
-func NewFromConfig(cfg *config.Config, templatePath, output string, bot *engine.Engine) (*BackTest, error) {
+func NewFromConfig(cfg *config.Config, templatePath, output string, bot *Engine) (*BackTest, error) {
 	log.Infoln(log.BackTester, "bt:loading config...")
 	if cfg == nil {
 		return nil, errNilConfig
@@ -184,8 +182,8 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *engine.
 
 	bt.Strategies = slit
 
-	var p *portfolio.Portfolio
-	p, err = portfolio.Setup(bt.Strategies, *bot, sizeManager, portfolioRisk, cfg.StatisticSettings.RiskFreeRate)
+	var p *Portfolio
+	p, err = SetupPortfolio(bt.Strategies, *bot, sizeManager, portfolioRisk, cfg.StatisticSettings.RiskFreeRate)
 	if err != nil {
 		return nil, err
 	}
@@ -584,19 +582,19 @@ func (bt *BackTest) loadExchangePairAssetBase(exch, base, quote, ass string) (gc
 // setupBot sets up a basic bot to retrieve exchange data
 // as well as process orders
 // setup order manager and exchange manager
-func (bt *BackTest) setupBot(cfg *config.Config, bot *engine.Engine) error {
+func (bt *BackTest) setupBot(cfg *config.Config, bot *Engine) error {
 	var err error
 	bt.Bot = bot
-	bt.Bot.ExchangeManager = engine.SetupExchangeManager()
+	bt.Bot.ExchangeManager = SetupExchangeManager()
 
 	for i := range cfg.CurrencySettings {
 		err = bt.Bot.LoadExchange(cfg.CurrencySettings[i].ExchangeName, nil)
-		if err != nil && !errors.Is(err, engine.ErrExchangeAlreadyLoaded) {
+		if err != nil && !errors.Is(err, ErrExchangeAlreadyLoaded) {
 			return err
 		}
 	}
 
-	bt.Bot.DatabaseManager, err = engine.SetupDatabaseConnectionManager(gctdatabase.DB.GetConfig())
+	bt.Bot.DatabaseManager, err = SetupDatabaseConnectionManager(gctdatabase.DB.GetConfig())
 	if err != nil {
 		return err
 	}
@@ -608,7 +606,7 @@ func (bt *BackTest) setupBot(cfg *config.Config, bot *engine.Engine) error {
 
 	if cfg.IsLive && !bt.Bot.CommunicationsManager.IsRunning() {
 		communicationsConfig := bot.Config.GetCommunicationsConfig()
-		bot.CommunicationsManager, err = engine.SetupCommunicationManager(&communicationsConfig)
+		bot.CommunicationsManager, err = SetupCommunicationManager(&communicationsConfig)
 		if err != nil {
 			return err
 		}
@@ -616,7 +614,7 @@ func (bt *BackTest) setupBot(cfg *config.Config, bot *engine.Engine) error {
 	}
 
 	if !bt.Bot.OrderManager.IsRunning() {
-		bt.Bot.OrderManager, err = engine.SetupOrderManager(
+		bt.Bot.OrderManager, err = SetupOrderManager(
 			bt.Bot.ExchangeManager,
 			bt.Bot.CommunicationsManager,
 			&bt.Bot.ServicesWG,
@@ -670,7 +668,7 @@ func getFees(ctx context.Context, exch gctexchange.IBotExchange, fPair currency.
 // it can also be generated from trade data which will be converted into kline data
 func (bt *BackTest) loadData(cfg *config.Config, exch gctexchange.IBotExchange, fPair currency.Pair, a asset.Item) (*kline.DataFromKline, error) {
 	if exch == nil {
-		return nil, engine.ErrExchangeNotFound
+		return nil, ErrExchangeNotFound
 	}
 	b := exch.GetBase()
 	if cfg.DataSettings.DatabaseData == nil &&
@@ -739,7 +737,7 @@ func (bt *BackTest) loadData(cfg *config.Config, exch gctexchange.IBotExchange, 
 				return nil, err
 			}
 		}
-		bt.Bot.DatabaseManager, err = engine.SetupDatabaseConnectionManager(gctdatabase.DB.GetConfig())
+		bt.Bot.DatabaseManager, err = SetupDatabaseConnectionManager(gctdatabase.DB.GetConfig())
 		if err != nil {
 			return nil, err
 		}
