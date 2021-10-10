@@ -3,7 +3,7 @@ package size
 import (
 	"errors"
 
-	"github.com/thrasher-corp/gocryptotrader/backtester/config"
+	"github.com/thrasher-corp/gocryptotrader/bt_config"
 )
 
 var (

@@ -10,39 +10,38 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/backtester/common"
-	"github.com/thrasher-corp/gocryptotrader/backtester/config"
-	"github.com/thrasher-corp/gocryptotrader/backtester/data"
-	"github.com/thrasher-corp/gocryptotrader/backtester/data/kline"
-	"github.com/thrasher-corp/gocryptotrader/backtester/data/kline/api"
-	"github.com/thrasher-corp/gocryptotrader/backtester/data/kline/csv"
-	"github.com/thrasher-corp/gocryptotrader/backtester/data/kline/database"
-	"github.com/thrasher-corp/gocryptotrader/backtester/data/kline/live"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/eventholder"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/exchange"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/exchange/slippage"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/compliance"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/risk"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/settings"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/size"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies/base"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/statistics"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/fill"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/order"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/signal"
 	"github.com/thrasher-corp/gocryptotrader/backtester/report"
+	config "github.com/thrasher-corp/gocryptotrader/bt_config"
+	portfolio "github.com/thrasher-corp/gocryptotrader/bt_portfolio"
+	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/compliance"
+	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/risk"
+	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/settings"
+	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/size"
+	"github.com/thrasher-corp/gocryptotrader/common"
 	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/currency"
+	"github.com/thrasher-corp/gocryptotrader/data"
+	"github.com/thrasher-corp/gocryptotrader/data/kline"
+	"github.com/thrasher-corp/gocryptotrader/data/kline/api"
+	"github.com/thrasher-corp/gocryptotrader/data/kline/csv"
+	"github.com/thrasher-corp/gocryptotrader/data/kline/database"
+	"github.com/thrasher-corp/gocryptotrader/data/kline/live"
 	gctdatabase "github.com/thrasher-corp/gocryptotrader/database"
 	"github.com/thrasher-corp/gocryptotrader/engine"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes/fill"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes/order"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes/signal"
 	gctexchange "github.com/thrasher-corp/gocryptotrader/exchanges"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	gctkline "github.com/thrasher-corp/gocryptotrader/exchanges/kline"
 	gctorder "github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"github.com/thrasher-corp/gocryptotrader/factors"
 	"github.com/thrasher-corp/gocryptotrader/log"
+	"github.com/thrasher-corp/gocryptotrader/statistics"
+	"github.com/thrasher-corp/gocryptotrader/strategies"
+	"github.com/thrasher-corp/gocryptotrader/strategies/base"
 )
 
 // New returns a new BackTest instance
@@ -74,7 +73,7 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *engine.
 	}
 	bt := New()
 	bt.Datas = &data.HandlerPerCurrency{}
-	bt.EventQueue = &eventholder.Holder{}
+	bt.EventQueue = &EventHolder{}
 	reports := &report.Data{
 		Config:       cfg,
 		TemplatePath: templatePath,

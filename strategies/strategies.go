@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies/base"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies/rsi"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies/trend"
+	"github.com/thrasher-corp/gocryptotrader/strategies/base"
+	"github.com/thrasher-corp/gocryptotrader/strategies/rsi"
+	"github.com/thrasher-corp/gocryptotrader/strategies/trend"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
 

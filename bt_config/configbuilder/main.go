@@ -14,9 +14,9 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/backtester/common"
-	"github.com/thrasher-corp/gocryptotrader/backtester/config"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies"
+	"github.com/thrasher-corp/gocryptotrader/common"
+	"github.com/thrasher-corp/gocryptotrader/bt_config"
+	"github.com/thrasher-corp/gocryptotrader/strategies"
 	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
 	gctconfig "github.com/thrasher-corp/gocryptotrader/config"
 	"github.com/thrasher-corp/gocryptotrader/database"

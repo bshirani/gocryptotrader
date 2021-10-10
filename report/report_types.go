@@ -4,8 +4,8 @@ import (
 	"errors"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/backtester/config"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/statistics"
+	"github.com/thrasher-corp/gocryptotrader/bt_config"
+	"github.com/thrasher-corp/gocryptotrader/statistics"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/kline"

@@ -1,7 +1,7 @@
 package eventholder
 
 import (
-	"github.com/thrasher-corp/gocryptotrader/backtester/common"
+	"github.com/thrasher-corp/gocryptotrader/common"
 )
 
 // Reset returns struct to defaults

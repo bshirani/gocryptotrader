@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/backtester/common"
-	"github.com/thrasher-corp/gocryptotrader/backtester/config"
+	"github.com/thrasher-corp/gocryptotrader/common"
+	"github.com/thrasher-corp/gocryptotrader/bt_config"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/exchange"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/order"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes/order"
 	gctorder "github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
 

@@ -2,8 +2,8 @@ package order
 
 import (
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/backtester/common"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/event"
+	"github.com/thrasher-corp/gocryptotrader/common"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes/event"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
 

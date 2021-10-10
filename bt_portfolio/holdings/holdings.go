@@ -2,8 +2,8 @@ package holdings
 
 import (
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/backtester/common"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/fill"
+	"github.com/thrasher-corp/gocryptotrader/common"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes/fill"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
 

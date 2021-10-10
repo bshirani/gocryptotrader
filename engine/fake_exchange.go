@@ -1,4 +1,4 @@
-package exchange
+package engine
 
 import (
 	"context"
@@ -6,14 +6,14 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/backtester/common"
-	"github.com/thrasher-corp/gocryptotrader/backtester/config"
-	"github.com/thrasher-corp/gocryptotrader/backtester/data"
 	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/exchange/slippage"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/event"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/fill"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventtypes/order"
+	config "github.com/thrasher-corp/gocryptotrader/bt_config"
+	"github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/currency"
+	"github.com/thrasher-corp/gocryptotrader/data"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes/event"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes/fill"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes/order"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	gctorder "github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/orderbook"

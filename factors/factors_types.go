@@ -1,7 +1,7 @@
 package factors
 
 import (
-	"github.com/thrasher-corp/gocryptotrader/backtester/data"
+	"github.com/thrasher-corp/gocryptotrader/data"
 )
 
 type Engine struct {

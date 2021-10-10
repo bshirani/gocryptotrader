@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/backtester/data"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/portfolio/strategies/base"
+	"github.com/thrasher-corp/gocryptotrader/data"
+	"github.com/thrasher-corp/gocryptotrader/strategies/base"
 	"github.com/thrasher-corp/gocryptotrader/common"
 )
 
