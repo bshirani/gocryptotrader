@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/shopspring/decimal"
 	"gocryptotrader/common"
 	"gocryptotrader/data"
 	"gocryptotrader/factors"
+
+	"github.com/shopspring/decimal"
 )
 
 // initialize minute and daily data series here
@@ -22,6 +23,8 @@ func SetupFactorEngine() (*FactorEngine, error) {
 }
 
 func (e *FactorEngine) Start() {
+	// log.Debugln(log.Global, "Factor Engine Starting...")
+	// log.Debugln(log.Global, "perform catchup here")
 }
 
 func (f *FactorEngine) Minute() *factors.MinuteDataFrame {
@@ -34,7 +37,6 @@ func (f *FactorEngine) Daily() *factors.DailyDataFrame {
 
 func (f *FactorEngine) OnBar(d data.Handler) {
 	bar := d.Latest()
-	// fmt.Println("bar", bar, f)
 	f.minute.Close = append(f.minute.Close, bar.ClosePrice())
 	f.minute.Open = append(f.minute.Open, bar.OpenPrice())
 	f.minute.High = append(f.minute.High, bar.HighPrice())

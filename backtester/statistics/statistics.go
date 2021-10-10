@@ -155,7 +155,7 @@ func (s *Statistic) AddComplianceSnapshotForTime(c compliance.Snapshot, e fill.E
 // CalculateAllResults calculates the statistics of all exchange asset pair holdings,
 // orders, ratios and drawdowns
 func (s *Statistic) CalculateAllResults() error {
-	log.Info(log.BackTester, "calculating backtesting results")
+	log.Info(log.TradeManager, "calculating backtesting results")
 	s.PrintAllEventsChronologically()
 	currCount := 0
 	var finalResults []FinalResultsHolder
@@ -184,7 +184,7 @@ func (s *Statistic) CalculateAllResults() error {
 				// }
 				err = stats.CalculateResults()
 				if err != nil {
-					log.Error(log.BackTester, err)
+					log.Error(log.TradeManager, err)
 				}
 				stats.PrintResults(exchangeName, assetItem, pair, false)
 				stats.FinalHoldings = last.Holdings
@@ -222,57 +222,57 @@ func (s *Statistic) CalculateAllResults() error {
 
 // PrintTotalResults outputs all results to the CMD
 func (s *Statistic) PrintTotalResults(isUsingExchangeLevelFunding bool) {
-	log.Info(log.BackTester, "------------------Strategy-----------------------------------")
-	log.Infof(log.BackTester, "Strategy Name: %v", s.StrategyName)
-	log.Infof(log.BackTester, "Strategy Nickname: %v", s.StrategyNickname)
-	log.Infof(log.BackTester, "Strategy Goal: %v\n\n", s.StrategyGoal)
-	// log.Info(log.BackTester, "------------------Funding------------------------------------")
+	log.Info(log.TradeManager, "------------------Strategy-----------------------------------")
+	log.Infof(log.TradeManager, "Strategy Name: %v", s.StrategyName)
+	log.Infof(log.TradeManager, "Strategy Nickname: %v", s.StrategyNickname)
+	log.Infof(log.TradeManager, "Strategy Goal: %v\n\n", s.StrategyGoal)
+	// log.Info(log.TradeManager, "------------------Funding------------------------------------")
 	// for i := range s.Funding.Items {
-	// 	log.Infof(log.BackTester, "Exchange: %v", s.Funding.Items[i].Exchange)
-	// 	log.Infof(log.BackTester, "Asset: %v", s.Funding.Items[i].Asset)
-	// 	log.Infof(log.BackTester, "Currency: %v", s.Funding.Items[i].Currency)
+	// 	log.Infof(log.TradeManager, "Exchange: %v", s.Funding.Items[i].Exchange)
+	// 	log.Infof(log.TradeManager, "Asset: %v", s.Funding.Items[i].Asset)
+	// 	log.Infof(log.TradeManager, "Currency: %v", s.Funding.Items[i].Currency)
 	// 	if !s.Funding.Items[i].PairedWith.IsEmpty() {
-	// 		log.Infof(log.BackTester, "Paired with: %v", s.Funding.Items[i].PairedWith)
+	// 		log.Infof(log.TradeManager, "Paired with: %v", s.Funding.Items[i].PairedWith)
 	// 	}
-	// 	log.Infof(log.BackTester, "Initial funds: %v", s.Funding.Items[i].InitialFunds)
-	// 	log.Infof(log.BackTester, "Initial funds in USD: $%v", s.Funding.Items[i].InitialFundsUSD)
-	// 	log.Infof(log.BackTester, "Final funds: %v", s.Funding.Items[i].FinalFunds)
-	// 	log.Infof(log.BackTester, "Final funds in USD: $%v", s.Funding.Items[i].FinalFundsUSD)
+	// 	log.Infof(log.TradeManager, "Initial funds: %v", s.Funding.Items[i].InitialFunds)
+	// 	log.Infof(log.TradeManager, "Initial funds in USD: $%v", s.Funding.Items[i].InitialFundsUSD)
+	// 	log.Infof(log.TradeManager, "Final funds: %v", s.Funding.Items[i].FinalFunds)
+	// 	log.Infof(log.TradeManager, "Final funds in USD: $%v", s.Funding.Items[i].FinalFundsUSD)
 	// 	if s.Funding.Items[i].InitialFunds.IsZero() {
-	// 		log.Info(log.BackTester, "Difference: ∞%")
+	// 		log.Info(log.TradeManager, "Difference: ∞%")
 	// 	} else {
-	// 		log.Infof(log.BackTester, "Difference: %v%%", s.Funding.Items[i].Difference)
+	// 		log.Infof(log.TradeManager, "Difference: %v%%", s.Funding.Items[i].Difference)
 	// 	}
 	// 	if s.Funding.Items[i].TransferFee.GreaterThan(decimal.Zero) {
-	// 		log.Infof(log.BackTester, "Transfer fee: %v", s.Funding.Items[i].TransferFee)
+	// 		log.Infof(log.TradeManager, "Transfer fee: %v", s.Funding.Items[i].TransferFee)
 	// 	}
-	// 	log.Info(log.BackTester, "")
+	// 	log.Info(log.TradeManager, "")
 	// }
-	// log.Infof(log.BackTester, "Initial total funds in USD: $%v", s.Funding.InitialTotalUSD)
-	// log.Infof(log.BackTester, "Final total funds in USD: $%v", s.Funding.FinalTotalUSD)
-	// log.Infof(log.BackTester, "Difference: %v%%\n", s.Funding.Difference)
+	// log.Infof(log.TradeManager, "Initial total funds in USD: $%v", s.Funding.InitialTotalUSD)
+	// log.Infof(log.TradeManager, "Final total funds in USD: $%v", s.Funding.FinalTotalUSD)
+	// log.Infof(log.TradeManager, "Difference: %v%%\n", s.Funding.Difference)
 
-	log.Info(log.BackTester, "------------------Total Results------------------------------")
-	log.Info(log.BackTester, "------------------Orders-------------------------------------")
-	log.Infof(log.BackTester, "Total buy orders: %v", s.TotalBuyOrders)
-	log.Infof(log.BackTester, "Total sell orders: %v", s.TotalSellOrders)
-	log.Infof(log.BackTester, "Total orders: %v\n\n", s.TotalOrders)
+	log.Info(log.TradeManager, "------------------Total Results------------------------------")
+	log.Info(log.TradeManager, "------------------Orders-------------------------------------")
+	log.Infof(log.TradeManager, "Total buy orders: %v", s.TotalBuyOrders)
+	log.Infof(log.TradeManager, "Total sell orders: %v", s.TotalSellOrders)
+	log.Infof(log.TradeManager, "Total orders: %v\n\n", s.TotalOrders)
 
 	if s.BiggestDrawdown != nil {
-		log.Info(log.BackTester, "------------------Biggest Drawdown-----------------------")
-		log.Infof(log.BackTester, "Exchange: %v Asset: %v Currency: %v", s.BiggestDrawdown.Exchange, s.BiggestDrawdown.Asset, s.BiggestDrawdown.Pair)
-		log.Infof(log.BackTester, "Highest Price: %v", s.BiggestDrawdown.MaxDrawdown.Highest.Price.Round(8))
-		log.Infof(log.BackTester, "Highest Price Time: %v", s.BiggestDrawdown.MaxDrawdown.Highest.Time)
-		log.Infof(log.BackTester, "Lowest Price: %v", s.BiggestDrawdown.MaxDrawdown.Lowest.Price.Round(8))
-		log.Infof(log.BackTester, "Lowest Price Time: %v", s.BiggestDrawdown.MaxDrawdown.Lowest.Time)
-		log.Infof(log.BackTester, "Calculated Drawdown: %v%%", s.BiggestDrawdown.MaxDrawdown.DrawdownPercent.Round(2))
-		log.Infof(log.BackTester, "Difference: %v", s.BiggestDrawdown.MaxDrawdown.Highest.Price.Sub(s.BiggestDrawdown.MaxDrawdown.Lowest.Price).Round(8))
-		log.Infof(log.BackTester, "Drawdown length: %v\n\n", s.BiggestDrawdown.MaxDrawdown.IntervalDuration)
+		log.Info(log.TradeManager, "------------------Biggest Drawdown-----------------------")
+		log.Infof(log.TradeManager, "Exchange: %v Asset: %v Currency: %v", s.BiggestDrawdown.Exchange, s.BiggestDrawdown.Asset, s.BiggestDrawdown.Pair)
+		log.Infof(log.TradeManager, "Highest Price: %v", s.BiggestDrawdown.MaxDrawdown.Highest.Price.Round(8))
+		log.Infof(log.TradeManager, "Highest Price Time: %v", s.BiggestDrawdown.MaxDrawdown.Highest.Time)
+		log.Infof(log.TradeManager, "Lowest Price: %v", s.BiggestDrawdown.MaxDrawdown.Lowest.Price.Round(8))
+		log.Infof(log.TradeManager, "Lowest Price Time: %v", s.BiggestDrawdown.MaxDrawdown.Lowest.Time)
+		log.Infof(log.TradeManager, "Calculated Drawdown: %v%%", s.BiggestDrawdown.MaxDrawdown.DrawdownPercent.Round(2))
+		log.Infof(log.TradeManager, "Difference: %v", s.BiggestDrawdown.MaxDrawdown.Highest.Price.Sub(s.BiggestDrawdown.MaxDrawdown.Lowest.Price).Round(8))
+		log.Infof(log.TradeManager, "Drawdown length: %v\n\n", s.BiggestDrawdown.MaxDrawdown.IntervalDuration)
 	}
 	if s.BestMarketMovement != nil && s.BestStrategyResults != nil {
-		log.Info(log.BackTester, "------------------Orders----------------------------------")
-		log.Infof(log.BackTester, "Best performing market movement: %v %v %v %v%%", s.BestMarketMovement.Exchange, s.BestMarketMovement.Asset, s.BestMarketMovement.Pair, s.BestMarketMovement.MarketMovement.Round(2))
-		log.Infof(log.BackTester, "Best performing strategy movement: %v %v %v %v%%\n\n", s.BestStrategyResults.Exchange, s.BestStrategyResults.Asset, s.BestStrategyResults.Pair, s.BestStrategyResults.StrategyMovement.Round(2))
+		log.Info(log.TradeManager, "------------------Orders----------------------------------")
+		log.Infof(log.TradeManager, "Best performing market movement: %v %v %v %v%%", s.BestMarketMovement.Exchange, s.BestMarketMovement.Asset, s.BestMarketMovement.Pair, s.BestMarketMovement.MarketMovement.Round(2))
+		log.Infof(log.TradeManager, "Best performing strategy movement: %v %v %v %v%%\n\n", s.BestStrategyResults.Exchange, s.BestStrategyResults.Asset, s.BestStrategyResults.Pair, s.BestStrategyResults.StrategyMovement.Round(2))
 	}
 }
 
@@ -329,7 +329,7 @@ func addEventOutputToTime(events []eventOutputHolder, t time.Time, message strin
 // grouped by time to allow a clearer picture of events
 func (s *Statistic) PrintAllEventsChronologically() {
 	var results []eventOutputHolder
-	log.Info(log.BackTester, "------------------Events-------------------------------------")
+	log.Info(log.TradeManager, "------------------Events-------------------------------------")
 	var errs gctcommon.Errors
 	for exch, x := range s.ExchangeAssetPairStatistics {
 		for a, y := range x {
@@ -401,13 +401,13 @@ func (s *Statistic) PrintAllEventsChronologically() {
 	})
 	for i := range results {
 		for j := range results[i].Events {
-			log.Info(log.BackTester, results[i].Events[j])
+			log.Info(log.TradeManager, results[i].Events[j])
 		}
 	}
 	if len(errs) > 0 {
-		log.Info(log.BackTester, "------------------Errors-------------------------------------")
+		log.Info(log.TradeManager, "------------------Errors-------------------------------------")
 		for i := range errs {
-			log.Info(log.BackTester, errs[i].Error())
+			log.Info(log.TradeManager, errs[i].Error())
 		}
 	}
 }

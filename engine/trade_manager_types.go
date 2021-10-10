@@ -19,13 +19,9 @@ var (
 	errNilExchange         = errors.New("nil exchange received")
 )
 
-// BackTest is the main holder of all backtesting functionality
-type BackTest struct {
+// TradeManager is the main holder of all strategy functionality
+type TradeManager struct {
 	Bot                *Engine
-	FactorEngine       *FactorEngine
-	DataHistoryManager *DataHistoryManager
-	hasHandledEvent    bool
-	shutdown           chan struct{}
 	Datas              data.Holder
 	Strategies         []strategies.Handler
 	Portfolio          PortfolioHandler
@@ -33,7 +29,11 @@ type BackTest struct {
 	Statistic          statistics.Handler
 	EventQueue         EventHolder
 	Reports            report.Handler
-	catchup            bool
-	started            int32
 	IsLive             bool
+	Warmup             bool
+	FactorEngine       *FactorEngine       // remove this
+	DataHistoryManager *DataHistoryManager // remove this
+	hasHandledEvent    bool
+	shutdown           chan struct{}
+	started            int32
 }

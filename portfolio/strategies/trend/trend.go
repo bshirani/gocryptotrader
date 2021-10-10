@@ -42,6 +42,8 @@ func (s *Strategy) OnData(d data.Handler, p base.PortfolioHandler, fe base.Facto
 		return nil, err
 	}
 
+	fmt.Println("straegy on bar", es)
+
 	// set defaults
 	es.SetStrategy(Name)
 	es.SetStrategyID(s.ID())

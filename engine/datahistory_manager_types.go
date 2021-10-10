@@ -4,7 +4,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/gofrs/uuid"
 	"gocryptotrader/currency"
 	"gocryptotrader/database"
 	"gocryptotrader/database/repository/datahistoryjob"
@@ -12,6 +11,8 @@ import (
 	"gocryptotrader/exchanges/asset"
 	"gocryptotrader/exchanges/kline"
 	"gocryptotrader/exchanges/trade"
+
+	"github.com/gofrs/uuid"
 )
 
 const dataHistoryManagerName = "data_history_manager"
@@ -104,6 +105,7 @@ var (
 	errNilResult                  = errors.New("received nil job result")
 	errJobMustBeActiveOrPaused    = errors.New("job must be active or paused to be set as a prerequisite")
 	errNilCandles                 = errors.New("received nil candles")
+	errCatchupFailed              = errors.New("nil exchange received")
 
 	// defaultDataHistoryTradeInterval is the default interval size used to verify whether there is any database data
 	// for a trade job

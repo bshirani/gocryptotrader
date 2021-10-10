@@ -12,6 +12,7 @@ import (
 	"gocryptotrader/database/models/sqlite3"
 	"gocryptotrader/database/repository/datahistoryjobresult"
 	"gocryptotrader/log"
+
 	"github.com/thrasher-corp/sqlboiler/boil"
 	"github.com/thrasher-corp/sqlboiler/queries/qm"
 	"github.com/volatiletech/null"
@@ -70,6 +71,7 @@ func (db *DBService) Upsert(jobs ...*DataHistoryJob) error {
 
 // GetByNickName returns a job by its nickname
 func (db *DBService) GetByNickName(nickname string) (*DataHistoryJob, error) {
+	// boil.DebugMode = true
 	switch db.driver {
 	case database.DBSQLite3, database.DBSQLite:
 		return db.getByNicknameSQLite(nickname)

@@ -6,16 +6,16 @@ import (
 	"os"
 	"path/filepath"
 
+	"gocryptotrader/common"
 	"gocryptotrader/config"
 	gctconfig "gocryptotrader/config"
 	"gocryptotrader/engine"
 	gctlog "gocryptotrader/log"
-	"gocryptotrader/signaler"
 )
 
 func main() {
 	var configPath, templatePath, reportOutput string
-	var printLogo, generateReport, darkReport, live bool
+	var printLogo, generateReport, darkReport bool
 	wd, err := os.Getwd()
 	if err != nil {
 		fmt.Printf("Could not get working directory. Error: %v.\n", err)
@@ -40,11 +40,6 @@ func main() {
 			"tpl.gohtml"),
 		"the report template to use")
 	flag.BoolVar(
-		&live,
-		"live",
-		false,
-		"run the system live")
-	flag.BoolVar(
 		&generateReport,
 		"generatereport",
 		false,
@@ -59,7 +54,7 @@ func main() {
 	flag.BoolVar(
 		&printLogo,
 		"printlogo",
-		true,
+		false,
 		"print out the logo to the command line, projected profits likely won't be affected if disabled")
 	flag.BoolVar(
 		&darkReport,
@@ -68,7 +63,7 @@ func main() {
 		"sets the initial rerport to use a dark theme")
 	flag.Parse()
 
-	var bt *engine.BackTest
+	var bt *engine.TradeManager
 	var cfg *config.Config
 	cfg, err = config.ReadConfigFromFile(configPath)
 	if err != nil {
@@ -76,9 +71,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	// if printLogo {
-	// 	fmt.Print(common.ASCIILogo)
-	// }
+	if printLogo {
+		fmt.Print(common.ASCIILogo)
+	}
 
 	path := gctconfig.DefaultFilePath()
 	if cfg.GoCryptoTraderConfigPath != "" {
@@ -117,38 +112,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	if live {
-		fmt.Println("LIVE")
-		e, _ := engine.SetupFactorEngine()
-		bt.FactorEngine = e
-		// run catchup here
-		// fmt.Println("live mode, running catchup")
-		// bt.Catchup()
-		// fmt.Println("catchup completed")
-		go bt.Start()
-		// go func() {
-		// 	err = bt.runLive()
-		// 	if err != nil {
-		// 		fmt.Printf("Could not complete live run. Error: %v.\n", err)
-		// 		os.Exit(-1)
-		// 	}
-		// }()
-		interrupt := signaler.WaitForInterrupt()
-		gctlog.Infof(gctlog.Global, "Captured %v, shutdown requested.\n", interrupt)
-		bt.Stop()
-	} else {
-		fmt.Println("Running  offline backtest")
-		err = bt.Run()
-		if err != nil {
-			fmt.Printf("Could not complete run. Error: %v.\n", err)
-			os.Exit(1)
-		}
-		bt.Stop()
+	err = bt.Run()
+	if err != nil {
+		fmt.Printf("Could not complete run. Error: %v.\n", err)
+		os.Exit(1)
 	}
+	bt.Stop()
 
 	// err = bt.Statistic.CalculateAllResults()
 	// if err != nil {
-	// 	gctlog.Error(gctlog.BackTester, err)
+	// 	gctlog.Error(gctlog.TradeManager, err)
 	// 	os.Exit(1)
 	// }
 
@@ -157,7 +130,7 @@ func main() {
 		bt.Reports.UseDarkMode(darkReport)
 		err = bt.Reports.GenerateReport()
 		if err != nil {
-			gctlog.Error(gctlog.BackTester, err)
+			gctlog.Error(gctlog.TradeManager, err)
 		}
 	}
 }

@@ -10,13 +10,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gofrs/uuid"
 	"gocryptotrader/currency"
 	"gocryptotrader/database"
 	"gocryptotrader/database/drivers"
 	"gocryptotrader/database/repository/exchange"
 	"gocryptotrader/database/testhelpers"
 	"gocryptotrader/exchanges/asset"
+
+	"github.com/gofrs/uuid"
 )
 
 var (

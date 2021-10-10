@@ -3,10 +3,11 @@ package data
 import (
 	"time"
 
-	"github.com/shopspring/decimal"
 	"gocryptotrader/currency"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/exchanges/asset"
+
+	"github.com/shopspring/decimal"
 )
 
 // HandlerPerCurrency stores an event handler per exchange asset pair
@@ -43,7 +44,7 @@ type Loader interface {
 	Load() error
 }
 
-// Streamer interface handles loading, parsing, distributing BackTest data
+// Streamer interface handles loading, parsing, distributing TradeManager data
 type Streamer interface {
 	Next() eventtypes.DataEventHandler
 	GetStream() []eventtypes.DataEventHandler

@@ -1,5 +1,11 @@
 ## Backtest package overview
 
+the trade manager runs the data through for the trades
+it handles live/non live
+
+the portfolio shouldn't know if its live or not
+the only difference is writing to the database, therefore it will have to know or issue a callback to the trade manager
+
 The backtest package is the most important package of the GoCryptoTrader backtester. It is the engine which combines all elements.
 It is responsible for the following functionality
 - Loading settings from a provided config file

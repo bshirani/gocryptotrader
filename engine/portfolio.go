@@ -27,7 +27,7 @@ import (
 
 // Setup creates a portfolio manager instance and sets private fields
 func SetupPortfolio(st []strategies.Handler, bot Engine, sh SizeHandler, r risk.Handler, riskFreeRate decimal.Decimal) (*Portfolio, error) {
-	log.Infof(log.BackTester, "Setting up Portfolio")
+	log.Infof(log.TradeManager, "Setting up Portfolio")
 	if sh == nil {
 		return nil, errSizeManagerUnset
 	}
@@ -47,7 +47,9 @@ func SetupPortfolio(st []strategies.Handler, bot Engine, sh SizeHandler, r risk.
 	p.store.closedTrades = make(map[string][]*livetrade.Details)
 
 	// load open trade from the database
-	log.Infof(log.BackTester, "there are %d trades running", livetrade.Count())
+	// only in live mode do we  do this, so portfolio must be live aware unless it has a callback
+	// handle this in the trademanger
+	log.Infof(log.TradeManager, "there are %d trades running", livetrade.Count())
 
 	// load all pending and open trades from the database into positions and trades
 
@@ -69,6 +71,8 @@ func SetupPortfolio(st []strategies.Handler, bot Engine, sh SizeHandler, r risk.
 	}
 
 	// load existing positions from database
+	// only in live mode do we do this
+	// should handle in trademanager
 	activeTrades, _ := livetrade.Active()
 	for _, t := range activeTrades {
 		p.store.openTrade[t.StrategyID] = &t
@@ -105,7 +109,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	case signal.Enter:
 		ev.SetDirection(gctorder.Buy)
 		if p.bot.IsLive {
-			log.Infof(log.BackTester, "(live mode) insert trade to db")
+			log.Infof(log.TradeManager, "(live mode) insert trade to db")
 			err := livetrade.Insert(livetrade.Details{
 				EntryPrice:    123.0,
 				StopLossPrice: 123.0,
@@ -255,12 +259,12 @@ func (p *Portfolio) OnFill(f fill.Event) (*fill.Fill, error) {
 		err = p.setHoldingsForOffset(&h, false)
 	}
 	if err != nil {
-		log.Error(log.BackTester, err)
+		log.Error(log.TradeManager, err)
 	}
 
 	err = p.addComplianceSnapshot(f)
 	if err != nil {
-		log.Error(log.BackTester, err)
+		log.Error(log.TradeManager, err)
 	}
 
 	direction := f.GetDirection()
@@ -541,6 +545,38 @@ func (p *Portfolio) SetupCurrencySettingsMap(exch string, a asset.Item, cp curre
 // 	return p.openTrade, nil
 // }
 
+// GetLatestHoldings returns the latest holdings after being sorted by time
+func (e *PortfolioSettings) GetLatestHoldings() holdings.Holding {
+	if len(e.HoldingsSnapshots) == 0 {
+		return holdings.Holding{}
+	}
+
+	return e.HoldingsSnapshots[len(e.HoldingsSnapshots)-1]
+}
+
+// GetHoldingsForTime returns the holdings for a time period, or an empty holding if not found
+func (e *PortfolioSettings) GetHoldingsForTime(t time.Time) holdings.Holding {
+	if e.HoldingsSnapshots == nil {
+		// no holdings yet
+		return holdings.Holding{}
+	}
+	for i := len(e.HoldingsSnapshots) - 1; i >= 0; i-- {
+		if e.HoldingsSnapshots[i].Timestamp.Equal(t) {
+			return e.HoldingsSnapshots[i]
+		}
+	}
+	return holdings.Holding{}
+}
+
+// Value returns the total value of the latest holdings
+func (e *PortfolioSettings) Value() decimal.Decimal {
+	latest := e.GetLatestHoldings()
+	if latest.Timestamp.IsZero() {
+		return decimal.Zero
+	}
+	return latest.TotalValue
+}
+
 func (p *Portfolio) recordTrade(ev signal.Event) {
 	direction := ev.GetDirection()
 	if direction == gctorder.Sell || direction == gctorder.Buy {
@@ -676,36 +712,4 @@ func (p *Portfolio) setHoldingsForOffset(h *holdings.Holding, overwriteExisting 
 
 	lookup.HoldingsSnapshots = append(lookup.HoldingsSnapshots, *h)
 	return nil
-}
-
-// GetLatestHoldings returns the latest holdings after being sorted by time
-func (e *PortfolioSettings) GetLatestHoldings() holdings.Holding {
-	if len(e.HoldingsSnapshots) == 0 {
-		return holdings.Holding{}
-	}
-
-	return e.HoldingsSnapshots[len(e.HoldingsSnapshots)-1]
-}
-
-// GetHoldingsForTime returns the holdings for a time period, or an empty holding if not found
-func (e *PortfolioSettings) GetHoldingsForTime(t time.Time) holdings.Holding {
-	if e.HoldingsSnapshots == nil {
-		// no holdings yet
-		return holdings.Holding{}
-	}
-	for i := len(e.HoldingsSnapshots) - 1; i >= 0; i-- {
-		if e.HoldingsSnapshots[i].Timestamp.Equal(t) {
-			return e.HoldingsSnapshots[i]
-		}
-	}
-	return holdings.Holding{}
-}
-
-// Value returns the total value of the latest holdings
-func (e *PortfolioSettings) Value() decimal.Decimal {
-	latest := e.GetLatestHoldings()
-	if latest.Timestamp.IsZero() {
-		return decimal.Zero
-	}
-	return latest.TotalValue
 }

@@ -15,6 +15,7 @@ type Settings struct {
 	CheckParamInteraction bool
 
 	// Core Settings
+	EnableLogging               bool
 	IsLive                      bool
 	EnableDryRun                bool
 	EnableAllExchanges          bool

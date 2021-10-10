@@ -12,13 +12,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gofrs/uuid"
 	"gocryptotrader/database"
 	modelPSQL "gocryptotrader/database/models/postgres"
 	modelSQLite "gocryptotrader/database/models/sqlite3"
 	"gocryptotrader/database/repository"
 	"gocryptotrader/database/repository/exchange"
 	"gocryptotrader/log"
+
+	"github.com/gofrs/uuid"
 	"github.com/thrasher-corp/sqlboiler/boil"
 	"github.com/thrasher-corp/sqlboiler/queries/qm"
 	"github.com/volatiletech/null"

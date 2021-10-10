@@ -16,9 +16,13 @@ import (
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/currency/coinmarketcap"
+	"gocryptotrader/data/kline/database"
+	"gocryptotrader/database/repository/candle"
 	"gocryptotrader/dispatch"
+	"gocryptotrader/eventtypes"
 	exchange "gocryptotrader/exchanges"
 	"gocryptotrader/exchanges/asset"
+	gctkline "gocryptotrader/exchanges/kline"
 	"gocryptotrader/exchanges/request"
 	"gocryptotrader/exchanges/trade"
 	gctscript "gocryptotrader/gctscript/vm"
@@ -33,7 +37,7 @@ type Engine struct {
 	IsLive                  bool
 	Config                  *config.Config
 	apiServer               *apiServerManager
-	Backtest                *BackTest
+	TradeManager            *TradeManager
 	CommunicationsManager   *CommunicationManager
 	connectionManager       *connectionManager
 	currencyPairSyncer      *syncManager
@@ -454,20 +458,6 @@ func (bot *Engine) Start() error {
 		}
 	}
 
-	if bot.Settings.EnableDataHistoryManager {
-		if bot.dataHistoryManager == nil {
-			bot.dataHistoryManager, err = SetupDataHistoryManager(bot.ExchangeManager, bot.DatabaseManager, &bot.Config.DataHistoryManager)
-			if err != nil {
-				gctlog.Errorf(gctlog.Global, "database history manager unable to setup: %s", err)
-			} else {
-				err = bot.dataHistoryManager.Start()
-				if err != nil {
-					gctlog.Errorf(gctlog.Global, "database history manager unable to start: %s", err)
-				}
-			}
-		}
-	}
-
 	bot.WithdrawManager, err = SetupWithdrawManager(bot.ExchangeManager, bot.portfolioManager, bot.Settings.EnableDryRun)
 	if err != nil {
 		return err
@@ -611,28 +601,124 @@ func (bot *Engine) Start() error {
 	wd, err := os.Getwd()
 	configPath := filepath.Join(wd, "config", "examples", "trend.strat")
 	btcfg, err := config.ReadConfigFromFile(configPath)
-	bot.Backtest, err = NewBacktestFromConfig(btcfg, "xx", "xx", bot, true)
+	bot.TradeManager, err = NewBacktestFromConfig(btcfg, "xx", "xx", bot, true)
 	if err != nil {
 		fmt.Printf("Could not setup backtester from config. Error: %v.\n", err)
 		os.Exit(1)
 	}
 
-	// catchup data
-	err = bot.catchup()
-	if err == nil {
-		fmt.Printf("could not catchup data", err)
+	if bot.Settings.EnableDataHistoryManager {
+		if bot.dataHistoryManager == nil {
+			bot.dataHistoryManager, err = SetupDataHistoryManager(bot.ExchangeManager, bot.DatabaseManager, &bot.Config.DataHistoryManager)
+			if err != nil {
+				gctlog.Errorf(gctlog.Global, "database history manager unable to setup: %s", err)
+			} else {
+				err = bot.dataHistoryManager.Start()
+				if err != nil {
+					gctlog.Errorf(gctlog.Global, "database history manager unable to start: %s", err)
+				}
+			}
+		}
+	}
+
+	// catchup data history to database
+	// can move this to trade manager setup
+	_, err = bot.dataHistoryManager.Catchup(bot.TradeManager.Exchange.GetAllCurrencySettings())
+	if err != nil {
+		gctlog.Infoln(gctlog.Global, "history catchup failed") // move logger
 		os.Exit(1)
 	}
 
-	e, _ := SetupFactorEngine()
-	bot.Backtest.FactorEngine = e
-	bot.Backtest.Start()
+	bot.dataHistoryManager.RunJobs()
 
-	return nil
-}
+	cs, err := bot.TradeManager.Exchange.GetAllCurrencySettings()
+	x := cs[0]
+	start := time.Now().Add(time.Minute * -10)
+	end := time.Now()
+	// start, err := time.Parse(common.SimpleTimeFormat, startDate)
+	// end, err := time.Parse(common.SimpleTimeFormat, endDate)
 
-func (bot *Engine) catchup() error {
-	fmt.Println("catchup")
+	retCandle, err := candle.Series(x.ExchangeName,
+		x.CurrencyPair.Base.String(), x.CurrencyPair.Quote.String(),
+		int64(60), string(x.AssetType), start, end)
+
+	dbData, _ := database.LoadData(
+		start,
+		end,
+		time.Minute,
+		x.ExchangeName,
+		eventtypes.DataCandle,
+		x.CurrencyPair,
+		x.AssetType)
+
+	dbData.Load()
+
+	dbData.Item.RemoveDuplicates()
+	dbData.Item.SortCandlesByTimestamp(false)
+	dbData.RangeHolder, err = gctkline.CalculateCandleDateRanges(
+		start,
+		end,
+		gctkline.Interval(time.Minute),
+		0,
+	)
+
+	bot.TradeManager.Datas.SetDataForCurrency(
+		x.ExchangeName,
+		x.AssetType,
+		x.CurrencyPair,
+		dbData)
+
+	// run the trade manager to warm up factor engine
+
+	gctlog.Debugln(gctlog.Global, "Warming up factor engine...")
+	bot.TradeManager.Warmup = true
+	bot.TradeManager.Run()
+	bot.TradeManager.Warmup = false
+
+	// return database.LoadData(
+	// 	cfg.DataSettings.DatabaseData.StartDate,
+	// 	cfg.DataSettings.DatabaseData.EndDate,
+	// 	cfg.DataSettings.Interval,
+	// 	strings.ToLower(name),
+	// 	eventtypes.CandleData,
+	// 	fPair,
+	// 	a)
+	lt := retCandle.Candles[len(retCandle.Candles)-1].Timestamp
+	t := time.Now().UTC()
+	t1 := time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location())
+	t2 := time.Date(lt.Year(), lt.Month(), lt.Day(), lt.Hour(), lt.Minute(), 0, 0, t.Location())
+
+	if t2 != t1 {
+		fmt.Println("sync time is off", t1, t2)
+		os.Exit(1)
+	}
+
+	if len(retCandle.Candles) == 0 {
+		fmt.Println("no candles returned")
+		os.Exit(1)
+	}
+
+	// // wait for catchup jobs to finish
+	// for {
+	// 	time.Sleep(1 * time.Second)
+	// 	job, err := bot.dataHistoryManager.GetByNickname(names[0], false)
+	// 	fmt.Println("JBO STATUS", job.Status, err)
+	// 	if err != nil {
+	// 		os.Exit(1)
+	// 	}
+	// }
+
+	// catchup factor engine from database to current time
+	fe, _ := SetupFactorEngine()
+	bot.TradeManager.FactorEngine = fe
+
+	// for _, x := range dbData {
+	// 	fe.OnBar(x)
+	// }
+	//
+	// finally ready to start trade manager
+	bot.TradeManager.Start()
+
 	return nil
 }
 
@@ -720,8 +806,8 @@ func (bot *Engine) Stop() {
 		}
 	}
 
-	if bot.Backtest.IsRunning() {
-		if err := bot.Backtest.Stop(); err != nil {
+	if bot.TradeManager.IsRunning() {
+		if err := bot.TradeManager.Stop(); err != nil {
 			gctlog.Errorf(gctlog.Global, "bt unable to stop. Error: %v", err)
 		}
 	}
@@ -916,8 +1002,6 @@ func (bot *Engine) LoadExchange(name string, wg *sync.WaitGroup) error {
 		exch.Start(&tempWG)
 		tempWG.Wait()
 	}
-	gctlog.Infoln(gctlog.Global, "done loading exchange")
-
 	return nil
 }
 
@@ -972,7 +1056,7 @@ func (bot *Engine) SetupExchanges() error {
 
 	for x := range configs {
 		if !configs[x].Enabled && !bot.Settings.EnableAllExchanges {
-			gctlog.Debugf(gctlog.ExchangeSys, "%s: Exchange support: Disabled\n", configs[x].Name)
+			// gctlog.Debugf(gctlog.ExchangeSys, "%s: Exchange support: Disabled\n", configs[x].Name)
 			continue
 		}
 		wg.Add(1)

@@ -10,7 +10,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/gofrs/uuid"
 	"gocryptotrader/common"
 	gctmath "gocryptotrader/common/math"
 	"gocryptotrader/config"
@@ -18,11 +17,14 @@ import (
 	"gocryptotrader/database/repository/candle"
 	"gocryptotrader/database/repository/datahistoryjob"
 	"gocryptotrader/database/repository/datahistoryjobresult"
+	"gocryptotrader/eventtypes"
 	exchange "gocryptotrader/exchanges"
 	"gocryptotrader/exchanges/asset"
 	"gocryptotrader/exchanges/kline"
 	"gocryptotrader/exchanges/trade"
 	"gocryptotrader/log"
+
+	"github.com/gofrs/uuid"
 )
 
 // SetupDataHistoryManager creates a data history manager subsystem
@@ -59,7 +61,7 @@ func SetupDataHistoryManager(em iExchangeManager, dcm iDatabaseConnectionManager
 		exchangeManager:            em,
 		databaseConnectionInstance: db,
 		shutdown:                   make(chan struct{}),
-		interval:                   time.NewTicker(cfg.CheckInterval),
+		interval:                   time.NewTicker(time.Minute),
 		jobDB:                      dhj,
 		jobResultDB:                dhjr,
 		maxJobsPerCycle:            cfg.MaxJobsPerCycle,
@@ -70,6 +72,55 @@ func SetupDataHistoryManager(em iExchangeManager, dcm iDatabaseConnectionManager
 		candleLoader:               kline.LoadFromDatabase,
 		candleSaver:                kline.StoreInDatabase,
 	}, nil
+}
+
+func (m *DataHistoryManager) Catchup(pairSettings []ExchangeAssetPairSettings, err error) ([]string, error) {
+	// takes in a list of currency settings
+	// for each currency setting, perform catchup
+	// what are the currencies traded from what excahnges
+
+	names := make([]string, 10)
+
+	for i, p := range pairSettings { // by exchange
+		log.Debugf(log.DataHistory, "request datahistory catchup for %s %v %v", p.ExchangeName, p.AssetType, p.CurrencyPair)
+
+		start := time.Now().Add(time.Minute * -10)
+		end := time.Now()
+		err = common.StartEndTimeCheck(start, end)
+		if err != nil {
+			return names, err
+		}
+
+		name := fmt.Sprintf("catchupjob-%d", time.Now().Unix())
+		names[i] = name
+		job := DataHistoryJob{
+			Nickname:               name,
+			Exchange:               p.ExchangeName,
+			Asset:                  p.AssetType,
+			Pair:                   p.CurrencyPair,
+			StartDate:              start,
+			EndDate:                end,
+			Interval:               kline.Interval(60000000000),
+			RunBatchLimit:          10,
+			RequestSizeLimit:       100,
+			DataType:               dataHistoryDataType(eventtypes.DataCandle),
+			MaxRetryAttempts:       10,
+			Status:                 dataHistoryStatusActive,
+			OverwriteExistingData:  true,
+			ConversionInterval:     60000000000,
+			DecimalPlaceComparison: 3,
+		}
+
+		log.Debugf(log.DataHistory, "Creating history job for ")
+		err = m.UpsertJob(&job, true)
+		if err != nil {
+			log.Errorln(log.DataHistory, "data history error: ", err)
+			return names, err
+			// return errCatchupFailed
+		}
+	}
+
+	return names, nil
 }
 
 // Start runs the subsystem
@@ -227,7 +278,7 @@ func (m *DataHistoryManager) run() {
 			case <-m.interval.C:
 				if m.databaseConnectionInstance.IsConnected() {
 					go func() {
-						if err := m.runJobs(); err != nil {
+						if err := m.RunJobs(); err != nil {
 							log.Error(log.DataHistory, err)
 						}
 					}()
@@ -237,7 +288,7 @@ func (m *DataHistoryManager) run() {
 	}()
 }
 
-func (m *DataHistoryManager) runJobs() error {
+func (m *DataHistoryManager) RunJobs() error {
 	if m == nil {
 		return ErrNilSubsystem
 	}
@@ -279,6 +330,7 @@ func (m *DataHistoryManager) runJobs() error {
 // runJob processes an active job, retrieves candle or trade data
 // for a given date range and saves all results to the database
 func (m *DataHistoryManager) runJob(job *DataHistoryJob) error {
+
 	if m == nil {
 		return ErrNilSubsystem
 	}
@@ -1176,6 +1228,7 @@ func (m *DataHistoryManager) validateJob(job *DataHistoryJob) error {
 	if !job.DataType.Valid() {
 		return fmt.Errorf("job %s %w: %s", job.Nickname, errInvalidDataHistoryDataType, job.DataType)
 	}
+
 	exchangeName := job.Exchange
 	if job.DataType == dataHistoryCandleValidationSecondarySourceType {
 		if job.SecondaryExchangeSource == "" {
@@ -1194,6 +1247,7 @@ func (m *DataHistoryManager) validateJob(job *DataHistoryJob) error {
 	if err != nil {
 		return fmt.Errorf("job %s exchange %s asset %s currency %s %w", job.Nickname, job.Exchange, job.Asset, job.Pair, err)
 	}
+
 	if !pairs.Contains(job.Pair, false) {
 		return fmt.Errorf("job %s exchange %s asset %s currency %s %w", job.Nickname, job.Exchange, job.Asset, job.Pair, errCurrencyNotEnabled)
 	}
