@@ -106,7 +106,7 @@ func main() {
 		fmt.Printf("Could not read config. Error: %v.\n", err)
 		os.Exit(1)
 	}
-	bt, err = engine.NewBacktestFromConfig(cfg, templatePath, reportOutput, bot, false)
+	bt, err = engine.NewTradeManagerFromConfig(cfg, templatePath, reportOutput, bot, false)
 	if err != nil {
 		fmt.Printf("Could not setup backtester from config. Error: %v.\n", err)
 		os.Exit(1)

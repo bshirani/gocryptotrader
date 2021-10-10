@@ -34,7 +34,6 @@ import (
 // Engine contains configuration, portfolio manager, exchange & ticker data and is the
 // overarching type across this code base.
 type Engine struct {
-	IsLive                  bool
 	Config                  *config.Config
 	apiServer               *apiServerManager
 	TradeManager            *TradeManager
@@ -290,7 +289,6 @@ func PrintSettings(s *Settings) {
 	gctlog.Debugf(gctlog.Global, "\t Enable exchange websocket support: %v", s.EnableExchangeWebsocketSupport)
 	gctlog.Debugf(gctlog.Global, "\t Enable exchange verbose mode: %v", s.EnableExchangeVerbose)
 	gctlog.Debugf(gctlog.Global, "\t Enable exchange HTTP rate limiter: %v", s.EnableExchangeHTTPRateLimiter)
-	gctlog.Debugf(gctlog.Global, "\t Is Live: %v", s.IsLive)
 	gctlog.Debugf(gctlog.Global, "\t Enable exchange HTTP debugging: %v", s.EnableExchangeHTTPDebugging)
 	gctlog.Debugf(gctlog.Global, "\t Max HTTP request jobs: %v", s.MaxHTTPRequestJobsLimit)
 	gctlog.Debugf(gctlog.Global, "\t HTTP request max retry attempts: %v", s.RequestMaxRetryAttempts)
@@ -601,7 +599,7 @@ func (bot *Engine) Start() error {
 	wd, err := os.Getwd()
 	configPath := filepath.Join(wd, "config", "examples", "trend.strat")
 	btcfg, err := config.ReadConfigFromFile(configPath)
-	bot.TradeManager, err = NewBacktestFromConfig(btcfg, "xx", "xx", bot, true)
+	bot.TradeManager, err = NewTradeManagerFromConfig(btcfg, "xx", "xx", bot, true)
 	if err != nil {
 		fmt.Printf("Could not setup backtester from config. Error: %v.\n", err)
 		os.Exit(1)
@@ -686,8 +684,6 @@ func (bot *Engine) Start() error {
 
 	// run warm up factor engine
 	gctlog.Debugln(gctlog.Global, "Warming up factor engine...")
-	fe, _ := SetupFactorEngine()
-	bot.TradeManager.FactorEngine = fe
 	bot.TradeManager.Run()
 
 	// reset data source to be API
@@ -870,9 +866,6 @@ func (bot *Engine) LoadExchange(name string, wg *sync.WaitGroup) error {
 	if err != nil {
 		return err
 	}
-
-	// TODO wrong place for this, should be in config
-	bot.IsLive = bot.Settings.IsLive
 
 	if bot.Settings.EnableAllPairs &&
 		exchCfg.CurrencyPairs != nil {

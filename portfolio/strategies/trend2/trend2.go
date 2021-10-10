@@ -1,4 +1,4 @@
-package trend
+package trend2
 
 import (
 	"fmt"
@@ -14,8 +14,8 @@ import (
 
 const (
 	// Name is the strategy name
-	Name        = "trend"
-	description = `trend exploit`
+	Name        = "trend2"
+	description = `trend exploit 2`
 )
 
 type Strategy struct {

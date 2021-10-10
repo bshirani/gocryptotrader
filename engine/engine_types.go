@@ -16,7 +16,6 @@ type Settings struct {
 
 	// Core Settings
 	EnableLogging               bool
-	IsLive                      bool
 	EnableDryRun                bool
 	EnableAllExchanges          bool
 	EnableAllPairs              bool

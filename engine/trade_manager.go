@@ -42,7 +42,7 @@ import (
 )
 
 // New returns a new TradeManager instance
-func NewBacktest() *TradeManager {
+func NewTradeManager() *TradeManager {
 	return &TradeManager{
 		shutdown: make(chan struct{}),
 	}
@@ -61,7 +61,7 @@ func (tm *TradeManager) Reset() {
 }
 
 // NewFromConfig takes a strategy config and configures a backtester variable to run
-func NewBacktestFromConfig(cfg *config.Config, templatePath, output string, bot *Engine, live bool) (*TradeManager, error) {
+func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, bot *Engine, live bool) (*TradeManager, error) {
 	log.Infoln(log.TradeManager, "Backtest: Loading config...")
 	if cfg == nil {
 		return nil, errNilConfig
@@ -69,7 +69,7 @@ func NewBacktestFromConfig(cfg *config.Config, templatePath, output string, bot 
 	if bot == nil {
 		return nil, errNilBot
 	}
-	tm := NewBacktest()
+	tm := NewTradeManager()
 	tm.cfg = *cfg
 	tm.IsLive = live
 	tm.Warmup = live
@@ -186,12 +186,25 @@ func NewBacktestFromConfig(cfg *config.Config, templatePath, output string, bot 
 	s.SetID("trend_BUY")
 	slit = append(slit, s)
 
+	s, err = strategies.LoadStrategyByName("trend2", "SELL", false)
+	if err != nil {
+		fmt.Println("error", err)
+	}
+	s.SetID("trend2_SELL")
+	s.SetDefaults()
+	slit = append(slit, s)
+
+	s, err = strategies.LoadStrategyByName("trend2", "BUY", false)
+	s.SetDefaults()
+	s.SetID("trend2_BUY")
+	slit = append(slit, s)
+
 	tm.Strategies = slit
 
 	log.Infof(log.TradeManager, "Loaded %d strategies\n", len(tm.Strategies))
 
 	var p *Portfolio
-	p, err = SetupPortfolio(tm.Strategies, *bot, sizeManager, portfolioRisk, cfg.StatisticSettings.RiskFreeRate)
+	p, err = SetupPortfolio(tm.Strategies, bot, sizeManager, portfolioRisk, cfg.StatisticSettings.RiskFreeRate, tm.IsLive)
 	if err != nil {
 		return nil, err
 	}
@@ -229,7 +242,9 @@ func NewBacktestFromConfig(cfg *config.Config, templatePath, output string, bot 
 
 	// cfg.PrintSetting()
 
-	log.Infoln(log.TradeManager, "finished loading config")
+	fe, _ := SetupFactorEngine()
+	tm.FactorEngine = fe
+
 	return tm, nil
 }
 
@@ -873,7 +888,6 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 
 	// HANDLE warmup MODE
 	if !tm.Warmup {
-		fmt.Println("appending event")
 		var s signal.Event
 		for _, strategy := range tm.Strategies {
 			s, err = strategy.OnData(d, tm.Portfolio, tm.FactorEngine)
