@@ -623,6 +623,7 @@ func (bot *Engine) Start() error {
 
 	// catchup data history to database
 	// can move this to trade manager setup
+
 	_, err = bot.dataHistoryManager.Catchup(bot.TradeManager.Exchange.GetAllCurrencySettings())
 	if err != nil {
 		gctlog.Infoln(gctlog.Global, "history catchup failed") // move logger
@@ -631,13 +632,11 @@ func (bot *Engine) Start() error {
 
 	bot.dataHistoryManager.RunJobs()
 
+	// get latest bars for warmup
 	cs, err := bot.TradeManager.Exchange.GetAllCurrencySettings()
 	x := cs[0]
 	start := time.Now().Add(time.Minute * -10)
 	end := time.Now()
-	// start, err := time.Parse(common.SimpleTimeFormat, startDate)
-	// end, err := time.Parse(common.SimpleTimeFormat, endDate)
-
 	retCandle, err := candle.Series(x.ExchangeName,
 		x.CurrencyPair.Base.String(), x.CurrencyPair.Quote.String(),
 		int64(60), string(x.AssetType), start, end)
@@ -668,21 +667,7 @@ func (bot *Engine) Start() error {
 		x.CurrencyPair,
 		dbData)
 
-	// run the trade manager to warm up factor engine
-
-	gctlog.Debugln(gctlog.Global, "Warming up factor engine...")
-	bot.TradeManager.Warmup = true
-	bot.TradeManager.Run()
-	bot.TradeManager.Warmup = false
-
-	// return database.LoadData(
-	// 	cfg.DataSettings.DatabaseData.StartDate,
-	// 	cfg.DataSettings.DatabaseData.EndDate,
-	// 	cfg.DataSettings.Interval,
-	// 	strings.ToLower(name),
-	// 	eventtypes.CandleData,
-	// 	fPair,
-	// 	a)
+	//validate sync time
 	lt := retCandle.Candles[len(retCandle.Candles)-1].Timestamp
 	t := time.Now().UTC()
 	t1 := time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location())
@@ -697,26 +682,18 @@ func (bot *Engine) Start() error {
 		fmt.Println("no candles returned")
 		os.Exit(1)
 	}
+	// end check
 
-	// // wait for catchup jobs to finish
-	// for {
-	// 	time.Sleep(1 * time.Second)
-	// 	job, err := bot.dataHistoryManager.GetByNickname(names[0], false)
-	// 	fmt.Println("JBO STATUS", job.Status, err)
-	// 	if err != nil {
-	// 		os.Exit(1)
-	// 	}
-	// }
-
-	// catchup factor engine from database to current time
+	// run warm up factor engine
+	gctlog.Debugln(gctlog.Global, "Warming up factor engine...")
 	fe, _ := SetupFactorEngine()
 	bot.TradeManager.FactorEngine = fe
+	bot.TradeManager.Run()
 
-	// for _, x := range dbData {
-	// 	fe.OnBar(x)
-	// }
-	//
-	// finally ready to start trade manager
+	// reset data source to be API
+	bot.TradeManager.ReloadData()
+
+	// start trade manager
 	bot.TradeManager.Start()
 
 	return nil

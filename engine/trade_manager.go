@@ -70,7 +70,11 @@ func NewBacktestFromConfig(cfg *config.Config, templatePath, output string, bot 
 		return nil, errNilBot
 	}
 	tm := NewBacktest()
+	tm.cfg = *cfg
+	fmt.Println("setting isLive", live)
 	tm.IsLive = live
+	tm.Warmup = live
+
 	tm.Datas = &data.HandlerPerCurrency{}
 	tm.EventQueue = &Holder{}
 	reports := &report.Data{
@@ -200,23 +204,6 @@ func NewBacktestFromConfig(cfg *config.Config, templatePath, output string, bot 
 		}
 	}
 
-	// TODO move to engine
-	tm.FactorEngine, err = SetupFactorEngine()
-	if err != nil {
-		return nil, err
-	}
-
-	// stats := &statistics.Statistic{
-	// 	StrategyName:                s.Name(),
-	// 	StrategyNickname:            cfg.Nickname,
-	// 	StrategyDescription:         tm.Strategy.Description(),
-	// 	StrategyGoal:                cfg.Goal,
-	// 	ExchangeAssetPairStatistics: make(map[string]map[asset.Item]map[currency.Pair]*currencystatistics.CurrencyStatistic),
-	// 	RiskFreeRate:                cfg.StatisticSettings.RiskFreeRate,
-	// }
-	// tm.Statistic = stats
-	// reports.Statistics = stats
-
 	e, err := tm.setupExchangeSettings(cfg)
 	if err != nil {
 		return nil, err
@@ -281,6 +268,7 @@ dataLoadingIssue:
 			tm.hasHandledEvent = true
 		}
 	}
+	tm.Warmup = false
 
 	return nil
 }
@@ -591,6 +579,29 @@ func getFees(ctx context.Context, exch gctexchange.IBotExchange, fPair currency.
 	return decimal.NewFromFloat(fMakerFee), decimal.NewFromFloat(fTakerFee)
 }
 
+func (tm *TradeManager) ReloadData() error {
+	cfg := &tm.cfg
+	for i := range cfg.CurrencySettings {
+		exch, pair, a, err := tm.loadExchangePairAssetBase(
+			cfg.CurrencySettings[i].ExchangeName,
+			cfg.CurrencySettings[i].Base,
+			cfg.CurrencySettings[i].Quote,
+			cfg.CurrencySettings[i].Asset)
+		if err != nil {
+			return err
+		}
+
+		exchangeName := strings.ToLower(exch.GetName())
+		tm.Datas.Setup()
+		klineData, err := tm.loadData(cfg, exch, pair, a)
+		if err != nil {
+			return err
+		}
+		tm.Datas.SetDataForCurrency(exchangeName, a, pair, klineData)
+	}
+	return nil
+}
+
 // loadData will create kline data from the sources defined in start config files. It can exist from databases, csv or API endpoints
 // it can also be generated from trade data which will be converted into kline data
 func (tm *TradeManager) loadData(cfg *config.Config, exch gctexchange.IBotExchange, fPair currency.Pair, a asset.Item) (*kline.DataFromKline, error) {
@@ -651,7 +662,8 @@ func (tm *TradeManager) loadData(cfg *config.Config, exch gctexchange.IBotExchan
 		if len(summary) > 0 {
 			log.Warnf(log.TradeManager, "%v", summary)
 		}
-	case !tm.IsLive:
+	// we want to do this when the live is warming up so it doesnt fail
+	case tm.Warmup || !tm.IsLive:
 		log.Infof(log.TradeManager, "loading db data for %v %v %v...\n", exch.GetName(), a, fPair)
 		if cfg.DataSettings.DatabaseData.InclusiveEndDate {
 			cfg.DataSettings.DatabaseData.EndDate = cfg.DataSettings.DatabaseData.EndDate.Add(cfg.DataSettings.Interval)
@@ -700,7 +712,7 @@ func (tm *TradeManager) loadData(cfg *config.Config, exch gctexchange.IBotExchan
 		if len(summary) > 0 {
 			log.Warnf(log.TradeManager, "%v", summary)
 		}
-	case tm.IsLive:
+	case tm.IsLive && !tm.Warmup:
 		log.Infof(log.TradeManager, "loading live data for %v %v %v...\n", exch.GetName(), a, fPair)
 		if len(cfg.CurrencySettings) > 1 {
 			return nil, errors.New("live data simulation only supports one currency")
@@ -862,6 +874,7 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 
 	// HANDLE warmup MODE
 	if !tm.Warmup {
+		fmt.Println("appending event")
 		var s signal.Event
 		for _, strategy := range tm.Strategies {
 			s, err = strategy.OnData(d, tm.Portfolio, tm.FactorEngine)
@@ -997,6 +1010,7 @@ func (tm *TradeManager) processFillEvent(ev fill.Event) {
 // loadLiveDataLoop is an incomplete function to continuously retrieve exchange data on a loop
 // from live. Its purpose is to be able to perform strategy analysis against current data
 func (tm *TradeManager) loadLiveDataLoop(resp *kline.DataFromKline, cfg *config.Config, exch gctexchange.IBotExchange, fPair currency.Pair, a asset.Item, dataType int64) {
+	fmt.Println("livedataloop")
 	startDate := time.Now().Add(-cfg.DataSettings.Interval * 2)
 	dates, err := gctkline.CalculateCandleDateRanges(
 		startDate,

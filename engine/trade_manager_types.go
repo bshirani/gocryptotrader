@@ -3,6 +3,7 @@ package engine
 import (
 	"errors"
 	"gocryptotrader/backtester/statistics"
+	"gocryptotrader/config"
 	"gocryptotrader/data"
 	"gocryptotrader/portfolio/report"
 	"gocryptotrader/portfolio/strategies"
@@ -35,5 +36,6 @@ type TradeManager struct {
 	DataHistoryManager *DataHistoryManager // remove this
 	hasHandledEvent    bool
 	shutdown           chan struct{}
+	cfg                config.Config
 	started            int32
 }
