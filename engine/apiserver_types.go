@@ -7,16 +7,16 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
-	"github.com/thrasher-corp/gocryptotrader/config"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/account"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/orderbook"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/ticker"
+	"gocryptotrader/config"
+	"gocryptotrader/exchanges/account"
+	"gocryptotrader/exchanges/orderbook"
+	"gocryptotrader/exchanges/ticker"
 )
 
 // Const vars for websocket
 const (
 	WebsocketResponseSuccess = "OK"
-	restIndexResponse        = "<html>GoCryptoTrader RESTful interface. For the web GUI, please visit the <a href=https://github.com/thrasher-corp/gocryptotrader/blob/master/web/README.md>web GUI readme.</a></html>"
+	restIndexResponse        = "<html>GoCryptoTrader RESTful interface. For the web GUI, please visit the <a href=https://gocryptotrader/blob/master/web/README.md>web GUI readme.</a></html>"
 	WebsocketName            = "websocket_rpc"
 )
 

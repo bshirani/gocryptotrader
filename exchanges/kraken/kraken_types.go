@@ -3,9 +3,9 @@ package kraken
 import (
 	"time"
 
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/stream"
+	"gocryptotrader/currency"
+	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchanges/stream"
 )
 
 const (

@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/thrasher-corp/gocryptotrader/config"
-	"github.com/thrasher-corp/gocryptotrader/core"
+	"gocryptotrader/config"
+	"gocryptotrader/core"
 	"github.com/urfave/cli/v2"
 )
 

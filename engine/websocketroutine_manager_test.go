@@ -5,13 +5,13 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/thrasher-corp/gocryptotrader/config"
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/orderbook"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/stream"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/ticker"
+	"gocryptotrader/config"
+	"gocryptotrader/currency"
+	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchanges/orderbook"
+	"gocryptotrader/exchanges/stream"
+	"gocryptotrader/exchanges/ticker"
 )
 
 func TestWebsocketRoutineManagerSetup(t *testing.T) {

@@ -10,13 +10,13 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
-	"github.com/thrasher-corp/gocryptotrader/common"
-	"github.com/thrasher-corp/gocryptotrader/communications/base"
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
-	"github.com/thrasher-corp/gocryptotrader/log"
+	"gocryptotrader/common"
+	"gocryptotrader/communications/base"
+	"gocryptotrader/currency"
+	exchange "gocryptotrader/exchanges"
+	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchanges/order"
+	"gocryptotrader/log"
 )
 
 // SetupOrderManager will boot up the OrderManager

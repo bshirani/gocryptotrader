@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/validate"
+	"gocryptotrader/currency"
+	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchanges/validate"
 )
 
 var errValidationCheckFailed = errors.New("validation check failed")

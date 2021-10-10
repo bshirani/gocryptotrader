@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
+	"gocryptotrader/exchanges/order"
 )
 
 var errTypeAssert = errors.New("type assertion failed")

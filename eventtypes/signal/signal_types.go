@@ -2,9 +2,9 @@ package signal
 
 import (
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/event"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
+	"gocryptotrader/eventtypes"
+	"gocryptotrader/eventtypes/event"
+	"gocryptotrader/exchanges/order"
 )
 
 type Decision string

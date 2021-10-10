@@ -10,9 +10,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/thrasher-corp/gocryptotrader/config"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/mock"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/sharedtestvalues"
+	"gocryptotrader/config"
+	"gocryptotrader/exchanges/mock"
+	"gocryptotrader/exchanges/sharedtestvalues"
 )
 
 const mockfile = "../../testdata/http_mock/bitstamp/bitstamp.json"

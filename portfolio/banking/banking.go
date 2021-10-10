@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/thrasher-corp/gocryptotrader/common"
-	"github.com/thrasher-corp/gocryptotrader/currency"
+	"gocryptotrader/common"
+	"gocryptotrader/currency"
 )
 
 // SetAccounts safely overwrites bank account slice

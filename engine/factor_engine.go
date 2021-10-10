@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/common"
-	"github.com/thrasher-corp/gocryptotrader/data"
-	"github.com/thrasher-corp/gocryptotrader/factors"
+	"gocryptotrader/common"
+	"gocryptotrader/data"
+	"gocryptotrader/factors"
 )
 
 // initialize minute and daily data series here

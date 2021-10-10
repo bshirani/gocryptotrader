@@ -1,6 +1,6 @@
 package engine
 
-import "github.com/thrasher-corp/gocryptotrader/eventtypes"
+import "gocryptotrader/eventtypes"
 
 // Holder contains the event queue for backtester processing
 type Holder struct {

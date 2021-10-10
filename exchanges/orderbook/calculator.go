@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"sort"
 
-	math "github.com/thrasher-corp/gocryptotrader/common/math"
-	"github.com/thrasher-corp/gocryptotrader/log"
+	math "gocryptotrader/common/math"
+	"gocryptotrader/log"
 )
 
 // WhaleBombResult returns the whale bomb result

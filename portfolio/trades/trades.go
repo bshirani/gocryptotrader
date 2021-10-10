@@ -2,9 +2,9 @@ package trades
 
 import (
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/signal"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
+	"gocryptotrader/eventtypes"
+	"gocryptotrader/eventtypes/signal"
+	"gocryptotrader/exchanges/order"
 )
 
 // Create makes a Trade struct to track total values of strategy holdings over the course of a backtesting run

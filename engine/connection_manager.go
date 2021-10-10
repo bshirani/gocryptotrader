@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"sync/atomic"
 
-	"github.com/thrasher-corp/gocryptotrader/config"
-	"github.com/thrasher-corp/gocryptotrader/connchecker"
-	"github.com/thrasher-corp/gocryptotrader/log"
+	"gocryptotrader/config"
+	"gocryptotrader/connchecker"
+	"gocryptotrader/log"
 )
 
 // ConnectionManagerName is an exported subsystem name

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/thrasher-corp/gocryptotrader/currency"
+	"gocryptotrader/currency"
 )
 
 func TestWsCurrencyMap(t *testing.T) {

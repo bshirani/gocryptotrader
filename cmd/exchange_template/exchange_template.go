@@ -11,10 +11,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/thrasher-corp/gocryptotrader/common"
-	"github.com/thrasher-corp/gocryptotrader/config"
-	"github.com/thrasher-corp/gocryptotrader/core"
-	"github.com/thrasher-corp/gocryptotrader/currency"
+	"gocryptotrader/common"
+	"gocryptotrader/config"
+	"gocryptotrader/core"
+	"gocryptotrader/currency"
 )
 
 const (

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/thrasher-corp/gocryptotrader/currency"
+	"gocryptotrader/currency"
 )
 
 // vars related to the deposit address helpers

@@ -13,8 +13,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/thrasher-corp/gocryptotrader/common/crypto"
-	"github.com/thrasher-corp/gocryptotrader/common/file"
+	"gocryptotrader/common/crypto"
+	"gocryptotrader/common/file"
 )
 
 // HTTPResponse defines expected response from the end point including request

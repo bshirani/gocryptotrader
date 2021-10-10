@@ -3,7 +3,7 @@ package engine
 import (
 	"errors"
 
-	"github.com/thrasher-corp/gocryptotrader/config"
+	"gocryptotrader/config"
 )
 
 var (

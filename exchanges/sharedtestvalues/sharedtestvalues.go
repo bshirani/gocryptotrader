@@ -3,7 +3,7 @@ package sharedtestvalues
 import (
 	"time"
 
-	"github.com/thrasher-corp/gocryptotrader/exchanges/stream"
+	"gocryptotrader/exchanges/stream"
 )
 
 // This package is only to be referenced in test files

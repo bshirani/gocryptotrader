@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/thrasher-corp/gocryptotrader/common/convert"
+	"gocryptotrader/common/convert"
 )
 
 func TestMain(m *testing.M) {

@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/thrasher-corp/gocryptotrader/database"
-	"github.com/thrasher-corp/gocryptotrader/database/drivers"
-	"github.com/thrasher-corp/gocryptotrader/database/testhelpers"
+	"gocryptotrader/database"
+	"gocryptotrader/database/drivers"
+	"gocryptotrader/database/testhelpers"
 	"github.com/volatiletech/null"
 )
 

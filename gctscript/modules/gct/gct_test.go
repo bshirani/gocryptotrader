@@ -8,9 +8,9 @@ import (
 	"time"
 
 	objects "github.com/d5/tengo/v2"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
-	"github.com/thrasher-corp/gocryptotrader/gctscript/modules"
-	"github.com/thrasher-corp/gocryptotrader/gctscript/wrappers/validator"
+	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/gctscript/modules"
+	"gocryptotrader/gctscript/wrappers/validator"
 )
 
 var (

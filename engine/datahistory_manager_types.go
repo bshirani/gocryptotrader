@@ -5,13 +5,13 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/database"
-	"github.com/thrasher-corp/gocryptotrader/database/repository/datahistoryjob"
-	"github.com/thrasher-corp/gocryptotrader/database/repository/datahistoryjobresult"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/kline"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/trade"
+	"gocryptotrader/currency"
+	"gocryptotrader/database"
+	"gocryptotrader/database/repository/datahistoryjob"
+	"gocryptotrader/database/repository/datahistoryjobresult"
+	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchanges/kline"
+	"gocryptotrader/exchanges/trade"
 )
 
 const dataHistoryManagerName = "data_history_manager"

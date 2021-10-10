@@ -3,7 +3,7 @@ package ftx
 import (
 	"time"
 
-	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
+	"gocryptotrader/exchanges/order"
 )
 
 // MarginFundingData stores borrowing/lending data for margin trading

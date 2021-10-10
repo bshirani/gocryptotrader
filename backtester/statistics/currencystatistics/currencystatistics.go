@@ -7,14 +7,14 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
-	gctmath "github.com/thrasher-corp/gocryptotrader/common/math"
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
-	gctkline "github.com/thrasher-corp/gocryptotrader/exchanges/kline"
-	gctorder "github.com/thrasher-corp/gocryptotrader/exchanges/order"
-	"github.com/thrasher-corp/gocryptotrader/log"
+	gctcommon "gocryptotrader/common"
+	gctmath "gocryptotrader/common/math"
+	"gocryptotrader/currency"
+	"gocryptotrader/eventtypes"
+	"gocryptotrader/exchanges/asset"
+	gctkline "gocryptotrader/exchanges/kline"
+	gctorder "gocryptotrader/exchanges/order"
+	"gocryptotrader/log"
 )
 
 // CalculateResults calculates all statistics for the exchange, asset, currency pair

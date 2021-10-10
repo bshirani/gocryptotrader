@@ -6,15 +6,15 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/communications/base"
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/database"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/protocol"
-	gctscript "github.com/thrasher-corp/gocryptotrader/gctscript/vm"
-	"github.com/thrasher-corp/gocryptotrader/log"
-	"github.com/thrasher-corp/gocryptotrader/portfolio"
-	"github.com/thrasher-corp/gocryptotrader/portfolio/banking"
+	"gocryptotrader/communications/base"
+	"gocryptotrader/currency"
+	"gocryptotrader/database"
+	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchanges/protocol"
+	gctscript "gocryptotrader/gctscript/vm"
+	"gocryptotrader/log"
+	"gocryptotrader/portfolio"
+	"gocryptotrader/portfolio/banking"
 )
 
 // Constants declared here are filename strings and test strings

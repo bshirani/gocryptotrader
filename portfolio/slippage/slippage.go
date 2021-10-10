@@ -4,8 +4,8 @@ import (
 	"math/rand"
 
 	"github.com/shopspring/decimal"
-	gctorder "github.com/thrasher-corp/gocryptotrader/exchanges/order"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/orderbook"
+	gctorder "gocryptotrader/exchanges/order"
+	"gocryptotrader/exchanges/orderbook"
 )
 
 // EstimateSlippagePercentage takes in an int range of numbers

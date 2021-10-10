@@ -2,9 +2,9 @@ package holdings
 
 import (
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/fill"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
+	"gocryptotrader/eventtypes"
+	"gocryptotrader/eventtypes/fill"
+	"gocryptotrader/exchanges/order"
 )
 
 // Create makes a Holding struct to track total values of strategy holdings over the course of a backtesting run

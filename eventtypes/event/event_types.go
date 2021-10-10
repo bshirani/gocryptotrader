@@ -3,9 +3,9 @@ package event
 import (
 	"time"
 
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/kline"
+	"gocryptotrader/currency"
+	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchanges/kline"
 )
 
 // Base is the underlying event across all actions that occur for the backtester

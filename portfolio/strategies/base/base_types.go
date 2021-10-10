@@ -3,12 +3,12 @@ package base
 import (
 	"errors"
 
-	"github.com/thrasher-corp/gocryptotrader/data"
-	"github.com/thrasher-corp/gocryptotrader/database/repository/livetrade"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes"
-	"github.com/thrasher-corp/gocryptotrader/factors"
-	"github.com/thrasher-corp/gocryptotrader/portfolio/holdings"
-	"github.com/thrasher-corp/gocryptotrader/portfolio/positions"
+	"gocryptotrader/data"
+	"gocryptotrader/database/repository/livetrade"
+	"gocryptotrader/eventtypes"
+	"gocryptotrader/factors"
+	"gocryptotrader/portfolio/holdings"
+	"gocryptotrader/portfolio/positions"
 )
 
 var (

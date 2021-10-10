@@ -7,8 +7,8 @@ import (
 
 	objects "github.com/d5/tengo/v2"
 	"github.com/thrasher-corp/gct-ta/indicators"
-	"github.com/thrasher-corp/gocryptotrader/gctscript/modules"
-	"github.com/thrasher-corp/gocryptotrader/gctscript/wrappers/validator"
+	"gocryptotrader/gctscript/modules"
+	"gocryptotrader/gctscript/wrappers/validator"
 )
 
 // SMAModule simple moving average indicator commands

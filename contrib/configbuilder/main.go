@@ -14,16 +14,16 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/common"
-	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
-	"github.com/thrasher-corp/gocryptotrader/config"
-	gctconfig "github.com/thrasher-corp/gocryptotrader/config"
-	"github.com/thrasher-corp/gocryptotrader/database"
-	dbPSQL "github.com/thrasher-corp/gocryptotrader/database/drivers/postgres"
-	dbsqlite3 "github.com/thrasher-corp/gocryptotrader/database/drivers/sqlite3"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
-	gctkline "github.com/thrasher-corp/gocryptotrader/exchanges/kline"
-	"github.com/thrasher-corp/gocryptotrader/portfolio/strategies"
+	"gocryptotrader/common"
+	gctcommon "gocryptotrader/common"
+	"gocryptotrader/config"
+	gctconfig "gocryptotrader/config"
+	"gocryptotrader/database"
+	dbPSQL "gocryptotrader/database/drivers/postgres"
+	dbsqlite3 "gocryptotrader/database/drivers/sqlite3"
+	"gocryptotrader/exchanges/asset"
+	gctkline "gocryptotrader/exchanges/kline"
+	"gocryptotrader/portfolio/strategies"
 )
 
 const (

@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/bitstamp"
+	"gocryptotrader/currency"
+	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchanges/bitstamp"
 )
 
 func TestSimulate(t *testing.T) {

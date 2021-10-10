@@ -7,13 +7,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/thrasher-corp/gocryptotrader/common/convert"
-	"github.com/thrasher-corp/gocryptotrader/config"
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/protocol"
+	"gocryptotrader/common/convert"
+	"gocryptotrader/config"
+	"gocryptotrader/currency"
+	exchange "gocryptotrader/exchanges"
+	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchanges/protocol"
 )
 
 // omfExchange aka ordermanager fake exchange overrides exchange functions

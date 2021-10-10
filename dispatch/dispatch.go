@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
-	"github.com/thrasher-corp/gocryptotrader/log"
+	"gocryptotrader/log"
 )
 
 // ErrNotRunning defines an error when the dispatcher is not running

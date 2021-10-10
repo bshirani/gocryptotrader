@@ -4,15 +4,15 @@ import (
 	"context"
 	"errors"
 
-	"github.com/thrasher-corp/gocryptotrader/communications/base"
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/database"
-	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/orderbook"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/ticker"
-	"github.com/thrasher-corp/gocryptotrader/portfolio"
+	"gocryptotrader/communications/base"
+	"gocryptotrader/currency"
+	"gocryptotrader/database"
+	exchange "gocryptotrader/exchanges"
+	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchanges/orderbook"
+	"gocryptotrader/exchanges/ticker"
+	"gocryptotrader/portfolio"
 )
 
 const (

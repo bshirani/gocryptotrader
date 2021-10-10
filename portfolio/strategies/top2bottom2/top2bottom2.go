@@ -8,13 +8,13 @@
 //
 // 	"github.com/shopspring/decimal"
 // 	"github.com/thrasher-corp/gct-ta/indicators"
-// 	"github.com/thrasher-corp/gocryptotrader/common"
-// 	"github.com/thrasher-corp/gocryptotrader/data"
-// 	"github.com/thrasher-corp/gocryptotrader/factors"
-// 	"github.com/thrasher-corp/gocryptotrader/strategies/base"
-// 	"github.com/thrasher-corp/gocryptotrader/eventtypes/signal"
-// 	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
-// 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
+// 	"gocryptotrader/common"
+// 	"gocryptotrader/data"
+// 	"gocryptotrader/factors"
+// 	"gocryptotrader/strategies/base"
+// 	"gocryptotrader/eventtypes/signal"
+// 	gctcommon "gocryptotrader/common"
+// 	"gocryptotrader/exchanges/order"
 // )
 //
 // const (

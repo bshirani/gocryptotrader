@@ -5,13 +5,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/data/kline"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
-	gctkline "github.com/thrasher-corp/gocryptotrader/exchanges/kline"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/trade"
-	"github.com/thrasher-corp/gocryptotrader/log"
+	"gocryptotrader/currency"
+	"gocryptotrader/data/kline"
+	"gocryptotrader/eventtypes"
+	"gocryptotrader/exchanges/asset"
+	gctkline "gocryptotrader/exchanges/kline"
+	"gocryptotrader/exchanges/trade"
+	"gocryptotrader/log"
 )
 
 // LoadData retrieves data from an existing database using GoCryptoTrader's database handling implementation

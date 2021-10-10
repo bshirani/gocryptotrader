@@ -6,12 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes"
-	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/kline"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/trade"
+	"gocryptotrader/currency"
+	"gocryptotrader/eventtypes"
+	exchange "gocryptotrader/exchanges"
+	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchanges/kline"
+	"gocryptotrader/exchanges/trade"
 )
 
 // LoadData retrieves data from a GoCryptoTrader exchange wrapper which calls the exchange's API for the latest interval

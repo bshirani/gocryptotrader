@@ -6,17 +6,17 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/config"
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/data"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/event"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/fill"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/order"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
-	gctorder "github.com/thrasher-corp/gocryptotrader/exchanges/order"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/orderbook"
-	"github.com/thrasher-corp/gocryptotrader/portfolio/slippage"
+	"gocryptotrader/config"
+	"gocryptotrader/currency"
+	"gocryptotrader/data"
+	"gocryptotrader/eventtypes"
+	"gocryptotrader/eventtypes/event"
+	"gocryptotrader/eventtypes/fill"
+	"gocryptotrader/eventtypes/order"
+	"gocryptotrader/exchanges/asset"
+	gctorder "gocryptotrader/exchanges/order"
+	"gocryptotrader/exchanges/orderbook"
+	"gocryptotrader/portfolio/slippage"
 )
 
 // Reset returns the exchange to initial settings

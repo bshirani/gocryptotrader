@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/thrasher-corp/gocryptotrader/config"
+	"gocryptotrader/config"
 )
 
 func TestSetupAPIServerManager(t *testing.T) {

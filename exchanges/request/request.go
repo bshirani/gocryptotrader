@@ -13,10 +13,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/thrasher-corp/gocryptotrader/common/timedmutex"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/mock"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/nonce"
-	"github.com/thrasher-corp/gocryptotrader/log"
+	"gocryptotrader/common/timedmutex"
+	"gocryptotrader/exchanges/mock"
+	"gocryptotrader/exchanges/nonce"
+	"gocryptotrader/log"
 )
 
 var (

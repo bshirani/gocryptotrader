@@ -12,19 +12,19 @@ import (
 	"sync"
 	"time"
 
-	"github.com/thrasher-corp/gocryptotrader/common"
-	"github.com/thrasher-corp/gocryptotrader/config"
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/currency/coinmarketcap"
-	"github.com/thrasher-corp/gocryptotrader/dispatch"
-	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/request"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/trade"
-	gctscript "github.com/thrasher-corp/gocryptotrader/gctscript/vm"
-	gctlog "github.com/thrasher-corp/gocryptotrader/log"
-	"github.com/thrasher-corp/gocryptotrader/portfolio/withdraw"
-	"github.com/thrasher-corp/gocryptotrader/utils"
+	"gocryptotrader/common"
+	"gocryptotrader/config"
+	"gocryptotrader/currency"
+	"gocryptotrader/currency/coinmarketcap"
+	"gocryptotrader/dispatch"
+	exchange "gocryptotrader/exchanges"
+	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchanges/request"
+	"gocryptotrader/exchanges/trade"
+	gctscript "gocryptotrader/gctscript/vm"
+	gctlog "gocryptotrader/log"
+	"gocryptotrader/portfolio/withdraw"
+	"gocryptotrader/utils"
 )
 
 // Engine contains configuration, portfolio manager, exchange & ticker data and is the
@@ -33,7 +33,7 @@ type Engine struct {
 	IsLive                  bool
 	Config                  *config.Config
 	apiServer               *apiServerManager
-	Backtester              *BackTest
+	Backtest                *BackTest
 	CommunicationsManager   *CommunicationManager
 	connectionManager       *connectionManager
 	currencyPairSyncer      *syncManager
@@ -403,6 +403,7 @@ func (bot *Engine) Start() error {
 			}
 		}
 	}
+
 	if bot.Settings.EnableCoinmarketcapAnalysis ||
 		bot.Settings.EnableCurrencyConverter ||
 		bot.Settings.EnableCurrencyLayer ||
@@ -606,6 +607,14 @@ func (bot *Engine) Start() error {
 			}
 		}
 	}
+
+	bot.Backtest, err = NewBacktestFromConfig(bot.Config, "xx", "xx", bot)
+	bot.Backtest.Start()
+	if err != nil {
+		fmt.Printf("Could not setup backtester from config. Error: %v.\n", err)
+		os.Exit(1)
+	}
+
 	return nil
 }
 
@@ -692,6 +701,11 @@ func (bot *Engine) Stop() {
 				err)
 		}
 	}
+	if bot.Backtest.IsRunning() {
+		if err := bot.Backtest.Stop(); err != nil {
+			gctlog.Errorf(gctlog.Global, "GCTScript manager unable to stop. Error: %v", err)
+		}
+	}
 
 	if bot.Settings.EnableCoinmarketcapAnalysis ||
 		bot.Settings.EnableCurrencyConverter ||
@@ -769,11 +783,13 @@ func (bot *Engine) LoadExchange(name string, wg *sync.WaitGroup) error {
 		exch.SetDefaults()
 		localWG.Done()
 	}()
+
 	exchCfg, err := bot.Config.GetExchangeConfig(name)
 	if err != nil {
 		return err
 	}
 
+	// TODO wrong place for this, should be in config
 	bot.IsLive = bot.Settings.IsLive
 
 	if bot.Settings.EnableAllPairs &&
@@ -836,6 +852,8 @@ func (bot *Engine) LoadExchange(name string, wg *sync.WaitGroup) error {
 		}
 	}
 
+	gctlog.Infoln(gctlog.Global, "setting up exchanges")
+
 	exchCfg.Enabled = true
 	err = exch.Setup(exchCfg)
 	if err != nil {
@@ -843,6 +861,7 @@ func (bot *Engine) LoadExchange(name string, wg *sync.WaitGroup) error {
 		return err
 	}
 
+	gctlog.Infoln(gctlog.Global, "validating credentials")
 	bot.ExchangeManager.Add(exch)
 	base := exch.GetBase()
 	if base.API.AuthenticatedSupport ||
@@ -870,6 +889,7 @@ func (bot *Engine) LoadExchange(name string, wg *sync.WaitGroup) error {
 		}
 	}
 
+	gctlog.Infof(gctlog.Global, "starting exchange...")
 	if wg != nil {
 		exch.Start(wg)
 	} else {
@@ -877,6 +897,7 @@ func (bot *Engine) LoadExchange(name string, wg *sync.WaitGroup) error {
 		exch.Start(&tempWG)
 		tempWG.Wait()
 	}
+	gctlog.Infoln(gctlog.Global, "done loading exchange")
 
 	return nil
 }

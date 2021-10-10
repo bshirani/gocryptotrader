@@ -16,11 +16,11 @@ import (
 	"strconv"
 	"strings"
 
-	gctcrypto "github.com/thrasher-corp/gocryptotrader/common/crypto"
-	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/request"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/stream"
+	gctcrypto "gocryptotrader/common/crypto"
+	exchange "gocryptotrader/exchanges"
+	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchanges/request"
+	"gocryptotrader/exchanges/stream"
 )
 
 // Lbank is the overarching type across this package

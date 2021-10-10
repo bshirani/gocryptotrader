@@ -8,11 +8,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/engine"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/kline"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
+	"gocryptotrader/currency"
+	"gocryptotrader/engine"
+	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchanges/kline"
+	"gocryptotrader/exchanges/order"
 )
 
 // change these if you wish to test another exchange and/or currency pair

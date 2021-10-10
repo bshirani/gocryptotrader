@@ -4,12 +4,12 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/fill"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/order"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/signal"
-	"github.com/thrasher-corp/gocryptotrader/portfolio/compliance"
-	"github.com/thrasher-corp/gocryptotrader/portfolio/holdings"
+	"gocryptotrader/eventtypes"
+	"gocryptotrader/eventtypes/fill"
+	"gocryptotrader/eventtypes/order"
+	"gocryptotrader/eventtypes/signal"
+	"gocryptotrader/portfolio/compliance"
+	"gocryptotrader/portfolio/holdings"
 )
 
 // CurrencyStats defines what is expected in order to

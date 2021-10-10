@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/thrasher-corp/gocryptotrader/config"
+	"gocryptotrader/config"
 )
 
 func TestSetupNTPManager(t *testing.T) {

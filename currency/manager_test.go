@@ -3,8 +3,8 @@ package currency
 import (
 	"testing"
 
-	"github.com/thrasher-corp/gocryptotrader/common/convert"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
+	"gocryptotrader/common/convert"
+	"gocryptotrader/exchanges/asset"
 )
 
 var p PairsManager

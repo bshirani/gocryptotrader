@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/kline"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
-	"github.com/thrasher-corp/gocryptotrader/log"
+	"gocryptotrader/eventtypes"
+	"gocryptotrader/exchanges/kline"
+	"gocryptotrader/exchanges/order"
+	"gocryptotrader/log"
 )
 
 // GenerateReport sends final data from statistics to a template

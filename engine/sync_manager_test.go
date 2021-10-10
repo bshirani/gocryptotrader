@@ -5,11 +5,11 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/thrasher-corp/gocryptotrader/common"
-	"github.com/thrasher-corp/gocryptotrader/config"
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/orderbook"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/ticker"
+	"gocryptotrader/common"
+	"gocryptotrader/config"
+	"gocryptotrader/currency"
+	"gocryptotrader/exchanges/orderbook"
+	"gocryptotrader/exchanges/ticker"
 )
 
 func TestSetupSyncManager(t *testing.T) {

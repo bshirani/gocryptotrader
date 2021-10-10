@@ -6,17 +6,17 @@ import (
 	"sort"
 	"time"
 
-	"github.com/thrasher-corp/gocryptotrader/backtester/statistics/currencystatistics"
-	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/fill"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/order"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/signal"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
-	"github.com/thrasher-corp/gocryptotrader/log"
-	"github.com/thrasher-corp/gocryptotrader/portfolio/compliance"
-	"github.com/thrasher-corp/gocryptotrader/portfolio/holdings"
+	"gocryptotrader/backtester/statistics/currencystatistics"
+	gctcommon "gocryptotrader/common"
+	"gocryptotrader/currency"
+	"gocryptotrader/eventtypes"
+	"gocryptotrader/eventtypes/fill"
+	"gocryptotrader/eventtypes/order"
+	"gocryptotrader/eventtypes/signal"
+	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/log"
+	"gocryptotrader/portfolio/compliance"
+	"gocryptotrader/portfolio/holdings"
 )
 
 // Reset returns the struct to defaults

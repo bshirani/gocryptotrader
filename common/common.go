@@ -18,7 +18,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/thrasher-corp/gocryptotrader/log"
+	"gocryptotrader/log"
 )
 
 const (

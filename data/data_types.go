@@ -4,9 +4,9 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
+	"gocryptotrader/currency"
+	"gocryptotrader/eventtypes"
+	"gocryptotrader/exchanges/asset"
 )
 
 // HandlerPerCurrency stores an event handler per exchange asset pair

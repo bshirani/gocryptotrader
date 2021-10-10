@@ -6,11 +6,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/thrasher-corp/gocryptotrader/config"
-	gctconfig "github.com/thrasher-corp/gocryptotrader/config"
-	"github.com/thrasher-corp/gocryptotrader/engine"
-	gctlog "github.com/thrasher-corp/gocryptotrader/log"
-	"github.com/thrasher-corp/gocryptotrader/signaler"
+	"gocryptotrader/config"
+	gctconfig "gocryptotrader/config"
+	"gocryptotrader/engine"
+	gctlog "gocryptotrader/log"
+	"gocryptotrader/signaler"
 )
 
 func main() {
@@ -26,6 +26,7 @@ func main() {
 		"configpath",
 		filepath.Join(
 			wd,
+			"..",
 			"config",
 			"examples",
 			"trend.strat"),
@@ -71,7 +72,7 @@ func main() {
 	var cfg *config.Config
 	cfg, err = config.ReadConfigFromFile(configPath)
 	if err != nil {
-		fmt.Printf("Could not read config. Error: %v.\n", err)
+		fmt.Printf("Could not read config. Error: %v. Path: %s\n", err, configPath)
 		os.Exit(1)
 	}
 
@@ -90,15 +91,15 @@ func main() {
 		"tickersync":         false,
 		"orderbooksync":      false,
 		"tradesync":          false,
-		"ratelimiter":        true,
+		"ratelimiter":        false,
 		"ordermanager":       true,
-		"enablecommsrelayer": true,
+		"enablecommsrelayer": false,
 	}
 	bot, err = engine.NewFromSettings(&engine.Settings{
 		ConfigFile:                    path,
 		EnableDryRun:                  true,
-		EnableAllPairs:                true,
-		EnableExchangeHTTPRateLimiter: true,
+		EnableAllPairs:                false,
+		EnableExchangeHTTPRateLimiter: false,
 		IsLive:                        live,
 	}, flags)
 	if err != nil {
@@ -111,24 +112,14 @@ func main() {
 		fmt.Printf("Could not read config. Error: %v.\n", err)
 		os.Exit(1)
 	}
-	bt, err = backtest.NewFromConfig(cfg, templatePath, reportOutput, bot)
+	bt, err = engine.NewBacktestFromConfig(cfg, templatePath, reportOutput, bot)
 	if err != nil {
 		fmt.Printf("Could not setup backtester from config. Error: %v.\n", err)
 		os.Exit(1)
 	}
 
-	bt.DataHistoryManager, err = engine.SetupDataHistoryManager(bot.ExchangeManager, bot.DatabaseManager, &bot.Config.DataHistoryManager)
-	if err != nil {
-		gctlog.Errorf(gctlog.Global, "database history manager unable to setup: %s", err)
-	} else {
-		err = bt.DataHistoryManager.Start()
-		if err != nil {
-			gctlog.Errorf(gctlog.Global, "database history manager unable to start: %s", err)
-		}
-	}
-
 	if live {
-		e, _ := SetupFactorEngine()
+		e, _ := engine.SetupFactorEngine()
 		bt.FactorEngine = e
 		// run catchup here
 		// fmt.Println("live mode, running catchup")

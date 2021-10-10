@@ -5,9 +5,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/thrasher-corp/gocryptotrader/common/convert"
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
+	"gocryptotrader/common/convert"
+	"gocryptotrader/currency"
+	"gocryptotrader/exchanges/asset"
 )
 
 func TestNewCurrencyStates(t *testing.T) {

@@ -2,7 +2,7 @@ package kline
 
 import (
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/event"
+	"gocryptotrader/eventtypes/event"
 )
 
 // Kline holds kline data and an event to be processed as

@@ -7,8 +7,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/thrasher-corp/gocryptotrader/config"
-	"github.com/thrasher-corp/gocryptotrader/log"
+	"gocryptotrader/config"
+	"gocryptotrader/log"
 )
 
 // setupNTPManager creates a new NTP manager

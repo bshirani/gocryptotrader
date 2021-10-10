@@ -2,8 +2,8 @@ package order
 
 import (
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
+	"gocryptotrader/currency"
+	"gocryptotrader/exchanges/order"
 )
 
 // IsOrder returns whether the event is an order event

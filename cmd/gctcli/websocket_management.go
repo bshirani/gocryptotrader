@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/thrasher-corp/gocryptotrader/gctrpc"
+	"gocryptotrader/gctrpc"
 	"github.com/urfave/cli/v2"
 )
 

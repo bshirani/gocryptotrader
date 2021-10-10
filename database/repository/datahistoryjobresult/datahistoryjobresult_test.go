@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
-	"github.com/thrasher-corp/gocryptotrader/database"
-	"github.com/thrasher-corp/gocryptotrader/database/drivers"
-	"github.com/thrasher-corp/gocryptotrader/database/repository/exchange"
-	"github.com/thrasher-corp/gocryptotrader/database/testhelpers"
+	"gocryptotrader/database"
+	"gocryptotrader/database/drivers"
+	"gocryptotrader/database/repository/exchange"
+	"gocryptotrader/database/testhelpers"
 )
 
 var (

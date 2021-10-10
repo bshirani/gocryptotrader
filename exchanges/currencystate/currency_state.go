@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/thrasher-corp/gocryptotrader/common/convert"
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/alert"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
+	"gocryptotrader/common/convert"
+	"gocryptotrader/currency"
+	"gocryptotrader/exchanges/alert"
+	"gocryptotrader/exchanges/asset"
 )
 
 var (

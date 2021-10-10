@@ -4,11 +4,11 @@ import (
 	"fmt"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/order"
-	"github.com/thrasher-corp/gocryptotrader/portfolio/compliance"
-	"github.com/thrasher-corp/gocryptotrader/portfolio/holdings"
+	"gocryptotrader/currency"
+	"gocryptotrader/eventtypes"
+	"gocryptotrader/eventtypes/order"
+	"gocryptotrader/portfolio/compliance"
+	"gocryptotrader/portfolio/holdings"
 )
 
 // EvaluateOrder goes through a standard list of evaluations to make to ensure that

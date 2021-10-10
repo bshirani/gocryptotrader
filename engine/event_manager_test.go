@@ -7,8 +7,8 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
+	"gocryptotrader/currency"
+	"gocryptotrader/exchanges/asset"
 )
 
 func TestSetupEventManager(t *testing.T) {

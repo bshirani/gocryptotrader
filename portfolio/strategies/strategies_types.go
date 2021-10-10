@@ -2,11 +2,11 @@ package strategies
 
 import (
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/data"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/signal"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
-	"github.com/thrasher-corp/gocryptotrader/portfolio/strategies/base"
+	"gocryptotrader/currency"
+	"gocryptotrader/data"
+	"gocryptotrader/eventtypes/signal"
+	"gocryptotrader/exchanges/order"
+	"gocryptotrader/portfolio/strategies/base"
 )
 
 // Handler defines all functions required to run strategies against data events

@@ -3,11 +3,11 @@ package engine
 import (
 	"errors"
 
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/data"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/fill"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/order"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
+	"gocryptotrader/currency"
+	"gocryptotrader/data"
+	"gocryptotrader/eventtypes/fill"
+	"gocryptotrader/eventtypes/order"
+	"gocryptotrader/exchanges/asset"
 )
 
 var (

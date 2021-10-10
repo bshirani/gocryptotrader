@@ -10,10 +10,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/thrasher-corp/gocryptotrader/common"
-	"github.com/thrasher-corp/gocryptotrader/common/crypto"
-	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/request"
+	"gocryptotrader/common"
+	"gocryptotrader/common/crypto"
+	exchange "gocryptotrader/exchanges"
+	"gocryptotrader/exchanges/request"
 )
 
 const (

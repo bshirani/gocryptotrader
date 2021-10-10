@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/config"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/order"
-	gctorder "github.com/thrasher-corp/gocryptotrader/exchanges/order"
+	"gocryptotrader/config"
+	"gocryptotrader/eventtypes"
+	"gocryptotrader/eventtypes/order"
+	gctorder "gocryptotrader/exchanges/order"
 )
 
 // SizeOrder is responsible for ensuring that the order size is within config limits

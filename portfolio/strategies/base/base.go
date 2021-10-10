@@ -2,12 +2,12 @@ package base
 
 import (
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/data"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/event"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/signal"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
+	"gocryptotrader/currency"
+	"gocryptotrader/data"
+	"gocryptotrader/eventtypes"
+	"gocryptotrader/eventtypes/event"
+	"gocryptotrader/eventtypes/signal"
+	"gocryptotrader/exchanges/order"
 )
 
 // Strategy is base implementation of the Handler interface

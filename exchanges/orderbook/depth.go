@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
-	"github.com/thrasher-corp/gocryptotrader/dispatch"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/alert"
-	"github.com/thrasher-corp/gocryptotrader/log"
+	"gocryptotrader/dispatch"
+	"gocryptotrader/exchanges/alert"
+	"gocryptotrader/log"
 )
 
 // Depth defines a linked list of orderbook items

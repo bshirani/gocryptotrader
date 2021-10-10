@@ -7,35 +7,38 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync/atomic"
 	"time"
 
+	"gocryptotrader/backtester/statistics"
+	gctcommon "gocryptotrader/common"
+	"gocryptotrader/config"
+	"gocryptotrader/currency"
+	"gocryptotrader/data"
+	"gocryptotrader/data/kline"
+	"gocryptotrader/data/kline/api"
+	"gocryptotrader/data/kline/csv"
+	"gocryptotrader/data/kline/database"
+	"gocryptotrader/data/kline/live"
+	gctdatabase "gocryptotrader/database"
+	"gocryptotrader/eventtypes"
+	"gocryptotrader/eventtypes/fill"
+	"gocryptotrader/eventtypes/order"
+	"gocryptotrader/eventtypes/signal"
+	gctexchange "gocryptotrader/exchanges"
+	"gocryptotrader/exchanges/asset"
+	gctkline "gocryptotrader/exchanges/kline"
+	gctorder "gocryptotrader/exchanges/order"
+	"gocryptotrader/log"
+	"gocryptotrader/portfolio/report"
+	"gocryptotrader/portfolio/risk"
+	"gocryptotrader/portfolio/slippage"
+	"gocryptotrader/portfolio/strategies"
+	"gocryptotrader/portfolio/strategies/base"
+
+	"gocryptotrader/portfolio/compliance"
+
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/backtester/statistics"
-	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
-	"github.com/thrasher-corp/gocryptotrader/config"
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/data"
-	"github.com/thrasher-corp/gocryptotrader/data/kline"
-	"github.com/thrasher-corp/gocryptotrader/data/kline/api"
-	"github.com/thrasher-corp/gocryptotrader/data/kline/csv"
-	"github.com/thrasher-corp/gocryptotrader/data/kline/database"
-	"github.com/thrasher-corp/gocryptotrader/data/kline/live"
-	gctdatabase "github.com/thrasher-corp/gocryptotrader/database"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/fill"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/order"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/signal"
-	gctexchange "github.com/thrasher-corp/gocryptotrader/exchanges"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
-	gctkline "github.com/thrasher-corp/gocryptotrader/exchanges/kline"
-	gctorder "github.com/thrasher-corp/gocryptotrader/exchanges/order"
-	"github.com/thrasher-corp/gocryptotrader/log"
-	"github.com/thrasher-corp/gocryptotrader/portfolio/compliance"
-	"github.com/thrasher-corp/gocryptotrader/portfolio/report"
-	"github.com/thrasher-corp/gocryptotrader/portfolio/risk"
-	"github.com/thrasher-corp/gocryptotrader/portfolio/slippage"
-	"github.com/thrasher-corp/gocryptotrader/portfolio/strategies"
-	"github.com/thrasher-corp/gocryptotrader/portfolio/strategies/base"
 )
 
 // New returns a new BackTest instance
@@ -57,8 +60,8 @@ func (bt *BackTest) Reset() {
 }
 
 // NewFromConfig takes a strategy config and configures a backtester variable to run
-func NewFromConfig(cfg *config.Config, templatePath, output string, bot *Engine) (*BackTest, error) {
-	log.Infoln(log.BackTester, "bt:loading config...")
+func NewBacktestFromConfig(cfg *config.Config, templatePath, output string, bot *Engine) (*BackTest, error) {
+	log.Infoln(log.BackTester, "Backtest: Loading config...")
 	if cfg == nil {
 		return nil, errNilConfig
 	}
@@ -165,6 +168,7 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *Engine)
 	}
 
 	// LOAD ALL STRATEGIES HERE
+
 	var slit []strategies.Handler
 
 	s, err := strategies.LoadStrategyByName("trend", "SELL", false)
@@ -179,6 +183,8 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *Engine)
 
 	bt.Strategies = slit
 
+	log.Infof(log.BackTester, "Loaded %d strategies\n", len(bt.Strategies))
+
 	var p *Portfolio
 	p, err = SetupPortfolio(bt.Strategies, *bot, sizeManager, portfolioRisk, cfg.StatisticSettings.RiskFreeRate)
 	if err != nil {
@@ -191,10 +197,12 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *Engine)
 			return nil, err
 		}
 	}
+
 	bt.FactorEngine, err = SetupFactorEngine()
 	if err != nil {
 		return nil, err
 	}
+
 	// stats := &statistics.Statistic{
 	// 	StrategyName:                s.Name(),
 	// 	StrategyNickname:            cfg.Nickname,
@@ -280,13 +288,14 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *Engine)
 
 	// cfg.PrintSetting()
 
+	log.Infoln(log.BackTester, "finished loading config")
 	return bt, nil
 }
 
 // Run will iterate over loaded data events
 // save them and then handle the event based on its type
 func (bt *BackTest) Run() error {
-	log.Info(log.BackTester, "running backtester against pre-defined data")
+	log.Info(log.BackTester, "Backtest.Run()")
 dataLoadingIssue:
 	for ev := bt.EventQueue.NextEvent(); ; ev = bt.EventQueue.NextEvent() {
 		if ev == nil {
@@ -319,6 +328,17 @@ dataLoadingIssue:
 		}
 	}
 
+	return nil
+
+}
+
+func (bt *BackTest) Start() error {
+	if !atomic.CompareAndSwapInt32(&bt.started, 0, 1) {
+		return fmt.Errorf("backtester %w", ErrSubSystemAlreadyStarted)
+	}
+	log.Debugf(log.CommunicationMgr, "Backtester %s", MsgSubSystemStarting)
+	bt.shutdown = make(chan struct{})
+	go bt.RunLive()
 	return nil
 }
 
@@ -354,43 +374,19 @@ func (bt *BackTest) RunLive() error {
 					dataHandlerMap := bt.Datas.GetAllData()
 					for exchangeName, exchangeMap := range dataHandlerMap {
 						for assetItem, assetMap := range exchangeMap {
-							// var hasProcessedData bool
 							for currencyPair, dataHandler := range assetMap {
 								d := dataHandler.Next()
 								if d == nil {
 									if !bt.hasHandledEvent {
 										log.Errorf(log.BackTester, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
 									}
-									// break dataLoadingIssue
 								}
 
 								bt.EventQueue.AppendEvent(d)
-								// hasProcessedData = true
 							}
 						}
 					}
 				}
-				// if ev == nil {
-				// 	// as live only supports singular currency, just get the proper reference manually
-				// 	var d data.Handler
-				// 	dd := bt.Datas.GetAllData()
-				//
-				// 	for k1, v1 := range dd {
-				// 		for k2, v2 := range v1 {
-				// 			for k3 := range v2 {
-				// 				d = dd[k1][k2][k3]
-				// 			}
-				// 		}
-				// 	}
-				// 	de := d.Next()
-				// 	if de == nil {
-				// 		break
-				// 	}
-				//
-				// 	bt.EventQueue.AppendEvent(de)
-				// 	doneARun = true
-				// 	continue
-				// }
 
 				if ev != nil {
 					err := bt.handleEvent(ev)
@@ -410,23 +406,32 @@ func (bt *BackTest) RunLive() error {
 }
 
 // Stop shuts down the live data loop
-func (bt *BackTest) Stop() {
+func (bt *BackTest) Stop() error {
+
+	// if g == nil {
+	// 	return fmt.Errorf("%s %w", caseName, ErrNilSubsystem)
+	// }
+	// if atomic.LoadInt32(&g.started) == 0 {
+	// 	return fmt.Errorf("%s not running", caseName)
+	// }
+	// defer func() {
+	// 	atomic.CompareAndSwapInt32(&g.started, 1, 0)
+	// }()
+	//
+	// err := g.ShutdownAll()
+	// if err != nil {
+	// 	return err
+	// }
+
 	for _, s := range bt.Strategies {
 		s.Stop()
 	}
 
-	defer func() {
-		stopErr := bt.Bot.DatabaseManager.Stop()
-		if stopErr != nil {
-			log.Error(log.BackTester, stopErr)
-		}
-	}()
-
 	close(bt.shutdown)
+	return nil
 }
 
 func (bt *BackTest) liveDataCatchup() error {
-
 	return nil
 }
 
@@ -598,10 +603,10 @@ func (bt *BackTest) setupBot(cfg *config.Config, bot *Engine) error {
 		return err
 	}
 
-	err = bt.Bot.DatabaseManager.Start(&bt.Bot.ServicesWG)
-	if err != nil {
-		return err
-	}
+	// err = bt.Bot.DatabaseManager.Start(&bt.Bot.ServicesWG)
+	// if err != nil {
+	// 	return err
+	// }
 
 	if cfg.IsLive && !bt.Bot.CommunicationsManager.IsRunning() {
 		communicationsConfig := bot.Config.GetCommunicationsConfig()
@@ -1166,4 +1171,18 @@ func (bt *BackTest) loadLiveData(resp *kline.DataFromKline, cfg *config.Config, 
 	bt.Reports.UpdateItem(&resp.Item)
 	log.Info(log.BackTester, "sleeping for 30 seconds before checking for new candle data")
 	return nil
+}
+
+func heartBeat() {
+	for range time.Tick(time.Second * 1) {
+		log.Info(log.BackTester, "heartbeat")
+	}
+}
+
+// IsRunning returns if gctscript manager subsystem is started
+func (b *BackTest) IsRunning() bool {
+	if b == nil {
+		return false
+	}
+	return atomic.LoadInt32(&b.started) == 1
 }

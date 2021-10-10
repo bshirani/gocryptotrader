@@ -4,7 +4,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/thrasher-corp/gocryptotrader/communications/base"
+	"gocryptotrader/communications/base"
 )
 
 // Worker will do its Action once every interval, making up for lost time that

@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"time"
 
-	dbwithdraw "github.com/thrasher-corp/gocryptotrader/database/repository/withdraw"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/currencystate"
-	"github.com/thrasher-corp/gocryptotrader/log"
-	"github.com/thrasher-corp/gocryptotrader/portfolio/withdraw"
+	dbwithdraw "gocryptotrader/database/repository/withdraw"
+	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchanges/currencystate"
+	"gocryptotrader/log"
+	"gocryptotrader/portfolio/withdraw"
 )
 
 // SetupWithdrawManager creates a new withdraw manager

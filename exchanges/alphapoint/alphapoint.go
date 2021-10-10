@@ -12,10 +12,10 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/thrasher-corp/gocryptotrader/common/crypto"
-	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/request"
+	"gocryptotrader/common/crypto"
+	exchange "gocryptotrader/exchanges"
+	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchanges/request"
 )
 
 const (

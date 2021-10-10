@@ -3,10 +3,10 @@ package engine
 import (
 	"errors"
 
-	"github.com/thrasher-corp/gocryptotrader/backtester/statistics"
-	"github.com/thrasher-corp/gocryptotrader/data"
-	"github.com/thrasher-corp/gocryptotrader/portfolio/report"
-	"github.com/thrasher-corp/gocryptotrader/portfolio/strategies"
+	"gocryptotrader/backtester/statistics"
+	"gocryptotrader/data"
+	"gocryptotrader/portfolio/report"
+	"gocryptotrader/portfolio/strategies"
 )
 
 var (
@@ -35,4 +35,5 @@ type BackTest struct {
 	EventQueue         EventHolder
 	Reports            report.Handler
 	catchup            bool
+	started            int32
 }

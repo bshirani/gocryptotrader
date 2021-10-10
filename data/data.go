@@ -4,9 +4,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
+	"gocryptotrader/currency"
+	"gocryptotrader/eventtypes"
+	"gocryptotrader/exchanges/asset"
 )
 
 // Setup creates a basic map

@@ -3,8 +3,8 @@ package smsglobal
 import (
 	"testing"
 
-	"github.com/thrasher-corp/gocryptotrader/communications/base"
-	"github.com/thrasher-corp/gocryptotrader/config"
+	"gocryptotrader/communications/base"
+	"gocryptotrader/config"
 )
 
 func TestSetup(t *testing.T) {

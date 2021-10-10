@@ -5,12 +5,12 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
-	"github.com/thrasher-corp/gocryptotrader/data"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/signal"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
-	"github.com/thrasher-corp/gocryptotrader/portfolio/strategies/base"
+	gctcommon "gocryptotrader/common"
+	"gocryptotrader/data"
+	"gocryptotrader/eventtypes"
+	"gocryptotrader/eventtypes/signal"
+	"gocryptotrader/exchanges/order"
+	"gocryptotrader/portfolio/strategies/base"
 )
 
 const (

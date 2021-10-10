@@ -4,7 +4,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/thrasher-corp/gocryptotrader/config"
+	"gocryptotrader/config"
 )
 
 // websocketRoutineManager is used to process websocket updates from a unified location

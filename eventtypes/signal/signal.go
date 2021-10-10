@@ -2,8 +2,8 @@ package signal
 
 import (
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
+	"gocryptotrader/currency"
+	"gocryptotrader/exchanges/order"
 )
 
 // IsSignal returns whether the event is a signal type

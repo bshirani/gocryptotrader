@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"sync/atomic"
 
-	"github.com/thrasher-corp/gocryptotrader/communications"
-	"github.com/thrasher-corp/gocryptotrader/communications/base"
-	"github.com/thrasher-corp/gocryptotrader/log"
+	"gocryptotrader/communications"
+	"gocryptotrader/communications/base"
+	"gocryptotrader/log"
 )
 
 // CommunicationsManagerName is an exported subsystem name

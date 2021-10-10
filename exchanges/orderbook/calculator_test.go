@@ -5,7 +5,7 @@ import (
 	"math"
 	"testing"
 
-	"github.com/thrasher-corp/gocryptotrader/currency"
+	"gocryptotrader/currency"
 )
 
 func testSetup() Base {

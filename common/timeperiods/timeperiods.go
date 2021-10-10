@@ -5,7 +5,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/thrasher-corp/gocryptotrader/common"
+	"gocryptotrader/common"
 )
 
 // FindTimeRangesContainingData will break the start and end into time periods using the provided period
