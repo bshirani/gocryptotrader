@@ -16,12 +16,12 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/signal"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	gctorder "github.com/thrasher-corp/gocryptotrader/exchanges/order"
-	"github.com/thrasher-corp/gocryptotrader/holdings"
 	"github.com/thrasher-corp/gocryptotrader/log"
-	"github.com/thrasher-corp/gocryptotrader/positions"
-	"github.com/thrasher-corp/gocryptotrader/risk"
+	"github.com/thrasher-corp/gocryptotrader/portfolio/holdings"
+	"github.com/thrasher-corp/gocryptotrader/portfolio/positions"
+	"github.com/thrasher-corp/gocryptotrader/portfolio/risk"
+	"github.com/thrasher-corp/gocryptotrader/portfolio/trades"
 	"github.com/thrasher-corp/gocryptotrader/strategies"
-	"github.com/thrasher-corp/gocryptotrader/trades"
 )
 
 // Setup creates a portfolio manager instance and sets private fields

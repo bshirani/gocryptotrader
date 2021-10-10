@@ -3,10 +3,10 @@ package engine
 import (
 	"errors"
 
+	"github.com/thrasher-corp/gocryptotrader/backtester/statistics"
 	"github.com/thrasher-corp/gocryptotrader/data"
 	"github.com/thrasher-corp/gocryptotrader/factors"
 	"github.com/thrasher-corp/gocryptotrader/report"
-	"github.com/thrasher-corp/gocryptotrader/statistics"
 	"github.com/thrasher-corp/gocryptotrader/strategies"
 )
 

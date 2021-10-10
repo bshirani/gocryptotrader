@@ -16,9 +16,9 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	gctorder "github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"github.com/thrasher-corp/gocryptotrader/factors"
-	"github.com/thrasher-corp/gocryptotrader/holdings"
-	"github.com/thrasher-corp/gocryptotrader/positions"
-	"github.com/thrasher-corp/gocryptotrader/risk"
+	"github.com/thrasher-corp/gocryptotrader/portfolio/holdings"
+	"github.com/thrasher-corp/gocryptotrader/portfolio/positions"
+	"github.com/thrasher-corp/gocryptotrader/portfolio/risk"
 	"github.com/thrasher-corp/gocryptotrader/strategies"
 )
 

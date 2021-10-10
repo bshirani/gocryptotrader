@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
+	"github.com/thrasher-corp/gocryptotrader/backtester/statistics"
 	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/compliance"
 	"github.com/thrasher-corp/gocryptotrader/config"
@@ -31,10 +32,9 @@ import (
 	gctorder "github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"github.com/thrasher-corp/gocryptotrader/factors"
 	"github.com/thrasher-corp/gocryptotrader/log"
+	"github.com/thrasher-corp/gocryptotrader/portfolio/risk"
+	"github.com/thrasher-corp/gocryptotrader/portfolio/slippage"
 	"github.com/thrasher-corp/gocryptotrader/report"
-	"github.com/thrasher-corp/gocryptotrader/risk"
-	"github.com/thrasher-corp/gocryptotrader/slippage"
-	"github.com/thrasher-corp/gocryptotrader/statistics"
 	"github.com/thrasher-corp/gocryptotrader/strategies"
 	"github.com/thrasher-corp/gocryptotrader/strategies/base"
 )

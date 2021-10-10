@@ -5,8 +5,8 @@ import (
 
 	"github.com/thrasher-corp/gocryptotrader/database/repository/livetrade"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes"
-	"github.com/thrasher-corp/gocryptotrader/holdings"
-	"github.com/thrasher-corp/gocryptotrader/positions"
+	"github.com/thrasher-corp/gocryptotrader/portfolio/holdings"
+	"github.com/thrasher-corp/gocryptotrader/portfolio/positions"
 )
 
 var (
