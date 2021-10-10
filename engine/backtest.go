@@ -12,7 +12,6 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/thrasher-corp/gocryptotrader/backtester/statistics"
 	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
-	"github.com/thrasher-corp/gocryptotrader/compliance"
 	"github.com/thrasher-corp/gocryptotrader/config"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/data"
@@ -30,8 +29,8 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	gctkline "github.com/thrasher-corp/gocryptotrader/exchanges/kline"
 	gctorder "github.com/thrasher-corp/gocryptotrader/exchanges/order"
-	"github.com/thrasher-corp/gocryptotrader/factors"
 	"github.com/thrasher-corp/gocryptotrader/log"
+	"github.com/thrasher-corp/gocryptotrader/portfolio/compliance"
 	"github.com/thrasher-corp/gocryptotrader/portfolio/risk"
 	"github.com/thrasher-corp/gocryptotrader/portfolio/slippage"
 	"github.com/thrasher-corp/gocryptotrader/report"
@@ -192,7 +191,7 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *Engine)
 			return nil, err
 		}
 	}
-	bt.FactorEngine, err = factors.Setup()
+	bt.FactorEngine, err = SetupFactorEngine()
 	if err != nil {
 		return nil, err
 	}

@@ -5,7 +5,6 @@ import (
 
 	"github.com/thrasher-corp/gocryptotrader/backtester/statistics"
 	"github.com/thrasher-corp/gocryptotrader/data"
-	"github.com/thrasher-corp/gocryptotrader/factors"
 	"github.com/thrasher-corp/gocryptotrader/report"
 	"github.com/thrasher-corp/gocryptotrader/strategies"
 )
@@ -24,7 +23,7 @@ var (
 // BackTest is the main holder of all backtesting functionality
 type BackTest struct {
 	Bot                *Engine
-	FactorEngine       *factors.Engine
+	FactorEngine       *FactorEngine
 	DataHistoryManager *DataHistoryManager
 	hasHandledEvent    bool
 	shutdown           chan struct{}

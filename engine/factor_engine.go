@@ -1,4 +1,4 @@
-package factors
+package engine
 
 import (
 	"fmt"
@@ -7,31 +7,32 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/data"
+	"github.com/thrasher-corp/gocryptotrader/factors"
 )
 
 // initialize minute and daily data series here
 // load data from cache here
-func Setup() (*Engine, error) {
-	f := &Engine{}
+func SetupFactorEngine() (*FactorEngine, error) {
+	f := &FactorEngine{}
 
-	f.minute = &MinuteDataFrame{}
-	f.daily = &DailyDataFrame{}
+	f.minute = &factors.MinuteDataFrame{}
+	f.daily = &factors.DailyDataFrame{}
 
 	return f, nil
 }
 
-func (e *Engine) Start() {
+func (e *FactorEngine) Start() {
 }
 
-func (f *Engine) Minute() *MinuteDataFrame {
+func (f *FactorEngine) Minute() *factors.MinuteDataFrame {
 	return f.minute
 }
 
-func (f *Engine) Daily() *DailyDataFrame {
+func (f *FactorEngine) Daily() *factors.DailyDataFrame {
 	return f.daily
 }
 
-func (f *Engine) OnBar(d data.Handler) {
+func (f *FactorEngine) OnBar(d data.Handler) {
 	bar := d.Latest()
 	// fmt.Println("bar", bar, f)
 	f.minute.Close = append(f.minute.Close, bar.ClosePrice())
@@ -82,7 +83,7 @@ func (f *Engine) OnBar(d data.Handler) {
 	// f.minute
 }
 
-func (f *Engine) createNewDailyBar(m *MinuteDataFrame, d *DailyDataFrame) *DailyDataFrame {
+func (f *FactorEngine) createNewDailyBar(m *factors.MinuteDataFrame, d *factors.DailyDataFrame) *factors.DailyDataFrame {
 	// d.Open = append(a.Date, decimal.NewFromFloat(421.0))
 
 	// newDate := m.Date[len(m.Date)-1]
@@ -114,7 +115,7 @@ func (f *Engine) createNewDailyBar(m *MinuteDataFrame, d *DailyDataFrame) *Daily
 // this will ensure that RSI can be calculated correctly
 // the decision to handle missing data occurs at the strategy level, not all strategies
 // may wish to modify data
-func (f *Engine) massageMissingData(data []decimal.Decimal, t time.Time) ([]float64, error) {
+func (f *FactorEngine) massageMissingData(data []decimal.Decimal, t time.Time) ([]float64, error) {
 	var resp []float64
 	var missingDataStreak int64
 	for i := range data {

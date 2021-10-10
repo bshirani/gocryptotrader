@@ -9,7 +9,6 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/config"
 	gctconfig "github.com/thrasher-corp/gocryptotrader/config"
 	"github.com/thrasher-corp/gocryptotrader/engine"
-	"github.com/thrasher-corp/gocryptotrader/factors"
 	gctlog "github.com/thrasher-corp/gocryptotrader/log"
 	"github.com/thrasher-corp/gocryptotrader/signaler"
 )
@@ -129,7 +128,7 @@ func main() {
 	}
 
 	if live {
-		e, _ := factors.Setup()
+		e, _ := SetupFactorEngine()
 		bt.FactorEngine = e
 		// run catchup here
 		// fmt.Println("live mode, running catchup")
