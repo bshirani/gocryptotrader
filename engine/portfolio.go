@@ -676,7 +676,7 @@ func (p *Portfolio) setHoldingsForOffset(h *holdings.Holding, overwriteExisting 
 }
 
 // GetLatestHoldings returns the latest holdings after being sorted by time
-func (e *ExchangeAssetPairSettings) GetLatestHoldings() holdings.Holding {
+func (e *PortfolioSettings) GetLatestHoldings() holdings.Holding {
 	if len(e.HoldingsSnapshots) == 0 {
 		return holdings.Holding{}
 	}
@@ -685,7 +685,7 @@ func (e *ExchangeAssetPairSettings) GetLatestHoldings() holdings.Holding {
 }
 
 // GetHoldingsForTime returns the holdings for a time period, or an empty holding if not found
-func (e *ExchangeAssetPairSettings) GetHoldingsForTime(t time.Time) holdings.Holding {
+func (e *PortfolioSettings) GetHoldingsForTime(t time.Time) holdings.Holding {
 	if e.HoldingsSnapshots == nil {
 		// no holdings yet
 		return holdings.Holding{}
