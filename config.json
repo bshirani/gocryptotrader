@@ -156,17 +156,6 @@
   "foreignExchangeUpdateDuration": 0
  },
  "communications": {
-  "smtp": {
-   "name": "SMTP",
-   "enabled": false,
-   "verbose": false,
-   "host": "smtp.google.com",
-   "port": "537",
-   "accountName": "some",
-   "accountPassword": "password",
-   "from": "",
-   "recipientList": "lol123@gmail.com"
-  },
   "telegram": {
    "name": "Telegram",
    "enabled": true,
