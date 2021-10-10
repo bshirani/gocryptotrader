@@ -10,15 +10,12 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/exchange"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/exchange/slippage"
 	"github.com/thrasher-corp/gocryptotrader/backtester/report"
 	config "github.com/thrasher-corp/gocryptotrader/bt_config"
 	portfolio "github.com/thrasher-corp/gocryptotrader/bt_portfolio"
 	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/compliance"
 	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/risk"
 	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/settings"
-	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/size"
 	"github.com/thrasher-corp/gocryptotrader/common"
 	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/currency"
@@ -39,6 +36,8 @@ import (
 	gctorder "github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"github.com/thrasher-corp/gocryptotrader/factors"
 	"github.com/thrasher-corp/gocryptotrader/log"
+	"github.com/thrasher-corp/gocryptotrader/size"
+	"github.com/thrasher-corp/gocryptotrader/slippage"
 	"github.com/thrasher-corp/gocryptotrader/statistics"
 	"github.com/thrasher-corp/gocryptotrader/strategies"
 	"github.com/thrasher-corp/gocryptotrader/strategies/base"
@@ -434,9 +433,9 @@ func (bt *BackTest) liveDataCatchup() error {
 	return nil
 }
 
-func (bt *BackTest) setupExchangeSettings(cfg *config.Config) (exchange.Exchange, error) {
+func (bt *BackTest) setupExchangeSettings(cfg *config.Config) (FakeExchange, error) {
 	log.Infoln(log.BackTester, "setting exchange settings...")
-	resp := exchange.Exchange{}
+	resp := FakeExchange{}
 
 	for i := range cfg.CurrencySettings {
 		exch, pair, a, err := bt.loadExchangePairAssetBase(
@@ -526,7 +525,7 @@ func (bt *BackTest) setupExchangeSettings(cfg *config.Config) (exchange.Exchange
 			}
 		}
 
-		resp.CurrencySettings = append(resp.CurrencySettings, exchange.Settings{
+		resp.CurrencySettings = append(resp.CurrencySettings, FakeExchangeSettings{
 			ExchangeName:        cfg.CurrencySettings[i].ExchangeName,
 			MinimumSlippageRate: cfg.CurrencySettings[i].MinimumSlippagePercent,
 			MaximumSlippageRate: cfg.CurrencySettings[i].MaximumSlippagePercent,

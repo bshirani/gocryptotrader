@@ -34,12 +34,12 @@ type OrderManagerHandler interface {
 }
 
 // Exchange contains all the currency settings
-type Exchange struct {
+type FakeExchange struct {
 	CurrencySettings []Settings
 }
 
 // Settings allow the eventhandler to size an order within the limitations set by the config file
-type Settings struct {
+type FakeExchangeSettings struct {
 	ExchangeName  string
 	UseRealOrders bool
 

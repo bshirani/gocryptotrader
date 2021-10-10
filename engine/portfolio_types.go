@@ -5,22 +5,22 @@ import (
 	"sync"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/common"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/exchange"
 	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/compliance"
 	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/holdings"
 	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/positions"
 	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/risk"
 	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/settings"
-	"github.com/thrasher-corp/gocryptotrader/strategies"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/fill"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/order"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/signal"
+	"github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/database/repository/livetrade"
 	"github.com/thrasher-corp/gocryptotrader/engine"
+	"github.com/thrasher-corp/gocryptotrader/eventhandlers/exchange"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes/fill"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes/order"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes/signal"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	"github.com/thrasher-corp/gocryptotrader/factors"
+	"github.com/thrasher-corp/gocryptotrader/strategies"
 )
 
 var (

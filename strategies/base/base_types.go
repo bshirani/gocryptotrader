@@ -4,16 +4,14 @@ import (
 	"errors"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/common"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/exchange"
 	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/compliance"
 	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/holdings"
-	"github.com/thrasher-corp/gocryptotrader/bt_portfolio/positions"
+	"github.com/thrasher-corp/gocryptotrader/common"
+	"github.com/thrasher-corp/gocryptotrader/currency"
+	"github.com/thrasher-corp/gocryptotrader/database/repository/livetrade"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/fill"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/order"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/signal"
-	"github.com/thrasher-corp/gocryptotrader/currency"
-	"github.com/thrasher-corp/gocryptotrader/database/repository/livetrade"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 )
 
@@ -33,12 +31,11 @@ var (
 
 // Handler contains all functions expected to operate a portfolio manager
 type PortfolioHandler interface {
-	OnSignal(signal.Event, *exchange.Settings) (*order.Order, error)
+	OnSignal(signal.Event, *FakeExchangeSettings) (*order.Order, error)
 	OnFill(fill.Event) (*fill.Fill, error)
 
 	ViewHoldingAtTimePeriod(common.EventHandler) (*holdings.Holding, error)
 	UpdateHoldings(common.DataEventHandler) error
-	GetPositionForStrategy(string) *positions.Position
 	GetTradeForStrategy(string) *livetrade.Details
 
 	GetComplianceManager(string, asset.Item, currency.Pair) (*compliance.Manager, error)

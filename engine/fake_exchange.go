@@ -6,7 +6,6 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/backtester/eventhandlers/exchange/slippage"
 	config "github.com/thrasher-corp/gocryptotrader/bt_config"
 	"github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/currency"
@@ -17,20 +16,21 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	gctorder "github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/orderbook"
+	"github.com/thrasher-corp/gocryptotrader/slippage"
 )
 
 // Reset returns the exchange to initial settings
-func (e *Exchange) Reset() {
-	*e = Exchange{}
+func (e *FakeExchange) Reset() {
+	*e = FakeExchange{}
 }
 
 // ExecuteOrder assesses the portfolio manager's order event and if it passes validation
 // will send an order to the exchange/fake order manager to be stored and raise a fill event
-func (e *Exchange) ExecuteOrder(o order.Event, data data.Handler, om *OrderManagerHandler) (*fill.Fill, error) {
+func (e *FakeExchange) ExecuteOrder(o order.Event, data data.Handler, om *OrderManagerHandler) (*fill.Fill, error) {
 	f := &fill.Fill{
 		Base: event.Base{
 			Offset:       o.GetOffset(),
-			Exchange:     o.GetExchange(),
+			FakeExchange: o.GetExchange(),
 			Time:         o.GetTime(),
 			CurrencyPair: o.Pair(),
 			AssetType:    o.GetAssetType(),
@@ -70,7 +70,7 @@ func (e *Exchange) ExecuteOrder(o order.Event, data data.Handler, om *OrderManag
 	if cs.UseRealOrders {
 		// get current orderbook
 		var ob *orderbook.Base
-		ob, err = orderbook.Get(f.Exchange, f.CurrencyPair, f.AssetType)
+		ob, err = orderbook.Get(f.FakeExchange, f.CurrencyPair, f.AssetType)
 		if err != nil {
 			return f, err
 		}
@@ -146,7 +146,7 @@ func (e *Exchange) ExecuteOrder(o order.Event, data data.Handler, om *OrderManag
 }
 
 // SetExchangeAssetCurrencySettings sets the settings for an exchange, asset, currency
-func (e *Exchange) SetExchangeAssetCurrencySettings(exch string, a asset.Item, cp currency.Pair, c *Settings) {
+func (e *FakeExchange) SetExchangeAssetCurrencySettings(exch string, a asset.Item, cp currency.Pair, c *Settings) {
 	if c.ExchangeName == "" ||
 		c.AssetType == "" ||
 		c.CurrencyPair.IsEmpty() {
@@ -165,7 +165,7 @@ func (e *Exchange) SetExchangeAssetCurrencySettings(exch string, a asset.Item, c
 }
 
 // GetCurrencySettings returns the settings for an exchange, asset currency
-func (e *Exchange) GetCurrencySettings(exch string, a asset.Item, cp currency.Pair) (Settings, error) {
+func (e *FakeExchange) GetCurrencySettings(exch string, a asset.Item, cp currency.Pair) (Settings, error) {
 	for i := range e.CurrencySettings {
 		if e.CurrencySettings[i].CurrencyPair.Equal(cp) {
 			if e.CurrencySettings[i].AssetType == a {
@@ -178,7 +178,7 @@ func (e *Exchange) GetCurrencySettings(exch string, a asset.Item, cp currency.Pa
 	return Settings{}, fmt.Errorf("no currency settings found for %v %v %v", exch, a, cp)
 }
 
-func (e *Exchange) GetAllCurrencySettings() ([]Settings, error) {
+func (e *FakeExchange) GetAllCurrencySettings() ([]Settings, error) {
 	return e.CurrencySettings, nil
 }
 
@@ -244,7 +244,7 @@ func reduceAmountToFitPortfolioLimit(adjustedPrice, amount, sizedPortfolioTotal 
 	return amount
 }
 
-func (e *Exchange) placeOrder(ctx context.Context, price, amount decimal.Decimal, useRealOrders, useExchangeLimits bool, f *fill.Fill, om *OrderManagerHandler) (string, error) {
+func (e *FakeExchange) placeOrder(ctx context.Context, price, amount decimal.Decimal, useRealOrders, useExchangeLimits bool, f *fill.Fill, om *OrderManagerHandler) (string, error) {
 	if f == nil {
 		return "", common.ErrNilEvent
 	}
@@ -257,18 +257,18 @@ func (e *Exchange) placeOrder(ctx context.Context, price, amount decimal.Decimal
 	a, _ := amount.Float64()
 	fee, _ := f.ExchangeFee.Float64()
 	o := &gctorder.Submit{
-		Price:       p,
-		Amount:      a,
-		Fee:         fee,
-		Exchange:    f.Exchange,
-		ID:          u.String(),
-		Side:        f.Direction,
-		AssetType:   f.AssetType,
-		Date:        f.GetTime(),
-		LastUpdated: f.GetTime(),
-		Pair:        f.Pair(),
-		Type:        gctorder.Market,
-		StrategyID:  f.GetStrategyID(),
+		Price:        p,
+		Amount:       a,
+		Fee:          fee,
+		FakeExchange: f.FakeExchange,
+		ID:           u.String(),
+		Side:         f.Direction,
+		AssetType:    f.AssetType,
+		Date:         f.GetTime(),
+		LastUpdated:  f.GetTime(),
+		Pair:         f.Pair(),
+		Type:         gctorder.Market,
+		StrategyID:   f.GetStrategyID(),
 	}
 
 	if useRealOrders {
@@ -303,7 +303,7 @@ func (e *Exchange) placeOrder(ctx context.Context, price, amount decimal.Decimal
 	return orderID, nil
 }
 
-func (e *Exchange) sizeOfflineOrder(high, low, volume decimal.Decimal, cs *Settings, f *fill.Fill) (adjustedPrice, adjustedAmount decimal.Decimal, err error) {
+func (e *FakeExchange) sizeOfflineOrder(high, low, volume decimal.Decimal, cs *Settings, f *fill.Fill) (adjustedPrice, adjustedAmount decimal.Decimal, err error) {
 	if cs == nil || f == nil {
 		return decimal.Zero, decimal.Zero, common.ErrNilArguments
 	}
