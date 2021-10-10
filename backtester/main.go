@@ -63,7 +63,7 @@ func main() {
 		"sets the initial rerport to use a dark theme")
 	flag.Parse()
 
-	var bt *engine.TradeManager
+	var tm *engine.TradeManager
 	var cfg *config.Config
 	cfg, err = config.ReadConfigFromFile(configPath)
 	if err != nil {
@@ -106,29 +106,36 @@ func main() {
 		fmt.Printf("Could not read config. Error: %v.\n", err)
 		os.Exit(1)
 	}
-	bt, err = engine.NewTradeManagerFromConfig(cfg, templatePath, reportOutput, bot, false)
+	tm, err = engine.NewTradeManagerFromConfig(cfg, templatePath, reportOutput, bot, false)
 	if err != nil {
 		fmt.Printf("Could not setup backtester from config. Error: %v.\n", err)
 		os.Exit(1)
 	}
 
-	err = bt.Run()
+	err = tm.Run()
 	if err != nil {
 		fmt.Printf("Could not complete run. Error: %v.\n", err)
 		os.Exit(1)
 	}
-	bt.Stop()
 
-	err = bt.Statistic.CalculateAllResults()
-	if err != nil {
-		gctlog.Error(gctlog.TradeManager, err)
-		os.Exit(1)
+	for _, t := range tm.Portfolio.GetAllClosedTrades() {
+		if t != nil {
+			fmt.Println("trade:", t)
+		}
 	}
+
+	tm.Stop()
+
+	// err = tm.Statistic.CalculateAllResults()
+	// if err != nil {
+	// 	gctlog.Error(gctlog.TradeManager, err)
+	// 	os.Exit(1)
+	// }
 
 	// BACKTEST ONLY
 	if generateReport {
-		bt.Reports.UseDarkMode(darkReport)
-		err = bt.Reports.GenerateReport()
+		tm.Reports.UseDarkMode(darkReport)
+		err = tm.Reports.GenerateReport()
 		if err != nil {
 			gctlog.Error(gctlog.TradeManager, err)
 		}

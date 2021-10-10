@@ -122,7 +122,14 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 			}
 		}
 
-		p.store.openTrade[ev.GetStrategyID()] = &livetrade.Details{Status: livetrade.Pending}
+		entryPrice, _ := ev.GetPrice().Float64()
+		stopLossPrice, _ := ev.GetPrice().Float64()
+		p.store.openTrade[ev.GetStrategyID()] = &livetrade.Details{
+			Status:        livetrade.Pending,
+			EntryPrice:    entryPrice,
+			StopLossPrice: stopLossPrice,
+			Pair:          fmt.Sprint(ev.Pair().Base, ev.Pair().Quote),
+		}
 
 	case signal.Exit:
 		ev.SetDirection(gctorder.Sell)
@@ -228,13 +235,16 @@ func (p *Portfolio) OnFill(f fill.Event) (*fill.Fill, error) {
 
 	t := p.store.openTrade[f.GetStrategyID()]
 
-	if t == nil {
-		p.store.openTrade[f.GetStrategyID()] = &livetrade.Details{Status: livetrade.Open}
-	} else {
-		// fmt.Println("open trade", t)
-		t.Status = livetrade.Closed
-		p.store.closedTrades[f.GetStrategyID()] = append(p.store.closedTrades[f.GetStrategyID()], t)
-		p.store.openTrade[f.GetStrategyID()] = nil
+	if t != nil {
+		if t.Status == livetrade.Open {
+			t.Status = livetrade.Closed
+			p.store.closedTrades[f.GetStrategyID()] = append(p.store.closedTrades[f.GetStrategyID()], t)
+			p.store.openTrade[f.GetStrategyID()] = nil
+		} else if t.Status == livetrade.Pending {
+			ot := *p.store.openTrade[f.GetStrategyID()]
+			ot.Status = livetrade.Open
+			p.store.openTrade[f.GetStrategyID()] = &ot
+		}
 	}
 
 	// t.Status = trades.Open
@@ -403,6 +413,26 @@ func (p *Portfolio) GetPositionForStrategy(sid string) *positions.Position {
 
 func (p *Portfolio) GetTradeForStrategy(sid string) *livetrade.Details {
 	return p.store.openTrade[sid]
+}
+
+func (p *Portfolio) GetAllClosedTrades() []*livetrade.Details {
+	count := 0
+	for _, s := range p.store.closedTrades {
+		for _, _ = range s {
+			count += 1
+		}
+	}
+	res := make([]*livetrade.Details, count)
+	count = 0
+	for _, s := range p.store.closedTrades {
+		for _, t := range s {
+			if t != nil {
+				res[count] = t
+				count += 1
+			}
+		}
+	}
+	return res
 }
 
 // UpdatePositions updates the strategy's position for the data event

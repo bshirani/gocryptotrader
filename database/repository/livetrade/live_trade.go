@@ -8,6 +8,7 @@ import (
 	"gocryptotrader/database"
 	modelSQLite "gocryptotrader/database/models/sqlite3"
 	"gocryptotrader/log"
+
 	"github.com/thrasher-corp/sqlboiler/boil"
 	"github.com/thrasher-corp/sqlboiler/queries/qm"
 	"github.com/volatiletech/null"
@@ -107,6 +108,7 @@ func insertSQLite(ctx context.Context, tx *sql.Tx, in []Details) (err error) {
 			StopLossPrice: in[x].StopLossPrice,
 			Status:        fmt.Sprintf("%s", in[x].Status),
 			StrategyID:    in[x].StrategyID,
+			Pair:          string(in[x].Pair),
 		}
 
 		err = tempInsert.Insert(ctx, tx, boil.Infer())

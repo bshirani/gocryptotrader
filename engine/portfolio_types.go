@@ -108,6 +108,7 @@ type Exchange struct {
 type PortfolioHandler interface {
 	OnSignal(signal.Event, *ExchangeAssetPairSettings) (*order.Order, error)
 	OnFill(fill.Event) (*fill.Fill, error)
+	GetAllClosedTrades() []*livetrade.Details
 
 	ViewHoldingAtTimePeriod(eventtypes.EventHandler) (*holdings.Holding, error)
 	setHoldingsForOffset(*holdings.Holding, bool) error

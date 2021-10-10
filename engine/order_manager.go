@@ -532,7 +532,7 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 		newOrder.Pair,
 		newOrder.Side,
 		newOrder.Price)
-	fmt.Println(msgInfo)
+	// fmt.Println(msgInfo)
 
 	// msg := fmt.Sprintf("Order manager: Strategy=%s Exchange=%s submitted order ID=%v [Ours: %v] pair=%v price=%v amount=%v side=%v type=%v for time %v.",
 	// 	newOrder.StrategyID,

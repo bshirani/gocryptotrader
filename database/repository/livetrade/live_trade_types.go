@@ -29,4 +29,5 @@ type Details struct {
 	StopLossPrice float64
 	Status        Status
 	StrategyID    string
+	Pair          string
 }

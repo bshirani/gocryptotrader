@@ -5,6 +5,7 @@ CREATE TABLE live_trade (
     stop_loss_price REAL NOT NULL,
     strategy_id TEXT NOT NULL,
     status TEXT NOT NULL,
+    pair text NOT NULL,
     take_profit_price REAL,
     exit_price REAL
 );

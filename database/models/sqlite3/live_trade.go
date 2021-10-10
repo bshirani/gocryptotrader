@@ -28,6 +28,7 @@ type LiveTrade struct {
 	StopLossPrice   float64      `boil:"stop_loss_price" json:"stop_loss_price" toml:"stop_loss_price" yaml:"stop_loss_price"`
 	StrategyID      string       `boil:"strategy_id" json:"strategy_id" toml:"strategy_id" yaml:"strategy_id"`
 	Status          string       `boil:"status" json:"status" toml:"status" yaml:"status"`
+	Pair            string       `boil:"pair" json:"pair" toml:"pair" yaml:"pair"`
 	TakeProfitPrice null.Float64 `boil:"take_profit_price" json:"take_profit_price,omitempty" toml:"take_profit_price" yaml:"take_profit_price,omitempty"`
 	ExitPrice       null.Float64 `boil:"exit_price" json:"exit_price,omitempty" toml:"exit_price" yaml:"exit_price,omitempty"`
 
@@ -41,6 +42,7 @@ var LiveTradeColumns = struct {
 	StopLossPrice   string
 	StrategyID      string
 	Status          string
+	Pair            string
 	TakeProfitPrice string
 	ExitPrice       string
 }{
@@ -49,6 +51,7 @@ var LiveTradeColumns = struct {
 	StopLossPrice:   "stop_loss_price",
 	StrategyID:      "strategy_id",
 	Status:          "status",
+	Pair:            "pair",
 	TakeProfitPrice: "take_profit_price",
 	ExitPrice:       "exit_price",
 }
@@ -61,6 +64,7 @@ var LiveTradeWhere = struct {
 	StopLossPrice   whereHelperfloat64
 	StrategyID      whereHelperstring
 	Status          whereHelperstring
+	Pair            whereHelperstring
 	TakeProfitPrice whereHelpernull_Float64
 	ExitPrice       whereHelpernull_Float64
 }{
@@ -69,6 +73,7 @@ var LiveTradeWhere = struct {
 	StopLossPrice:   whereHelperfloat64{field: "\"live_trade\".\"stop_loss_price\""},
 	StrategyID:      whereHelperstring{field: "\"live_trade\".\"strategy_id\""},
 	Status:          whereHelperstring{field: "\"live_trade\".\"status\""},
+	Pair:            whereHelperstring{field: "\"live_trade\".\"pair\""},
 	TakeProfitPrice: whereHelpernull_Float64{field: "\"live_trade\".\"take_profit_price\""},
 	ExitPrice:       whereHelpernull_Float64{field: "\"live_trade\".\"exit_price\""},
 }
@@ -90,9 +95,9 @@ func (*liveTradeR) NewStruct() *liveTradeR {
 type liveTradeL struct{}
 
 var (
-	liveTradeAllColumns            = []string{"id", "entry_price", "stop_loss_price", "strategy_id", "status", "take_profit_price", "exit_price"}
+	liveTradeAllColumns            = []string{"id", "entry_price", "stop_loss_price", "strategy_id", "status", "pair", "take_profit_price", "exit_price"}
 	liveTradeColumnsWithoutDefault = []string{}
-	liveTradeColumnsWithDefault    = []string{"id", "entry_price", "stop_loss_price", "strategy_id", "status", "take_profit_price", "exit_price"}
+	liveTradeColumnsWithDefault    = []string{"id", "entry_price", "stop_loss_price", "strategy_id", "status", "pair", "take_profit_price", "exit_price"}
 	liveTradePrimaryKeyColumns     = []string{"id"}
 )
 
