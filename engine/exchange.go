@@ -21,17 +21,17 @@ import (
 )
 
 // Reset returns the exchange to initial settings
-func (e *FakeExchange) Reset() {
-	*e = FakeExchange{}
+func (e *Exchange) Reset() {
+	*e = Exchange{}
 }
 
 // ExecuteOrder assesses the portfolio manager's order event and if it passes validation
 // will send an order to the exchange/fake order manager to be stored and raise a fill event
-func (e *FakeExchange) ExecuteOrder(o order.Event, data data.Handler, om *OrderManagerHandler) (*fill.Fill, error) {
+func (e *Exchange) ExecuteOrder(o order.Event, data data.Handler, om *OrderManagerHandler) (*fill.Fill, error) {
 	f := &fill.Fill{
 		Base: event.Base{
 			Offset:       o.GetOffset(),
-			FakeExchange: o.GetExchange(),
+			Exchange:     o.GetExchange(),
 			Time:         o.GetTime(),
 			CurrencyPair: o.Pair(),
 			AssetType:    o.GetAssetType(),
@@ -71,7 +71,7 @@ func (e *FakeExchange) ExecuteOrder(o order.Event, data data.Handler, om *OrderM
 	if cs.UseRealOrders {
 		// get current orderbook
 		var ob *orderbook.Base
-		ob, err = orderbook.Get(f.FakeExchange, f.CurrencyPair, f.AssetType)
+		ob, err = orderbook.Get(f.Exchange, f.CurrencyPair, f.AssetType)
 		if err != nil {
 			return f, err
 		}
@@ -83,11 +83,11 @@ func (e *FakeExchange) ExecuteOrder(o order.Event, data data.Handler, om *OrderM
 		if err != nil {
 			switch f.GetDirection() {
 			case gctorder.Buy:
-				f.SetDirection(common.CouldNotBuy)
+				f.SetDirection(eventtypes.CouldNotBuy)
 			case gctorder.Sell:
-				f.SetDirection(common.CouldNotSell)
+				f.SetDirection(eventtypes.CouldNotSell)
 			default:
-				f.SetDirection(common.DoNothing)
+				f.SetDirection(eventtypes.DoNothing)
 			}
 			f.AppendReason(err.Error())
 			return f, err
@@ -119,9 +119,9 @@ func (e *FakeExchange) ExecuteOrder(o order.Event, data data.Handler, om *OrderM
 	orderID, err := e.placeOrder(context.TODO(), adjustedPrice, limitReducedAmount, cs.UseRealOrders, cs.CanUseExchangeLimits, f, bot)
 	if err != nil {
 		if f.GetDirection() == gctorder.Buy {
-			f.SetDirection(common.CouldNotBuy)
+			f.SetDirection(eventtypes.CouldNotBuy)
 		} else if f.GetDirection() == gctorder.Sell {
-			f.SetDirection(common.CouldNotSell)
+			f.SetDirection(eventtypes.CouldNotSell)
 		}
 		return f, err
 	}
@@ -147,7 +147,7 @@ func (e *FakeExchange) ExecuteOrder(o order.Event, data data.Handler, om *OrderM
 }
 
 // SetExchangeAssetCurrencySettings sets the settings for an exchange, asset, currency
-func (e *FakeExchange) SetExchangeAssetCurrencySettings(exch string, a asset.Item, cp currency.Pair, c *PortfolioExchangeSettings) {
+func (e *Exchange) SetExchangeAssetCurrencySettings(exch string, a asset.Item, cp currency.Pair, c *PortfolioExchangeSettings) {
 	if c.ExchangeName == "" ||
 		c.AssetType == "" ||
 		c.CurrencyPair.IsEmpty() {
@@ -166,7 +166,7 @@ func (e *FakeExchange) SetExchangeAssetCurrencySettings(exch string, a asset.Ite
 }
 
 // GetCurrencySettings returns the settings for an exchange, asset currency
-func (e *FakeExchange) GetCurrencySettings(exch string, a asset.Item, cp currency.Pair) (PortfolioExchangeSettings, error) {
+func (e *Exchange) GetCurrencySettings(exch string, a asset.Item, cp currency.Pair) (PortfolioExchangeSettings, error) {
 	for i := range e.CurrencySettings {
 		if e.CurrencySettings[i].CurrencyPair.Equal(cp) {
 			if e.CurrencySettings[i].AssetType == a {
@@ -179,7 +179,7 @@ func (e *FakeExchange) GetCurrencySettings(exch string, a asset.Item, cp currenc
 	return PortfolioExchangeSettings{}, fmt.Errorf("no currency settings found for %v %v %v", exch, a, cp)
 }
 
-func (e *FakeExchange) GetAllCurrencySettings() ([]PortfolioExchangeSettings, error) {
+func (e *Exchange) GetAllCurrencySettings() ([]PortfolioExchangeSettings, error) {
 	return e.CurrencySettings, nil
 }
 
@@ -197,13 +197,13 @@ func verifyOrderWithinLimits(f *fill.Fill, limitReducedAmount decimal.Decimal, c
 	switch f.GetDirection() {
 	case gctorder.Buy:
 		minMax = cs.BuySide
-		direction = common.CouldNotBuy
+		direction = eventtypes.CouldNotBuy
 	case gctorder.Sell:
 		minMax = cs.SellSide
-		direction = common.CouldNotSell
+		direction = eventtypes.CouldNotSell
 	default:
 		direction = f.GetDirection()
-		f.SetDirection(common.DoNothing)
+		f.SetDirection(eventtypes.DoNothing)
 		return fmt.Errorf("%w: %v", errInvalidDirection, direction)
 	}
 	var minOrMax, belowExceed string
@@ -245,7 +245,7 @@ func reduceAmountToFitPortfolioLimit(adjustedPrice, amount, sizedPortfolioTotal 
 	return amount
 }
 
-func (e *FakeExchange) placeOrder(ctx context.Context, price, amount decimal.Decimal, useRealOrders, useExchangeLimits bool, f *fill.Fill, om *OrderManagerHandler) (string, error) {
+func (e *Exchange) placeOrder(ctx context.Context, price, amount decimal.Decimal, useRealOrders, useExchangeLimits bool, f *fill.Fill, om *OrderManagerHandler) (string, error) {
 	if f == nil {
 		return "", eventtypes.ErrNilEvent
 	}
@@ -258,18 +258,18 @@ func (e *FakeExchange) placeOrder(ctx context.Context, price, amount decimal.Dec
 	a, _ := amount.Float64()
 	fee, _ := f.ExchangeFee.Float64()
 	o := &gctorder.Submit{
-		Price:        p,
-		Amount:       a,
-		Fee:          fee,
-		FakeExchange: f.FakeExchange,
-		ID:           u.String(),
-		Side:         f.Direction,
-		AssetType:    f.AssetType,
-		Date:         f.GetTime(),
-		LastUpdated:  f.GetTime(),
-		Pair:         f.Pair(),
-		Type:         gctorder.Market,
-		StrategyID:   f.GetStrategyID(),
+		Price:       p,
+		Amount:      a,
+		Fee:         fee,
+		Exchange:    f.Exchange,
+		ID:          u.String(),
+		Side:        f.Direction,
+		AssetType:   f.AssetType,
+		Date:        f.GetTime(),
+		LastUpdated: f.GetTime(),
+		Pair:        f.Pair(),
+		Type:        gctorder.Market,
+		StrategyID:  f.GetStrategyID(),
 	}
 
 	if useRealOrders {
@@ -304,7 +304,7 @@ func (e *FakeExchange) placeOrder(ctx context.Context, price, amount decimal.Dec
 	return orderID, nil
 }
 
-func (e *FakeExchange) sizeOfflineOrder(high, low, volume decimal.Decimal, cs *PortfolioExchangeSettings, f *fill.Fill) (adjustedPrice, adjustedAmount decimal.Decimal, err error) {
+func (e *Exchange) sizeOfflineOrder(high, low, volume decimal.Decimal, cs *PortfolioExchangeSettings, f *fill.Fill) (adjustedPrice, adjustedAmount decimal.Decimal, err error) {
 	if cs == nil || f == nil {
 		return decimal.Zero, decimal.Zero, eventtypes.ErrNilArguments
 	}

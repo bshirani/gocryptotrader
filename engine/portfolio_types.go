@@ -14,6 +14,7 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/order"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/signal"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
+	gctorder "github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"github.com/thrasher-corp/gocryptotrader/factors"
 	"github.com/thrasher-corp/gocryptotrader/holdings"
 	"github.com/thrasher-corp/gocryptotrader/positions"
@@ -42,7 +43,7 @@ var (
 	errTradesAlreadySet     = errors.New("trade already set")
 )
 
-type store struct {
+type portfolioStore struct {
 	m            sync.RWMutex
 	positions    map[string]*positions.Position
 	openTrade    map[string]*livetrade.Details
@@ -60,7 +61,7 @@ type Portfolio struct {
 	factorEngine              *factors.Engine
 	bot                       Engine
 	strategies                []strategies.Handler
-	store                     store
+	store                     portfolioStore
 	exchangeAssetPairSettings map[string]map[asset.Item]map[currency.Pair]*PortfolioExchangeSettings
 }
 
@@ -73,6 +74,36 @@ type PortfolioSettings struct {
 	Leverage          config.Leverage
 	HoldingsSnapshots []holdings.Holding
 	ComplianceManager compliance.Manager
+}
+
+// Settings allow the eventhandler to size an order within the limitations set by the config file
+type PortfolioExchangeSettings struct {
+	ExchangeName  string
+	UseRealOrders bool
+
+	CurrencyPair currency.Pair
+	AssetType    asset.Item
+
+	ExchangeFee decimal.Decimal
+	MakerFee    decimal.Decimal
+	TakerFee    decimal.Decimal
+
+	BuySide  config.MinMax
+	SellSide config.MinMax
+
+	Leverage config.Leverage
+
+	MinimumSlippageRate decimal.Decimal
+	MaximumSlippageRate decimal.Decimal
+
+	Limits                  *gctorder.Limits
+	CanUseExchangeLimits    bool
+	SkipCandleVolumeFitting bool
+}
+
+// Exchange contains all the currency settings
+type Exchange struct {
+	CurrencySettings []PortfolioExchangeSettings
 }
 
 // Handler contains all functions expected to operate a portfolio manager

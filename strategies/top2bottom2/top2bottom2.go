@@ -105,7 +105,7 @@
 //
 // 		if offset <= int(s.mfiPeriod.IntPart()) {
 // 			es.AppendReason("Not enough data for signal generation")
-// 			es.SetDirection(common.DoNothing)
+// 			es.SetDirection(eventtypes.DoNothing)
 // 			resp = append(resp, &es)
 // 			continue
 // 		}
@@ -140,7 +140,7 @@
 // 			continue
 // 		}
 //
-// 		es.SetDirection(common.DoNothing)
+// 		es.SetDirection(eventtypes.DoNothing)
 // 		es.AppendReason(fmt.Sprintf("MFI at %v", latestMFI))
 //
 // 		mfiFundEvents = append(mfiFundEvents, mfiFundEvent{
@@ -175,7 +175,7 @@
 // 		}
 // 	}
 // 	for i := range mfiFundEvents {
-// 		if buyingOrSelling && mfiFundEvents[i].event.GetDirection() == common.DoNothing {
+// 		if buyingOrSelling && mfiFundEvents[i].event.GetDirection() == eventtypes.DoNothing {
 // 			mfiFundEvents[i].event.AppendReason("MFI was not in the top or bottom two ranks")
 // 		}
 // 		resp = append(resp, mfiFundEvents[i].event)

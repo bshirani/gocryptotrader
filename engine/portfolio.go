@@ -504,7 +504,7 @@ func (p *Portfolio) ViewHoldingAtTimePeriod(ev eventtypes.EventHandler) (*holdin
 }
 
 // SetupCurrencySettingsMap ensures a map is created and no panics happen
-func (p *Portfolio) SetupCurrencySettingsMap(exch string, a asset.Item, cp currency.Pair) (*PortfolioExchangeSettings, error) {
+func (p *Portfolio) SetupCurrencySettingsMap(exch string, a asset.Item, cp currency.Pair) (*PortfolioSettings, error) {
 	if exch == "" {
 		return nil, errExchangeUnset
 	}
