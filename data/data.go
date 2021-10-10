@@ -4,8 +4,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/currency"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 )
 
@@ -54,7 +54,7 @@ func (b *Base) Reset() {
 }
 
 // GetStream will return entire data list
-func (b *Base) GetStream() []common.DataEventHandler {
+func (b *Base) GetStream() []eventtypes.DataEventHandler {
 	return b.stream
 }
 
@@ -64,13 +64,13 @@ func (b *Base) Offset() int {
 }
 
 // SetStream sets the data stream for candle analysis
-func (b *Base) SetStream(s []common.DataEventHandler) {
+func (b *Base) SetStream(s []eventtypes.DataEventHandler) {
 	b.stream = s
 }
 
 // AppendStream appends new datas onto the stream, however, will not
 // add duplicates. Used for live analysis
-func (b *Base) AppendStream(s ...common.DataEventHandler) {
+func (b *Base) AppendStream(s ...eventtypes.DataEventHandler) {
 	for i := range s {
 		if s[i] == nil {
 			continue
@@ -80,7 +80,7 @@ func (b *Base) AppendStream(s ...common.DataEventHandler) {
 }
 
 // Next will return the next event in the list and also shift the offset one
-func (b *Base) Next() (dh common.DataEventHandler) {
+func (b *Base) Next() (dh eventtypes.DataEventHandler) {
 	if len(b.stream) <= b.offset {
 		return nil
 	}
@@ -92,18 +92,18 @@ func (b *Base) Next() (dh common.DataEventHandler) {
 }
 
 // History will return all previous data events that have happened
-func (b *Base) History() []common.DataEventHandler {
+func (b *Base) History() []eventtypes.DataEventHandler {
 	return b.stream[:b.offset]
 }
 
 // Latest will return latest data event
-func (b *Base) Latest() common.DataEventHandler {
+func (b *Base) Latest() eventtypes.DataEventHandler {
 	return b.latest
 }
 
 // List returns all future data events from the current iteration
 // ill-advised to use this in strategies because you don't know the future in real life
-func (b *Base) List() []common.DataEventHandler {
+func (b *Base) List() []eventtypes.DataEventHandler {
 	return b.stream[b.offset:]
 }
 

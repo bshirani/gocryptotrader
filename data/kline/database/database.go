@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/thrasher-corp/gocryptotrader/common"
-	"github.com/thrasher-corp/gocryptotrader/data/kline"
 	"github.com/thrasher-corp/gocryptotrader/currency"
+	"github.com/thrasher-corp/gocryptotrader/data/kline"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	gctkline "github.com/thrasher-corp/gocryptotrader/exchanges/kline"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/trade"
@@ -18,7 +18,7 @@ import (
 func LoadData(startDate, endDate time.Time, interval time.Duration, exchangeName string, dataType int64, fPair currency.Pair, a asset.Item) (*kline.DataFromKline, error) {
 	resp := &kline.DataFromKline{}
 	switch dataType {
-	case common.DataCandle:
+	case eventtypes.DataCandle:
 		klineItem, err := getCandleDatabaseData(
 			startDate,
 			endDate,
@@ -35,7 +35,7 @@ func LoadData(startDate, endDate time.Time, interval time.Duration, exchangeName
 				log.Warnf(log.BackTester, "candle validation issue for %v %v %v: %v", klineItem.Exchange, klineItem.Asset, klineItem.Pair, klineItem.Candles[i].ValidationIssues)
 			}
 		}
-	case common.DataTrade:
+	case eventtypes.DataTrade:
 		trades, err := trade.GetTradesInRange(
 			exchangeName,
 			a.String(),
@@ -54,7 +54,7 @@ func LoadData(startDate, endDate time.Time, interval time.Duration, exchangeName
 		}
 		resp.Item = klineItem
 	default:
-		return nil, fmt.Errorf("could not retrieve database data for %v %v %v, %w", exchangeName, a, fPair, common.ErrInvalidDataType)
+		return nil, fmt.Errorf("could not retrieve database data for %v %v %v, %w", exchangeName, a, fPair, eventtypes.ErrInvalidDataType)
 	}
 	resp.Item.Exchange = strings.ToLower(resp.Item.Exchange)
 

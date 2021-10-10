@@ -5,10 +5,10 @@ import (
 	"fmt"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/compliance"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/database/repository/livetrade"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/event"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/fill"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/order"
@@ -89,7 +89,7 @@ func (p *Portfolio) Reset() {
 func (p *Portfolio) OnSignal(ev signal.Event, cs *FakeExchangeSettings) (*order.Order, error) {
 
 	if ev == nil || cs == nil {
-		return nil, common.ErrNilArguments
+		return nil, eventtypes.ErrNilArguments
 	}
 	if p.sizeManager == nil {
 		return nil, errSizeManagerUnset
@@ -160,9 +160,9 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *FakeExchangeSettings) (*order.
 	// }
 	// }
 
-	if ev.GetDirection() == common.DoNothing ||
-		ev.GetDirection() == common.MissingData ||
-		ev.GetDirection() == common.TransferredFunds ||
+	if ev.GetDirection() == eventtypes.DoNothing ||
+		ev.GetDirection() == eventtypes.MissingData ||
+		ev.GetDirection() == eventtypes.TransferredFunds ||
 		ev.GetDirection() == "" {
 		return nil, nil
 	}
@@ -187,7 +187,7 @@ func (p *Portfolio) updatePosition(pos *positions.Position, amount decimal.Decim
 // OnFill processes the event after an order has been placed by the exchange. Its purpose is to track holdings for future portfolio decisions.
 func (p *Portfolio) OnFill(f fill.Event) (*fill.Fill, error) {
 	if f == nil {
-		return nil, common.ErrNilEvent
+		return nil, eventtypes.ErrNilEvent
 	}
 	lookup := p.exchangeAssetPairSettings[f.GetExchange()][f.GetAssetType()][f.Pair()]
 	if lookup == nil {
@@ -261,14 +261,14 @@ func (p *Portfolio) OnFill(f fill.Event) (*fill.Fill, error) {
 	}
 
 	direction := f.GetDirection()
-	if direction == common.DoNothing ||
-		direction == common.CouldNotBuy ||
-		direction == common.CouldNotSell ||
-		direction == common.MissingData ||
+	if direction == eventtypes.DoNothing ||
+		direction == eventtypes.CouldNotBuy ||
+		direction == eventtypes.CouldNotSell ||
+		direction == eventtypes.MissingData ||
 		direction == "" {
 		fe, ok := f.(*fill.Fill)
 		if !ok {
-			return nil, fmt.Errorf("%w expected fill event", common.ErrInvalidDataType)
+			return nil, fmt.Errorf("%w expected fill event", eventtypes.ErrInvalidDataType)
 		}
 		fe.ExchangeFee = decimal.Zero
 		return fe, nil
@@ -276,7 +276,7 @@ func (p *Portfolio) OnFill(f fill.Event) (*fill.Fill, error) {
 
 	fe, ok := f.(*fill.Fill)
 	if !ok {
-		return nil, fmt.Errorf("%w expected fill event", common.ErrInvalidDataType)
+		return nil, fmt.Errorf("%w expected fill event", eventtypes.ErrInvalidDataType)
 	}
 	return fe, nil
 }
@@ -319,9 +319,9 @@ func (p *Portfolio) GetFee(exchangeName string, a asset.Item, cp currency.Pair) 
 }
 
 // UpdateHoldings updates the portfolio holdings for the data event
-func (p *Portfolio) UpdateHoldings(ev common.DataEventHandler) error {
+func (p *Portfolio) UpdateHoldings(ev eventtypes.DataEventHandler) error {
 	if ev == nil {
-		return common.ErrNilEvent
+		return eventtypes.ErrNilEvent
 	}
 	lookup, ok := p.exchangeAssetPairSettings[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
 	if !ok {
@@ -348,7 +348,7 @@ func (p *Portfolio) UpdateHoldings(ev common.DataEventHandler) error {
 }
 
 // UpdateTrades updates the portfolio trades for the data event
-func (p *Portfolio) UpdateTrades(ev common.DataEventHandler) {
+func (p *Portfolio) UpdateTrades(ev eventtypes.DataEventHandler) {
 	if ev == nil {
 		return
 	}
@@ -398,7 +398,7 @@ func (p *Portfolio) GetTradeForStrategy(sid string) *livetrade.Details {
 }
 
 // UpdatePositions updates the strategy's position for the data event
-func (p *Portfolio) UpdatePositions(ev common.DataEventHandler) {
+func (p *Portfolio) UpdatePositions(ev eventtypes.DataEventHandler) {
 	if ev == nil {
 		return
 	}
@@ -488,7 +488,7 @@ func (p *Portfolio) GetLatestTradesForAllCurrencies() []holdings.Holding {
 
 // ViewHoldingAtTimePeriod retrieves a snapshot of holdings at a specific time period,
 // returning empty when not found
-func (p *Portfolio) ViewHoldingAtTimePeriod(ev common.EventHandler) (*holdings.Holding, error) {
+func (p *Portfolio) ViewHoldingAtTimePeriod(ev eventtypes.EventHandler) (*holdings.Holding, error) {
 	exchangeAssetPairSettings := p.exchangeAssetPairSettings[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
 	if exchangeAssetPairSettings == nil {
 		return nil, fmt.Errorf("%w for %v %v %v", errNoHoldings, ev.GetExchange(), ev.GetAssetType(), ev.Pair())
@@ -546,7 +546,7 @@ func (p *Portfolio) recordTrade(ev signal.Event) {
 	}
 }
 
-func (p *Portfolio) evaluateOrder(d common.Directioner, originalOrderSignal, sizedOrder *order.Order) (*order.Order, error) {
+func (p *Portfolio) evaluateOrder(d eventtypes.Directioner, originalOrderSignal, sizedOrder *order.Order) (*order.Order, error) {
 	var evaluatedOrder *order.Order
 	cm, err := p.GetComplianceManager(originalOrderSignal.GetExchange(), originalOrderSignal.GetAssetType(), originalOrderSignal.Pair())
 	if err != nil {
@@ -558,12 +558,12 @@ func (p *Portfolio) evaluateOrder(d common.Directioner, originalOrderSignal, siz
 		originalOrderSignal.AppendReason(err.Error())
 		switch d.GetDirection() {
 		case gctorder.Buy:
-			originalOrderSignal.Direction = common.CouldNotBuy
+			originalOrderSignal.Direction = eventtypes.CouldNotBuy
 		case gctorder.Sell:
-			originalOrderSignal.Direction = common.CouldNotSell
-		case common.CouldNotBuy, common.CouldNotSell:
+			originalOrderSignal.Direction = eventtypes.CouldNotSell
+		case eventtypes.CouldNotBuy, eventtypes.CouldNotSell:
 		default:
-			originalOrderSignal.Direction = common.DoNothing
+			originalOrderSignal.Direction = eventtypes.DoNothing
 		}
 		d.SetDirection(originalOrderSignal.Direction)
 
@@ -573,17 +573,17 @@ func (p *Portfolio) evaluateOrder(d common.Directioner, originalOrderSignal, siz
 	return evaluatedOrder, nil
 }
 
-func (p *Portfolio) sizeOrder(d common.Directioner, cs *FakeExchangeSettings, originalOrderSignal *order.Order, sizingFunds decimal.Decimal) *order.Order {
+func (p *Portfolio) sizeOrder(d eventtypes.Directioner, cs *FakeExchangeSettings, originalOrderSignal *order.Order, sizingFunds decimal.Decimal) *order.Order {
 	sizedOrder, err := p.sizeManager.SizeOrder(originalOrderSignal, sizingFunds, cs)
 	if err != nil {
 		originalOrderSignal.AppendReason(err.Error())
 		switch originalOrderSignal.Direction {
 		case gctorder.Buy:
-			originalOrderSignal.Direction = common.CouldNotBuy
+			originalOrderSignal.Direction = eventtypes.CouldNotBuy
 		case gctorder.Sell:
-			originalOrderSignal.Direction = common.CouldNotSell
+			originalOrderSignal.Direction = eventtypes.CouldNotSell
 		default:
-			originalOrderSignal.Direction = common.DoNothing
+			originalOrderSignal.Direction = eventtypes.DoNothing
 		}
 		d.SetDirection(originalOrderSignal.Direction)
 		return originalOrderSignal
@@ -592,11 +592,11 @@ func (p *Portfolio) sizeOrder(d common.Directioner, cs *FakeExchangeSettings, or
 	if sizedOrder.Amount.IsZero() {
 		switch originalOrderSignal.Direction {
 		case gctorder.Buy:
-			originalOrderSignal.Direction = common.CouldNotBuy
+			originalOrderSignal.Direction = eventtypes.CouldNotBuy
 		case gctorder.Sell:
-			originalOrderSignal.Direction = common.CouldNotSell
+			originalOrderSignal.Direction = eventtypes.CouldNotSell
 		default:
-			originalOrderSignal.Direction = common.DoNothing
+			originalOrderSignal.Direction = eventtypes.DoNothing
 		}
 		d.SetDirection(originalOrderSignal.Direction)
 		originalOrderSignal.AppendReason("sized order to 0")
@@ -609,7 +609,7 @@ func (p *Portfolio) sizeOrder(d common.Directioner, cs *FakeExchangeSettings, or
 		sizedOrder.AllocatedFunds = sizedOrder.Amount.Mul(sizedOrder.Price)
 	}
 	if err != nil {
-		sizedOrder.Direction = common.DoNothing
+		sizedOrder.Direction = eventtypes.DoNothing
 		sizedOrder.AppendReason(err.Error())
 	}
 	return sizedOrder
@@ -619,7 +619,7 @@ func (p *Portfolio) sizeOrder(d common.Directioner, cs *FakeExchangeSettings, or
 // then saves the snapshot to the c
 func (p *Portfolio) addComplianceSnapshot(fillEvent fill.Event) error {
 	if fillEvent == nil {
-		return common.ErrNilEvent
+		return eventtypes.ErrNilEvent
 	}
 	complianceManager, err := p.GetComplianceManager(fillEvent.GetExchange(), fillEvent.GetAssetType(), fillEvent.Pair())
 	if err != nil {

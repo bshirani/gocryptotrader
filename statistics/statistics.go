@@ -6,17 +6,17 @@ import (
 	"sort"
 	"time"
 
-	"github.com/thrasher-corp/gocryptotrader/common"
+	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/compliance"
-	"github.com/thrasher-corp/gocryptotrader/holdings"
-	"github.com/thrasher-corp/gocryptotrader/statistics/currencystatistics"
+	"github.com/thrasher-corp/gocryptotrader/currency"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/fill"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/order"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/signal"
-	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
-	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
+	"github.com/thrasher-corp/gocryptotrader/holdings"
 	"github.com/thrasher-corp/gocryptotrader/log"
+	"github.com/thrasher-corp/gocryptotrader/statistics/currencystatistics"
 )
 
 // Reset returns the struct to defaults
@@ -25,9 +25,9 @@ func (s *Statistic) Reset() {
 }
 
 // SetupEventForTime sets up the big map for to store important data at each time interval
-func (s *Statistic) SetupEventForTime(ev common.DataEventHandler) error {
+func (s *Statistic) SetupEventForTime(ev eventtypes.DataEventHandler) error {
 	if ev == nil {
-		return common.ErrNilEvent
+		return eventtypes.ErrNilEvent
 	}
 	ex := ev.GetExchange()
 	a := ev.GetAssetType()
@@ -69,9 +69,9 @@ func (s *Statistic) setupMap(ex string, a asset.Item) {
 }
 
 // SetEventForOffset sets the event for the time period in the event
-func (s *Statistic) SetEventForOffset(ev common.EventHandler) error {
+func (s *Statistic) SetEventForOffset(ev eventtypes.EventHandler) error {
 	if ev == nil {
-		return common.ErrNilEvent
+		return eventtypes.ErrNilEvent
 	}
 	if s.ExchangeAssetPairStatistics == nil {
 		return errExchangeAssetPairStatsUnset
@@ -93,9 +93,9 @@ func (s *Statistic) SetEventForOffset(ev common.EventHandler) error {
 	return nil
 }
 
-func applyEventAtOffset(ev common.EventHandler, lookup *currencystatistics.CurrencyStatistic, i int) error {
+func applyEventAtOffset(ev eventtypes.EventHandler, lookup *currencystatistics.CurrencyStatistic, i int) error {
 	switch t := ev.(type) {
-	case common.DataEventHandler:
+	case eventtypes.DataEventHandler:
 		lookup.Events[i].DataEvent = t
 	case signal.Event:
 		lookup.Events[i].SignalEvent = t
@@ -130,7 +130,7 @@ func (s *Statistic) AddHoldingsForTime(h *holdings.Holding) error {
 // AddComplianceSnapshotForTime adds the compliance snapshot to the statistics at the time period
 func (s *Statistic) AddComplianceSnapshotForTime(c compliance.Snapshot, e fill.Event) error {
 	if e == nil {
-		return common.ErrNilEvent
+		return eventtypes.ErrNilEvent
 	}
 	if s.ExchangeAssetPairStatistics == nil {
 		return errExchangeAssetPairStatsUnset
@@ -169,7 +169,7 @@ func (s *Statistic) CalculateAllResults() error {
 				last := stats.Events[len(stats.Events)-1]
 				// startDate = stats.Events[0].DataEvent.GetTime()
 				// endDate = last.DataEvent.GetTime()
-				// var event common.EventHandler
+				// var event eventtypes.EventHandler
 				// switch {
 				// case last.FillEvent != nil:
 				// 	event = last.FillEvent
@@ -338,11 +338,11 @@ func (s *Statistic) PrintAllEventsChronologically() {
 					switch {
 					case currencyStatistic.Events[i].FillEvent != nil:
 						direction := currencyStatistic.Events[i].FillEvent.GetDirection()
-						if direction == common.CouldNotBuy ||
-							direction == common.CouldNotSell ||
-							direction == common.DoNothing ||
-							direction == common.MissingData ||
-							direction == common.TransferredFunds ||
+						if direction == eventtypes.CouldNotBuy ||
+							direction == eventtypes.CouldNotSell ||
+							direction == eventtypes.DoNothing ||
+							direction == eventtypes.MissingData ||
+							direction == eventtypes.TransferredFunds ||
 							direction == "" {
 							results = addEventOutputToTime(results, currencyStatistic.Events[i].FillEvent.GetTime(),
 								fmt.Sprintf("%v %v %v %v | Price: $%v - Direction: %v - Reason: %s",

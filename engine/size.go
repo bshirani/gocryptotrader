@@ -1,4 +1,4 @@
-package size
+package engine
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 // SizeOrder is responsible for ensuring that the order size is within config limits
 func (s *Size) SizeOrder(o order.Event, amountAvailable decimal.Decimal, cs *FakeExchangeSettings) (*order.Order, error) {
 	if o == nil || cs == nil {
-		return nil, common.ErrNilArguments
+		return nil, eventtypes.ErrNilArguments
 	}
 	if amountAvailable.LessThanOrEqual(decimal.Zero) {
 		return nil, errNoFunds

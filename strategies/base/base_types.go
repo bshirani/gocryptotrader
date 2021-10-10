@@ -3,16 +3,13 @@ package base
 import (
 	"errors"
 
-	"github.com/shopspring/decimal"
 	"github.com/thrasher-corp/gocryptotrader/compliance"
-	"github.com/thrasher-corp/gocryptotrader/holdings"
-	"github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/database/repository/livetrade"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/fill"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/order"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/signal"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
+	"github.com/thrasher-corp/gocryptotrader/holdings"
+	"github.com/thrasher-corp/gocryptotrader/positions"
 )
 
 var (
@@ -31,17 +28,8 @@ var (
 
 // Handler contains all functions expected to operate a portfolio manager
 type PortfolioHandler interface {
-	OnSignal(signal.Event, *FakeExchangeSettings) (*order.Order, error)
-	OnFill(fill.Event) (*fill.Fill, error)
-
-	ViewHoldingAtTimePeriod(common.EventHandler) (*holdings.Holding, error)
-	UpdateHoldings(common.DataEventHandler) error
+	ViewHoldingAtTimePeriod(eventtypes.EventHandler) (*holdings.Holding, error)
+	GetPositionForStrategy(string) *positions.Position
 	GetTradeForStrategy(string) *livetrade.Details
-
 	GetComplianceManager(string, asset.Item, currency.Pair) (*compliance.Manager, error)
-
-	SetFee(string, asset.Item, currency.Pair, decimal.Decimal)
-	GetFee(string, asset.Item, currency.Pair) decimal.Decimal
-
-	Reset()
 }

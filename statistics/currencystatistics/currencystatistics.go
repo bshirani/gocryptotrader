@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/common"
 	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
 	gctmath "github.com/thrasher-corp/gocryptotrader/common/math"
 	"github.com/thrasher-corp/gocryptotrader/currency"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	gctkline "github.com/thrasher-corp/gocryptotrader/exchanges/kline"
 	gctorder "github.com/thrasher-corp/gocryptotrader/exchanges/order"
@@ -54,14 +54,14 @@ func (c *CurrencyStatistic) CalculateResults() error {
 	returnPerCandle := make([]decimal.Decimal, len(c.Events))
 	benchmarkRates := make([]decimal.Decimal, len(c.Events))
 
-	var allDataEvents []common.DataEventHandler
+	var allDataEvents []eventtypes.DataEventHandler
 	for i := range c.Events {
 		returnPerCandle[i] = c.Events[i].Holdings.ChangeInTotalValuePercent
 		allDataEvents = append(allDataEvents, c.Events[i].DataEvent)
 		if i == 0 {
 			continue
 		}
-		if c.Events[i].SignalEvent != nil && c.Events[i].SignalEvent.GetDirection() == common.MissingData {
+		if c.Events[i].SignalEvent != nil && c.Events[i].SignalEvent.GetDirection() == eventtypes.MissingData {
 			c.ShowMissingDataWarning = true
 		}
 		benchmarkRates[i] = c.Events[i].DataEvent.ClosePrice().Sub(
@@ -300,7 +300,7 @@ func (c *CurrencyStatistic) PrintResults(e string, a asset.Item, p currency.Pair
 	}
 }
 
-func calculateMaxDrawdown(closePrices []common.DataEventHandler) Swing {
+func calculateMaxDrawdown(closePrices []eventtypes.DataEventHandler) Swing {
 	var lowestPrice, highestPrice decimal.Decimal
 	var lowestTime, highestTime time.Time
 	var swings []Swing

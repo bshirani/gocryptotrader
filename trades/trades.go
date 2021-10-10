@@ -2,7 +2,7 @@ package trades
 
 import (
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/common"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/signal"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
@@ -10,7 +10,7 @@ import (
 // Create makes a Trade struct to track total values of strategy holdings over the course of a backtesting run
 func Create(ev signal.Event) (Trade, error) {
 	if ev == nil {
-		return Trade{}, common.ErrNilEvent
+		return Trade{}, eventtypes.ErrNilEvent
 	}
 
 	return Trade{
@@ -32,7 +32,7 @@ func (t *Trade) Update(e signal.Event) {
 }
 
 // UpdateValue calculates the trades's value for a data event's time and price
-func (t *Trade) UpdateValue(d common.DataEventHandler) {
+func (t *Trade) UpdateValue(d eventtypes.DataEventHandler) {
 	t.Timestamp = d.GetTime()
 	t.CurrentPrice = d.ClosePrice()
 
@@ -65,7 +65,7 @@ func (t *Trade) update(e signal.Event) {
 	// 	case order.Sell:
 	// 		t.SoldAmount = t.SoldAmount.Add(amount)
 	// 		t.SoldValue = t.SoldAmount.Mul(price)
-	// 	case common.DoNothing, common.CouldNotSell, common.CouldNotBuy, common.MissingData, common.TransferredFunds, "":
+	// 	case eventtypes.DoNothing, eventtypes.CouldNotSell, eventtypes.CouldNotBuy, eventtypes.MissingData, eventtypes.TransferredFunds, "":
 	// 	}
 	// }
 	// t.TotalValueLostToVolumeSizing = t.TotalValueLostToVolumeSizing.Add(e.GetClosePrice().Sub(e.GetVolumeAdjustedPrice()).Mul(e.GetAmount()))

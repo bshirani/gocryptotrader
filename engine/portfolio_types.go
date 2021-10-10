@@ -5,10 +5,10 @@ import (
 	"sync"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/compliance"
 	"github.com/thrasher-corp/gocryptotrader/currency"
 	"github.com/thrasher-corp/gocryptotrader/database/repository/livetrade"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/fill"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/order"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/signal"
@@ -69,10 +69,9 @@ type PortfolioHandler interface {
 	OnSignal(signal.Event, *FakeExchangeSettings) (*order.Order, error)
 	OnFill(fill.Event) (*fill.Fill, error)
 
-	ViewHoldingAtTimePeriod(common.EventHandler) (*holdings.Holding, error)
+	ViewHoldingAtTimePeriod(eventtypes.EventHandler) (*holdings.Holding, error)
 	setHoldingsForOffset(*holdings.Holding, bool) error
-	UpdateHoldings(common.DataEventHandler) error
-	GetPositionForStrategy(string) *positions.Position
+	UpdateHoldings(eventtypes.DataEventHandler) error
 	GetTradeForStrategy(string) *livetrade.Details
 
 	GetComplianceManager(string, asset.Item, currency.Pair) (*compliance.Manager, error)

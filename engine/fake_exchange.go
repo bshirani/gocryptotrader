@@ -185,7 +185,7 @@ func (e *FakeExchange) GetAllCurrencySettings() ([]Settings, error) {
 // verifyOrderWithinLimits conforms the amount to fall into the minimum size and maximum size limit after reduced
 func verifyOrderWithinLimits(f *fill.Fill, limitReducedAmount decimal.Decimal, cs *Settings) error {
 	if f == nil {
-		return common.ErrNilEvent
+		return eventtypes.ErrNilEvent
 	}
 	if cs == nil {
 		return errNilCurrencySettings
@@ -246,7 +246,7 @@ func reduceAmountToFitPortfolioLimit(adjustedPrice, amount, sizedPortfolioTotal 
 
 func (e *FakeExchange) placeOrder(ctx context.Context, price, amount decimal.Decimal, useRealOrders, useExchangeLimits bool, f *fill.Fill, om *OrderManagerHandler) (string, error) {
 	if f == nil {
-		return "", common.ErrNilEvent
+		return "", eventtypes.ErrNilEvent
 	}
 	u, err := uuid.NewV4()
 	if err != nil {
@@ -305,7 +305,7 @@ func (e *FakeExchange) placeOrder(ctx context.Context, price, amount decimal.Dec
 
 func (e *FakeExchange) sizeOfflineOrder(high, low, volume decimal.Decimal, cs *Settings, f *fill.Fill) (adjustedPrice, adjustedAmount decimal.Decimal, err error) {
 	if cs == nil || f == nil {
-		return decimal.Zero, decimal.Zero, common.ErrNilArguments
+		return decimal.Zero, decimal.Zero, eventtypes.ErrNilArguments
 	}
 	// provide history and estimate volatility
 	slippageRate := slippage.EstimateSlippagePercentage(cs.MinimumSlippageRate, cs.MaximumSlippageRate)

@@ -4,22 +4,22 @@ import (
 	"fmt"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/compliance"
-	"github.com/thrasher-corp/gocryptotrader/holdings"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/order"
 	"github.com/thrasher-corp/gocryptotrader/currency"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes/order"
+	"github.com/thrasher-corp/gocryptotrader/holdings"
 )
 
 // EvaluateOrder goes through a standard list of evaluations to make to ensure that
 // we are in a position to follow through with an order
 func (r *Risk) EvaluateOrder(o order.Event, latestHoldings []holdings.Holding, s compliance.Snapshot) (*order.Order, error) {
 	if o == nil || latestHoldings == nil {
-		return nil, common.ErrNilArguments
+		return nil, eventtypes.ErrNilArguments
 	}
 	retOrder, ok := o.(*order.Order)
 	if !ok {
-		return nil, fmt.Errorf("%w expected order event", common.ErrInvalidDataType)
+		return nil, fmt.Errorf("%w expected order event", eventtypes.ErrInvalidDataType)
 	}
 	ex := o.GetExchange()
 	a := o.GetAssetType()

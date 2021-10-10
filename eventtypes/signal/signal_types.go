@@ -2,7 +2,7 @@ package signal
 
 import (
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/common"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/event"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
@@ -18,8 +18,8 @@ const (
 // Event handler is used for getting trade signal details
 // Example Amount and Price of current candle tick
 type Event interface {
-	common.EventHandler
-	common.Directioner
+	eventtypes.EventHandler
+	eventtypes.Directioner
 
 	GetPrice() decimal.Decimal
 	IsSignal() bool

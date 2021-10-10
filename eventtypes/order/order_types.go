@@ -2,7 +2,7 @@ package order
 
 import (
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/common"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/event"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
@@ -25,8 +25,8 @@ type Order struct {
 
 // Event inherits common event interfaces along with extra functions related to handling orders
 type Event interface {
-	common.EventHandler
-	common.Directioner
+	eventtypes.EventHandler
+	eventtypes.Directioner
 	GetBuyLimit() decimal.Decimal
 	GetSellLimit() decimal.Decimal
 	SetAmount(decimal.Decimal)

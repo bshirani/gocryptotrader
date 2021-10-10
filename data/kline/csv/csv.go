@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/thrasher-corp/gocryptotrader/common"
-	gctkline "github.com/thrasher-corp/gocryptotrader/data/kline"
 	"github.com/thrasher-corp/gocryptotrader/currency"
+	gctkline "github.com/thrasher-corp/gocryptotrader/data/kline"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/kline"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
@@ -37,7 +37,7 @@ func LoadData(dataType int64, filepath, exchangeName string, interval time.Durat
 	csvData := csv.NewReader(csvFile)
 
 	switch dataType {
-	case common.DataCandle:
+	case eventtypes.DataCandle:
 		candles := kline.Item{
 			Exchange: exchangeName,
 			Pair:     fPair,
@@ -102,7 +102,7 @@ func LoadData(dataType int64, filepath, exchangeName string, interval time.Durat
 		}
 
 		resp.Item = candles
-	case common.DataTrade:
+	case eventtypes.DataTrade:
 		var trades []trade.Data
 		for {
 			row, errCSV := csvData.Read()
@@ -149,7 +149,7 @@ func LoadData(dataType int64, filepath, exchangeName string, interval time.Durat
 			return nil, fmt.Errorf("could not read csv trade data for %v %v %v, %v", exchangeName, a, fPair, err)
 		}
 	default:
-		return nil, fmt.Errorf("could not process csv data for %v %v %v, %w", exchangeName, a, fPair, common.ErrInvalidDataType)
+		return nil, fmt.Errorf("could not process csv data for %v %v %v, %w", exchangeName, a, fPair, eventtypes.ErrInvalidDataType)
 	}
 	resp.Item.Exchange = strings.ToLower(exchangeName)
 	resp.Item.Pair = fPair

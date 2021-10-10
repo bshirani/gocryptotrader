@@ -1,9 +1,9 @@
-package size
+package engine
 
 import (
 	"errors"
 
-	"github.com/thrasher-corp/gocryptotrader/bt_config"
+	config "github.com/thrasher-corp/gocryptotrader/bt_config"
 )
 
 var (

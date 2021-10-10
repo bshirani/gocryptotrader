@@ -11,7 +11,6 @@ import (
 
 	"github.com/shopspring/decimal"
 	config "github.com/thrasher-corp/gocryptotrader/bt_config"
-	"github.com/thrasher-corp/gocryptotrader/common"
 	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/compliance"
 	"github.com/thrasher-corp/gocryptotrader/currency"
@@ -22,6 +21,7 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/data/kline/database"
 	"github.com/thrasher-corp/gocryptotrader/data/kline/live"
 	gctdatabase "github.com/thrasher-corp/gocryptotrader/database"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/fill"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/order"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/signal"
@@ -34,7 +34,6 @@ import (
 	"github.com/thrasher-corp/gocryptotrader/report"
 	"github.com/thrasher-corp/gocryptotrader/risk"
 	"github.com/thrasher-corp/gocryptotrader/settings"
-	"github.com/thrasher-corp/gocryptotrader/size"
 	"github.com/thrasher-corp/gocryptotrader/slippage"
 	"github.com/thrasher-corp/gocryptotrader/statistics"
 	"github.com/thrasher-corp/gocryptotrader/strategies"
@@ -42,7 +41,7 @@ import (
 )
 
 // New returns a new BackTest instance
-func New() *BackTest {
+func NewBacktest() *BackTest {
 	return &BackTest{
 		shutdown: make(chan struct{}),
 	}
@@ -68,7 +67,7 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *Engine)
 	if bot == nil {
 		return nil, errNilBot
 	}
-	bt := New()
+	bt := NewBacktest()
 	bt.Datas = &data.HandlerPerCurrency{}
 	bt.EventQueue = &EventHolder{}
 	reports := &report.Data{
@@ -93,7 +92,7 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *Engine)
 		MaximumSize:  cfg.PortfolioSettings.SellSide.MaximumSize,
 		MaximumTotal: cfg.PortfolioSettings.SellSide.MaximumTotal,
 	}
-	sizeManager := &size.Size{
+	sizeManager := &Size{
 		BuySide:  buyRule,
 		SellSide: sellRule,
 	}
@@ -229,7 +228,7 @@ func NewFromConfig(cfg *config.Config, templatePath, output string, bot *Engine)
 			Snapshots: []compliance.Snapshot{},
 		}
 
-		dataType, _ := common.DataTypeToInt(cfg.DataSettings.DataType)
+		dataType, _ := eventtypes.DataTypeToInt(cfg.DataSettings.DataType)
 		resp, _ := database.LoadData(
 			cfg.DataSettings.DatabaseData.StartDate,
 			cfg.DataSettings.DatabaseData.EndDate,
@@ -686,7 +685,7 @@ func (bt *BackTest) loadData(cfg *config.Config, exch gctexchange.IBotExchange, 
 	// 	return nil, errAmbiguousDataSource
 	// }
 
-	dataType, err := common.DataTypeToInt(cfg.DataSettings.DataType)
+	dataType, err := eventtypes.DataTypeToInt(cfg.DataSettings.DataType)
 	if err != nil {
 		return nil, err
 	}
@@ -806,7 +805,7 @@ func (bt *BackTest) loadData(cfg *config.Config, exch gctexchange.IBotExchange, 
 
 	err = b.ValidateKline(fPair, a, resp.Item.Interval)
 	if err != nil {
-		if dataType != common.DataTrade || !strings.EqualFold(err.Error(), "interval not supported") {
+		if dataType != eventtypes.DataTrade || !strings.EqualFold(err.Error(), "interval not supported") {
 			return nil, err
 		}
 	}
@@ -875,7 +874,7 @@ func loadAPIData(cfg *config.Config, exch gctexchange.IBotExchange, fPair curren
 
 func loadLiveData(cfg *config.Config, base *gctexchange.Base) error {
 	if cfg == nil || base == nil || cfg.DataSettings.LiveData == nil {
-		return common.ErrNilArguments
+		return eventtypes.ErrNilArguments
 	}
 	if cfg.DataSettings.Interval <= 0 {
 		return errIntervalUnset
@@ -909,9 +908,9 @@ func loadLiveData(cfg *config.Config, base *gctexchange.Base) error {
 // after data has been loaded and Run has appended a data event to the queue,
 // handle event will process events and add further events to the queue if they
 // are required
-func (bt *BackTest) handleEvent(ev common.EventHandler) error {
+func (bt *BackTest) handleEvent(ev eventtypes.EventHandler) error {
 	switch eType := ev.(type) {
-	case common.DataEventHandler:
+	case eventtypes.DataEventHandler:
 		return bt.processSingleDataEvent(eType)
 	case signal.Event:
 		bt.processSignalEvent(eType)
@@ -928,7 +927,7 @@ func (bt *BackTest) handleEvent(ev common.EventHandler) error {
 	return nil
 }
 
-func (bt *BackTest) processSingleDataEvent(ev common.DataEventHandler) error {
+func (bt *BackTest) processSingleDataEvent(ev eventtypes.DataEventHandler) error {
 
 	err := bt.updateStatsForDataEvent(ev)
 	if err != nil {
@@ -1010,7 +1009,7 @@ func (bt *BackTest) processSimultaneousDataEvents() error {
 
 // updateStatsForDataEvent makes various systems aware of price movements from
 // data events
-func (bt *BackTest) updateStatsForDataEvent(ev common.DataEventHandler) error {
+func (bt *BackTest) updateStatsForDataEvent(ev eventtypes.DataEventHandler) error {
 	// // update statistics with the latest price
 	// err := bt.Statistic.SetupEventForTime(ev)
 	// if err != nil {

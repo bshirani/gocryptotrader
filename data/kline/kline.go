@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/common"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/event"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/kline"
 	gctkline "github.com/thrasher-corp/gocryptotrader/exchanges/kline"
@@ -27,7 +27,7 @@ func (d *DataFromKline) Load() error {
 		return errNoCandleData
 	}
 
-	klineData := make([]common.DataEventHandler, len(d.Item.Candles))
+	klineData := make([]eventtypes.DataEventHandler, len(d.Item.Candles))
 	for i := range d.Item.Candles {
 		klineData[i] = &kline.Kline{
 			Base: event.Base{
@@ -57,7 +57,7 @@ func (d *DataFromKline) AppendResults(ki *gctkline.Item) {
 	if d.addedTimes == nil {
 		d.addedTimes = make(map[time.Time]bool)
 	}
-	var klineData []common.DataEventHandler
+	var klineData []eventtypes.DataEventHandler
 	var gctCandles []gctkline.Candle
 	for i := range ki.Candles {
 		if _, ok := d.addedTimes[ki.Candles[i].Time]; !ok {

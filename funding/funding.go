@@ -60,10 +60,10 @@ func CreateItem(exch string, a asset.Item, ci currency.Code, initialFunds, trans
 // USDT level funding
 func CreatePair(base, quote *Item) (*Pair, error) {
 	if base == nil {
-		return nil, fmt.Errorf("base %w", common.ErrNilArguments)
+		return nil, fmt.Errorf("base %w", eventtypes.ErrNilArguments)
 	}
 	if quote == nil {
-		return nil, fmt.Errorf("quote %w", common.ErrNilArguments)
+		return nil, fmt.Errorf("quote %w", eventtypes.ErrNilArguments)
 	}
 	// copy to prevent the off chance of sending in the same base OR quote
 	// to create a new pair with a new base OR quote
@@ -161,7 +161,7 @@ func (f *FundManager) GenerateReport(startDate, endDate time.Time) *Report {
 // Transfer allows transferring funds from one pretend exchange to another
 func (f *FundManager) Transfer(amount decimal.Decimal, sender, receiver *Item, inclusiveFee bool) error {
 	if sender == nil || receiver == nil {
-		return common.ErrNilArguments
+		return eventtypes.ErrNilArguments
 	}
 	if amount.LessThanOrEqual(decimal.Zero) {
 		return errZeroAmountReceived
@@ -238,7 +238,7 @@ func (f *FundManager) IsUsingExchangeLevelFunding() bool {
 }
 
 // GetFundingForEvent This will construct a funding based on a backtesting event
-func (f *FundManager) GetFundingForEvent(ev common.EventHandler) (*Pair, error) {
+func (f *FundManager) GetFundingForEvent(ev eventtypes.EventHandler) (*Pair, error) {
 	return f.GetFundingForEAP(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 }
 

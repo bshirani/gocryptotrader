@@ -38,7 +38,7 @@
 // // For dollarcostaverage, this means returning a buy signal on every event
 // func (s *Strategy) OnData(d data.Handler, _ base.PortfolioHandler, fe *factors.Engine) (signal.Event, error) {
 // 	if d == nil {
-// 		return nil, common.ErrNilEvent
+// 		return nil, eventtypes.ErrNilEvent
 // 	}
 // 	es, err := s.GetBaseData(d)
 // 	if err != nil {

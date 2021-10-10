@@ -2,7 +2,7 @@ package fill
 
 import (
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/common"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/event"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
@@ -24,8 +24,8 @@ type Fill struct {
 
 // Event holds all functions required to handle a fill event
 type Event interface {
-	common.EventHandler
-	common.Directioner
+	eventtypes.EventHandler
+	eventtypes.Directioner
 
 	GetStrategyID() string
 	SetStrategyID(string)

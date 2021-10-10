@@ -4,12 +4,12 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/compliance"
-	"github.com/thrasher-corp/gocryptotrader/holdings"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/fill"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/order"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/signal"
+	"github.com/thrasher-corp/gocryptotrader/holdings"
 )
 
 // CurrencyStats defines what is expected in order to
@@ -27,7 +27,7 @@ type CurrencyStats interface {
 type EventStore struct {
 	Holdings     holdings.Holding
 	Transactions compliance.Snapshot
-	DataEvent    common.DataEventHandler
+	DataEvent    eventtypes.DataEventHandler
 	SignalEvent  signal.Event
 	OrderEvent   order.Event
 	FillEvent    fill.Event

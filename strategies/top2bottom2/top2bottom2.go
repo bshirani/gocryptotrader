@@ -94,7 +94,7 @@
 // 	var resp []signal.Event
 // 	for i := range d {
 // 		if d == nil {
-// 			return nil, common.ErrNilEvent
+// 			return nil, eventtypes.ErrNilEvent
 // 		}
 // 		es, err := s.GetBaseData(d[i])
 // 		if err != nil {

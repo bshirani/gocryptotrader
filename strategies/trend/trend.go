@@ -6,11 +6,11 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/data"
-	"github.com/thrasher-corp/gocryptotrader/strategies/base"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/signal"
-	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"github.com/thrasher-corp/gocryptotrader/factors"
+	"github.com/thrasher-corp/gocryptotrader/strategies/base"
 )
 
 const (
@@ -36,7 +36,7 @@ func (s *Strategy) Description() string {
 
 func (s *Strategy) OnData(d data.Handler, p base.PortfolioHandler, fe *factors.Engine) (signal.Event, error) {
 	if d == nil {
-		return nil, common.ErrNilEvent
+		return nil, eventtypes.ErrNilEvent
 	}
 	es, err := s.GetBaseData(d)
 	if err != nil {
@@ -58,7 +58,7 @@ func (s *Strategy) OnData(d data.Handler, p base.PortfolioHandler, fe *factors.E
 	}
 
 	if !d.HasDataAtTime(d.Latest().GetTime()) {
-		es.SetDirection(common.MissingData)
+		es.SetDirection(eventtypes.MissingData)
 		es.SetDecision(signal.DoNothing)
 		es.AppendReason(fmt.Sprintf("missing data at %v, cannot perform any actions. trend", d.Latest().GetTime()))
 		return &es, nil
@@ -100,7 +100,7 @@ func (s *Strategy) OnData(d data.Handler, p base.PortfolioHandler, fe *factors.E
 	// no trade
 	if es.GetDecision() == "" {
 		es.SetDecision(signal.DoNothing)
-		es.SetDirection(common.DoNothing)
+		es.SetDirection(eventtypes.DoNothing)
 	}
 
 	// fmt.Println(s.GetPosition())
@@ -120,7 +120,7 @@ func (s *Strategy) SupportsSimultaneousProcessing() bool {
 // in allowing a strategy to only place an order for X currency if Y currency's price is Z
 func (s *Strategy) OnSimultaneousSignals(d []data.Handler, p base.PortfolioHandler, fe *factors.Engine) ([]signal.Event, error) {
 	var resp []signal.Event
-	var errs gctcommon.Errors
+	var errs common.Errors
 	for i := range d {
 		sigEvent, err := s.OnData(d[i], p, fe)
 		if err != nil {

@@ -6,7 +6,7 @@ import (
 )
 
 // Kline holds kline data and an event to be processed as
-// a common.DataEventHandler type
+// a eventtypes.DataEventHandler type
 type Kline struct {
 	event.Base
 	Open             decimal.Decimal

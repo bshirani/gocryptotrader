@@ -2,15 +2,15 @@ package holdings
 
 import (
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/common"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes"
 	"github.com/thrasher-corp/gocryptotrader/eventtypes/fill"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 )
 
 // Create makes a Holding struct to track total values of strategy holdings over the course of a backtesting run
-func Create(ev common.EventHandler, initialFunds, riskFreeRate decimal.Decimal) (Holding, error) {
+func Create(ev eventtypes.EventHandler, initialFunds, riskFreeRate decimal.Decimal) (Holding, error) {
 	if ev == nil {
-		return Holding{}, common.ErrNilEvent
+		return Holding{}, eventtypes.ErrNilEvent
 	}
 
 	if initialFunds.LessThan(decimal.NewFromFloat(0)) {
@@ -40,7 +40,7 @@ func (h *Holding) Update(e fill.Event) {
 }
 
 // UpdateValue calculates the holding's value for a data event's time and price
-func (h *Holding) UpdateValue(d common.DataEventHandler) {
+func (h *Holding) UpdateValue(d eventtypes.DataEventHandler) {
 	h.Timestamp = d.GetTime()
 	latest := d.ClosePrice()
 	h.Offset = d.GetOffset()
@@ -75,7 +75,7 @@ func (h *Holding) update(e fill.Event) {
 		case order.Sell:
 			h.SoldAmount = h.SoldAmount.Add(amount)
 			h.SoldValue = h.SoldAmount.Mul(price)
-		case common.DoNothing, common.CouldNotSell, common.CouldNotBuy, common.MissingData, common.TransferredFunds, "":
+		case eventtypes.DoNothing, eventtypes.CouldNotSell, eventtypes.CouldNotBuy, eventtypes.MissingData, eventtypes.TransferredFunds, "":
 		}
 	}
 	h.TotalValueLostToVolumeSizing = h.TotalValueLostToVolumeSizing.Add(e.GetClosePrice().Sub(e.GetVolumeAdjustedPrice()).Mul(e.GetAmount()))

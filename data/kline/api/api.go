@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/currency"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes"
 	exchange "github.com/thrasher-corp/gocryptotrader/exchanges"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/kline"
@@ -19,7 +19,7 @@ func LoadData(ctx context.Context, dataType int64, startDate, endDate time.Time,
 	var candles kline.Item
 	var err error
 	switch dataType {
-	case common.DataCandle:
+	case eventtypes.DataCandle:
 		candles, err = exch.GetHistoricCandlesExtended(ctx,
 			fPair,
 			a,
@@ -29,7 +29,7 @@ func LoadData(ctx context.Context, dataType int64, startDate, endDate time.Time,
 		if err != nil {
 			return nil, fmt.Errorf("could not retrieve candle data for %v %v %v, %v", exch.GetName(), a, fPair, err)
 		}
-	case common.DataTrade:
+	case eventtypes.DataTrade:
 		var trades []trade.Data
 		trades, err = exch.GetHistoricTrades(ctx,
 			fPair,
@@ -45,7 +45,7 @@ func LoadData(ctx context.Context, dataType int64, startDate, endDate time.Time,
 			return nil, fmt.Errorf("could not convert trade data to candles for %v %v %v, %v", exch.GetName(), a, fPair, err)
 		}
 	default:
-		return nil, fmt.Errorf("could not retrieve data for %v %v %v, %w", exch.GetName(), a, fPair, common.ErrInvalidDataType)
+		return nil, fmt.Errorf("could not retrieve data for %v %v %v, %w", exch.GetName(), a, fPair, eventtypes.ErrInvalidDataType)
 	}
 	candles.Exchange = strings.ToLower(candles.Exchange)
 

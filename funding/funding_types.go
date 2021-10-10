@@ -45,7 +45,7 @@ type IFundingManager interface {
 	Reset()
 	IsUsingExchangeLevelFunding() bool
 	GetFundingForEAC(string, asset.Item, currency.Code) (*Item, error)
-	GetFundingForEvent(common.EventHandler) (*Pair, error)
+	GetFundingForEvent(eventtypes.EventHandler) (*Pair, error)
 	GetFundingForEAP(string, asset.Item, currency.Pair) (*Pair, error)
 	Transfer(decimal.Decimal, *Item, *Item, bool) error
 	GenerateReport(startDate, endDate time.Time) *Report
@@ -57,7 +57,7 @@ type IFundTransferer interface {
 	IsUsingExchangeLevelFunding() bool
 	Transfer(decimal.Decimal, *Item, *Item, bool) error
 	GetFundingForEAC(string, asset.Item, currency.Code) (*Item, error)
-	GetFundingForEvent(common.EventHandler) (*Pair, error)
+	GetFundingForEvent(eventtypes.EventHandler) (*Pair, error)
 	GetFundingForEAP(string, asset.Item, currency.Pair) (*Pair, error)
 }
 

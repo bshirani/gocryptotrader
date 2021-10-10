@@ -5,13 +5,13 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/common"
-	"github.com/thrasher-corp/gocryptotrader/data"
-	"github.com/thrasher-corp/gocryptotrader/strategies/base"
-	"github.com/thrasher-corp/gocryptotrader/eventtypes/signal"
 	gctcommon "github.com/thrasher-corp/gocryptotrader/common"
+	"github.com/thrasher-corp/gocryptotrader/data"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes/signal"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/order"
 	"github.com/thrasher-corp/gocryptotrader/factors"
+	"github.com/thrasher-corp/gocryptotrader/strategies/base"
 )
 
 const (
@@ -57,7 +57,7 @@ func (s *Strategy) OnData(d data.Handler, p base.PortfolioHandler, fe *factors.E
 	// fmt.Printf("%s %s\n", d.Latest().GetTime(), d.Latest().ClosePrice())
 
 	if d == nil {
-		return nil, common.ErrNilEvent
+		return nil, eventtypes.ErrNilEvent
 	}
 	es, err := s.GetBaseData(d)
 	if err != nil {
@@ -82,7 +82,7 @@ func (s *Strategy) OnData(d data.Handler, p base.PortfolioHandler, fe *factors.E
 	fmt.Println("rsi ondata", latestRSIValue)
 
 	if !d.HasDataAtTime(d.Latest().GetTime()) {
-		es.SetDirection(common.MissingData)
+		es.SetDirection(eventtypes.MissingData)
 		es.SetDecision(signal.DoNothing)
 		es.AppendReason(fmt.Sprintf("missing data at %v, cannot perform any actions. RSI %v", d.Latest().GetTime(), latestRSIValue))
 		return &es, nil
@@ -116,7 +116,7 @@ func (s *Strategy) OnData(d data.Handler, p base.PortfolioHandler, fe *factors.E
 	// no trade
 	if es.GetDecision() == "" {
 		es.SetDecision(signal.DoNothing)
-		es.SetDirection(common.DoNothing)
+		es.SetDirection(eventtypes.DoNothing)
 	}
 
 	// fmt.Println(s.GetPosition())

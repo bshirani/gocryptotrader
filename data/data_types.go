@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"github.com/thrasher-corp/gocryptotrader/common"
 	"github.com/thrasher-corp/gocryptotrader/currency"
+	"github.com/thrasher-corp/gocryptotrader/eventtypes"
 	"github.com/thrasher-corp/gocryptotrader/exchanges/asset"
 )
 
@@ -26,8 +26,8 @@ type Holder interface {
 // Base is the base implementation of some interface functions
 // where further specific functions are implmented in DataFromKline
 type Base struct {
-	latest common.DataEventHandler
-	stream []common.DataEventHandler
+	latest eventtypes.DataEventHandler
+	stream []eventtypes.DataEventHandler
 	offset int
 }
 
@@ -45,11 +45,11 @@ type Loader interface {
 
 // Streamer interface handles loading, parsing, distributing BackTest data
 type Streamer interface {
-	Next() common.DataEventHandler
-	GetStream() []common.DataEventHandler
-	History() []common.DataEventHandler
-	Latest() common.DataEventHandler
-	List() []common.DataEventHandler
+	Next() eventtypes.DataEventHandler
+	GetStream() []eventtypes.DataEventHandler
+	History() []eventtypes.DataEventHandler
+	Latest() eventtypes.DataEventHandler
+	List() []eventtypes.DataEventHandler
 	Offset() int
 
 	StreamOpen() []decimal.Decimal
