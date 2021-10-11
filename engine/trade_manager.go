@@ -692,7 +692,6 @@ func getFees(ctx context.Context, exch gctexchange.IBotExchange, fPair currency.
 // loadData will create kline data from the sources defined in start config files. It can exist from databases, csv or API endpoints
 // it can also be generated from trade data which will be converted into kline data
 func (tm *TradeManager) loadData(cfg *config.Config, exch gctexchange.IBotExchange, fPair currency.Pair, a asset.Item) (*kline.DataFromKline, error) {
-	log.Infoln(log.TradeManager, "!!!!!!!!!!!!!!!!!!!!!loading data", tm.Bot.Config.LiveMode, tm.Warmup)
 	if exch == nil {
 		return nil, ErrExchangeNotFound
 	}

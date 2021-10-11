@@ -15,6 +15,13 @@
    "base": "XBT",
    "quote": "USD",
    "initial-quote-funds": "1000"
+  },
+  {
+   "exchange-name": "kraken",
+   "asset": "spot",
+   "base": "XRP",
+   "quote": "XBT",
+   "initial-quote-funds": "1000"
   }
  ],
  "data-settings": {

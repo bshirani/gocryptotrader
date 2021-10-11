@@ -87,7 +87,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	log.Debugf(log.Global, "Tested %d trades", len(tm.Portfolio.GetAllClosedTrades()))
+	log.Debugf(
+		log.Global,
+		"Tested %d trades from %d strategies on %d pairs",
+		len(tm.Portfolio.GetAllClosedTrades()),
+		len(tm.Portfolio.Strategies),
+		len(tm.Portfolio.Strategies),
+	)
 
 	// for _, t := range tm.Portfolio.GetAllClosedTrades() {
 	// 	if t != nil {
