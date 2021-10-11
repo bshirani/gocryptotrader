@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	var configPath, templatePath, reportOutput, strategies, pairs string
+	var configPath, templatePath, reportOutput, strategiesArg, pairsArg string
 	var printLogo, generateReport, darkReport bool
 	wd, err := os.Getwd()
 	if err != nil {
@@ -52,12 +52,12 @@ func main() {
 			"results"),
 		"the path where to output results")
 	flag.StringVar(
-		&strategies,
+		&strategiesArg,
 		"strategy",
 		"",
 		"strategies")
 	flag.StringVar(
-		&pairs,
+		&pairsArg,
 		"pairs",
 		"",
 		"pairs")
@@ -121,6 +121,8 @@ func main() {
 		fmt.Printf("Could not setup backtester from config. Error: %v.\n", err)
 		os.Exit(1)
 	}
+
+	os.Exit(1)
 
 	err = tm.Run()
 	if err != nil {

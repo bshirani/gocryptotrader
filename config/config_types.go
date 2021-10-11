@@ -95,6 +95,7 @@ type Config struct {
 	Nickname                 string             `json:"nickname"`
 	Goal                     string             `json:"goal"`
 	StrategySettings         StrategySettings   `json:"strategy-settings"`
+	StrategiesSettings       []StrategySettings `json:"strategies-settings"`
 	CurrencySettings         []CurrencySettings `json:"currency-settings"`
 	DataSettings             DataSettings       `json:"data-settings"`
 	PortfolioSettings        PortfolioSettings  `json:"portfolio-settings"`

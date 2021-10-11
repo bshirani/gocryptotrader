@@ -14,7 +14,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/shopspring/decimal"
 	"gocryptotrader/common"
 	"gocryptotrader/common/convert"
 	"gocryptotrader/common/file"
@@ -27,6 +26,9 @@ import (
 	gctscript "gocryptotrader/gctscript/vm"
 	"gocryptotrader/log"
 	"gocryptotrader/portfolio/banking"
+	"gocryptotrader/portfolio/strategies"
+
+	"github.com/shopspring/decimal"
 )
 
 // GetCurrencyConfig returns currency configurations
@@ -1865,76 +1867,8 @@ func LoadConfig(data []byte) (resp *Config, err error) {
 
 // PrintSetting prints relevant settings to the console for easy reading
 func (c *Config) PrintSetting() {
-	log.Info(log.TradeManager, "-------------------------------------------------------------")
-	log.Info(log.TradeManager, "------------------Backtester Settings------------------------")
-	log.Info(log.TradeManager, "-------------------------------------------------------------")
-	log.Info(log.TradeManager, "------------------Strategy Settings--------------------------")
-	log.Info(log.TradeManager, "-------------------------------------------------------------")
-	log.Infof(log.TradeManager, "Strategy: %s", c.StrategySettings.Name)
-	log.Infof(log.TradeManager, "Side: %s", c.StrategySettings.Direction)
-	if len(c.StrategySettings.CustomSettings) > 0 {
-		log.Info(log.TradeManager, "Custom strategy variables:")
-		for k, v := range c.StrategySettings.CustomSettings {
-			log.Infof(log.TradeManager, "%s: %v", k, v)
-		}
-	} else {
-		log.Info(log.TradeManager, "Custom strategy variables: unset")
-	}
-	log.Infof(log.TradeManager, "Simultaneous Signal Processing: %v", c.StrategySettings.SimultaneousSignalProcessing)
-
-	for i := range c.CurrencySettings {
-		log.Info(log.TradeManager, "-------------------------------------------------------------")
-		currStr := fmt.Sprintf("------------------%v %v-%v Currency Settings---------------------------------------------------------",
-			c.CurrencySettings[i].Asset,
-			c.CurrencySettings[i].Base,
-			c.CurrencySettings[i].Quote)
-		log.Infof(log.TradeManager, currStr[:61])
-		log.Info(log.TradeManager, "-------------------------------------------------------------")
-		log.Infof(log.TradeManager, "Exchange: %v", c.CurrencySettings[i].ExchangeName)
-		log.Infof(log.TradeManager, "Buy rules: %+v", c.CurrencySettings[i].BuySide)
-		log.Infof(log.TradeManager, "Sell rules: %+v", c.CurrencySettings[i].SellSide)
-		log.Infof(log.TradeManager, "Leverage rules: %+v", c.CurrencySettings[i].Leverage)
-		log.Infof(log.TradeManager, "Can use exchange defined order execution limits: %+v", c.CurrencySettings[i].CanUseExchangeLimits)
-	}
-
-	log.Info(log.TradeManager, "-------------------------------------------------------------")
-	log.Info(log.TradeManager, "------------------Portfolio Settings-------------------------")
-	log.Info(log.TradeManager, "-------------------------------------------------------------")
-	log.Infof(log.TradeManager, "Buy rules: %+v", c.PortfolioSettings.BuySide)
-	log.Infof(log.TradeManager, "Sell rules: %+v", c.PortfolioSettings.SellSide)
-	log.Infof(log.TradeManager, "Leverage rules: %+v", c.PortfolioSettings.Leverage)
-	if c.DataSettings.LiveData != nil {
-		log.Info(log.TradeManager, "-------------------------------------------------------------")
-		log.Info(log.TradeManager, "------------------Live Settings------------------------------")
-		log.Info(log.TradeManager, "-------------------------------------------------------------")
-		log.Infof(log.TradeManager, "Data type: %v", c.DataSettings.DataType)
-		log.Infof(log.TradeManager, "Interval: %v", c.DataSettings.Interval)
-		log.Infof(log.TradeManager, "REAL ORDERS: %v", c.DataSettings.LiveData.RealOrders)
-		log.Infof(log.TradeManager, "Overriding GCT API settings: %v", c.DataSettings.LiveData.APIClientIDOverride != "")
-	}
-	if c.DataSettings.APIData != nil {
-		log.Info(log.TradeManager, "-------------------------------------------------------------")
-		log.Info(log.TradeManager, "------------------API Settings-------------------------------")
-		log.Info(log.TradeManager, "-------------------------------------------------------------")
-		log.Infof(log.TradeManager, "Data type: %v", c.DataSettings.DataType)
-		log.Infof(log.TradeManager, "Interval: %v", c.DataSettings.Interval)
-		log.Infof(log.TradeManager, "Start date: %v", c.DataSettings.APIData.StartDate.Format(common.SimpleTimeFormat))
-		log.Infof(log.TradeManager, "End date: %v", c.DataSettings.APIData.EndDate.Format(common.SimpleTimeFormat))
-	}
-	if c.DataSettings.CSVData != nil {
-		log.Info(log.TradeManager, "-------------------------------------------------------------")
-		log.Info(log.TradeManager, "------------------CSV Settings-------------------------------")
-		log.Info(log.TradeManager, "-------------------------------------------------------------")
-		log.Infof(log.TradeManager, "Data type: %v", c.DataSettings.DataType)
-		log.Infof(log.TradeManager, "Interval: %v", c.DataSettings.Interval)
-		log.Infof(log.TradeManager, "CSV file: %v", c.DataSettings.CSVData.FullPath)
-	}
+	log.Info(log.TradeManager, "-------------------------------------------------------------\n")
 	if c.DataSettings.DatabaseData != nil {
-		log.Info(log.TradeManager, "-------------------------------------------------------------")
-		log.Info(log.TradeManager, "------------------Database Settings--------------------------")
-		log.Info(log.TradeManager, "-------------------------------------------------------------")
-		log.Infof(log.TradeManager, "Data type: %v", c.DataSettings.DataType)
-		log.Infof(log.TradeManager, "Interval: %v", c.DataSettings.Interval)
 		log.Infof(log.TradeManager, "Start date: %v", c.DataSettings.DatabaseData.StartDate.Format(common.SimpleTimeFormat))
 		log.Infof(log.TradeManager, "End date: %v", c.DataSettings.DatabaseData.EndDate.Format(common.SimpleTimeFormat))
 	}
@@ -2028,12 +1962,12 @@ func (c *Config) validateStrategySettings() error {
 			}
 		}
 	}
-	// strats := strategies.GetStrategies()
-	// for i := range strats {
-	// 	if strings.EqualFold(strats[i].Name(), c.StrategySettings.Name) {
-	// 		return nil
-	// 	}
-	// }
+	strats := strategies.GetStrategies()
+	for i := range strats {
+		if strings.EqualFold(strats[i].Name(), c.StrategySettings.Name) {
+			return nil
+		}
+	}
 
 	return nil
 	// return fmt.Errorf("non-nil quote %w", errBadInitialFunds)

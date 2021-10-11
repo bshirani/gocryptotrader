@@ -2,10 +2,12 @@
  "nickname": "TrendStrategy",
  "goal": "Trend Exploit",
  "strategy-settings": {
-  "name": "trend",
-  "use-simultaneous-signal-processing": false,
-  "use-exchange-level-funding": false
+  "name": "trend"
  },
+ "strategies-settings": [
+ { "name": "trend" },
+ { "name": "trend2" }
+ ],
  "currency-settings": [
   {
    "exchange-name": "kraken",
