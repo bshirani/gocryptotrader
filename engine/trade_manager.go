@@ -63,7 +63,7 @@ func (tm *TradeManager) Reset() {
 
 // NewFromConfig takes a strategy config and configures a backtester variable to run
 func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, bot *Engine, live bool) (*TradeManager, error) {
-	log.Infoln(log.TradeManager, "Backtest: Loading config...")
+	log.Infoln(log.TradeManager, "TradeManager: Loading config...")
 	if cfg == nil {
 		return nil, errNilConfig
 	}
@@ -171,7 +171,6 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 		for _, dir := range []gctorder.Side{gctorder.Buy, gctorder.Sell} {
 			s, _ := strategies.LoadStrategyByName(strat.Name, dir, false)
 			id := fmt.Sprintf("%s_%s", s.Name(), string(dir))
-			fmt.Println("id:", id)
 			s.SetID(id)
 			s.SetDefaults()
 			slit = append(slit, s)
@@ -283,49 +282,9 @@ func (tm *TradeManager) Start() error {
 	return nil
 }
 
-func (tm *TradeManager) runLive() error {
-	processEventTicker := time.NewTicker(time.Second)
-	for {
-		select {
-		case <-tm.shutdown:
-			return nil
-		case <-processEventTicker.C:
-			for ev := tm.EventQueue.NextEvent(); ; ev = tm.EventQueue.NextEvent() {
-				if ev == nil {
-					dataHandlerMap := tm.Datas.GetAllData()
-					for exchangeName, exchangeMap := range dataHandlerMap {
-						for assetItem, assetMap := range exchangeMap {
-							for currencyPair, dataHandler := range assetMap {
-								d := dataHandler.Next()
-								if d == nil {
-									if !tm.hasHandledEvent {
-										log.Errorf(log.TradeManager, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
-									}
-								}
-								tm.EventQueue.AppendEvent(d)
-							}
-						}
-					}
-				}
-
-				if ev != nil {
-					err := tm.handleEvent(ev)
-					if err != nil {
-						return err
-					}
-				}
-				if !tm.hasHandledEvent {
-					tm.hasHandledEvent = true
-				}
-			}
-		}
-	}
-	return nil
-}
-
 // Stop shuts down the live data loop
 func (tm *TradeManager) Stop() error {
-	log.Debugln(log.TradeManager, "stopping backtester")
+	log.Debugln(log.TradeManager, "Backtester Shutting Down...")
 
 	// if g == nil {
 	// 	return fmt.Errorf("%s %w", caseName, ErrNilSubsystem)
@@ -350,6 +309,37 @@ func (tm *TradeManager) Stop() error {
 
 	close(tm.shutdown)
 	return nil
+}
+
+func (tm *TradeManager) ReloadData() error {
+	cfg := &tm.cfg
+	for i := range cfg.CurrencySettings {
+		exch, pair, a, err := tm.loadExchangePairAssetBase(
+			cfg.CurrencySettings[i].ExchangeName,
+			cfg.CurrencySettings[i].Base,
+			cfg.CurrencySettings[i].Quote,
+			cfg.CurrencySettings[i].Asset)
+		if err != nil {
+			return err
+		}
+
+		exchangeName := strings.ToLower(exch.GetName())
+		tm.Datas.Setup()
+		klineData, err := tm.loadData(cfg, exch, pair, a)
+		if err != nil {
+			return err
+		}
+		tm.Datas.SetDataForCurrency(exchangeName, a, pair, klineData)
+	}
+	return nil
+}
+
+// IsRunning returns if gctscript manager subsystem is started
+func (b *TradeManager) IsRunning() bool {
+	if b == nil {
+		return false
+	}
+	return atomic.LoadInt32(&b.started) == 1
 }
 
 func (tm *TradeManager) setupExchangeSettings(cfg *config.Config) (Exchange, error) {
@@ -574,29 +564,6 @@ func getFees(ctx context.Context, exch gctexchange.IBotExchange, fPair currency.
 	}
 
 	return decimal.NewFromFloat(fMakerFee), decimal.NewFromFloat(fTakerFee)
-}
-
-func (tm *TradeManager) ReloadData() error {
-	cfg := &tm.cfg
-	for i := range cfg.CurrencySettings {
-		exch, pair, a, err := tm.loadExchangePairAssetBase(
-			cfg.CurrencySettings[i].ExchangeName,
-			cfg.CurrencySettings[i].Base,
-			cfg.CurrencySettings[i].Quote,
-			cfg.CurrencySettings[i].Asset)
-		if err != nil {
-			return err
-		}
-
-		exchangeName := strings.ToLower(exch.GetName())
-		tm.Datas.Setup()
-		klineData, err := tm.loadData(cfg, exch, pair, a)
-		if err != nil {
-			return err
-		}
-		tm.Datas.SetDataForCurrency(exchangeName, a, pair, klineData)
-	}
-	return nil
 }
 
 // loadData will create kline data from the sources defined in start config files. It can exist from databases, csv or API endpoints
@@ -833,6 +800,49 @@ func loadLiveData(cfg *config.Config, base *gctexchange.Base) error {
 	return nil
 }
 
+func (tm *TradeManager) runLive() error {
+	processEventTicker := time.NewTicker(time.Second)
+	for {
+		select {
+		case <-tm.shutdown:
+			return nil
+		case <-processEventTicker.C:
+			for ev := tm.EventQueue.NextEvent(); ; ev = tm.EventQueue.NextEvent() {
+				if ev == nil {
+					dataHandlerMap := tm.Datas.GetAllData()
+					for exchangeName, exchangeMap := range dataHandlerMap {
+						for assetItem, assetMap := range exchangeMap {
+							for currencyPair, dataHandler := range assetMap {
+								d := dataHandler.Next()
+								if d == nil {
+									if !tm.hasHandledEvent {
+										log.Errorf(log.TradeManager, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
+									}
+								}
+								tm.EventQueue.AppendEvent(d)
+							}
+						}
+					}
+				}
+
+				if ev != nil {
+					err := tm.handleEvent(ev)
+					if err != nil {
+						return err
+					}
+				}
+				if !tm.hasHandledEvent {
+					tm.hasHandledEvent = true
+				}
+			}
+		}
+	}
+	return nil
+}
+
+// -----------------------------------
+// DATA PROCESSING
+// -----------------------------------
 // handleEvent is the main processor of data for the backtester
 // after data has been loaded and Run has appended a data event to the queue,
 // handle event will process events and add further events to the queue if they
@@ -936,25 +946,6 @@ func (tm *TradeManager) processSimultaneousDataEvents() error {
 	return nil
 }
 
-// updateStatsForDataEvent makes various systems aware of price movements from
-// data events
-func (tm *TradeManager) updateStatsForDataEvent(ev eventtypes.DataEventHandler) error {
-	// update statistics with the latest price
-	err := tm.Statistic.SetupEventForTime(ev)
-	if err != nil {
-		if err == statistics.ErrAlreadyProcessed {
-			return err
-		}
-		log.Error(log.TradeManager, err)
-	}
-	// update portfolio manager with the latest price
-	err = tm.Portfolio.UpdateHoldings(ev)
-	if err != nil {
-		log.Error(log.TradeManager, err)
-	}
-	return nil
-}
-
 // processSignalEvent receives an event from the strategy for processing under the portfolio
 func (tm *TradeManager) processSignalEvent(ev signal.Event) {
 	cs, err := tm.Exchange.GetCurrencySettings(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
@@ -1003,6 +994,9 @@ func (tm *TradeManager) processFillEvent(ev fill.Event) {
 	}
 }
 
+// ---------------------------
+// DATA LOADING
+// ---------------------------
 // loadLiveDataLoop is an incomplete function to continuously retrieve exchange data on a loop
 // from live. Its purpose is to be able to perform strategy analysis against current data
 func (tm *TradeManager) loadLiveDataLoop(resp *kline.DataFromKline, cfg *config.Config, exch gctexchange.IBotExchange, fPair currency.Pair, a asset.Item, dataType int64) {
@@ -1081,10 +1075,21 @@ func (b *TradeManager) heartBeat() {
 	}
 }
 
-// IsRunning returns if gctscript manager subsystem is started
-func (b *TradeManager) IsRunning() bool {
-	if b == nil {
-		return false
+// updateStatsForDataEvent makes various systems aware of price movements from
+// data events
+func (tm *TradeManager) updateStatsForDataEvent(ev eventtypes.DataEventHandler) error {
+	// update statistics with the latest price
+	err := tm.Statistic.SetupEventForTime(ev)
+	if err != nil {
+		if err == statistics.ErrAlreadyProcessed {
+			return err
+		}
+		log.Error(log.TradeManager, err)
 	}
-	return atomic.LoadInt32(&b.started) == 1
+	// update portfolio manager with the latest price
+	err = tm.Portfolio.UpdateHoldings(ev)
+	if err != nil {
+		log.Error(log.TradeManager, err)
+	}
+	return nil
 }

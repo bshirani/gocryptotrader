@@ -394,17 +394,17 @@ func (bot *Engine) Start() error {
 		return err
 	}
 
-	// if bot.Settings.EnableCommsRelayer {
-	// 	bot.CommunicationsManager, err = SetupCommunicationManager(&bot.Config.Communications)
-	// 	if err != nil {
-	// 		gctlog.Errorf(gctlog.Global, "Communications manager unable to setup: %s", err)
-	// 	} else {
-	// 		err = bot.CommunicationsManager.Start()
-	// 		if err != nil {
-	// 			gctlog.Errorf(gctlog.Global, "Communications manager unable to start: %s", err)
-	// 		}
-	// 	}
-	// }
+	if bot.Settings.EnableCommsRelayer {
+		bot.CommunicationsManager, err = SetupCommunicationManager(&bot.Config.Communications)
+		if err != nil {
+			gctlog.Errorf(gctlog.Global, "Communications manager unable to setup: %s", err)
+		} else {
+			err = bot.CommunicationsManager.Start()
+			if err != nil {
+				gctlog.Errorf(gctlog.Global, "Communications manager unable to start: %s", err)
+			}
+		}
+	}
 
 	if bot.Settings.EnableCoinmarketcapAnalysis ||
 		bot.Settings.EnableCurrencyConverter ||
@@ -590,11 +590,11 @@ func (bot *Engine) Start() error {
 	}
 
 	wd, err := os.Getwd()
-	configPath := filepath.Join(wd, "config", "examples", "trend.strat")
+	configPath := filepath.Join(wd, "backtester", "config", "trend.strat")
 	btcfg, err := config.ReadConfigFromFile(configPath)
 	bot.TradeManager, err = NewTradeManagerFromConfig(btcfg, "xx", "xx", bot, true)
 	if err != nil {
-		fmt.Printf("Could not setup backtester from config. Error: %v.\n", err)
+		fmt.Printf("Could not setup trade manager from config. Error: %v.\n", err)
 		os.Exit(1)
 	}
 

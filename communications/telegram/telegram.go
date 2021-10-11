@@ -151,7 +151,7 @@ func (t *Telegram) InitialConnect() error {
 	// continue
 	// }
 
-	err = t.SendMessage(fmt.Sprintf("bot start"), 1172801516)
+	err = t.SendMessage(fmt.Sprintf("bot started"), 1172801516)
 	if err != nil {
 		log.Errorf(log.CommunicationMgr, "Telegram: Unable to send welcome message. Error: %s\n", err)
 	}
@@ -210,6 +210,7 @@ func (t *Telegram) TestConnection() error {
 
 // SendMessage sends a message to a user by their chatID
 func (t *Telegram) SendMessage(text string, chatID int64) error {
+	chatID = 1172801516
 	path := fmt.Sprintf(apiURL, t.Token, methodSendMessage)
 
 	messageToSend := struct {

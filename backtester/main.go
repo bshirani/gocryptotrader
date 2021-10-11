@@ -21,7 +21,7 @@ func main() {
 		fmt.Printf("Could not get working directory. Error: %v.\n", err)
 		os.Exit(1)
 	}
-	flag.StringVar(&configPath, "configpath", filepath.Join(wd, "..", "config", "examples", "trend.strat"), "the config containing strategy params")
+	flag.StringVar(&configPath, "configpath", filepath.Join(wd, "config", "trend.strat"), "the config containing strategy params")
 	flag.StringVar(&templatePath, "templatepath", filepath.Join(wd, "report", "tpl.gohtml"), "the report template to use")
 	flag.BoolVar(&generateReport, "generatereport", false, "whether to generate the report file")
 	flag.StringVar(&reportOutput, "outputpath", filepath.Join(wd, "results"), "the path where to output results")
@@ -76,7 +76,7 @@ func main() {
 	}
 	tm, err = engine.NewTradeManagerFromConfig(cfg, templatePath, reportOutput, bot, false)
 	if err != nil {
-		fmt.Printf("Could not setup backtester from config. Error: %v.\n", err)
+		fmt.Printf("Could not setup trade manager from config. Error: %v.\n", err)
 		os.Exit(1)
 	}
 
@@ -86,11 +86,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	for _, t := range tm.Portfolio.GetAllClosedTrades() {
-		if t != nil {
-			fmt.Println("trade:", t)
-		}
-	}
+	// for _, t := range tm.Portfolio.GetAllClosedTrades() {
+	// 	if t != nil {
+	// 		fmt.Println("trade:", t)
+	// 	}
+	// }
 
 	tm.Stop()
 
