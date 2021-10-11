@@ -104,7 +104,7 @@ type Exchange struct {
 }
 
 // Handler contains all functions expected to operate a portfolio manager
-type PortfolioHandler interface {
+type StrategyPortfolioHandler interface {
 	OnSignal(signal.Event, *ExchangeAssetPairSettings) (*order.Order, error)
 	OnFill(fill.Event) (*fill.Fill, error)
 	GetAllClosedTrades() []*livetrade.Details

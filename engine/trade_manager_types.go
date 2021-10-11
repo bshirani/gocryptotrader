@@ -26,7 +26,7 @@ type TradeManager struct {
 	Bot                *Engine
 	Datas              data.Holder
 	Strategies         []strategies.Handler
-	Portfolio          PortfolioHandler
+	Portfolio          StrategyPortfolioHandler
 	Exchange           ExecutionHandler
 	Statistic          statistics.Handler
 	EventQueue         EventHolder

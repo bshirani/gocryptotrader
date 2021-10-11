@@ -33,7 +33,7 @@ func (s *Strategy) Description() string {
 	return description
 }
 
-func (s *Strategy) OnData(d data.Handler, p base.PortfolioHandler, fe base.FactorEngineHandler) (signal.Event, error) {
+func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe base.FactorEngineHandler) (signal.Event, error) {
 	if d == nil {
 		return nil, eventtypes.ErrNilEvent
 	}
@@ -121,7 +121,7 @@ func (s *Strategy) SupportsSimultaneousProcessing() bool {
 
 // OnSimultaneousSignals analyses multiple data points simultaneously, allowing flexibility
 // in allowing a strategy to only place an order for X currency if Y currency's price is Z
-func (s *Strategy) OnSimultaneousSignals(d []data.Handler, p base.PortfolioHandler, fe base.FactorEngineHandler) ([]signal.Event, error) {
+func (s *Strategy) OnSimultaneousSignals(d []data.Handler, p base.StrategyPortfolioHandler, fe base.FactorEngineHandler) ([]signal.Event, error) {
 	var resp []signal.Event
 	var errs common.Errors
 	for i := range d {

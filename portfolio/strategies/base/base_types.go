@@ -26,7 +26,7 @@ var (
 )
 
 // Handler contains all functions expected to operate a portfolio manager
-type PortfolioHandler interface {
+type StrategyPortfolioHandler interface {
 	ViewHoldingAtTimePeriod(eventtypes.EventHandler) (*holdings.Holding, error)
 	GetPositionForStrategy(string) *positions.Position
 	GetTradeForStrategy(string) *livetrade.Details

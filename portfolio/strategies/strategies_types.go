@@ -19,8 +19,8 @@ type Handler interface {
 	Name() string
 	Stop()
 	Description() string
-	OnData(data.Handler, base.PortfolioHandler, base.FactorEngineHandler) (signal.Event, error)
-	OnSimultaneousSignals([]data.Handler, base.PortfolioHandler, base.FactorEngineHandler) ([]signal.Event, error)
+	OnData(data.Handler, base.StrategyPortfolioHandler, base.FactorEngineHandler) (signal.Event, error)
+	OnSimultaneousSignals([]data.Handler, base.StrategyPortfolioHandler, base.FactorEngineHandler) ([]signal.Event, error)
 	UsingSimultaneousProcessing() bool
 	SupportsSimultaneousProcessing() bool
 	SetSimultaneousProcessing(bool)

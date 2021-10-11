@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
+	"github.com/fatih/color"
 )
 
 var (
@@ -42,6 +44,11 @@ func (l *Logger) newLogEvent(data, header, slName string, w io.Writer) error {
 		return errors.New("io.Writer not set")
 	}
 
+	// displayError(fields.logger.newLogEvent(fmt.Sprintln(v...), fields.logger.ErrorHeader, fields.name, fields.output))
+	if header == l.ErrorHeader {
+		color.Set(color.FgRed, color.Bold)
+		defer color.Unset()
+	}
 	e := eventPool.Get().(*Event)
 	e.output = w
 	slName = fmt.Sprintf("%12s", slName)

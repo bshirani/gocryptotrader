@@ -36,7 +36,7 @@
 //
 // // OnData handles a data event and returns what action the strategy believes should occur
 // // For dollarcostaverage, this means returning a buy signal on every event
-// func (s *Strategy) OnData(d data.Handler, _ base.PortfolioHandler, fe *factors.Engine) (signal.Event, error) {
+// func (s *Strategy) OnData(d data.Handler, _ base.StrategyPortfolioHandler, fe *factors.Engine) (signal.Event, error) {
 // 	if d == nil {
 // 		return nil, eventtypes.ErrNilEvent
 // 	}
@@ -65,7 +65,7 @@
 // // OnSimultaneousSignals analyses multiple data points simultaneously, allowing flexibility
 // // in allowing a strategy to only place an order for X currency if Y currency's price is Z
 // // For dollarcostaverage, the strategy is always "buy", so it uses the OnData function
-// func (s *Strategy) OnSimultaneousSignals(d []data.Handler, p base.PortfolioHandler, fe *factors.Engine) ([]signal.Event, error) {
+// func (s *Strategy) OnSimultaneousSignals(d []data.Handler, p base.StrategyPortfolioHandler, fe *factors.Engine) ([]signal.Event, error) {
 // 	var resp []signal.Event
 // 	var errs gctcommon.Errors
 // 	for i := range d {

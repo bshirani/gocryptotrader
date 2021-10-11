@@ -51,7 +51,7 @@ func (s *Strategy) Description() string {
 // OnData handles a data event and returns what action the strategy believes should occur
 // For rsi, this means returning a buy signal when rsi is at or below a certain level, and a
 // sell signal when it is at or above a certain level
-func (s *Strategy) OnData(d data.Handler, p base.PortfolioHandler, fe base.FactorEngineHandler) (signal.Event, error) {
+func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe base.FactorEngineHandler) (signal.Event, error) {
 
 	// fmt.Println("checking strategy", s.Strategy.ID())
 	// fmt.Printf("%s %s\n", d.Latest().GetTime(), d.Latest().ClosePrice())
@@ -134,7 +134,7 @@ func (s *Strategy) SupportsSimultaneousProcessing() bool {
 
 // OnSimultaneousSignals analyses multiple data points simultaneously, allowing flexibility
 // in allowing a strategy to only place an order for X currency if Y currency's price is Z
-func (s *Strategy) OnSimultaneousSignals(d []data.Handler, p base.PortfolioHandler, fe base.FactorEngineHandler) ([]signal.Event, error) {
+func (s *Strategy) OnSimultaneousSignals(d []data.Handler, p base.StrategyPortfolioHandler, fe base.FactorEngineHandler) ([]signal.Event, error) {
 	var resp []signal.Event
 	var errs gctcommon.Errors
 	for i := range d {

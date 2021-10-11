@@ -740,8 +740,12 @@ func (tm *TradeManager) loadData(cfg *config.Config, exch gctexchange.IBotExchan
 		}
 	case tm.Bot.Config.LiveMode && !tm.Warmup:
 		log.Infof(log.TradeManager, "loading live data for %v %v %v...\n", exch.GetName(), a, fPair)
+
+		fmt.Println("there are n currencies", len(cfg.CurrencySettings))
 		if len(cfg.CurrencySettings) > 1 {
-			return nil, errors.New("live data simulation only supports one currency")
+			err := errors.New("live data simulation only supports one currency")
+			log.Errorln(log.TradeManager, err)
+			return nil, err
 		}
 
 		err = loadLiveData(cfg, b)

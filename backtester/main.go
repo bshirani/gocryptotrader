@@ -9,6 +9,7 @@ import (
 	"gocryptotrader/common"
 	"gocryptotrader/config"
 	gctconfig "gocryptotrader/config"
+	"gocryptotrader/currency"
 	"gocryptotrader/engine"
 	"gocryptotrader/log"
 	gctlog "gocryptotrader/log"
@@ -87,12 +88,25 @@ func main() {
 		os.Exit(1)
 	}
 
+	keys := make(map[currency.Pair]bool)
+	pairs := []currency.Pair{}
+	for _, s := range tm.Strategies {
+		if _, value := keys[s.GetPair()]; !value {
+			keys[s.GetPair()] = true
+			fmt.Println("adding pair", s.GetPair())
+			pairs = append(pairs, s.GetPair())
+		}
+	}
+
+	// print range of backtest
+	// print all symbols in backtest
+	// print all strategies in backtest
 	log.Debugf(
 		log.Global,
-		"Tested %d trades from %d strategies on %d pairs",
+		"%d trades, %d strategies, %d pairs",
 		len(tm.Portfolio.GetAllClosedTrades()),
-		len(tm.Portfolio.Strategies),
-		len(tm.Portfolio.Strategies),
+		len(tm.Strategies),
+		len(pairs),
 	)
 
 	// for _, t := range tm.Portfolio.GetAllClosedTrades() {

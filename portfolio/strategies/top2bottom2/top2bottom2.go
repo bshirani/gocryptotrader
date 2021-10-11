@@ -52,7 +52,7 @@
 //
 // // OnData handles a data event and returns what action the strategy believes should occur
 // // however,this complex strategy cannot function on an individual basis
-// func (s *Strategy) OnData(_ data.Handler, _ base.PortfolioHandler, fe *factors.Engine) (signal.Event, error) {
+// func (s *Strategy) OnData(_ data.Handler, _ base.StrategyPortfolioHandler, fe *factors.Engine) (signal.Event, error) {
 // 	return nil, errStrategyOnlySupportsSimultaneousProcessing
 // }
 //
@@ -86,7 +86,7 @@
 //
 // // OnSimultaneousSignals analyses multiple data points simultaneously, allowing flexibility
 // // in allowing a strategy to only place an order for X currency if Y currency's price is Z
-// func (s *Strategy) OnSimultaneousSignals(d []data.Handler, p base.PortfolioHandler, fe *factors.Engine) ([]signal.Event, error) {
+// func (s *Strategy) OnSimultaneousSignals(d []data.Handler, p base.StrategyPortfolioHandler, fe *factors.Engine) ([]signal.Event, error) {
 // 	if len(d) < 4 {
 // 		return nil, errStrategyCurrencyRequirements
 // 	}
