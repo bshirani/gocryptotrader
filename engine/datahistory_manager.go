@@ -91,7 +91,7 @@ func (m *DataHistoryManager) Catchup(pairSettings []ExchangeAssetPairSettings, e
 			return names, err
 		}
 
-		name := fmt.Sprintf("catchupjob-%d", time.Now().Unix())
+		name := fmt.Sprintf("catchupjob-%v-%d", p.CurrencyPair, time.Now().Unix())
 		names[i] = name
 		job := DataHistoryJob{
 			Nickname:               name,

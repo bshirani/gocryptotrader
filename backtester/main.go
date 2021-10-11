@@ -21,56 +21,14 @@ func main() {
 		fmt.Printf("Could not get working directory. Error: %v.\n", err)
 		os.Exit(1)
 	}
-	flag.StringVar(
-		&configPath,
-		"configpath",
-		filepath.Join(
-			wd,
-			"..",
-			"config",
-			"examples",
-			"trend.strat"),
-		"the config containing strategy params")
-	flag.StringVar(
-		&templatePath,
-		"templatepath",
-		filepath.Join(
-			wd,
-			"report",
-			"tpl.gohtml"),
-		"the report template to use")
-	flag.BoolVar(
-		&generateReport,
-		"generatereport",
-		false,
-		"whether to generate the report file")
-	flag.StringVar(
-		&reportOutput,
-		"outputpath",
-		filepath.Join(
-			wd,
-			"results"),
-		"the path where to output results")
-	flag.StringVar(
-		&strategiesArg,
-		"strategy",
-		"",
-		"strategies")
-	flag.StringVar(
-		&pairsArg,
-		"pairs",
-		"",
-		"pairs")
-	flag.BoolVar(
-		&printLogo,
-		"printlogo",
-		false,
-		"print out the logo to the command line, projected profits likely won't be affected if disabled")
-	flag.BoolVar(
-		&darkReport,
-		"darkreport",
-		false,
-		"sets the initial rerport to use a dark theme")
+	flag.StringVar(&configPath, "configpath", filepath.Join(wd, "..", "config", "examples", "trend.strat"), "the config containing strategy params")
+	flag.StringVar(&templatePath, "templatepath", filepath.Join(wd, "report", "tpl.gohtml"), "the report template to use")
+	flag.BoolVar(&generateReport, "generatereport", false, "whether to generate the report file")
+	flag.StringVar(&reportOutput, "outputpath", filepath.Join(wd, "results"), "the path where to output results")
+	flag.StringVar(&strategiesArg, "strategy", "", "strategies")
+	flag.StringVar(&pairsArg, "pairs", "", "pairs")
+	flag.BoolVar(&printLogo, "printlogo", false, "print out the logo to the command line, projected profits likely won't be affected if disabled")
+	flag.BoolVar(&darkReport, "darkreport", false, "sets the initial rerport to use a dark theme")
 	flag.Parse()
 
 	var tm *engine.TradeManager
@@ -144,7 +102,6 @@ func main() {
 	// 	os.Exit(1)
 	// }
 
-	// BACKTEST ONLY
 	if generateReport {
 		tm.Reports.UseDarkMode(darkReport)
 		err = tm.Reports.GenerateReport()

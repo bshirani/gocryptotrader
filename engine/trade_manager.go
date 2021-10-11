@@ -167,57 +167,16 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	// load strategies from config
 	// apply override from command line
 	var slit []strategies.Handler
-
-	for i := range cfg.StrategySettings {
-		strategiesArr := strings.Split(strategiesArg, ",")
-		pairsArr := strings.Split(pairsArg, ",")
-		var pairs []currency.Pair
-		if len(pairsArg) > 0 {
-			for _, x := range pairsArr {
-				fmt.Println(x[0:3], x[3:6])
-				pairs = append(pairs, currency.Pair{
-					Base:  currency.NewCode(x[0:3]),
-					Quote: currency.NewCode(x[3:6]),
-				})
-			}
-		}
-
-		var strats []strategies.Handler
-		var strat strategies.Handler
-		if len(strategiesArg) > 0 {
-			for _, x := range strategiesArr {
-				strat, err = strategies.LoadStrategyByName(x, order.Buy, false)
-				if err != nil {
-					fmt.Println("error", err)
-				}
-				strats = append(strats, strat)
-			}
+	for _, strat := range cfg.StrategiesSettings {
+		for _, dir := range []gctorder.Side{gctorder.Buy, gctorder.Sell} {
+			s, _ := strategies.LoadStrategyByName(strat.Name, dir, false)
+			id := fmt.Sprintf("%s_%s", s.Name(), string(dir))
+			fmt.Println("id:", id)
+			s.SetID(id)
+			s.SetDefaults()
+			slit = append(slit, s)
 		}
 	}
-
-	s, err := strategies.LoadStrategyByName("trend", "SELL", false)
-	s.SetID("trend_SELL")
-	s.SetDefaults()
-	slit = append(slit, s)
-
-	s, err = strategies.LoadStrategyByName("trend", "BUY", false)
-	s.SetDefaults()
-	s.SetID("trend_BUY")
-	slit = append(slit, s)
-
-	s, err = strategies.LoadStrategyByName("trend2", "SELL", false)
-	if err != nil {
-		fmt.Println("error", err)
-	}
-	s.SetID("trend2_SELL")
-	s.SetDefaults()
-	slit = append(slit, s)
-
-	s, err = strategies.LoadStrategyByName("trend2", "BUY", false)
-	s.SetDefaults()
-	s.SetID("trend2_BUY")
-	slit = append(slit, s)
-
 	tm.Strategies = slit
 
 	log.Infof(log.TradeManager, "Loaded %d strategies\n", len(tm.Strategies))
