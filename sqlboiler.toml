@@ -1,4 +1,3 @@
-#
 # [[types]]
 #   # The match is a drivers.Column struct, and matches on almost all fields.
 #   # Notable exception for the unique bool. Matches are done
