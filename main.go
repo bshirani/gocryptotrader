@@ -38,6 +38,7 @@ func main() {
 	flag.BoolVar(&settings.EnableDataHistoryManager, "datahistorymanager", true, "enables the data history manager")
 	flag.DurationVar(&settings.PortfolioManagerDelay, "portfoliomanagerdelay", time.Duration(0), "sets the portfolio managers sleep delay between updates")
 	flag.BoolVar(&settings.EnableGRPC, "grpc", false, "enables the grpc server")
+	flag.BoolVar(&settings.EnableLiveMode, "livemode", true, "enables live mode")
 	flag.BoolVar(&settings.EnableGRPCProxy, "grpcproxy", false, "enables the grpc proxy server")
 	flag.BoolVar(&settings.EnableWebsocketRPC, "websocketrpc", true, "enables the websocket RPC server")
 	flag.BoolVar(&settings.EnableCommsRelayer, "enablecommsrelayer", false, "enables available communications relayer")
@@ -129,6 +130,7 @@ func main() {
 		log.Fatalf("Unable to initialise bot engine. Error: %s\n", err)
 	}
 	config.Cfg = *engine.Bot.Config
+	config.Cfg.LiveMode = true
 
 	gctscript.Setup()
 

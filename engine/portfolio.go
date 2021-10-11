@@ -108,7 +108,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	switch ev.GetDecision() {
 	case signal.Enter:
 		ev.SetDirection(gctorder.Buy)
-		if p.bot.Config.IsLive {
+		if p.bot.Config.LiveMode {
 			log.Infof(log.TradeManager, "(live mode) insert trade to db")
 			err := livetrade.Insert(livetrade.Details{
 				EntryPrice:    123.0,

@@ -244,6 +244,7 @@ func PrintSettings(s *Settings) {
 	gctlog.Debugf(gctlog.Global, "ENGINE SETTINGS")
 	gctlog.Debugf(gctlog.Global, "- CORE SETTINGS:")
 	gctlog.Debugf(gctlog.Global, "\t Verbose mode: %v", s.Verbose)
+	gctlog.Debugf(gctlog.Global, "\t Enable live mode: %v", s.EnableLiveMode)
 	gctlog.Debugf(gctlog.Global, "\t Enable dry run mode: %v", s.EnableDryRun)
 	gctlog.Debugf(gctlog.Global, "\t Enable comms relayer: %v", s.EnableCommsRelayer)
 	gctlog.Debugf(gctlog.Global, "\t Enable event manager: %v", s.EnableEventManager)
@@ -314,6 +315,9 @@ func (bot *Engine) Start() error {
 	var err error
 	newEngineMutex.Lock()
 	defer newEngineMutex.Unlock()
+
+	bot.Settings.EnableLiveMode = true
+	bot.Config.LiveMode = true
 
 	if bot.Settings.EnableDatabaseManager {
 		bot.DatabaseManager, err = SetupDatabaseConnectionManager(&bot.Config.Database)

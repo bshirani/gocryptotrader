@@ -81,7 +81,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 
 	tm.cfg = *cfg
 	tm.verbose = false
-	tm.Warmup = bot.Config.IsLive
+	tm.Warmup = bot.Config.LiveMode
 
 	tm.Datas = &data.HandlerPerCurrency{}
 	tm.EventQueue = &Holder{}
@@ -229,7 +229,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 			Snapshots: []compliance.Snapshot{},
 		}
 		// this needs to be per currency
-		// log.Debugln(log.TradeManager, "Initialize Factor Engine")
+		log.Debugf(log.TradeManager, "Initialize Factor Engine for %v\n", e.CurrencySettings[i].CurrencyPair)
 		fe, _ := SetupFactorEngine(e.CurrencySettings[i].CurrencyPair)
 		tm.FactorEngines[e.CurrencySettings[i].CurrencyPair] = fe
 	}
@@ -245,7 +245,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 // save them and then handle the event based on its type
 func (tm *TradeManager) Run() error {
 	// log.Info(log.TradeManager, "running trade manager")
-	if !tm.Bot.Config.IsLive {
+	if !tm.Bot.Config.LiveMode {
 		tm.reloadData()
 	}
 
@@ -627,7 +627,7 @@ func (tm *TradeManager) setupBot(cfg *config.Config, bot *Engine) error {
 		}
 	}
 
-	if !tm.Bot.Config.IsLive {
+	if !tm.Bot.Config.LiveMode {
 		// start DB manager here as we don't start the bot in backtest mode
 		if !tm.Bot.DatabaseManager.IsRunning() {
 			tm.Bot.DatabaseManager, err = SetupDatabaseConnectionManager(gctdatabase.DB.GetConfig())
@@ -692,6 +692,7 @@ func getFees(ctx context.Context, exch gctexchange.IBotExchange, fPair currency.
 // loadData will create kline data from the sources defined in start config files. It can exist from databases, csv or API endpoints
 // it can also be generated from trade data which will be converted into kline data
 func (tm *TradeManager) loadData(cfg *config.Config, exch gctexchange.IBotExchange, fPair currency.Pair, a asset.Item) (*kline.DataFromKline, error) {
+	log.Infoln(log.TradeManager, "!!!!!!!!!!!!!!!!!!!!!loading data", tm.Bot.Config.LiveMode, tm.Warmup)
 	if exch == nil {
 		return nil, ErrExchangeNotFound
 	}
@@ -704,7 +705,7 @@ func (tm *TradeManager) loadData(cfg *config.Config, exch gctexchange.IBotExchan
 
 	resp := &kline.DataFromKline{}
 	switch {
-	case tm.Warmup || !tm.Bot.Config.IsLive:
+	case tm.Warmup || !tm.Bot.Config.LiveMode:
 		// log.Infof(log.TradeManager, "loading db data for %v %v %v...\n", exch.GetName(), a, fPair)
 		if cfg.DataSettings.DatabaseData.InclusiveEndDate {
 			cfg.DataSettings.DatabaseData.EndDate = cfg.DataSettings.DatabaseData.EndDate.Add(cfg.DataSettings.Interval)
@@ -738,7 +739,7 @@ func (tm *TradeManager) loadData(cfg *config.Config, exch gctexchange.IBotExchan
 		if len(summary) > 0 {
 			log.Warnf(log.TradeManager, "%v", summary)
 		}
-	case tm.Bot.Config.IsLive && !tm.Warmup:
+	case tm.Bot.Config.LiveMode && !tm.Warmup:
 		log.Infof(log.TradeManager, "loading live data for %v %v %v...\n", exch.GetName(), a, fPair)
 		if len(cfg.CurrencySettings) > 1 {
 			return nil, errors.New("live data simulation only supports one currency")

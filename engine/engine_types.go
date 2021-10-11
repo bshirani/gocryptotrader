@@ -33,6 +33,7 @@ type Settings struct {
 	EnableOrderManager          bool
 	EnableConnectivityMonitor   bool
 	EnableDatabaseManager       bool
+	EnableLiveMode              bool
 	EnableGCTScriptManager      bool
 	EnableNTPClient             bool
 	EnableWebsocketRoutine      bool

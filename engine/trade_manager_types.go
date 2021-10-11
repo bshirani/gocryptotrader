@@ -31,7 +31,6 @@ type TradeManager struct {
 	Statistic          statistics.Handler
 	EventQueue         EventHolder
 	Reports            report.Handler
-	IsLive             bool
 	Warmup             bool
 	FactorEngines      map[currency.Pair]*FactorEngine
 	DataHistoryManager *DataHistoryManager

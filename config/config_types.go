@@ -90,8 +90,8 @@ var (
 // prestart management of Portfolio, Communications, Webserver and Enabled
 // Exchanges
 type Config struct {
-	IsLive bool
-	DryRun bool
+	LiveMode bool
+	DryRun   bool
 
 	Nickname                 string             `json:"nickname"`
 	Goal                     string             `json:"goal"`
