@@ -1,5 +1,5 @@
 {
- "name": "Skynet",
+ "name": "TrendExploiter",
  "dataDirectory": "",
  "encryptConfig": -1,
  "globalHTTPTimeout": 15000000000,
@@ -59,7 +59,7 @@
   "verbose": false
  },
  "currencyStateManager": {
-  "enabled": true,
+  "enabled": false,
   "delay": 60000000000
  },
  "profiler": {
@@ -168,22 +168,11 @@
   "username": "admin",
   "password": "Password",
   "gRPC": {
-   "enabled": true,
+   "enabled": false,
    "listenAddress": "localhost:9052",
    "grpcProxyEnabled": false,
    "grpcProxyListenAddress": "localhost:9053",
    "timeInNanoSeconds": false
-  },
-  "deprecatedRPC": {
-   "enabled": true,
-   "listenAddress": ""
-  },
-  "websocketRPC": {
-   "enabled": true,
-   "listenAddress": "localhost:9051",
-   "connectionLimit": 1,
-   "maxAuthFailures": 3,
-   "allowInsecureOrigin": true
   }
  },
  "exchanges": [

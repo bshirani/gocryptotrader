@@ -45,9 +45,10 @@ func (l *Logger) newLogEvent(data, header, slName string, w io.Writer) error {
 	e := eventPool.Get().(*Event)
 	e.output = w
 	slName = fmt.Sprintf("%12s", slName)
-	// e.data = append(e.data, []byte(header)...)
+	header = fmt.Sprintf("%8s", header)
+	e.data = append(e.data, []byte(header)...)
 	if l.ShowLogSystemName {
-		// e.data = append(e.data, l.Spacer...)
+		e.data = append(e.data, l.Spacer...)
 		e.data = append(e.data, slName...)
 	}
 	// if l.Timestamp != "" {

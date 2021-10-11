@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -89,8 +88,8 @@ func NewFromSettings(settings *Settings, flagSet map[string]bool) (*Engine, erro
 		return nil, fmt.Errorf("failed to load config. Err: %s", err)
 	}
 
-	gctlog.Infoln(gctlog.Global, "setting dry run to true for testing")
-	b.Config.DryRun = true
+	// gctlog.Infoln(gctlog.Global, "setting dry run to true for testing")
+	// b.Config.DryRun = true
 
 	if *b.Config.Logging.Enabled {
 		gctlog.SetupGlobalLogger()
@@ -248,7 +247,7 @@ func PrintSettings(s *Settings) {
 	gctlog.Debugf(gctlog.Global, "\t Enable dry run mode: %v", s.EnableDryRun)
 	gctlog.Debugf(gctlog.Global, "\t Enable comms relayer: %v", s.EnableCommsRelayer)
 	gctlog.Debugf(gctlog.Global, "\t Enable event manager: %v", s.EnableEventManager)
-	gctlog.Debugf(gctlog.Global, "\t Enable Database manager: %v", s.EnableDatabaseManager)
+	// gctlog.Debugf(gctlog.Global, "\t Enable Database manager: %v", s.EnableDatabaseManager)
 	// gctlog.Debugf(gctlog.Global, "\t Enable all exchanges: %v", s.EnableAllExchanges)
 	// gctlog.Debugf(gctlog.Global, "\t Enable all pairs: %v", s.EnableAllPairs)
 	// gctlog.Debugf(gctlog.Global, "\t Enable coinmarketcap analaysis: %v", s.EnableCoinmarketcapAnalysis)
@@ -304,7 +303,7 @@ func PrintSettings(s *Settings) {
 	// gctlog.Debugf(gctlog.Global, "\t Global HTTP user agent: %v", s.GlobalHTTPUserAgent)
 	// gctlog.Debugf(gctlog.Global, "\t Global HTTP proxy: %v", s.GlobalHTTPProxy)
 
-	gctlog.Debugln(gctlog.Global)
+	// gctlog.Debugln(gctlog.Global)
 }
 
 // Start starts the engine
@@ -368,18 +367,18 @@ func (bot *Engine) Start() error {
 		gctlog.Debugf(gctlog.Global, "Using log file: %s\n",
 			filepath.Join(gctlog.LogPath, bot.Config.Logging.LoggerFileConfig.FileName))
 	}
-	gctlog.Debugf(gctlog.Global,
-		"Using %d out of %d logical processors for runtime performance\n",
-		runtime.GOMAXPROCS(-1), runtime.NumCPU())
 
-	enabledExchanges := bot.Config.CountEnabledExchanges()
-	if bot.Settings.EnableAllExchanges {
-		enabledExchanges = len(bot.Config.Exchanges)
-	}
+	// gctlog.Debugf(gctlog.Global,
+	// 	"Using %d out of %d logical processors for runtime performance\n",
+	// 	runtime.GOMAXPROCS(-1), runtime.NumCPU())
 
-	gctlog.Debugln(gctlog.Global, "EXCHANGE COVERAGE")
-	gctlog.Debugf(gctlog.Global, "\t Available Exchanges: %d. Enabled Exchanges: %d.\n",
-		len(bot.Config.Exchanges), enabledExchanges)
+	// enabledExchanges := bot.Config.CountEnabledExchanges()
+	// if bot.Settings.EnableAllExchanges {
+	// 	enabledExchanges = len(bot.Config.Exchanges)
+	// }
+	// gctlog.Debugln(gctlog.Global, "EXCHANGE COVERAGE")
+	// gctlog.Debugf(gctlog.Global, "\t Available Exchanges: %d. Enabled Exchanges: %d.\n",
+	// 	len(bot.Config.Exchanges), enabledExchanges)
 
 	if bot.Settings.ExchangePurgeCredentials {
 		gctlog.Debugln(gctlog.Global, "Purging exchange API credentials.")
@@ -858,7 +857,7 @@ func (bot *Engine) LoadExchange(name string, wg *sync.WaitGroup) error {
 		return err
 	}
 
-	gctlog.Infoln(gctlog.Global, "validating credentials")
+	// gctlog.Infoln(gctlog.Global, "validating credentials")
 	bot.ExchangeManager.Add(exch)
 	base := exch.GetBase()
 	if base.API.AuthenticatedSupport ||
@@ -886,7 +885,7 @@ func (bot *Engine) LoadExchange(name string, wg *sync.WaitGroup) error {
 		}
 	}
 
-	gctlog.Infof(gctlog.Global, "starting exchange...")
+	// gctlog.Infof(gctlog.Global, "starting exchange...")
 	if wg != nil {
 		exch.Start(wg)
 	} else {

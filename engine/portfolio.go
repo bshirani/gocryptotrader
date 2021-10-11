@@ -27,7 +27,7 @@ import (
 
 // Setup creates a portfolio manager instance and sets private fields
 func SetupPortfolio(st []strategies.Handler, bot *Engine, sh SizeHandler, r risk.Handler, riskFreeRate decimal.Decimal) (*Portfolio, error) {
-	log.Infof(log.TradeManager, "Setting up Portfolio")
+	// log.Infof(log.TradeManager, "Setting up Portfolio")
 	if sh == nil {
 		return nil, errSizeManagerUnset
 	}
@@ -49,7 +49,7 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, sh SizeHandler, r risk
 	// load open trade from the database
 	// only in live mode do we  do this, so portfolio must be live aware unless it has a callback
 	// handle this in the trademanger
-	log.Infof(log.TradeManager, "there are %d trades running", livetrade.Count())
+	// log.Infof(log.TradeManager, "there are %d trades running", livetrade.Count())
 
 	// load all pending and open trades from the database into positions and trades
 

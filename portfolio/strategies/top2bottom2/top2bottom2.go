@@ -96,7 +96,7 @@
 // 		if d == nil {
 // 			return nil, eventtypes.ErrNilEvent
 // 		}
-// 		es, err := s.GetBaseData(d[i])
+// 		es, err := base.GetBaseData(d[i])
 // 		if err != nil {
 // 			return nil, err
 // 		}

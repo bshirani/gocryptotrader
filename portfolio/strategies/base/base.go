@@ -1,13 +1,14 @@
 package base
 
 import (
-	"github.com/shopspring/decimal"
 	"gocryptotrader/currency"
 	"gocryptotrader/data"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/event"
 	"gocryptotrader/eventtypes/signal"
 	"gocryptotrader/exchanges/order"
+
+	"github.com/shopspring/decimal"
 )
 
 // Strategy is base implementation of the Handler interface
@@ -21,7 +22,7 @@ type Strategy struct {
 }
 
 // GetBaseData returns the non-interface version of the Handler
-func (s *Strategy) GetBaseData(d data.Handler) (signal.Signal, error) {
+func GetBaseData(d data.Handler) (signal.Signal, error) {
 	if d == nil {
 		return signal.Signal{}, eventtypes.ErrNilArguments
 	}

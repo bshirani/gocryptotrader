@@ -4,6 +4,7 @@ import (
 	"errors"
 	"gocryptotrader/backtester/statistics"
 	"gocryptotrader/config"
+	"gocryptotrader/currency"
 	"gocryptotrader/data"
 	"gocryptotrader/portfolio/report"
 	"gocryptotrader/portfolio/strategies"
@@ -32,10 +33,11 @@ type TradeManager struct {
 	Reports            report.Handler
 	IsLive             bool
 	Warmup             bool
-	FactorEngine       *FactorEngine       // remove this
-	DataHistoryManager *DataHistoryManager // remove this
+	FactorEngines      map[currency.Pair]*FactorEngine
+	DataHistoryManager *DataHistoryManager
 	hasHandledEvent    bool
 	shutdown           chan struct{}
 	cfg                config.Config
 	started            int32
+	verbose            bool
 }

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"gocryptotrader/common"
+	"gocryptotrader/currency"
 	"gocryptotrader/data"
 	"gocryptotrader/factors"
 
@@ -13,7 +14,7 @@ import (
 
 // initialize minute and daily data series here
 // load data from cache here
-func SetupFactorEngine() (*FactorEngine, error) {
+func SetupFactorEngine(p currency.Pair) (*FactorEngine, error) {
 	f := &FactorEngine{}
 
 	f.minute = &factors.MinuteDataFrame{}
@@ -32,6 +33,7 @@ func (f *FactorEngine) Daily() *factors.DailyDataFrame {
 
 func (f *FactorEngine) OnBar(d data.Handler) {
 	bar := d.Latest()
+	// fmt.Println(len(f.minute.Close), &d)
 	f.minute.Close = append(f.minute.Close, bar.ClosePrice())
 	f.minute.Open = append(f.minute.Open, bar.OpenPrice())
 	f.minute.High = append(f.minute.High, bar.HighPrice())

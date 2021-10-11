@@ -40,7 +40,7 @@
 // 	if d == nil {
 // 		return nil, eventtypes.ErrNilEvent
 // 	}
-// 	es, err := s.GetBaseData(d)
+// 	es, err := base.GetBaseData(d)
 // 	if err != nil {
 // 		return nil, err
 // 	}

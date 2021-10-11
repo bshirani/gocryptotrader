@@ -10,6 +10,7 @@ import (
 	"gocryptotrader/config"
 	gctconfig "gocryptotrader/config"
 	"gocryptotrader/engine"
+	"gocryptotrader/log"
 	gctlog "gocryptotrader/log"
 )
 
@@ -74,7 +75,7 @@ func main() {
 		fmt.Printf("Could not read config. Error: %v.\n", err)
 		os.Exit(1)
 	}
-	tm, err = engine.NewTradeManagerFromConfig(cfg, templatePath, reportOutput, bot, false)
+	tm, err = engine.NewTradeManagerFromConfig(cfg, templatePath, reportOutput, bot)
 	if err != nil {
 		fmt.Printf("Could not setup trade manager from config. Error: %v.\n", err)
 		os.Exit(1)
@@ -85,6 +86,8 @@ func main() {
 		fmt.Printf("Could not complete run. Error: %v.\n", err)
 		os.Exit(1)
 	}
+
+	log.Debugf(log.Global, "Tested %d trades", len(tm.Portfolio.GetAllClosedTrades()))
 
 	// for _, t := range tm.Portfolio.GetAllClosedTrades() {
 	// 	if t != nil {

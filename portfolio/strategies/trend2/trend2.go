@@ -37,7 +37,7 @@ func (s *Strategy) OnData(d data.Handler, p base.PortfolioHandler, fe base.Facto
 	if d == nil {
 		return nil, eventtypes.ErrNilEvent
 	}
-	es, err := s.GetBaseData(d)
+	es, err := base.GetBaseData(d)
 	if err != nil {
 		return nil, err
 	}

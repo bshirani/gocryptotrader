@@ -82,7 +82,7 @@ func (m *DataHistoryManager) Catchup(pairSettings []ExchangeAssetPairSettings, e
 	names := make([]string, 10)
 
 	for i, p := range pairSettings { // by exchange
-		log.Debugf(log.DataHistory, "request datahistory catchup for %s %v %v", p.ExchangeName, p.AssetType, p.CurrencyPair)
+		// log.Debugf(log.DataHistory, "request datahistory catchup for %s %v %v", p.ExchangeName, p.AssetType, p.CurrencyPair)
 
 		start := time.Now().Add(time.Minute * -10)
 		end := time.Now()
@@ -111,7 +111,7 @@ func (m *DataHistoryManager) Catchup(pairSettings []ExchangeAssetPairSettings, e
 			DecimalPlaceComparison: 3,
 		}
 
-		log.Debugf(log.DataHistory, "Creating history job for ")
+		// log.Debugf(log.DataHistory, "Creating history job for ")
 		err = m.UpsertJob(&job, true)
 		if err != nil {
 			log.Errorln(log.DataHistory, "data history error: ", err)
@@ -660,7 +660,7 @@ func (m *DataHistoryManager) completeJob(job *DataHistoryJob, allResultsSuccessf
 	default:
 		job.Status = dataHistoryIntervalIssuesFound
 	}
-	log.Infof(log.DataHistory, "job %s finished! Status: %s", job.Nickname, job.Status)
+	// log.Infof(log.DataHistory, "job %s finished! Status: %s", job.Nickname, job.Status)
 	if job.Status != dataHistoryStatusFailed {
 		newJobs, err := m.jobDB.GetRelatedUpcomingJobs(job.Nickname)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {

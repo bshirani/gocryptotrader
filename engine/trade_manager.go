@@ -18,7 +18,6 @@ import (
 	"gocryptotrader/currency"
 	"gocryptotrader/data"
 	"gocryptotrader/data/kline"
-	"gocryptotrader/data/kline/csv"
 	"gocryptotrader/data/kline/database"
 	gctdatabase "gocryptotrader/database"
 	"gocryptotrader/database/repository/candle"
@@ -31,6 +30,7 @@ import (
 	gctkline "gocryptotrader/exchanges/kline"
 	gctorder "gocryptotrader/exchanges/order"
 	"gocryptotrader/log"
+	gctlog "gocryptotrader/log"
 	"gocryptotrader/portfolio/report"
 	"gocryptotrader/portfolio/risk"
 	"gocryptotrader/portfolio/slippage"
@@ -54,6 +54,7 @@ func NewTradeManager(bot *Engine) (*TradeManager, error) {
 }
 
 // Reset TradeManager values to default
+// this working will allow backtests to be run without shutting the engine on/off
 func (tm *TradeManager) Reset() {
 	tm.EventQueue.Reset()
 	tm.Datas.Reset()
@@ -61,8 +62,8 @@ func (tm *TradeManager) Reset() {
 	tm.Statistic.Reset()
 	tm.Exchange.Reset()
 	// reset live trades here
-	tm.Bot = nil
-	tm.FactorEngine = nil
+	// tm.Bot = nil
+	// tm.FactorEngine = nil
 }
 
 // NewFromConfig takes a strategy config and configures a backtester variable to run
@@ -79,6 +80,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	}
 
 	tm.cfg = *cfg
+	tm.verbose = false
 	tm.Warmup = bot.Config.IsLive
 
 	tm.Datas = &data.HandlerPerCurrency{}
@@ -169,9 +171,6 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 		}
 	}
 
-	// LOAD ALL STRATEGIES HERE
-	// load strategies from config
-	// apply override from command line
 	var slit []strategies.Handler
 	for _, strat := range cfg.StrategiesSettings {
 		for _, dir := range []gctorder.Side{gctorder.Buy, gctorder.Sell} {
@@ -184,8 +183,11 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	}
 	tm.Strategies = slit
 
-	log.Infof(log.TradeManager, "Loaded %d strategies\n", len(tm.Strategies))
+	if tm.verbose {
+		log.Infof(log.TradeManager, "Loaded %d strategies\n", len(tm.Strategies))
+	}
 
+	// setup portfolio with strategies
 	var p *Portfolio
 	p, err = SetupPortfolio(tm.Strategies, bot, sizeManager, portfolioRisk, cfg.StatisticSettings.RiskFreeRate)
 	if err != nil {
@@ -211,6 +213,8 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	// load from configuration into datastructure
 	// currencysettings returns the data from the config, exchangeassetpairsettings
 	tm.Exchange = &e
+
+	tm.FactorEngines = make(map[currency.Pair]*FactorEngine)
 	for i := range e.CurrencySettings {
 		var lookup *PortfolioSettings
 		lookup, err = p.SetupCurrencySettingsMap(e.CurrencySettings[i].ExchangeName, e.CurrencySettings[i].AssetType, e.CurrencySettings[i].CurrencyPair)
@@ -224,80 +228,27 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 		lookup.ComplianceManager = compliance.Manager{
 			Snapshots: []compliance.Snapshot{},
 		}
+		// this needs to be per currency
+		// log.Debugln(log.TradeManager, "Initialize Factor Engine")
+		fe, _ := SetupFactorEngine(e.CurrencySettings[i].CurrencyPair)
+		tm.FactorEngines[e.CurrencySettings[i].CurrencyPair] = fe
 	}
 	tm.Portfolio = p
-
-	// RUN CATCHUP PROCESS HERE
-	log.Infoln(log.TradeManager, "Running catchup processes")
-	log.Infoln(log.TradeManager, "dhm", bot.dataHistoryManager, bot.dataHistoryManager.IsRunning())
-	_, err = bot.dataHistoryManager.Catchup(tm.Exchange.GetAllCurrencySettings())
-	if err != nil {
-		log.Infoln(log.TradeManager, "history catchup failed")
-		os.Exit(1)
-	}
-
-	bot.dataHistoryManager.RunJobs()
-
-	// get latest bars for warmup
-	cs, err := tm.Exchange.GetAllCurrencySettings()
-	x := cs[0]
-	start := time.Now().Add(time.Minute * -10)
-	end := time.Now()
-	retCandle, err := candle.Series(x.ExchangeName,
-		x.CurrencyPair.Base.String(), x.CurrencyPair.Quote.String(),
-		int64(60), string(x.AssetType), start, end)
-
-	dbData, _ := database.LoadData(
-		start,
-		end,
-		time.Minute,
-		x.ExchangeName,
-		eventtypes.DataCandle,
-		x.CurrencyPair,
-		x.AssetType)
-
-	dbData.Load()
-
-	dbData.Item.RemoveDuplicates()
-	dbData.Item.SortCandlesByTimestamp(false)
-	dbData.RangeHolder, err = gctkline.CalculateCandleDateRanges(
-		start,
-		end,
-		gctkline.Interval(time.Minute),
-		0,
-	)
-
-	tm.Datas.SetDataForCurrency(
-		x.ExchangeName,
-		x.AssetType,
-		x.CurrencyPair,
-		dbData)
-
-	//validate sync time
-	lt := retCandle.Candles[len(retCandle.Candles)-1].Timestamp
-	t := time.Now().UTC()
-	t1 := time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location())
-	t2 := time.Date(lt.Year(), lt.Month(), lt.Day(), lt.Hour(), lt.Minute(), 0, 0, t.Location())
-
-	if t2 != t1 {
-		fmt.Println("sync time is off", t1, t2)
-		os.Exit(1)
-	}
-
-	if len(retCandle.Candles) == 0 {
-		fmt.Println("no candles returned")
-		os.Exit(1)
-	}
 
 	// cfg.PrintSetting()
 
 	return tm, nil
 }
 
+// BACKTEST FUNCTIONALITY
 // Run will iterate over loaded data events
 // save them and then handle the event based on its type
 func (tm *TradeManager) Run() error {
-	log.Info(log.TradeManager, "running trade manager")
+	// log.Info(log.TradeManager, "running trade manager")
+	if !tm.Bot.Config.IsLive {
+		tm.reloadData()
+	}
+
 dataLoadingIssue:
 	for ev := tm.EventQueue.NextEvent(); ; ev = tm.EventQueue.NextEvent() {
 		if ev == nil {
@@ -375,11 +326,62 @@ func (tm *TradeManager) runLive() error {
 
 // LIVE FUNCTIONALITY
 func (tm *TradeManager) Start() error {
-	// the historical data has been loaded already by the data history manager
+	tm.runCatchup()
 
-	log.Debugln(log.TradeManager, "Initialize Factor Engine")
-	fe, _ := SetupFactorEngine()
-	tm.FactorEngine = fe
+	// get latest bars for warmup
+	cs, err := tm.Exchange.GetAllCurrencySettings()
+	if err != nil {
+		return err
+	}
+	x := cs[0]
+	start := time.Now().Add(time.Minute * -10)
+	end := time.Now()
+	retCandle, err := candle.Series(x.ExchangeName,
+		x.CurrencyPair.Base.String(), x.CurrencyPair.Quote.String(),
+		int64(60), string(x.AssetType), start, end)
+
+	dbData, _ := database.LoadData(
+		start,
+		end,
+		time.Minute,
+		x.ExchangeName,
+		eventtypes.DataCandle,
+		x.CurrencyPair,
+		x.AssetType)
+
+	dbData.Load()
+
+	dbData.Item.RemoveDuplicates()
+	dbData.Item.SortCandlesByTimestamp(false)
+	dbData.RangeHolder, err = gctkline.CalculateCandleDateRanges(
+		start,
+		end,
+		gctkline.Interval(time.Minute),
+		0,
+	)
+
+	tm.Datas.SetDataForCurrency(
+		x.ExchangeName,
+		x.AssetType,
+		x.CurrencyPair,
+		dbData)
+
+	//validate sync time
+	lt := retCandle.Candles[len(retCandle.Candles)-1].Timestamp
+	t := time.Now().UTC()
+	t1 := time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location())
+	t2 := time.Date(lt.Year(), lt.Month(), lt.Day(), lt.Hour(), lt.Minute(), 0, 0, t.Location())
+
+	if t2 != t1 {
+		fmt.Println("sync time is off", t1, t2)
+		os.Exit(1)
+	}
+
+	if len(retCandle.Candles) == 0 {
+		fmt.Println("no candles returned")
+		os.Exit(1)
+	}
+	// the historical data has been loaded already by the data history manager
 
 	// go tm.heartBeat()
 	// run warm up factor engine
@@ -388,7 +390,7 @@ func (tm *TradeManager) Start() error {
 
 	// reset data source to be API
 	log.Debugln(log.TradeManager, "Reloading data sources...")
-	tm.ReloadData()
+	tm.reloadData()
 	// throw error if not live
 	if !atomic.CompareAndSwapInt32(&tm.started, 0, 1) {
 		return fmt.Errorf("backtester %w", ErrSubSystemAlreadyStarted)
@@ -430,7 +432,7 @@ func (tm *TradeManager) Stop() error {
 	return nil
 }
 
-func (tm *TradeManager) ReloadData() error {
+func (tm *TradeManager) reloadData() error {
 	cfg := &tm.cfg
 	for i := range cfg.CurrencySettings {
 		exch, pair, a, err := tm.loadExchangePairAssetBase(
@@ -598,9 +600,9 @@ func (tm *TradeManager) loadExchangePairAssetBase(exch, base, quote, ass string)
 	}
 
 	exchangeBase := e.GetBase()
-	if !exchangeBase.ValidateAPICredentials() {
-		log.Warnf(log.TradeManager, "no credentials set for %v, this is theoretical only", exchangeBase.Name)
-	}
+	// if !exchangeBase.ValidateAPICredentials() {
+	// 	log.Warnf(log.TradeManager, "no credentials set for %v, this is theoretical only", exchangeBase.Name)
+	// }
 
 	fPair, err = exchangeBase.FormatExchangeCurrency(cp, a)
 	if err != nil {
@@ -625,17 +627,21 @@ func (tm *TradeManager) setupBot(cfg *config.Config, bot *Engine) error {
 		}
 	}
 
-	// // if not live since we don't start the engine in backtest mode
 	if !tm.Bot.Config.IsLive {
+		// start DB manager here as we don't start the bot in backtest mode
 		if !tm.Bot.DatabaseManager.IsRunning() {
 			tm.Bot.DatabaseManager, err = SetupDatabaseConnectionManager(gctdatabase.DB.GetConfig())
 			if err != nil {
 				return err
+			} else {
+				err = bot.DatabaseManager.Start(&bot.ServicesWG)
+				if err != nil {
+					gctlog.Errorf(gctlog.Global, "Database manager unable to start: %v", err)
+				}
 			}
 		}
 
-		// setup order manager so it can receive orders (and fill them?)
-		// when live, the engine starts its own order manager so we do it here for backtesting
+		// start OM manager here as we don't start the bot in backtest mode
 		if !tm.Bot.OrderManager.IsRunning() {
 			tm.Bot.OrderManager, err = SetupOrderManager(
 				tm.Bot.ExchangeManager,
@@ -690,20 +696,6 @@ func (tm *TradeManager) loadData(cfg *config.Config, exch gctexchange.IBotExchan
 		return nil, ErrExchangeNotFound
 	}
 	b := exch.GetBase()
-	if cfg.DataSettings.DatabaseData == nil &&
-		cfg.DataSettings.LiveData == nil &&
-		cfg.DataSettings.APIData == nil &&
-		cfg.DataSettings.CSVData == nil {
-		return nil, errNoDataSource
-	}
-	// if (cfg.DataSettings.APIData != nil && cfg.DataSettings.DatabaseData != nil) ||
-	// 	(cfg.DataSettings.APIData != nil && cfg.DataSettings.LiveData != nil) ||
-	// 	(cfg.DataSettings.APIData != nil && cfg.DataSettings.CSVData != nil) ||
-	// 	(cfg.DataSettings.DatabaseData != nil && cfg.DataSettings.LiveData != nil) ||
-	// 	(cfg.DataSettings.CSVData != nil && cfg.DataSettings.LiveData != nil) ||
-	// 	(cfg.DataSettings.CSVData != nil && cfg.DataSettings.DatabaseData != nil) {
-	// 	return nil, errAmbiguousDataSource
-	// }
 
 	dataType, err := eventtypes.DataTypeToInt(cfg.DataSettings.DataType)
 	if err != nil {
@@ -712,40 +704,8 @@ func (tm *TradeManager) loadData(cfg *config.Config, exch gctexchange.IBotExchan
 
 	resp := &kline.DataFromKline{}
 	switch {
-	case cfg.DataSettings.CSVData != nil:
-		log.Infof(log.TradeManager, "loading csv data for %v %v %v...\n", exch.GetName(), a, fPair)
-		if cfg.DataSettings.Interval <= 0 {
-			return nil, errIntervalUnset
-		}
-		resp, err = csv.LoadData(
-			dataType,
-			cfg.DataSettings.CSVData.FullPath,
-			strings.ToLower(exch.GetName()),
-			cfg.DataSettings.Interval,
-			fPair,
-			a)
-		if err != nil {
-			return nil, fmt.Errorf("%v. Please check your GoCryptoTrader configuration", err)
-		}
-		resp.Item.RemoveDuplicates()
-		resp.Item.SortCandlesByTimestamp(false)
-		resp.RangeHolder, err = gctkline.CalculateCandleDateRanges(
-			resp.Item.Candles[0].Time,
-			resp.Item.Candles[len(resp.Item.Candles)-1].Time.Add(cfg.DataSettings.Interval),
-			gctkline.Interval(cfg.DataSettings.Interval),
-			0,
-		)
-		if err != nil {
-			return nil, err
-		}
-		resp.RangeHolder.SetHasDataFromCandles(resp.Item.Candles)
-		summary := resp.RangeHolder.DataSummary(false)
-		if len(summary) > 0 {
-			log.Warnf(log.TradeManager, "%v", summary)
-		}
-	// we want to do this when the live is warming up so it doesnt fail
 	case tm.Warmup || !tm.Bot.Config.IsLive:
-		log.Infof(log.TradeManager, "loading db data for %v %v %v...\n", exch.GetName(), a, fPair)
+		// log.Infof(log.TradeManager, "loading db data for %v %v %v...\n", exch.GetName(), a, fPair)
 		if cfg.DataSettings.DatabaseData.InclusiveEndDate {
 			cfg.DataSettings.DatabaseData.EndDate = cfg.DataSettings.DatabaseData.EndDate.Add(cfg.DataSettings.Interval)
 		}
@@ -852,13 +812,14 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 	d := tm.Datas.GetDataForCurrency(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 
 	// update factor engine
-	tm.FactorEngine.OnBar(d)
+	tm.FactorEngines[ev.Pair()].OnBar(d)
 
 	// HANDLE warmup MODE
+	// in warmup mode, we do not query the strategies
 	if !tm.Warmup {
 		var s signal.Event
 		for _, strategy := range tm.Strategies {
-			s, err = strategy.OnData(d, tm.Portfolio, tm.FactorEngine)
+			s, err = strategy.OnData(d, tm.Portfolio, tm.FactorEngines[ev.Pair()])
 			tm.EventQueue.AppendEvent(s)
 		}
 	}
@@ -888,36 +849,38 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 // for non-multi-currency-consideration strategies, it will simply process every currency individually
 // against the strategy and generate signals
 func (tm *TradeManager) processSimultaneousDataEvents() error {
-	var dataEvents []data.Handler
-	dataHandlerMap := tm.Datas.GetAllData()
-	for _, exchangeMap := range dataHandlerMap {
-		for _, assetMap := range exchangeMap {
-			for _, dataHandler := range assetMap {
-				latestData := dataHandler.Latest()
-				err := tm.updateStatsForDataEvent(latestData)
-				if err != nil && err == statistics.ErrAlreadyProcessed {
-					continue
-				}
-				dataEvents = append(dataEvents, dataHandler)
-			}
-		}
-	}
-	signals, err := tm.Strategies[0].OnSimultaneousSignals(dataEvents, tm.Portfolio, tm.FactorEngine)
-	if err != nil {
-		if errors.Is(err, base.ErrTooMuchBadData) {
-			// too much bad data is a severe error and backtesting must cease
-			return err
-		}
-		log.Error(log.TradeManager, err)
-		return nil
-	}
-	for i := range signals {
-		err = tm.Statistic.SetEventForOffset(signals[i])
-		if err != nil {
-			log.Error(log.TradeManager, err)
-		}
-		tm.EventQueue.AppendEvent(signals[i])
-	}
+	// var dataEvents []data.Handler
+	// dataHandlerMap := tm.Datas.GetAllData()
+	// for _, exchangeMap := range dataHandlerMap {
+	// 	for _, assetMap := range exchangeMap {
+	// 		for _, dataHandler := range assetMap {
+	// 			latestData := dataHandler.Latest()
+	// 			err := tm.updateStatsForDataEvent(latestData)
+	// 			if err != nil && err == statistics.ErrAlreadyProcessed {
+	// 				continue
+	// 			}
+	// 			dataEvents = append(dataEvents, dataHandler)
+	// 		}
+	// 	}
+	// }
+	// d, _ := base.GetBaseData(dataEvents)
+	// // NOTE DISABLED
+	// // signals, err := tm.Strategies[0].OnSimultaneousSignals(dataEvents, tm.Portfolio, tm.FactorEngines[d.CurrencyPair()])
+	// if err != nil {
+	// 	if errors.Is(err, base.ErrTooMuchBadData) {
+	// 		// too much bad data is a severe error and backtesting must cease
+	// 		return err
+	// 	}
+	// 	log.Error(log.TradeManager, err)
+	// 	return nil
+	// }
+	// for i := range signals {
+	// 	err = tm.Statistic.SetEventForOffset(signals[i])
+	// 	if err != nil {
+	// 		log.Error(log.TradeManager, err)
+	// 	}
+	// 	tm.EventQueue.AppendEvent(signals[i])
+	// }
 	return nil
 }
 
@@ -967,4 +930,17 @@ func (tm *TradeManager) processFillEvent(ev fill.Event) {
 		log.Error(log.TradeManager, err)
 		return
 	}
+}
+
+func (tm *TradeManager) runCatchup() {
+	if tm.verbose {
+		log.Infoln(log.TradeManager, "Running catchup processes")
+	}
+	_, err := tm.Bot.dataHistoryManager.Catchup(tm.Exchange.GetAllCurrencySettings())
+	if err != nil {
+		log.Infoln(log.TradeManager, "history catchup failed")
+		os.Exit(1)
+	}
+	tm.Bot.dataHistoryManager.RunJobs()
+	tm.Bot.dataHistoryManager.Stop()
 }

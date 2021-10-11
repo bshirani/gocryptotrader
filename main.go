@@ -37,7 +37,7 @@ func main() {
 	flag.BoolVar(&settings.EnablePortfolioManager, "portfoliomanager", false, "enables the portfolio manager")
 	flag.BoolVar(&settings.EnableDataHistoryManager, "datahistorymanager", true, "enables the data history manager")
 	flag.DurationVar(&settings.PortfolioManagerDelay, "portfoliomanagerdelay", time.Duration(0), "sets the portfolio managers sleep delay between updates")
-	flag.BoolVar(&settings.EnableGRPC, "grpc", true, "enables the grpc server")
+	flag.BoolVar(&settings.EnableGRPC, "grpc", false, "enables the grpc server")
 	flag.BoolVar(&settings.EnableGRPCProxy, "grpcproxy", false, "enables the grpc proxy server")
 	flag.BoolVar(&settings.EnableWebsocketRPC, "websocketrpc", true, "enables the websocket RPC server")
 	flag.BoolVar(&settings.EnableCommsRelayer, "enablecommsrelayer", false, "enables available communications relayer")
@@ -47,14 +47,14 @@ func main() {
 	flag.BoolVar(&settings.EnableCoinmarketcapAnalysis, "coinmarketcap", false, "overrides config and runs currency analysis")
 	flag.BoolVar(&settings.EnableEventManager, "eventmanager", true, "enables the event manager")
 	flag.BoolVar(&settings.EnableOrderManager, "ordermanager", true, "enables the order manager")
-	flag.BoolVar(&settings.EnableDepositAddressManager, "depositaddressmanager", true, "enables the deposit address manager")
-	flag.BoolVar(&settings.EnableConnectivityMonitor, "connectivitymonitor", true, "enables the connectivity monitor")
+	flag.BoolVar(&settings.EnableDepositAddressManager, "depositaddressmanager", false, "enables the deposit address manager")
+	flag.BoolVar(&settings.EnableConnectivityMonitor, "connectivitymonitor", false, "enables the connectivity monitor")
 	flag.BoolVar(&settings.EnableDatabaseManager, "databasemanager", true, "enables database manager")
-	flag.BoolVar(&settings.EnableGCTScriptManager, "gctscriptmanager", true, "enables gctscript manager")
+	flag.BoolVar(&settings.EnableGCTScriptManager, "gctscriptmanager", false, "enables gctscript manager")
 	flag.DurationVar(&settings.EventManagerDelay, "eventmanagerdelay", time.Duration(0), "sets the event managers sleep delay between event checking")
 	flag.BoolVar(&settings.EnableNTPClient, "ntpclient", true, "enables the NTP client to check system clock drift")
 	flag.BoolVar(&settings.EnableDispatcher, "dispatch", true, "enables the dispatch system")
-	flag.BoolVar(&settings.EnableCurrencyStateManager, "currencystatemanager", true, "enables the currency state manager")
+	flag.BoolVar(&settings.EnableCurrencyStateManager, "currencystatemanager", false, "enables the currency state manager")
 	flag.IntVar(&settings.DispatchMaxWorkerAmount, "dispatchworkers", dispatch.DefaultMaxWorkers, "sets the dispatch package max worker generation limit")
 	flag.IntVar(&settings.DispatchJobsLimit, "dispatchjobslimit", dispatch.DefaultJobsLimit, "sets the dispatch package max jobs limit")
 
@@ -109,9 +109,8 @@ func main() {
 		fmt.Print(core.Version(true))
 		os.Exit(0)
 	}
-
-	fmt.Println(core.Banner)
-	fmt.Println(core.Version(false))
+	// fmt.Println(core.Banner)
+	// fmt.Println(core.Version(false))
 
 	var err error
 	settings.CheckParamInteraction = true
