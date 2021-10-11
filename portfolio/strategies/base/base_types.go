@@ -33,7 +33,6 @@ type PortfolioHandler interface {
 }
 
 type FactorEngineHandler interface {
-	Start()
 	OnBar(data.Handler)
 	Minute() *factors.MinuteDataFrame
 	Daily() *factors.DailyDataFrame

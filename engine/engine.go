@@ -16,13 +16,9 @@ import (
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/currency/coinmarketcap"
-	"gocryptotrader/data/kline/database"
-	"gocryptotrader/database/repository/candle"
 	"gocryptotrader/dispatch"
-	"gocryptotrader/eventtypes"
 	exchange "gocryptotrader/exchanges"
 	"gocryptotrader/exchanges/asset"
-	gctkline "gocryptotrader/exchanges/kline"
 	"gocryptotrader/exchanges/request"
 	"gocryptotrader/exchanges/trade"
 	gctscript "gocryptotrader/gctscript/vm"
@@ -92,6 +88,9 @@ func NewFromSettings(settings *Settings, flagSet map[string]bool) (*Engine, erro
 		fmt.Println(2)
 		return nil, fmt.Errorf("failed to load config. Err: %s", err)
 	}
+
+	gctlog.Infoln(gctlog.Global, "setting dry run to true for testing")
+	b.Config.DryRun = true
 
 	if *b.Config.Logging.Enabled {
 		gctlog.SetupGlobalLogger()
@@ -247,63 +246,63 @@ func PrintSettings(s *Settings) {
 	gctlog.Debugf(gctlog.Global, "- CORE SETTINGS:")
 	gctlog.Debugf(gctlog.Global, "\t Verbose mode: %v", s.Verbose)
 	gctlog.Debugf(gctlog.Global, "\t Enable dry run mode: %v", s.EnableDryRun)
-	gctlog.Debugf(gctlog.Global, "\t Enable all exchanges: %v", s.EnableAllExchanges)
-	gctlog.Debugf(gctlog.Global, "\t Enable all pairs: %v", s.EnableAllPairs)
-	gctlog.Debugf(gctlog.Global, "\t Enable coinmarketcap analaysis: %v", s.EnableCoinmarketcapAnalysis)
-	gctlog.Debugf(gctlog.Global, "\t Enable portfolio manager: %v", s.EnablePortfolioManager)
-	gctlog.Debugf(gctlog.Global, "\t Enable data history manager: %v", s.EnableDataHistoryManager)
-	gctlog.Debugf(gctlog.Global, "\t Enable currency state manager: %v", s.EnableCurrencyStateManager)
-	gctlog.Debugf(gctlog.Global, "\t Portfolio manager sleep delay: %v\n", s.PortfolioManagerDelay)
-	gctlog.Debugf(gctlog.Global, "\t Enable gPRC: %v", s.EnableGRPC)
-	gctlog.Debugf(gctlog.Global, "\t Enable gRPC Proxy: %v", s.EnableGRPCProxy)
-	gctlog.Debugf(gctlog.Global, "\t Enable websocket RPC: %v", s.EnableWebsocketRPC)
 	gctlog.Debugf(gctlog.Global, "\t Enable comms relayer: %v", s.EnableCommsRelayer)
 	gctlog.Debugf(gctlog.Global, "\t Enable event manager: %v", s.EnableEventManager)
-	gctlog.Debugf(gctlog.Global, "\t Event manager sleep delay: %v", s.EventManagerDelay)
-	gctlog.Debugf(gctlog.Global, "\t Enable order manager: %v", s.EnableOrderManager)
-	gctlog.Debugf(gctlog.Global, "\t Enable exchange sync manager: %v", s.EnableExchangeSyncManager)
-	gctlog.Debugf(gctlog.Global, "\t Enable deposit address manager: %v\n", s.EnableDepositAddressManager)
-	gctlog.Debugf(gctlog.Global, "\t Enable websocket routine: %v\n", s.EnableWebsocketRoutine)
-	gctlog.Debugf(gctlog.Global, "\t Enable NTP client: %v", s.EnableNTPClient)
 	gctlog.Debugf(gctlog.Global, "\t Enable Database manager: %v", s.EnableDatabaseManager)
-	gctlog.Debugf(gctlog.Global, "\t Enable dispatcher: %v", s.EnableDispatcher)
-	gctlog.Debugf(gctlog.Global, "\t Dispatch package max worker amount: %d", s.DispatchMaxWorkerAmount)
-	gctlog.Debugf(gctlog.Global, "\t Dispatch package jobs limit: %d", s.DispatchJobsLimit)
-	gctlog.Debugf(gctlog.Global, "- EXCHANGE SYNCER SETTINGS:\n")
-	gctlog.Debugf(gctlog.Global, "\t Exchange sync continuously: %v\n", s.SyncContinuously)
-	gctlog.Debugf(gctlog.Global, "\t Exchange sync workers: %v\n", s.SyncWorkers)
-	gctlog.Debugf(gctlog.Global, "\t Enable ticker syncing: %v\n", s.EnableTickerSyncing)
-	gctlog.Debugf(gctlog.Global, "\t Enable orderbook syncing: %v\n", s.EnableOrderbookSyncing)
-	gctlog.Debugf(gctlog.Global, "\t Enable trade syncing: %v\n", s.EnableTradeSyncing)
-	gctlog.Debugf(gctlog.Global, "\t Exchange REST sync timeout: %v\n", s.SyncTimeoutREST)
-	gctlog.Debugf(gctlog.Global, "\t Exchange Websocket sync timeout: %v\n", s.SyncTimeoutWebsocket)
-	gctlog.Debugf(gctlog.Global, "- FOREX SETTINGS:")
-	gctlog.Debugf(gctlog.Global, "\t Enable currency conveter: %v", s.EnableCurrencyConverter)
-	gctlog.Debugf(gctlog.Global, "\t Enable currency layer: %v", s.EnableCurrencyLayer)
-	gctlog.Debugf(gctlog.Global, "\t Enable fixer: %v", s.EnableFixer)
-	gctlog.Debugf(gctlog.Global, "\t Enable OpenExchangeRates: %v", s.EnableOpenExchangeRates)
-	gctlog.Debugf(gctlog.Global, "\t Enable ExchangeRateHost: %v", s.EnableExchangeRateHost)
-	gctlog.Debugf(gctlog.Global, "- EXCHANGE SETTINGS:")
-	gctlog.Debugf(gctlog.Global, "\t Enable exchange auto pair updates: %v", s.EnableExchangeAutoPairUpdates)
-	gctlog.Debugf(gctlog.Global, "\t Disable all exchange auto pair updates: %v", s.DisableExchangeAutoPairUpdates)
-	gctlog.Debugf(gctlog.Global, "\t Enable exchange websocket support: %v", s.EnableExchangeWebsocketSupport)
-	gctlog.Debugf(gctlog.Global, "\t Enable exchange verbose mode: %v", s.EnableExchangeVerbose)
-	gctlog.Debugf(gctlog.Global, "\t Enable exchange HTTP rate limiter: %v", s.EnableExchangeHTTPRateLimiter)
-	gctlog.Debugf(gctlog.Global, "\t Enable exchange HTTP debugging: %v", s.EnableExchangeHTTPDebugging)
-	gctlog.Debugf(gctlog.Global, "\t Max HTTP request jobs: %v", s.MaxHTTPRequestJobsLimit)
-	gctlog.Debugf(gctlog.Global, "\t HTTP request max retry attempts: %v", s.RequestMaxRetryAttempts)
-	gctlog.Debugf(gctlog.Global, "\t Trade buffer processing interval: %v", s.TradeBufferProcessingInterval)
-	gctlog.Debugf(gctlog.Global, "\t HTTP timeout: %v", s.HTTPTimeout)
-	gctlog.Debugf(gctlog.Global, "\t HTTP user agent: %v", s.HTTPUserAgent)
-	gctlog.Debugf(gctlog.Global, "- GCTSCRIPT SETTINGS: ")
-	gctlog.Debugf(gctlog.Global, "\t Enable GCTScript manager: %v", s.EnableGCTScriptManager)
-	gctlog.Debugf(gctlog.Global, "\t GCTScript max virtual machines: %v", s.MaxVirtualMachines)
-	gctlog.Debugf(gctlog.Global, "- WITHDRAW SETTINGS: ")
-	gctlog.Debugf(gctlog.Global, "\t Withdraw Cache size: %v", s.WithdrawCacheSize)
-	gctlog.Debugf(gctlog.Global, "- COMMON SETTINGS:")
-	gctlog.Debugf(gctlog.Global, "\t Global HTTP timeout: %v", s.GlobalHTTPTimeout)
-	gctlog.Debugf(gctlog.Global, "\t Global HTTP user agent: %v", s.GlobalHTTPUserAgent)
-	gctlog.Debugf(gctlog.Global, "\t Global HTTP proxy: %v", s.GlobalHTTPProxy)
+	// gctlog.Debugf(gctlog.Global, "\t Enable all exchanges: %v", s.EnableAllExchanges)
+	// gctlog.Debugf(gctlog.Global, "\t Enable all pairs: %v", s.EnableAllPairs)
+	// gctlog.Debugf(gctlog.Global, "\t Enable coinmarketcap analaysis: %v", s.EnableCoinmarketcapAnalysis)
+	// gctlog.Debugf(gctlog.Global, "\t Enable portfolio manager: %v", s.EnablePortfolioManager)
+	// gctlog.Debugf(gctlog.Global, "\t Enable data history manager: %v", s.EnableDataHistoryManager)
+	// gctlog.Debugf(gctlog.Global, "\t Enable currency state manager: %v", s.EnableCurrencyStateManager)
+	// gctlog.Debugf(gctlog.Global, "\t Portfolio manager sleep delay: %v\n", s.PortfolioManagerDelay)
+	// gctlog.Debugf(gctlog.Global, "\t Enable gPRC: %v", s.EnableGRPC)
+	// gctlog.Debugf(gctlog.Global, "\t Enable gRPC Proxy: %v", s.EnableGRPCProxy)
+	// gctlog.Debugf(gctlog.Global, "\t Enable websocket RPC: %v", s.EnableWebsocketRPC)
+	// gctlog.Debugf(gctlog.Global, "\t Event manager sleep delay: %v", s.EventManagerDelay)
+	// gctlog.Debugf(gctlog.Global, "\t Enable order manager: %v", s.EnableOrderManager)
+	// gctlog.Debugf(gctlog.Global, "\t Enable exchange sync manager: %v", s.EnableExchangeSyncManager)
+	// gctlog.Debugf(gctlog.Global, "\t Enable deposit address manager: %v\n", s.EnableDepositAddressManager)
+	// gctlog.Debugf(gctlog.Global, "\t Enable websocket routine: %v\n", s.EnableWebsocketRoutine)
+	// gctlog.Debugf(gctlog.Global, "\t Enable NTP client: %v", s.EnableNTPClient)
+	// gctlog.Debugf(gctlog.Global, "\t Enable dispatcher: %v", s.EnableDispatcher)
+	// gctlog.Debugf(gctlog.Global, "\t Dispatch package max worker amount: %d", s.DispatchMaxWorkerAmount)
+	// gctlog.Debugf(gctlog.Global, "\t Dispatch package jobs limit: %d", s.DispatchJobsLimit)
+	// gctlog.Debugf(gctlog.Global, "- EXCHANGE SYNCER SETTINGS:\n")
+	// gctlog.Debugf(gctlog.Global, "\t Exchange sync continuously: %v\n", s.SyncContinuously)
+	// gctlog.Debugf(gctlog.Global, "\t Exchange sync workers: %v\n", s.SyncWorkers)
+	// gctlog.Debugf(gctlog.Global, "\t Enable ticker syncing: %v\n", s.EnableTickerSyncing)
+	// gctlog.Debugf(gctlog.Global, "\t Enable orderbook syncing: %v\n", s.EnableOrderbookSyncing)
+	// gctlog.Debugf(gctlog.Global, "\t Enable trade syncing: %v\n", s.EnableTradeSyncing)
+	// gctlog.Debugf(gctlog.Global, "\t Exchange REST sync timeout: %v\n", s.SyncTimeoutREST)
+	// gctlog.Debugf(gctlog.Global, "\t Exchange Websocket sync timeout: %v\n", s.SyncTimeoutWebsocket)
+	// gctlog.Debugf(gctlog.Global, "- FOREX SETTINGS:")
+	// gctlog.Debugf(gctlog.Global, "\t Enable currency conveter: %v", s.EnableCurrencyConverter)
+	// gctlog.Debugf(gctlog.Global, "\t Enable currency layer: %v", s.EnableCurrencyLayer)
+	// gctlog.Debugf(gctlog.Global, "\t Enable fixer: %v", s.EnableFixer)
+	// gctlog.Debugf(gctlog.Global, "\t Enable OpenExchangeRates: %v", s.EnableOpenExchangeRates)
+	// gctlog.Debugf(gctlog.Global, "\t Enable ExchangeRateHost: %v", s.EnableExchangeRateHost)
+	// gctlog.Debugf(gctlog.Global, "- EXCHANGE SETTINGS:")
+	// gctlog.Debugf(gctlog.Global, "\t Enable exchange auto pair updates: %v", s.EnableExchangeAutoPairUpdates)
+	// gctlog.Debugf(gctlog.Global, "\t Disable all exchange auto pair updates: %v", s.DisableExchangeAutoPairUpdates)
+	// gctlog.Debugf(gctlog.Global, "\t Enable exchange websocket support: %v", s.EnableExchangeWebsocketSupport)
+	// gctlog.Debugf(gctlog.Global, "\t Enable exchange verbose mode: %v", s.EnableExchangeVerbose)
+	// gctlog.Debugf(gctlog.Global, "\t Enable exchange HTTP rate limiter: %v", s.EnableExchangeHTTPRateLimiter)
+	// gctlog.Debugf(gctlog.Global, "\t Enable exchange HTTP debugging: %v", s.EnableExchangeHTTPDebugging)
+	// gctlog.Debugf(gctlog.Global, "\t Max HTTP request jobs: %v", s.MaxHTTPRequestJobsLimit)
+	// gctlog.Debugf(gctlog.Global, "\t HTTP request max retry attempts: %v", s.RequestMaxRetryAttempts)
+	// gctlog.Debugf(gctlog.Global, "\t Trade buffer processing interval: %v", s.TradeBufferProcessingInterval)
+	// gctlog.Debugf(gctlog.Global, "\t HTTP timeout: %v", s.HTTPTimeout)
+	// gctlog.Debugf(gctlog.Global, "\t HTTP user agent: %v", s.HTTPUserAgent)
+	// gctlog.Debugf(gctlog.Global, "- GCTSCRIPT SETTINGS: ")
+	// gctlog.Debugf(gctlog.Global, "\t Enable GCTScript manager: %v", s.EnableGCTScriptManager)
+	// gctlog.Debugf(gctlog.Global, "\t GCTScript max virtual machines: %v", s.MaxVirtualMachines)
+	// gctlog.Debugf(gctlog.Global, "- WITHDRAW SETTINGS: ")
+	// gctlog.Debugf(gctlog.Global, "\t Withdraw Cache size: %v", s.WithdrawCacheSize)
+	// gctlog.Debugf(gctlog.Global, "- COMMON SETTINGS:")
+	// gctlog.Debugf(gctlog.Global, "\t Global HTTP timeout: %v", s.GlobalHTTPTimeout)
+	// gctlog.Debugf(gctlog.Global, "\t Global HTTP user agent: %v", s.GlobalHTTPUserAgent)
+	// gctlog.Debugf(gctlog.Global, "\t Global HTTP proxy: %v", s.GlobalHTTPProxy)
 
 	gctlog.Debugln(gctlog.Global)
 }
@@ -364,7 +363,6 @@ func (bot *Engine) Start() error {
 	}
 
 	bot.uptime = time.Now()
-	gctlog.Debugf(gctlog.Global, "Bot '%s' started.\n", bot.Config.Name)
 	gctlog.Debugf(gctlog.Global, "Using data dir: %s\n", bot.Settings.DataDir)
 	if *bot.Config.Logging.Enabled && strings.Contains(bot.Config.Logging.Output, "file") {
 		gctlog.Debugf(gctlog.Global, "Using log file: %s\n",
@@ -589,15 +587,6 @@ func (bot *Engine) Start() error {
 		}
 	}
 
-	wd, err := os.Getwd()
-	configPath := filepath.Join(wd, "backtester", "config", "trend.strat")
-	btcfg, err := config.ReadConfigFromFile(configPath)
-	bot.TradeManager, err = NewTradeManagerFromConfig(btcfg, "xx", "xx", bot, true)
-	if err != nil {
-		fmt.Printf("Could not setup trade manager from config. Error: %v.\n", err)
-		os.Exit(1)
-	}
-
 	if bot.Settings.EnableDataHistoryManager {
 		if bot.dataHistoryManager == nil {
 			bot.dataHistoryManager, err = SetupDataHistoryManager(bot.ExchangeManager, bot.DatabaseManager, &bot.Config.DataHistoryManager)
@@ -610,80 +599,22 @@ func (bot *Engine) Start() error {
 				}
 			}
 		}
+		if bot.TradeManager == nil {
+			bot.TradeManager, err = NewTradeManager(bot)
+			if err != nil {
+				fmt.Printf("Could not setup trade manager from config. Error: %v.\n", err)
+				os.Exit(1)
+			} else {
+				// start trade manager
+				bot.TradeManager.Start()
+			}
+		}
 	}
 
 	// catchup data history to database
 	// can move this to trade manager setup
-
-	_, err = bot.dataHistoryManager.Catchup(bot.TradeManager.Exchange.GetAllCurrencySettings())
-	if err != nil {
-		gctlog.Infoln(gctlog.Global, "history catchup failed") // move logger
-		os.Exit(1)
-	}
-
-	bot.dataHistoryManager.RunJobs()
-
-	// get latest bars for warmup
-	cs, err := bot.TradeManager.Exchange.GetAllCurrencySettings()
-	x := cs[0]
-	start := time.Now().Add(time.Minute * -10)
-	end := time.Now()
-	retCandle, err := candle.Series(x.ExchangeName,
-		x.CurrencyPair.Base.String(), x.CurrencyPair.Quote.String(),
-		int64(60), string(x.AssetType), start, end)
-
-	dbData, _ := database.LoadData(
-		start,
-		end,
-		time.Minute,
-		x.ExchangeName,
-		eventtypes.DataCandle,
-		x.CurrencyPair,
-		x.AssetType)
-
-	dbData.Load()
-
-	dbData.Item.RemoveDuplicates()
-	dbData.Item.SortCandlesByTimestamp(false)
-	dbData.RangeHolder, err = gctkline.CalculateCandleDateRanges(
-		start,
-		end,
-		gctkline.Interval(time.Minute),
-		0,
-	)
-
-	bot.TradeManager.Datas.SetDataForCurrency(
-		x.ExchangeName,
-		x.AssetType,
-		x.CurrencyPair,
-		dbData)
-
-	//validate sync time
-	lt := retCandle.Candles[len(retCandle.Candles)-1].Timestamp
-	t := time.Now().UTC()
-	t1 := time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location())
-	t2 := time.Date(lt.Year(), lt.Month(), lt.Day(), lt.Hour(), lt.Minute(), 0, 0, t.Location())
-
-	if t2 != t1 {
-		fmt.Println("sync time is off", t1, t2)
-		os.Exit(1)
-	}
-
-	if len(retCandle.Candles) == 0 {
-		fmt.Println("no candles returned")
-		os.Exit(1)
-	}
 	// end check
-
-	// run warm up factor engine
-	gctlog.Debugln(gctlog.Global, "Warming up factor engine...")
-	bot.TradeManager.Run()
-
-	// reset data source to be API
-	bot.TradeManager.ReloadData()
-
-	// start trade manager
-	bot.TradeManager.Start()
+	gctlog.Debugf(gctlog.Global, "Bot '%s' started.\n", bot.Config.Name)
 
 	return nil
 }
@@ -919,8 +850,6 @@ func (bot *Engine) LoadExchange(name string, wg *sync.WaitGroup) error {
 			)
 		}
 	}
-
-	gctlog.Infoln(gctlog.Global, "setting up exchanges")
 
 	exchCfg.Enabled = true
 	err = exch.Setup(exchCfg)

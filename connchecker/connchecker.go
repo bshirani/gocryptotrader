@@ -53,9 +53,9 @@ func New(dnsList, domainList []string, checkInterval time.Duration) (*Checker, e
 		return nil, err
 	}
 
-	if c.connected {
-		log.Debugln(log.Global, ConnFound)
-	} else {
+	if !c.connected {
+		// 	log.Debugln(log.Global, ConnFound)
+		// } else {
 		log.Warnln(log.Global, ConnNotFound)
 	}
 

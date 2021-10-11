@@ -136,7 +136,7 @@ func registerNewSubLogger(logger string) *SubLogger {
 
 // register all loggers at package init()
 func init() {
-	Global = registerNewSubLogger("LOG")
+	Global = registerNewSubLogger("ENGINE")
 
 	ConnectionMgr = registerNewSubLogger("CONNECTION")
 	TradeManager = registerNewSubLogger("TRADEMANAGER")

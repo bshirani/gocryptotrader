@@ -26,7 +26,7 @@ import (
 )
 
 // Setup creates a portfolio manager instance and sets private fields
-func SetupPortfolio(st []strategies.Handler, bot *Engine, sh SizeHandler, r risk.Handler, riskFreeRate decimal.Decimal, isLive bool) (*Portfolio, error) {
+func SetupPortfolio(st []strategies.Handler, bot *Engine, sh SizeHandler, r risk.Handler, riskFreeRate decimal.Decimal) (*Portfolio, error) {
 	log.Infof(log.TradeManager, "Setting up Portfolio")
 	if sh == nil {
 		return nil, errSizeManagerUnset
@@ -108,7 +108,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	switch ev.GetDecision() {
 	case signal.Enter:
 		ev.SetDirection(gctorder.Buy)
-		if p.isLive {
+		if p.bot.Config.IsLive {
 			log.Infof(log.TradeManager, "(live mode) insert trade to db")
 			err := livetrade.Insert(livetrade.Details{
 				EntryPrice:    123.0,

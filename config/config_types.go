@@ -91,6 +91,7 @@ var (
 // Exchanges
 type Config struct {
 	IsLive bool
+	DryRun bool
 
 	Nickname                 string             `json:"nickname"`
 	Goal                     string             `json:"goal"`

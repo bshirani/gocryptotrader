@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"strings"
-	"time"
 )
 
 var (
@@ -45,15 +44,16 @@ func (l *Logger) newLogEvent(data, header, slName string, w io.Writer) error {
 
 	e := eventPool.Get().(*Event)
 	e.output = w
-	e.data = append(e.data, []byte(header)...)
+	slName = fmt.Sprintf("%12s", slName)
+	// e.data = append(e.data, []byte(header)...)
 	if l.ShowLogSystemName {
-		e.data = append(e.data, l.Spacer...)
+		// e.data = append(e.data, l.Spacer...)
 		e.data = append(e.data, slName...)
 	}
-	e.data = append(e.data, l.Spacer...)
-	if l.Timestamp != "" {
-		e.data = time.Now().AppendFormat(e.data, l.Timestamp)
-	}
+	// if l.Timestamp != "" {
+	// e.data = append(e.data, l.Spacer...)
+	// 	e.data = time.Now().AppendFormat(e.data, l.Timestamp)
+	// }
 	e.data = append(e.data, l.Spacer...)
 	e.data = append(e.data, []byte(data)...)
 	if data == "" || data[len(data)-1] != '\n' {

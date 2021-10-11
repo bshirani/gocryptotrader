@@ -22,11 +22,6 @@ func SetupFactorEngine() (*FactorEngine, error) {
 	return f, nil
 }
 
-func (e *FactorEngine) Start() {
-	// log.Debugln(log.Global, "Factor Engine Starting...")
-	// log.Debugln(log.Global, "perform catchup here")
-}
-
 func (f *FactorEngine) Minute() *factors.MinuteDataFrame {
 	return f.minute
 }
