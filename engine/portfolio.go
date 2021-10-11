@@ -301,7 +301,6 @@ func (p *Portfolio) OnFill(f fill.Event) (*fill.Fill, error) {
 
 func (p *Portfolio) GetStrategy(id string) *strategies.Handler {
 	for _, s := range p.strategies {
-		fmt.Println("checking", s.ID(), id)
 		if s.ID() == id {
 			return &s
 		}

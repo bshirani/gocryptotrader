@@ -196,7 +196,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 		RiskFreeRate:                cfg.StatisticSettings.RiskFreeRate,
 	}
 	tm.Statistic = stats
-	// reports.Statistics = stats
+	reports.Statistics = stats
 
 	e, err := tm.setupExchangeSettings(cfg)
 	if err != nil {

@@ -26,7 +26,6 @@ import (
 	gctscript "gocryptotrader/gctscript/vm"
 	"gocryptotrader/log"
 	"gocryptotrader/portfolio/banking"
-	"gocryptotrader/portfolio/strategies"
 
 	"github.com/shopspring/decimal"
 )
@@ -1941,33 +1940,36 @@ func (c *Config) validateMinMaxes() (err error) {
 }
 
 func (c *Config) validateStrategySettings() error {
-	if c.StrategySettings.UseExchangeLevelFunding && !c.StrategySettings.SimultaneousSignalProcessing {
-		return errSimultaneousProcessingRequired
-	}
-	if len(c.StrategySettings.ExchangeLevelFunding) > 0 && !c.StrategySettings.UseExchangeLevelFunding {
-		return errExchangeLevelFundingRequired
-	}
-	if c.StrategySettings.UseExchangeLevelFunding && len(c.StrategySettings.ExchangeLevelFunding) == 0 {
-		return errExchangeLevelFundingDataRequired
-	}
-	if c.StrategySettings.UseExchangeLevelFunding {
-		for i := range c.StrategySettings.ExchangeLevelFunding {
-			if c.StrategySettings.ExchangeLevelFunding[i].InitialFunds.IsNegative() {
-				return fmt.Errorf("%w for %v %v %v",
-					errBadInitialFunds,
-					c.StrategySettings.ExchangeLevelFunding[i].ExchangeName,
-					c.StrategySettings.ExchangeLevelFunding[i].Asset,
-					c.StrategySettings.ExchangeLevelFunding[i].Currency,
-				)
+	for _, settings := range c.StrategiesSettings {
+		if settings.UseExchangeLevelFunding && !settings.SimultaneousSignalProcessing {
+			return errSimultaneousProcessingRequired
+		}
+		if len(settings.ExchangeLevelFunding) > 0 && !settings.UseExchangeLevelFunding {
+			return errExchangeLevelFundingRequired
+		}
+		if settings.UseExchangeLevelFunding && len(settings.ExchangeLevelFunding) == 0 {
+			return errExchangeLevelFundingDataRequired
+		}
+		if settings.UseExchangeLevelFunding {
+			for i := range settings.ExchangeLevelFunding {
+				if settings.ExchangeLevelFunding[i].InitialFunds.IsNegative() {
+					return fmt.Errorf("%w for %v %v %v",
+						errBadInitialFunds,
+						settings.ExchangeLevelFunding[i].ExchangeName,
+						settings.ExchangeLevelFunding[i].Asset,
+						settings.ExchangeLevelFunding[i].Currency,
+					)
+				}
 			}
 		}
 	}
-	strats := strategies.GetStrategies()
-	for i := range strats {
-		if strings.EqualFold(strats[i].Name(), c.StrategySettings.Name) {
-			return nil
-		}
-	}
+
+	// strats := strategies.GetStrategies()
+	// for i := range strats {
+	// 	if strings.EqualFold(strats[i].Name(), settings.Name) {
+	// 		return nil
+	// 	}
+	// }
 
 	return nil
 	// return fmt.Errorf("non-nil quote %w", errBadInitialFunds)

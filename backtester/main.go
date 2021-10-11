@@ -80,8 +80,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	os.Exit(1)
-
 	err = tm.Run()
 	if err != nil {
 		fmt.Printf("Could not complete run. Error: %v.\n", err)
