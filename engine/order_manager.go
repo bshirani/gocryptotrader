@@ -547,7 +547,6 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 	// 	newOrder.Date)
 	// log.Debugln(log.OrderMgr, msgInfo)
 
-	// not while backtesting
 	m.orderStore.commsManager.PushEvent(base.Event{
 		Type:    "order",
 		Message: msgInfo,

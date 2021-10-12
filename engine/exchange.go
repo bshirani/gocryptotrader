@@ -282,6 +282,10 @@ func (e *Exchange) placeOrder(ctx context.Context, price, amount decimal.Decimal
 		}
 	} else {
 		rate, _ := f.Amount.Float64()
+
+		// this is where we create the fake submission
+		// each type of order we want needs its own submission
+		// whats the fill price? we will know that in the response from processSubmittedOrder
 		submitResponse := gctorder.SubmitResponse{
 			IsOrderPlaced: true,
 			OrderID:       u.String(),
