@@ -101,9 +101,9 @@ func (m *OrderManager) gracefulShutdown() {
 // run will periodically process orders
 func (m *OrderManager) runFake() {
 	log.Debugln(log.OrderMgr, "Order manager started.")
-	m.processOrders()
-	tick := time.NewTicker(orderManagerDelay)
+	m.processFakeOrders()
 	m.orderStore.wg.Add(1)
+	tick := time.NewTicker(orderManagerDelay)
 	defer func() {
 		log.Debugln(log.OrderMgr, "Order manager shutdown.")
 		tick.Stop()
@@ -116,9 +116,13 @@ func (m *OrderManager) runFake() {
 			m.gracefulShutdown()
 			return
 		case <-tick.C:
-			go m.processOrders()
+			go m.processFakeOrders()
 		}
 	}
+}
+func (m *OrderManager) processFakeOrders() error {
+	log.Debugln(log.OrderMgr, "processing fake orders")
+	return nil
 }
 
 // run will periodically process orders

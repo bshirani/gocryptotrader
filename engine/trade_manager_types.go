@@ -6,6 +6,7 @@ import (
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/data"
+	"gocryptotrader/eventtypes"
 	"gocryptotrader/portfolio/report"
 	"gocryptotrader/portfolio/strategies"
 )
@@ -39,4 +40,16 @@ type TradeManager struct {
 	cfg                config.Config
 	started            int32
 	verbose            bool
+}
+
+// Holder contains the event queue for backtester processing
+type Holder struct {
+	Queue []eventtypes.EventHandler
+}
+
+// EventHolder interface details what is expected of an event holder to perform
+type EventHolder interface {
+	Reset()
+	AppendEvent(eventtypes.EventHandler)
+	NextEvent() eventtypes.EventHandler
 }

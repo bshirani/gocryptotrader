@@ -46,6 +46,7 @@ type store struct {
 
 // OrderManager processes and stores orders across enabled exchanges
 type OrderManager struct {
+	FakeOrderQueue   EventHolder
 	started          int32
 	processingOrders int32
 	shutdown         chan struct{}

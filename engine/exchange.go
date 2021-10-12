@@ -45,7 +45,7 @@ func (e *Exchange) ExecuteOrder(o order.Event, data data.Handler, om *OrderManag
 	}
 
 	if o.GetStrategyID() == "" {
-		return nil, fmt.Errorf("exchange:  order has no strategyid")
+		return nil, fmt.Errorf("exchange: order has no strategyid")
 	}
 
 	eventFunds := o.GetAllocatedFunds()
