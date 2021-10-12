@@ -33,6 +33,7 @@ func (f *FactorEngine) Daily() *factors.DailyDataFrame {
 
 func (f *FactorEngine) OnBar(d data.Handler) {
 	bar := d.Latest()
+	fmt.Println("on bar factor engine for pair", bar.Pair())
 	// fmt.Println(len(f.minute.Close), &d)
 	f.minute.Close = append(f.minute.Close, bar.ClosePrice())
 	f.minute.Open = append(f.minute.Open, bar.OpenPrice())
@@ -47,13 +48,12 @@ func (f *FactorEngine) OnBar(d data.Handler) {
 
 	// logic to create a new daily dataframe
 	if len(d.History()) > 1 && td != f.minute.LastDate() {
+		// change date after checking for/creating new daily bar
 		f.minute.Date = append(f.minute.Date, td)
 		f.daily = f.createNewDailyBar(f.minute, f.daily)
 	} else {
 		f.minute.Date = append(f.minute.Date, td)
 	}
-
-	// change date after checking for/creating new daily bar
 
 	// dataRange := d.StreamClose()
 	// var massagedData []float64

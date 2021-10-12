@@ -608,8 +608,7 @@ func (bot *Engine) Start() error {
 				fmt.Printf("Could not setup trade manager from config. Error: %v.\n", err)
 				os.Exit(1)
 			} else {
-				// start trade manager
-				bot.TradeManager.Start()
+				bot.TradeManager.RunLive()
 			}
 		}
 	}

@@ -48,6 +48,9 @@ func (l *Logger) newLogEvent(data, header, slName string, w io.Writer) error {
 	if header == l.ErrorHeader {
 		color.Set(color.FgRed, color.Bold)
 		defer color.Unset()
+	} else if header == l.InfoHeader {
+		color.Set(color.FgYellow, color.Bold)
+		defer color.Unset()
 	}
 	e := eventPool.Get().(*Event)
 	e.output = w

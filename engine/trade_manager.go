@@ -19,6 +19,7 @@ import (
 	"gocryptotrader/data"
 	"gocryptotrader/data/kline"
 	"gocryptotrader/data/kline/database"
+	"gocryptotrader/data/kline/live"
 	gctdatabase "gocryptotrader/database"
 	"gocryptotrader/database/repository/candle"
 	"gocryptotrader/eventtypes"
@@ -42,6 +43,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+// Helper method for starting from live engine
 // New returns a new TradeManager instance
 func NewTradeManager(bot *Engine) (*TradeManager, error) {
 	wd, err := os.Getwd()
@@ -68,6 +70,7 @@ func (tm *TradeManager) Reset() {
 
 // NewFromConfig takes a strategy config and configures a backtester variable to run
 func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, bot *Engine) (*TradeManager, error) {
+
 	log.Infoln(log.TradeManager, "TradeManager: Loading config...")
 	if cfg == nil {
 		return nil, errNilConfig
@@ -79,11 +82,14 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 		shutdown: make(chan struct{}),
 	}
 
+	// initialize the data structure to hold the klines for each pair
+	tm.Datas = &data.HandlerPerCurrency{}
+	tm.Datas.Setup()
+
 	tm.cfg = *cfg
 	tm.verbose = false
 	tm.Warmup = bot.Config.LiveMode
 
-	tm.Datas = &data.HandlerPerCurrency{}
 	tm.EventQueue = &Holder{}
 	reports := &report.Data{
 		Config:       cfg,
@@ -246,7 +252,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 func (tm *TradeManager) Run() error {
 	// log.Info(log.TradeManager, "running trade manager")
 	if !tm.Bot.Config.LiveMode {
-		tm.reloadData()
+		tm.loadDatas()
 	}
 
 dataLoadingIssue:
@@ -325,8 +331,21 @@ func (tm *TradeManager) runLive() error {
 }
 
 // LIVE FUNCTIONALITY
-func (tm *TradeManager) Start() error {
-	tm.runCatchup()
+func (tm *TradeManager) RunLive() error {
+
+	//
+	// run the catchup process
+	//
+	if tm.verbose {
+		log.Infoln(log.TradeManager, "Running catchup processes")
+	}
+	_, err := tm.Bot.dataHistoryManager.Catchup(tm.Exchange.GetAllCurrencySettings())
+	if err != nil {
+		log.Infoln(log.TradeManager, "history catchup failed")
+		os.Exit(1)
+	}
+	tm.Bot.dataHistoryManager.RunJobs()
+	tm.Bot.dataHistoryManager.Stop()
 
 	// get latest bars for warmup
 	cs, err := tm.Exchange.GetAllCurrencySettings()
@@ -366,7 +385,9 @@ func (tm *TradeManager) Start() error {
 		x.CurrencyPair,
 		dbData)
 
-	//validate sync time
+	//
+	// validate the catchup process
+	//
 	lt := retCandle.Candles[len(retCandle.Candles)-1].Timestamp
 	t := time.Now().UTC()
 	t1 := time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location())
@@ -383,14 +404,17 @@ func (tm *TradeManager) Start() error {
 	}
 	// the historical data has been loaded already by the data history manager
 
-	// go tm.heartBeat()
-	// run warm up factor engine
+	//
+	// precache the factor engine
+	//
 	log.Debugln(log.TradeManager, "Warming up factor engine...")
 	tm.Run()
 
-	// reset data source to be API
-	log.Debugln(log.TradeManager, "Reloading data sources...")
-	tm.reloadData()
+	//
+	// load datas, now setup
+	//
+	log.Debugln(log.TradeManager, "Load datas...")
+	tm.loadDatas()
 	// throw error if not live
 	if !atomic.CompareAndSwapInt32(&tm.started, 0, 1) {
 		return fmt.Errorf("backtester %w", ErrSubSystemAlreadyStarted)
@@ -432,8 +456,18 @@ func (tm *TradeManager) Stop() error {
 	return nil
 }
 
-func (tm *TradeManager) reloadData() error {
+func (tm *TradeManager) loadDatas() error {
 	cfg := &tm.cfg
+
+	// exchangeName := strings.ToLower(exch.GetName())
+	// tm.Datas.Setup()
+	// klineData, err := tm.loadData(cfg, exch, pair, a)
+	// if err != nil {
+	// 	return resp, err
+	// }
+	// tm.Datas.SetDataForCurrency(exchangeName, a, pair, klineData)
+
+	// LOAD DATA FOR EVERY PAIR
 	for i := range cfg.CurrencySettings {
 		exch, pair, a, err := tm.loadExchangePairAssetBase(
 			cfg.CurrencySettings[i].ExchangeName,
@@ -445,11 +479,11 @@ func (tm *TradeManager) reloadData() error {
 		}
 
 		exchangeName := strings.ToLower(exch.GetName())
-		tm.Datas.Setup()
 		klineData, err := tm.loadData(cfg, exch, pair, a)
 		if err != nil {
 			return err
 		}
+		// then we set the tm.Datas for that currency with the resulting kline data that we update)
 		tm.Datas.SetDataForCurrency(exchangeName, a, pair, klineData)
 	}
 	return nil
@@ -464,7 +498,7 @@ func (b *TradeManager) IsRunning() bool {
 }
 
 func (tm *TradeManager) setupExchangeSettings(cfg *config.Config) (Exchange, error) {
-	log.Infoln(log.TradeManager, "setting exchange settings...")
+	log.Debugln(log.TradeManager, "setting exchange settings...")
 	resp := Exchange{}
 
 	for i := range cfg.CurrencySettings {
@@ -477,13 +511,6 @@ func (tm *TradeManager) setupExchangeSettings(cfg *config.Config) (Exchange, err
 			return resp, err
 		}
 
-		exchangeName := strings.ToLower(exch.GetName())
-		tm.Datas.Setup()
-		klineData, err := tm.loadData(cfg, exch, pair, a)
-		if err != nil {
-			return resp, err
-		}
-		tm.Datas.SetDataForCurrency(exchangeName, a, pair, klineData)
 		var makerFee, takerFee decimal.Decimal
 		if cfg.CurrencySettings[i].MakerFee.GreaterThan(decimal.Zero) {
 			makerFee = cfg.CurrencySettings[i].MakerFee
@@ -741,15 +768,16 @@ func (tm *TradeManager) loadData(cfg *config.Config, exch gctexchange.IBotExchan
 	case tm.Bot.Config.LiveMode && !tm.Warmup:
 		log.Infof(log.TradeManager, "loading live data for %v %v %v...\n", exch.GetName(), a, fPair)
 
-		fmt.Println("there are n currencies", len(cfg.CurrencySettings))
-		if len(cfg.CurrencySettings) > 1 {
-			err := errors.New("live data simulation only supports one currency")
-			log.Errorln(log.TradeManager, err)
-			return nil, err
-		}
+		// if len(cfg.CurrencySettings) > 1 {
+		// 	err := errors.New("live data simulation only supports one currency")
+		// 	// os.Exit(2)
+		// 	log.Errorln(log.TradeManager, err)
+		// 	return nil, err
+		// }
 
-		err = loadLiveData(cfg, b)
+		err = configureLiveDataAPI(cfg, b)
 		if err != nil {
+			log.Errorf(log.TradeManager, "%v. Error configuring live data feed", err)
 			return nil, err
 		}
 		go tm.loadLiveDataLoop(
@@ -936,15 +964,151 @@ func (tm *TradeManager) processFillEvent(ev fill.Event) {
 	}
 }
 
-func (tm *TradeManager) runCatchup() {
-	if tm.verbose {
-		log.Infoln(log.TradeManager, "Running catchup processes")
-	}
-	_, err := tm.Bot.dataHistoryManager.Catchup(tm.Exchange.GetAllCurrencySettings())
+// ---------------------------
+// DATA LOADING
+// ---------------------------
+func (tm *TradeManager) loadLiveDataLoop(resp *kline.DataFromKline, cfg *config.Config, exch gctexchange.IBotExchange, fPair currency.Pair, a asset.Item, dataType int64) {
+	startDate := time.Now().Add(-cfg.DataSettings.Interval * 2)
+	dates, err := gctkline.CalculateCandleDateRanges(
+		startDate,
+		startDate.AddDate(1, 0, 0),
+		gctkline.Interval(cfg.DataSettings.Interval),
+		0)
 	if err != nil {
-		log.Infoln(log.TradeManager, "history catchup failed")
-		os.Exit(1)
+		log.Errorf(log.TradeManager, "%v. Please check your GoCryptoTrader configuration", err)
+		return
 	}
-	tm.Bot.dataHistoryManager.RunJobs()
-	tm.Bot.dataHistoryManager.Stop()
+	candles, err := live.LoadData(context.TODO(),
+		exch,
+		dataType,
+		cfg.DataSettings.Interval,
+		fPair,
+		a)
+	if err != nil {
+		log.Errorf(log.TradeManager, "%v. Please check your GoCryptoTrader configuration", err)
+		return
+	}
+	dates.SetHasDataFromCandles(candles.Candles)
+	resp.RangeHolder = dates
+	resp.Item = *candles
+
+	loadNewDataTimer := time.NewTimer(time.Second * 5)
+	for {
+		select {
+		case <-tm.shutdown:
+			return
+		case <-loadNewDataTimer.C:
+			log.Infof(log.TradeManager, "fetching data for %v %v %v %v", exch.GetName(), a, fPair, cfg.DataSettings.Interval)
+			loadNewDataTimer.Reset(time.Second * 15)
+			err = tm.configureLiveDataAPI(resp, cfg, exch, fPair, a, dataType)
+			if err != nil {
+				log.Error(log.TradeManager, err)
+				return
+			}
+		}
+	}
+}
+
+func (tm *TradeManager) configureLiveDataAPI(resp *kline.DataFromKline, cfg *config.Config, exch gctexchange.IBotExchange, fPair currency.Pair, a asset.Item, dataType int64) error {
+	if resp == nil {
+		return errNilData
+	}
+	if cfg == nil {
+		return errNilConfig
+	}
+	if exch == nil {
+		return errNilExchange
+	}
+	// this call updates the associated kline in stored in tm.Datas
+	candles, err := live.LoadData(context.TODO(),
+		exch,
+		dataType,
+		cfg.DataSettings.Interval,
+		fPair,
+		a)
+	if err != nil {
+		return err
+	}
+	if len(candles.Candles) == 0 {
+		return nil
+	}
+	resp.AppendResults(candles)
+	tm.Reports.UpdateItem(&resp.Item)
+	log.Info(log.TradeManager, "sleeping for 30 seconds before checking for new candle data")
+	return nil
+}
+
+func (b *TradeManager) heartBeat() {
+	for range time.Tick(time.Second * 15) {
+		log.Info(log.TradeManager, "heartbeat")
+	}
+}
+
+// updateStatsForDataEvent makes various systems aware of price movements from
+// data events
+func (tm *TradeManager) updateStatsForDataEvent(ev eventtypes.DataEventHandler) error {
+	// update statistics with the latest price
+	err := tm.Statistic.SetupEventForTime(ev)
+	if err != nil {
+		if err == statistics.ErrAlreadyProcessed {
+			return err
+		}
+		log.Error(log.TradeManager, err)
+	}
+	// update portfolio manager with the latest price
+	err = tm.Portfolio.UpdateHoldings(ev)
+	if err != nil {
+		log.Error(log.TradeManager, err)
+	}
+	return nil
+}
+
+func configureLiveDataAPI(cfg *config.Config, base *gctexchange.Base) error {
+	if cfg == nil || base == nil || cfg.DataSettings.LiveData == nil {
+		return eventtypes.ErrNilArguments
+	}
+	if cfg.DataSettings.Interval <= 0 {
+		return errIntervalUnset
+	}
+
+	if cfg.DataSettings.LiveData.APIKeyOverride != "" {
+		base.API.Credentials.Key = cfg.DataSettings.LiveData.APIKeyOverride
+	}
+	if cfg.DataSettings.LiveData.APISecretOverride != "" {
+		base.API.Credentials.Secret = cfg.DataSettings.LiveData.APISecretOverride
+	}
+	if cfg.DataSettings.LiveData.APIClientIDOverride != "" {
+		base.API.Credentials.ClientID = cfg.DataSettings.LiveData.APIClientIDOverride
+	}
+	if cfg.DataSettings.LiveData.API2FAOverride != "" {
+		base.API.Credentials.PEMKey = cfg.DataSettings.LiveData.API2FAOverride
+	}
+	if cfg.DataSettings.LiveData.APISubAccountOverride != "" {
+		base.API.Credentials.Subaccount = cfg.DataSettings.LiveData.APISubAccountOverride
+	}
+	validated := base.ValidateAPICredentials()
+	base.API.AuthenticatedSupport = validated
+	if !validated && cfg.DataSettings.LiveData.RealOrders {
+		log.Warn(log.TradeManager, "invalid API credentials set, real orders set to false")
+		cfg.DataSettings.LiveData.RealOrders = false
+	}
+	return nil
+}
+
+func loadDatabaseData(cfg *config.Config, name string, fPair currency.Pair, a asset.Item, dataType int64) (*kline.DataFromKline, error) {
+	if cfg == nil || cfg.DataSettings.DatabaseData == nil {
+		return nil, errors.New("nil config data received")
+	}
+	if cfg.DataSettings.Interval <= 0 {
+		return nil, errIntervalUnset
+	}
+
+	return database.LoadData(
+		cfg.DataSettings.DatabaseData.StartDate,
+		cfg.DataSettings.DatabaseData.EndDate,
+		cfg.DataSettings.Interval,
+		strings.ToLower(name),
+		dataType,
+		fPair,
+		a)
 }
