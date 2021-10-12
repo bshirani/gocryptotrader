@@ -428,12 +428,13 @@ func (m *FakeOrderManager) Submit(ctx context.Context, newOrder *order.Submit) (
 	// 	return nil, err
 	// }
 
-	fakeResponse := order.SubmitResponse{
+	fakeSubmission := order.SubmitResponse{
 		IsOrderPlaced: true,
 		OrderID:       newOrder.ID,
+		FullyMatched:  true,
 	}
 
-	resp, err := m.processSubmittedOrder(newOrder, fakeResponse)
+	resp, err := m.processSubmittedOrder(newOrder, fakeSubmission)
 	if err != nil {
 		log.Errorln(log.FakeOrderMgr, "error", err)
 	}

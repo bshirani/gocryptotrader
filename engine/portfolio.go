@@ -143,9 +143,6 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	case signal.Enter:
 		ev.SetDirection(gctorder.Buy)
 
-		entryPrice, _ := ev.GetPrice().Float64()
-		stopLossPrice, _ := ev.GetPrice().Float64()
-
 		lo := liveorder.Details{
 			Status:     "PENDING",
 			OrderType:  "Market",
@@ -153,35 +150,12 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 			InternalID: id.String(),
 		}
 
-		// lt := livetrade.Details{
-		// 	EntryPrice:    123.0,
-		// 	StopLossPrice: 123.0,
-		// 	Status:        "PENDING",
-		// 	StrategyID:    ev.GetStrategyID(),
-		// 	Pair:          ev.Pair().String(),
-		// 	EntryOrderID:  id.String(),
-		// }
-		// &liveorder.Details{
-		// 	Status:   livetrade.Pending,
-		// 	Pair:     fmt.Sprint(ev.Pair().Base, ev.Pair().Quote),
-		// 	Exchange: ev.GetExchange(),
-		// }
-		// &livetrade.Details{
-		// 	Status:        livetrade.Pending,
-		// 	EntryPrice:    entryPrice,
-		// 	StopLossPrice: stopLossPrice,
-		// 	Pair:          fmt.Sprint(ev.Pair().Base, ev.Pair().Quote),
-		// 	EntryOrderID:  id.String(),
-		// }
-
 		if p.bot.Config.LiveMode && !p.bot.Settings.EnableDryRun {
 			log.Debugln(log.TradeManager, "(live mode) insert trade to db")
 			liveorder.Insert(lo)
-			// livetrade.Insert(lt)
 		}
 
 		p.store.openOrders[ev.GetStrategyID()] = append(p.store.openOrders[ev.GetStrategyID()], &lo)
-		// p.store.openTrade[ev.GetStrategyID()] = &lt
 
 	case signal.Exit:
 		ev.SetDirection(gctorder.Sell)
@@ -242,6 +216,8 @@ func (p *Portfolio) updatePosition(pos *positions.Position, amount decimal.Decim
 
 // OnFill processes the event after an order has been placed by the exchange. Its purpose is to track holdings for future portfolio decisions.
 func (p *Portfolio) OnFill(f fill.Event) {
+
+	fmt.Println("portfolio.go order has been filled", f)
 	// if f == nil {
 	// 	return nil, eventtypes.ErrNilEvent
 	// }
@@ -255,6 +231,9 @@ func (p *Portfolio) OnFill(f fill.Event) {
 	// what was the amount filled?
 	// what was the direction of the fill?
 	// what is the direction of the strategy?
+
+	// entryPrice, _ := ev.GetPrice().Float64()
+	// stopLossPrice, _ := ev.GetPrice().Float64()
 
 	// create or update position
 	for _, pos := range p.store.positions {
