@@ -621,7 +621,6 @@ func (bot *Engine) Start() error {
 		}
 		if bot.TradeManager == nil {
 			bot.TradeManager, err = NewTradeManager(bot, bot.FakeOrderManager)
-			bot.FakeOrderManager.SetOnSubmit(bot.TradeManager.onSubmit)
 			if err != nil {
 				fmt.Printf("Could not setup trade manager from config. Error: %v.\n", err)
 				os.Exit(1)

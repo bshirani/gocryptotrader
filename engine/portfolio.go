@@ -14,7 +14,6 @@ import (
 	"gocryptotrader/eventtypes/fill"
 	"gocryptotrader/eventtypes/order"
 	"gocryptotrader/eventtypes/signal"
-	"gocryptotrader/eventtypes/submit"
 	"gocryptotrader/exchange/asset"
 	gctorder "gocryptotrader/exchange/order"
 	"gocryptotrader/log"
@@ -92,8 +91,9 @@ func (p *Portfolio) Reset() {
 	p.exchangeAssetPairSettings = nil
 }
 
-func (p *Portfolio) OnSubmit(submit submit.Event) {
-	fmt.Println("portfolio received submitted order", submit)
+func (p *Portfolio) OnSubmit(submit *OrderSubmitResponse) {
+	fmt.Println("portfolio received submitted order", submit.InternalOrderID)
+	// find the order from the store
 }
 
 func (p *Portfolio) OnCancel(cancel cancel.Event) {

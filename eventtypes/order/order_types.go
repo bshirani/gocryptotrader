@@ -11,7 +11,6 @@ import (
 // Order contains all details for an order event
 type Order struct {
 	event.Base
-	onSubmit       func(*order.SubmitResponse)
 	ID             string
 	Direction      order.Side
 	StrategyID     string
@@ -30,8 +29,6 @@ type Order struct {
 type Event interface {
 	eventtypes.EventHandler
 	eventtypes.Directioner
-	GetOnSubmit() func(*order.SubmitResponse)
-	SetOnSubmit(func(*order.SubmitResponse))
 	GetBuyLimit() decimal.Decimal
 	GetSellLimit() decimal.Decimal
 	SetPrice(decimal.Decimal)

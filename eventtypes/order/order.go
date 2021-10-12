@@ -101,14 +101,6 @@ func (o *Order) GetStrategy() string {
 	return o.Strategy
 }
 
-func (o *Order) GetOnSubmit() func(*order.SubmitResponse) {
-	return o.onSubmit
-}
-
-func (o *Order) SetOnSubmit(onSubmit func(*order.SubmitResponse)) {
-	o.onSubmit = onSubmit
-}
-
 // IsLeveraged returns if it is leveraged
 func (o *Order) IsLeveraged() bool {
 	return o.Leverage.GreaterThan(decimal.NewFromFloat(1))

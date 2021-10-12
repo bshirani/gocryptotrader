@@ -27,7 +27,6 @@ import (
 	"gocryptotrader/eventtypes/fill"
 	"gocryptotrader/eventtypes/order"
 	"gocryptotrader/eventtypes/signal"
-	"gocryptotrader/eventtypes/submit"
 	"gocryptotrader/exchange"
 	"gocryptotrader/exchange/asset"
 	gctkline "gocryptotrader/exchange/kline"
@@ -243,6 +242,8 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	}
 	tm.Portfolio = p
 
+	// om.SetOnSubmit(p.OnSubmit)
+
 	// cfg.PrintSetting()
 
 	return tm, nil
@@ -252,6 +253,8 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 // Run will iterate over loaded data events
 // save them and then handle the event based on its type
 func (tm *TradeManager) Run() error {
+	tm.Bot.FakeOrderManager.SetOnSubmit(tm.Portfolio.OnSubmit)
+	// on.SetOnSubmit(p.onSubmit)
 	log.Debugf(log.TradeManager, "TradeManager Running. Warmup: %v\n", tm.Warmup)
 	if !tm.Bot.Config.LiveMode {
 		tm.loadDatas()
@@ -334,6 +337,8 @@ func (tm *TradeManager) runLive() error {
 
 // LIVE FUNCTIONALITY
 func (tm *TradeManager) RunLive() error {
+
+	tm.Bot.FakeOrderManager.SetOnSubmit(tm.Portfolio.OnSubmit)
 	//
 	// run the catchup process
 	//
@@ -701,7 +706,6 @@ func (tm *TradeManager) setupBot(cfg *config.Config, bot *Engine) error {
 				gctlog.Errorf(gctlog.Global, "Fake Order manager unable to setup: %s", err)
 			} else {
 				err = bot.FakeOrderManager.Start()
-				bot.FakeOrderManager.SetOnSubmit(tm.onSubmit)
 				if err != nil {
 					gctlog.Errorf(gctlog.Global, "Fake Order manager unable to start: %s", err)
 				}
@@ -876,12 +880,12 @@ func (tm *TradeManager) handleEvent(ev eventtypes.EventHandler) error {
 		tm.processSignalEvent(eType)
 	case order.Event:
 		tm.processOrderEvent(eType)
-	case submit.Event:
-		tm.processSubmitEvent(eType)
-	case cancel.Event:
-		tm.processCancelEvent(eType)
-	case fill.Event:
-		tm.processFillEvent(eType)
+	// case submit.Event:
+	// 	tm.processSubmitEvent(eType)
+	// case cancel.Event:
+	// 	tm.processCancelEvent(eType)
+	// case fill.Event:
+	// 	tm.processFillEvent(eType)
 	default:
 		return fmt.Errorf("%w %v received, could not process",
 			errUnhandledDatatype,
@@ -975,6 +979,9 @@ func (tm *TradeManager) processSimultaneousDataEvents() error {
 	return nil
 }
 
+//
+// Event Processors
+//
 // processSignalEvent receives an event from the strategy for processing under the portfolio
 func (tm *TradeManager) processSignalEvent(ev signal.Event) {
 	cs, err := tm.GetCurrencySettings(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
@@ -998,37 +1005,22 @@ func (tm *TradeManager) processSignalEvent(ev signal.Event) {
 	}
 }
 
+func (tm *TradeManager) processSubmitEvent(ev *OrderSubmitResponse) {
+	// convert order submit response to submit.Event here
+	tm.Portfolio.OnSubmit(ev)
+}
+
+func (tm *TradeManager) processCancelEvent(ev cancel.Event) {
+	tm.Portfolio.OnCancel(ev)
+}
+
+func (tm *TradeManager) processFillEvent(ev fill.Event) {
+	tm.Portfolio.OnFill(ev)
+}
+
 func (tm *TradeManager) processOrderEvent(o order.Event) {
 	d := tm.Datas.GetDataForCurrency(o.GetExchange(), o.GetAssetType(), o.Pair())
 	tm.ExecuteOrder(o, d, tm.Bot.FakeOrderManager)
-	// place an order with order manager
-	// and receive a callback
-
-	// switch t := o.(type) {
-	// case order.Submit:
-	// 	// if it is a submit event, we execute the order
-	// 	// if it is a submit response event, we save the order ID
-	// case order.Cancel:
-	// 	// order cancel event - we call on cancel
-	// 	// if it is an order fill event, we call portfolio Onfill
-	// 	_, err := tm.Portfolio.OnCancel(f)
-	// 	if err != nil {
-	// 		log.Error(log.TradeManager, err)
-	// 		return
-	// 	}
-	// case order.Fill:
-	// 	// if it is an order fill event, we call portfolio Onfill
-	// 	_, err := tm.Portfolio.OnFill(f)
-	// 	if err != nil {
-	// 		log.Error(log.TradeManager, err)
-	// 		return
-	// 	}
-	// }
-
-	// err = tm.Statistic.SetEventForOffset(s)
-	// if err != nil {
-	// 	log.Error(log.TradeManager, err)
-	// }
 	// tm.EventQueue.AppendEvent(s)
 }
 
@@ -1240,29 +1232,6 @@ func (tm *TradeManager) GetCurrencySettings(exch string, a asset.Item, cp curren
 	return ExchangeAssetPairSettings{}, fmt.Errorf("no currency settings found for %v %v %v", exch, a, cp)
 }
 
-// GetCurrencySettings returns the settings for an exchange, asset currency
-func (tm *TradeManager) onSubmit(sr *OrderSubmitResponse) {
-	// mark the order as submitted
-	// save the order in the database not dry run and live mode
-	fmt.Println("OnSubmit", sr)
-
-	// create a submit event
-	s := &submit.Submit{}
-	tm.EventQueue.AppendEvent(s)
-}
-
-func (tm *TradeManager) processSubmitEvent(ev submit.Event) {
-	tm.Portfolio.OnSubmit(ev)
-}
-
-func (tm *TradeManager) processCancelEvent(ev cancel.Event) {
-	tm.Portfolio.OnCancel(ev)
-}
-
-func (tm *TradeManager) processCancelEvent(ev cancel.Event) {
-	tm.Portfolio.OnFill(ev)
-}
-
 // ExecuteOrder assesses the portfolio manager's order event and if it passes validation
 // will send an order to the exchange/fake order manager to be stored and raise a fill event
 func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om ExecutionHandler) (order.Event, error) {
@@ -1302,7 +1271,6 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 		if ords[i].ID != o.GetID() {
 			continue
 		}
-		fmt.Println("status", ords[i].Status)
 		ords[i].Date = o.GetTime()
 		ords[i].LastUpdated = o.GetTime()
 		ords[i].CloseTime = o.GetTime()

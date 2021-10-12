@@ -10,6 +10,7 @@ var TableNames = struct {
 	Datahistoryjobrelations string
 	Datahistoryjobresult    string
 	Exchange                string
+	LiveOrder               string
 	LiveTrade               string
 	Script                  string
 	ScriptExecution         string
@@ -24,6 +25,7 @@ var TableNames = struct {
 	Datahistoryjobrelations: "datahistoryjobrelations",
 	Datahistoryjobresult:    "datahistoryjobresult",
 	Exchange:                "exchange",
+	LiveOrder:               "live_order",
 	LiveTrade:               "live_trade",
 	Script:                  "script",
 	ScriptExecution:         "script_execution",

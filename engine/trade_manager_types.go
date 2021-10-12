@@ -72,5 +72,6 @@ type ExecutionHandler interface {
 
 	GetOrdersSnapshot(order.Status) ([]order.Detail, time.Time)
 	Submit(context.Context, *gctorder.Submit) (*OrderSubmitResponse, error)
+	SetOnSubmit(func(*OrderSubmitResponse))
 	// Reset()
 }

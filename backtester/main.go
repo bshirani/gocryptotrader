@@ -93,7 +93,6 @@ func main() {
 	for _, s := range tm.Strategies {
 		if _, value := keys[s.GetPair()]; !value {
 			keys[s.GetPair()] = true
-			fmt.Println("adding pair", s.GetPair())
 			pairs = append(pairs, s.GetPair())
 		}
 	}

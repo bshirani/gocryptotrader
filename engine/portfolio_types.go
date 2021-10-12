@@ -12,7 +12,6 @@ import (
 	"gocryptotrader/eventtypes/fill"
 	"gocryptotrader/eventtypes/order"
 	"gocryptotrader/eventtypes/signal"
-	"gocryptotrader/eventtypes/submit"
 	"gocryptotrader/exchange/asset"
 	gctorder "gocryptotrader/exchange/order"
 	"gocryptotrader/portfolio/compliance"
@@ -46,6 +45,8 @@ var (
 type portfolioStore struct {
 	m            sync.RWMutex
 	positions    map[string]*positions.Position
+	openOrder    map[string]*liveorder.Details
+	closedOrders map[string][]*liveorder.Details
 	openTrade    map[string]*livetrade.Details
 	closedTrades map[string][]*livetrade.Details
 	wg           *sync.WaitGroup
@@ -108,7 +109,7 @@ type PortfolioHandler interface {
 	OnSignal(signal.Event, *ExchangeAssetPairSettings) (*order.Order, error)
 
 	OnFill(fill.Event)
-	OnSubmit(submit.Event)
+	OnSubmit(*OrderSubmitResponse)
 	OnCancel(cancel.Event)
 
 	GetAllClosedTrades() []*livetrade.Details
