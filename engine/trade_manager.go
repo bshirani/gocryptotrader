@@ -992,27 +992,34 @@ func (tm *TradeManager) processSignalEvent(ev signal.Event) {
 
 func (tm *TradeManager) processOrderEvent(o order.Event) {
 	d := tm.Datas.GetDataForCurrency(o.GetExchange(), o.GetAssetType(), o.Pair())
-	s, err := tm.Exchange.ExecuteOrder(o, d, tm.Bot.OrderManager)
-	if err != nil {
-		if s == nil {
-			log.Errorf(log.TradeManager, "fill event should always be returned, please fix, %v", err)
+
+	switch t := o.(type) {
+	case order.Submit:
+		// if it is a submit event, we execute the order
+		s, err := tm.Exchange.ExecuteOrder(o, d, tm.Bot.OrderManager)
+		// if it is a submit response event, we save the order ID
+	case order.Cancel:
+		// order cancel event - we call on cancel
+		// if it is an order fill event, we call portfolio Onfill
+		_, err := tm.Portfolio.OnCancel(f)
+		if err != nil {
+			log.Error(log.TradeManager, err)
 			return
 		}
-		log.Errorf(log.TradeManager, "%v %v %v %v", s.GetExchange(), s.GetAssetType(), s.Pair(), err)
+	case order.Fill:
+		// if it is an order fill event, we call portfolio Onfill
+		_, err := tm.Portfolio.OnFill(f)
+		if err != nil {
+			log.Error(log.TradeManager, err)
+			return
+		}
 	}
+
 	err = tm.Statistic.SetEventForOffset(s)
 	if err != nil {
 		log.Error(log.TradeManager, err)
 	}
 	tm.EventQueue.AppendEvent(s)
-}
-
-func (tm *TradeManager) processFillEvent(f fill.Event) {
-	_, err := tm.Portfolio.OnFill(f)
-	if err != nil {
-		log.Error(log.TradeManager, err)
-		return
-	}
 }
 
 // ---------------------------

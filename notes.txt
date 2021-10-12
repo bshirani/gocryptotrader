@@ -100,3 +100,40 @@ what does the order manager do exactly? how does it operate? we will need to und
 how does the portfolio get notified of order manager events?
 we can pass a callback function, but that's a little messy is there a better way?
 
+
+
+
+
+
+portfolio creates an order.Submit
+it stores it to the database
+it emits an order.CreateEvent
+trade manager processes order - Create
+    trade manager calls exchange.ExecuteOrder with details of that order.Event
+    ExecuteOrder returns an OrderSubmitResponse
+    trade manager emits a submit.Event (order can be placed or not)
+trade manager processes order - Submit
+    Submit processing calls the portfoliolo OnSubmit
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

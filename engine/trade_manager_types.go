@@ -7,19 +7,26 @@ import (
 	"gocryptotrader/currency"
 	"gocryptotrader/data"
 	"gocryptotrader/eventtypes"
+	"gocryptotrader/eventtypes/fill"
+	"gocryptotrader/eventtypes/order"
+	"gocryptotrader/exchange/asset"
 	"gocryptotrader/portfolio/report"
 	"gocryptotrader/portfolio/strategies"
 )
 
 var (
-	errInvalidConfigAsset  = errors.New("invalid asset in config")
-	errAmbiguousDataSource = errors.New("ambiguous settings received. Only one data type can be set")
-	errNoDataSource        = errors.New("no data settings set in config")
-	errIntervalUnset       = errors.New("candle interval unset")
-	errUnhandledDatatype   = errors.New("unhandled datatype")
-	errLiveDataTimeout     = errors.New("no data returned in 5 minutes, shutting down")
-	errNilData             = errors.New("nil data received")
-	errNilExchange         = errors.New("nil exchange received")
+	errInvalidConfigAsset     = errors.New("invalid asset in config")
+	errAmbiguousDataSource    = errors.New("ambiguous settings received. Only one data type can be set")
+	errNoDataSource           = errors.New("no data settings set in config")
+	errIntervalUnset          = errors.New("candle interval unset")
+	errUnhandledDatatype      = errors.New("unhandled datatype")
+	errLiveDataTimeout        = errors.New("no data returned in 5 minutes, shutting down")
+	errNilData                = errors.New("nil data received")
+	errNilExchange            = errors.New("nil exchange received")
+	errDataMayBeIncorrect     = errors.New("data may be incorrect")
+	errExceededPortfolioLimit = errors.New("exceeded portfolio limit")
+	errNilCurrencySettings    = errors.New("received nil currency settings")
+	// errInvalidDirection       = errors.New("received invalid order direction")
 )
 
 // TradeManager is the main holder of all strategy functionality
@@ -52,4 +59,17 @@ type EventHolder interface {
 	Reset()
 	AppendEvent(eventtypes.EventHandler)
 	NextEvent() eventtypes.EventHandler
+}
+
+// ExecutionHandler interface dictates what functions are required to submit an order
+type ExecutionHandler interface {
+	SetExchangeAssetCurrencySettings(string, asset.Item, currency.Pair, *ExchangeAssetPairSettings)
+	GetAllCurrencySettings() ([]ExchangeAssetPairSettings, error)
+	GetCurrencySettings(string, asset.Item, currency.Pair) (ExchangeAssetPairSettings, error)
+	ExecuteOrder(order.Event, data.Handler, *OrderManager) (*fill.Fill, error)
+	Reset()
+}
+
+type OrderManagerHandler interface {
+	ExecuteOrder(order.Event, data.Handler) (*fill.Fill, error)
 }
