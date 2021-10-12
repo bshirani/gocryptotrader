@@ -457,6 +457,16 @@ func (tm *TradeManager) Stop() error {
 	// 	return err
 	// }
 
+	if tm.Bot.FakeOrderManager.IsRunning() {
+		tm.Bot.FakeOrderManager.Stop()
+	}
+	if tm.Bot.DatabaseManager.IsRunning() {
+		tm.Bot.DatabaseManager.Stop()
+	}
+	if tm.Bot.OrderManager.IsRunning() {
+		tm.Bot.OrderManager.Stop()
+	}
+
 	for _, s := range tm.Strategies {
 		s.Stop()
 	}
@@ -664,6 +674,7 @@ func (tm *TradeManager) setupBot(cfg *config.Config, bot *Engine) error {
 	}
 
 	if !tm.Bot.Config.LiveMode {
+		// start fake manager here since we don't start engine in live mode
 		if !tm.Bot.FakeOrderManager.IsRunning() {
 			bot.FakeOrderManager, err = SetupFakeOrderManager(
 				bot.ExchangeManager,

@@ -659,6 +659,11 @@ func (bot *Engine) Stop() {
 			gctlog.Errorf(gctlog.Global, "Order manager unable to stop. Error: %v", err)
 		}
 	}
+	if bot.FakeOrderManager.IsRunning() {
+		if err := bot.FakeOrderManager.Stop(); err != nil {
+			gctlog.Errorf(gctlog.Global, "Fake Order manager unable to stop. Error: %v", err)
+		}
+	}
 	if bot.eventManager.IsRunning() {
 		if err := bot.eventManager.Stop(); err != nil {
 			gctlog.Errorf(gctlog.Global, "event manager unable to stop. Error: %v", err)
