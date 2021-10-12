@@ -140,6 +140,7 @@ func init() {
 
 	ConnectionMgr = registerNewSubLogger("CONNECTION")
 	TradeManager = registerNewSubLogger("TRADEMANAGER")
+	FakeOrderMgr = registerNewSubLogger("FAKEORDER")
 	CommunicationMgr = registerNewSubLogger("COMMS")
 	APIServerMgr = registerNewSubLogger("API")
 	ConfigMgr = registerNewSubLogger("CONFIG")

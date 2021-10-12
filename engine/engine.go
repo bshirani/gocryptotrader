@@ -41,6 +41,7 @@ type Engine struct {
 	ExchangeManager         *ExchangeManager
 	ntpManager              *ntpManager
 	OrderManager            *OrderManager
+	FakeOrderManager        *FakeOrderManager
 	portfolioManager        *portfolioManager
 	gctScriptManager        *gctscript.GctScriptManager
 	websocketRoutineManager *websocketRoutineManager
@@ -506,6 +507,22 @@ func (bot *Engine) Start() error {
 			}
 		}
 	}
+
+	// if bot.Settings.EnableOrderManager {
+	bot.FakeOrderManager, err = SetupFakeOrderManager(
+		bot.ExchangeManager,
+		bot.CommunicationsManager,
+		&bot.ServicesWG,
+		bot.Settings.Verbose)
+	if err != nil {
+		gctlog.Errorf(gctlog.Global, "Fake Order manager unable to setup: %s", err)
+	} else {
+		err = bot.FakeOrderManager.Start()
+		if err != nil {
+			gctlog.Errorf(gctlog.Global, "Fake Order manager unable to start: %s", err)
+		}
+	}
+	// }
 
 	if bot.Settings.EnableExchangeSyncManager {
 		exchangeSyncCfg := &Config{

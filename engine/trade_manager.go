@@ -664,6 +664,22 @@ func (tm *TradeManager) setupBot(cfg *config.Config, bot *Engine) error {
 	}
 
 	if !tm.Bot.Config.LiveMode {
+		if !tm.Bot.FakeOrderManager.IsRunning() {
+			bot.FakeOrderManager, err = SetupFakeOrderManager(
+				bot.ExchangeManager,
+				bot.CommunicationsManager,
+				&bot.ServicesWG,
+				bot.Settings.Verbose)
+			if err != nil {
+				gctlog.Errorf(gctlog.Global, "Fake Order manager unable to setup: %s", err)
+			} else {
+				err = bot.FakeOrderManager.Start()
+				if err != nil {
+					gctlog.Errorf(gctlog.Global, "Fake Order manager unable to start: %s", err)
+				}
+			}
+		}
+
 		// start DB manager here as we don't start the bot in backtest mode
 		if !tm.Bot.DatabaseManager.IsRunning() {
 			tm.Bot.DatabaseManager, err = SetupDatabaseConnectionManager(gctdatabase.DB.GetConfig())

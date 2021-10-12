@@ -16,6 +16,7 @@ var (
 	DataHistory      *SubLogger
 	GCTScriptMgr     *SubLogger
 	OrderMgr         *SubLogger
+	FakeOrderMgr     *SubLogger
 	PortfolioMgr     *SubLogger
 	SyncMgr          *SubLogger
 	TimeMgr          *SubLogger
