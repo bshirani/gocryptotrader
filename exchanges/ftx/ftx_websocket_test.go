@@ -8,7 +8,7 @@ import (
 	exchange "gocryptotrader/exchanges"
 	"gocryptotrader/exchanges/asset"
 	"gocryptotrader/exchanges/order"
-	"gocryptotrader/exchanges/stream"
+	"gocryptotrader/exchange/stream"
 )
 
 func parseRaw(t *testing.T, input string) interface{} {

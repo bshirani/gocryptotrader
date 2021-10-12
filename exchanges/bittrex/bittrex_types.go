@@ -6,7 +6,7 @@ import (
 
 	"gocryptotrader/currency"
 	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/stream"
+	"gocryptotrader/exchange/stream"
 )
 
 // CancelOrderRequest holds request data for CancelOrder

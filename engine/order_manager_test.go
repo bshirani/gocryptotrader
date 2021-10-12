@@ -13,7 +13,7 @@ import (
 	exchange "gocryptotrader/exchanges"
 	"gocryptotrader/exchanges/asset"
 	"gocryptotrader/exchanges/order"
-	"gocryptotrader/exchanges/protocol"
+	"gocryptotrader/exchange/protocol"
 )
 
 // omfExchange aka ordermanager fake exchange overrides exchange functions

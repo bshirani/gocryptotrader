@@ -5,7 +5,7 @@ import (
 
 	"gocryptotrader/currency"
 	"gocryptotrader/exchanges/order"
-	"gocryptotrader/exchanges/stream"
+	"gocryptotrader/exchange/stream"
 )
 
 const (

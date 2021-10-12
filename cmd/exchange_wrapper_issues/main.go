@@ -26,8 +26,8 @@ import (
 	"gocryptotrader/exchanges/kline"
 	"gocryptotrader/exchanges/order"
 	"gocryptotrader/exchanges/orderbook"
-	"gocryptotrader/exchanges/ticker"
-	"gocryptotrader/exchanges/trade"
+	"gocryptotrader/exchange/ticker"
+	"gocryptotrader/exchange/trade"
 	"gocryptotrader/portfolio/banking"
 	"gocryptotrader/portfolio/withdraw"
 )

@@ -2,7 +2,7 @@ package exchangeratehost
 
 import (
 	"gocryptotrader/currency/forexprovider/base"
-	"gocryptotrader/exchanges/request"
+	"gocryptotrader/exchange/request"
 )
 
 // ExchangeRateHost stores the struct for the exchangerate.host API

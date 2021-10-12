@@ -10,8 +10,8 @@ import (
 	"gocryptotrader/exchanges/asset"
 	"gocryptotrader/exchanges/order"
 	"gocryptotrader/exchanges/orderbook"
-	"gocryptotrader/exchanges/stream"
-	"gocryptotrader/exchanges/ticker"
+	"gocryptotrader/exchange/stream"
+	"gocryptotrader/exchange/ticker"
 )
 
 func TestWebsocketRoutineManagerSetup(t *testing.T) {

@@ -19,8 +19,8 @@ import (
 	gctcrypto "gocryptotrader/common/crypto"
 	exchange "gocryptotrader/exchanges"
 	"gocryptotrader/exchanges/order"
-	"gocryptotrader/exchanges/request"
-	"gocryptotrader/exchanges/stream"
+	"gocryptotrader/exchange/request"
+	"gocryptotrader/exchange/stream"
 )
 
 // Lbank is the overarching type across this package

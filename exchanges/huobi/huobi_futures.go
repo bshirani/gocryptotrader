@@ -18,7 +18,7 @@ import (
 	exchange "gocryptotrader/exchanges"
 	"gocryptotrader/exchanges/asset"
 	"gocryptotrader/exchanges/order"
-	"gocryptotrader/exchanges/request"
+	"gocryptotrader/exchange/request"
 )
 
 const (

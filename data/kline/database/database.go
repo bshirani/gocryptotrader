@@ -10,7 +10,7 @@ import (
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/exchanges/asset"
 	gctkline "gocryptotrader/exchanges/kline"
-	"gocryptotrader/exchanges/trade"
+	"gocryptotrader/exchange/trade"
 	"gocryptotrader/log"
 )
 

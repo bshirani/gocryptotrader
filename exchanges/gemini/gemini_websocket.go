@@ -19,9 +19,9 @@ import (
 	"gocryptotrader/exchanges/asset"
 	"gocryptotrader/exchanges/order"
 	"gocryptotrader/exchanges/orderbook"
-	"gocryptotrader/exchanges/stream"
-	"gocryptotrader/exchanges/stream/buffer"
-	"gocryptotrader/exchanges/trade"
+	"gocryptotrader/exchange/stream"
+	"gocryptotrader/exchange/stream/buffer"
+	"gocryptotrader/exchange/trade"
 	"gocryptotrader/log"
 )
 

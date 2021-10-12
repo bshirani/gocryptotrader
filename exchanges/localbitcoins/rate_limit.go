@@ -3,7 +3,7 @@ package localbitcoins
 import (
 	"time"
 
-	"gocryptotrader/exchanges/request"
+	"gocryptotrader/exchange/request"
 	"golang.org/x/time/rate"
 )
 

@@ -2,7 +2,7 @@ package openexchangerates
 
 import (
 	"gocryptotrader/currency/forexprovider/base"
-	"gocryptotrader/exchanges/request"
+	"gocryptotrader/exchange/request"
 )
 
 // These consts contain endpoint information

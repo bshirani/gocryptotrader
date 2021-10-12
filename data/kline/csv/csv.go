@@ -15,7 +15,7 @@ import (
 	"gocryptotrader/exchanges/asset"
 	"gocryptotrader/exchanges/kline"
 	"gocryptotrader/exchanges/order"
-	"gocryptotrader/exchanges/trade"
+	"gocryptotrader/exchange/trade"
 	"gocryptotrader/log"
 )
 

@@ -19,7 +19,7 @@ import (
 	"gocryptotrader/exchanges/kline"
 	"gocryptotrader/exchanges/order"
 	"gocryptotrader/exchanges/sharedtestvalues"
-	"gocryptotrader/exchanges/stream"
+	"gocryptotrader/exchange/stream"
 	"gocryptotrader/portfolio/banking"
 	"gocryptotrader/portfolio/withdraw"
 )

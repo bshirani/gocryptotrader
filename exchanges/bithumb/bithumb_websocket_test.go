@@ -8,8 +8,8 @@ import (
 	"gocryptotrader/currency"
 	exchange "gocryptotrader/exchanges"
 	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/stream"
-	"gocryptotrader/exchanges/ticker"
+	"gocryptotrader/exchange/stream"
+	"gocryptotrader/exchange/ticker"
 )
 
 var (

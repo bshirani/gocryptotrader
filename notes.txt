@@ -89,3 +89,11 @@ same as running multiple strategies
 do you want to analyze the results independently?
 can export both
 trades manager exports factors, portfolio_trades, trades_by_model
+
+
+i need stop losses
+in real trading we will separate orders for entry and for the stop loss trigger, which is a market order
+for fake trading, we will want to operate in the same manner. create the same orders.
+
+what does the order manager do exactly? how does it operate? we will need to understand this
+

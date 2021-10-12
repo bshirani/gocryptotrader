@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/stream"
+	"gocryptotrader/exchange/stream"
 )
 
 // TimeInterval Interval represents interval enum.

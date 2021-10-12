@@ -9,9 +9,9 @@ import (
 
 	"github.com/gorilla/websocket"
 	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/stream"
-	"gocryptotrader/exchanges/ticker"
-	"gocryptotrader/exchanges/trade"
+	"gocryptotrader/exchange/stream"
+	"gocryptotrader/exchange/ticker"
+	"gocryptotrader/exchange/trade"
 )
 
 const (

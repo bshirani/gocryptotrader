@@ -11,7 +11,7 @@ import (
 	exchange "gocryptotrader/exchanges"
 	"gocryptotrader/exchanges/asset"
 	"gocryptotrader/exchanges/kline"
-	"gocryptotrader/exchanges/trade"
+	"gocryptotrader/exchange/trade"
 )
 
 // LoadData retrieves data from a GoCryptoTrader exchange wrapper which calls the exchange's API for the latest interval

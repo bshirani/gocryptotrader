@@ -21,7 +21,7 @@ import (
 	exchange "gocryptotrader/exchanges"
 	"gocryptotrader/exchanges/asset"
 	"gocryptotrader/exchanges/kline"
-	"gocryptotrader/exchanges/trade"
+	"gocryptotrader/exchange/trade"
 	"gocryptotrader/log"
 
 	"github.com/gofrs/uuid"

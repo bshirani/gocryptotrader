@@ -9,7 +9,7 @@ import (
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/exchanges/orderbook"
-	"gocryptotrader/exchanges/ticker"
+	"gocryptotrader/exchange/ticker"
 )
 
 func TestSetupSyncManager(t *testing.T) {

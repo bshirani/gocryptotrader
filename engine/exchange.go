@@ -292,8 +292,7 @@ func (e *Exchange) placeOrder(ctx context.Context, price, amount decimal.Decimal
 		}
 
 		// store the position of this fake order
-		// we need the strategy id
-		resp, err := om.SubmitFakeOrder(o, submitResponse, useExchangeLimits)
+		resp, err := om.SubmitFake(o, submitResponse, useExchangeLimits)
 		if resp != nil {
 			orderID = resp.OrderID
 		}

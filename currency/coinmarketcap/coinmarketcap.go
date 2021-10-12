@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"gocryptotrader/common"
-	"gocryptotrader/exchanges/request"
+	"gocryptotrader/exchange/request"
 	"gocryptotrader/log"
 )
 

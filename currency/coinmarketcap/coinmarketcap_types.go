@@ -3,7 +3,7 @@ package coinmarketcap
 import (
 	"time"
 
-	"gocryptotrader/exchanges/request"
+	"gocryptotrader/exchange/request"
 )
 
 // Coinmarketcap account plan bitmasks, url and enpoint consts

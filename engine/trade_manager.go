@@ -948,9 +948,9 @@ func (tm *TradeManager) processSignalEvent(ev signal.Event) {
 	}
 }
 
-func (tm *TradeManager) processOrderEvent(ev order.Event) {
-	d := tm.Datas.GetDataForCurrency(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
-	f, err := tm.Exchange.ExecuteOrder(ev, d, tm.Bot.OrderManager)
+func (tm *TradeManager) processOrderEvent(o order.Event) {
+	d := tm.Datas.GetDataForCurrency(o.GetExchange(), o.GetAssetType(), o.Pair())
+	f, err := tm.Exchange.ExecuteOrder(o, d, tm.Bot.OrderManager)
 	if err != nil {
 		if f == nil {
 			log.Errorf(log.TradeManager, "fill event should always be returned, please fix, %v", err)
@@ -965,8 +965,8 @@ func (tm *TradeManager) processOrderEvent(ev order.Event) {
 	tm.EventQueue.AppendEvent(f)
 }
 
-func (tm *TradeManager) processFillEvent(ev fill.Event) {
-	_, err := tm.Portfolio.OnFill(ev)
+func (tm *TradeManager) processFillEvent(f fill.Event) {
+	_, err := tm.Portfolio.OnFill(f)
 	if err != nil {
 		log.Error(log.TradeManager, err)
 		return

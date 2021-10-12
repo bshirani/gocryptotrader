@@ -11,7 +11,7 @@ import (
 	"gocryptotrader/currency"
 	"gocryptotrader/exchanges/asset"
 	"gocryptotrader/exchanges/orderbook"
-	"gocryptotrader/exchanges/ticker"
+	"gocryptotrader/exchange/ticker"
 	"gocryptotrader/log"
 )
 

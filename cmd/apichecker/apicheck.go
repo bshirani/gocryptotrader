@@ -19,7 +19,7 @@ import (
 	"gocryptotrader/common"
 	"gocryptotrader/common/crypto"
 	exchange "gocryptotrader/exchanges"
-	"gocryptotrader/exchanges/request"
+	"gocryptotrader/exchange/request"
 	"gocryptotrader/log"
 	"golang.org/x/net/html"
 )

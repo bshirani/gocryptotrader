@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/validate"
+	"gocryptotrader/exchange/validate"
 )
 
 // Validate takes interface and passes to asset type to check the request meets requirements to submit

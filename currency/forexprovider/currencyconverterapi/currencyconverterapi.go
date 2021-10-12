@@ -11,7 +11,7 @@ import (
 
 	"gocryptotrader/common"
 	"gocryptotrader/currency/forexprovider/base"
-	"gocryptotrader/exchanges/request"
+	"gocryptotrader/exchange/request"
 	"gocryptotrader/log"
 )
 

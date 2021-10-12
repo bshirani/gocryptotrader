@@ -15,7 +15,7 @@ import (
 	"gocryptotrader/common/crypto"
 	"gocryptotrader/currency"
 	exchange "gocryptotrader/exchanges"
-	"gocryptotrader/exchanges/request"
+	"gocryptotrader/exchange/request"
 )
 
 // Bittrex is the overaching type across the bittrex methods

@@ -10,7 +10,7 @@ import (
 	"gocryptotrader/database/repository/datahistoryjobresult"
 	"gocryptotrader/exchanges/asset"
 	"gocryptotrader/exchanges/kline"
-	"gocryptotrader/exchanges/trade"
+	"gocryptotrader/exchange/trade"
 
 	"github.com/gofrs/uuid"
 )

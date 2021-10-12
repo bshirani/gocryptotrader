@@ -22,9 +22,9 @@ import (
 	exchange "gocryptotrader/exchanges"
 	"gocryptotrader/exchanges/asset"
 	"gocryptotrader/exchanges/order"
-	"gocryptotrader/exchanges/request"
-	"gocryptotrader/exchanges/stream"
-	"gocryptotrader/exchanges/ticker"
+	"gocryptotrader/exchange/request"
+	"gocryptotrader/exchange/stream"
+	"gocryptotrader/exchange/ticker"
 	"gocryptotrader/log"
 )
 

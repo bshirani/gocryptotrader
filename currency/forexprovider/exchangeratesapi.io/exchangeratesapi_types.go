@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"gocryptotrader/currency/forexprovider/base"
-	"gocryptotrader/exchanges/request"
+	"gocryptotrader/exchange/request"
 )
 
 const (

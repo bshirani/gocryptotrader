@@ -14,7 +14,7 @@ import (
 	"gocryptotrader/currency"
 	exchange "gocryptotrader/exchanges"
 	"gocryptotrader/exchanges/kline"
-	"gocryptotrader/exchanges/request"
+	"gocryptotrader/exchange/request"
 	"gocryptotrader/portfolio/withdraw"
 )
 

@@ -8,7 +8,7 @@ import (
 
 	"gocryptotrader/core"
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/validate"
+	"gocryptotrader/exchange/validate"
 	"gocryptotrader/portfolio"
 	"gocryptotrader/portfolio/banking"
 )

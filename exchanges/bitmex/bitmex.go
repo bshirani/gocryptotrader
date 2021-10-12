@@ -14,7 +14,7 @@ import (
 	"gocryptotrader/common/crypto"
 	"gocryptotrader/currency"
 	exchange "gocryptotrader/exchanges"
-	"gocryptotrader/exchanges/request"
+	"gocryptotrader/exchange/request"
 )
 
 // Bitmex is the overarching type across this package

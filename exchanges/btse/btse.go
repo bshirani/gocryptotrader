@@ -18,7 +18,7 @@ import (
 	"gocryptotrader/currency"
 	exchange "gocryptotrader/exchanges"
 	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/request"
+	"gocryptotrader/exchange/request"
 )
 
 // BTSE is the overarching type across this package

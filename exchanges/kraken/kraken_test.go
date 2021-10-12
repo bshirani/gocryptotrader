@@ -22,7 +22,7 @@ import (
 	"gocryptotrader/exchanges/order"
 	"gocryptotrader/exchanges/orderbook"
 	"gocryptotrader/exchanges/sharedtestvalues"
-	"gocryptotrader/exchanges/stream"
+	"gocryptotrader/exchange/stream"
 	"gocryptotrader/portfolio/withdraw"
 )
 

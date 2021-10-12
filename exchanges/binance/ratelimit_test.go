@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"gocryptotrader/exchanges/request"
+	"gocryptotrader/exchange/request"
 )
 
 func TestRateLimit_Limit(t *testing.T) {

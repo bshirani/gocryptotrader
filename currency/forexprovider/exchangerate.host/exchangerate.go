@@ -10,7 +10,7 @@ import (
 
 	"gocryptotrader/common"
 	"gocryptotrader/currency/forexprovider/base"
-	"gocryptotrader/exchanges/request"
+	"gocryptotrader/exchange/request"
 )
 
 // A client for the exchangerate.host API. NOTE: The format and callback

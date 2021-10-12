@@ -27,8 +27,8 @@ import (
 	"gocryptotrader/exchanges/account"
 	"gocryptotrader/exchanges/asset"
 	"gocryptotrader/exchanges/orderbook"
-	"gocryptotrader/exchanges/stats"
-	"gocryptotrader/exchanges/ticker"
+	"gocryptotrader/exchange/stats"
+	"gocryptotrader/exchange/ticker"
 	"gocryptotrader/gctscript/vm"
 	"gocryptotrader/log"
 )

@@ -9,7 +9,7 @@ import (
 	"gocryptotrader/currency"
 	"gocryptotrader/database"
 	"gocryptotrader/exchanges/order"
-	"gocryptotrader/exchanges/protocol"
+	"gocryptotrader/exchange/protocol"
 	gctscript "gocryptotrader/gctscript/vm"
 	"gocryptotrader/log"
 	"gocryptotrader/portfolio"

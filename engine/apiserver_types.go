@@ -10,7 +10,7 @@ import (
 	"gocryptotrader/config"
 	"gocryptotrader/exchanges/account"
 	"gocryptotrader/exchanges/orderbook"
-	"gocryptotrader/exchanges/ticker"
+	"gocryptotrader/exchange/ticker"
 )
 
 // Const vars for websocket

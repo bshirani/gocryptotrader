@@ -16,11 +16,11 @@ import (
 	"gocryptotrader/exchanges/kline"
 	"gocryptotrader/exchanges/okgroup"
 	"gocryptotrader/exchanges/order"
-	"gocryptotrader/exchanges/protocol"
-	"gocryptotrader/exchanges/request"
-	"gocryptotrader/exchanges/stream"
-	"gocryptotrader/exchanges/ticker"
-	"gocryptotrader/exchanges/trade"
+	"gocryptotrader/exchange/protocol"
+	"gocryptotrader/exchange/request"
+	"gocryptotrader/exchange/stream"
+	"gocryptotrader/exchange/ticker"
+	"gocryptotrader/exchange/trade"
 	"gocryptotrader/log"
 )
 
