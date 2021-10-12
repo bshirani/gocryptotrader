@@ -40,8 +40,9 @@ type Engine struct {
 	eventManager            *eventManager
 	ExchangeManager         *ExchangeManager
 	ntpManager              *ntpManager
-	OrderManager            *OrderManager
+	RealOrderManager        *RealOrderManager
 	FakeOrderManager        *FakeOrderManager
+	OrderManager            OrderManagerHandler
 	portfolioManager        *portfolioManager
 	gctScriptManager        *gctscript.GctScriptManager
 	websocketRoutineManager *websocketRoutineManager

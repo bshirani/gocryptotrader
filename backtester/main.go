@@ -76,7 +76,7 @@ func main() {
 		fmt.Printf("Could not read config. Error: %v.\n", err)
 		os.Exit(1)
 	}
-	tm, err = engine.NewTradeManagerFromConfig(cfg, templatePath, reportOutput, bot, bot.FakeOrderManager)
+	tm, err = engine.NewTradeManagerFromConfig(cfg, templatePath, reportOutput, bot, bot.OrderManager)
 	if err != nil {
 		fmt.Printf("Could not setup trade manager from config. Error: %v.\n", err)
 		os.Exit(1)

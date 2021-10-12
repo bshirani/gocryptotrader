@@ -149,6 +149,18 @@ func (m *OrderManager) run() {
 	}
 }
 
+func (m *OrderManager) SetOnSubmit(onSubmit func(*OrderSubmitResponse)) {
+	m.onSubmit = onSubmit
+}
+
+func (m *OrderManager) SetOnFill(onFill func(*OrderSubmitResponse)) {
+	m.onFill = onFill
+}
+
+func (m *OrderManager) SetOnCancel(onCancel func(*OrderSubmitResponse)) {
+	m.onCancel = onCancel
+}
+
 // CancelAllOrders iterates and cancels all orders for each exchange provided
 func (m *OrderManager) CancelAllOrders(ctx context.Context, exchangeNames []exchange.IBotExchange) {
 	if m == nil || atomic.LoadInt32(&m.started) == 0 {

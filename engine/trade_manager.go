@@ -470,14 +470,8 @@ func (tm *TradeManager) Stop() error {
 	if tm.Bot.FakeOrderManager.IsRunning() {
 		tm.Bot.FakeOrderManager.Stop()
 	}
-	if tm.Bot.OrderManager.IsRunning() {
-		tm.Bot.OrderManager.Stop()
-	}
 	if tm.Bot.DatabaseManager.IsRunning() {
 		tm.Bot.DatabaseManager.Stop()
-	}
-	if tm.Bot.eventManager.IsRunning() {
-		tm.Bot.eventManager.Stop()
 	}
 
 	for _, s := range tm.Strategies {
@@ -685,20 +679,7 @@ func (tm *TradeManager) setupBot(cfg *config.Config, bot *Engine) error {
 	}
 
 	if !tm.Bot.Config.LiveMode {
-		// start DB manager here as we don't start the bot in backtest mode
-		if !tm.Bot.eventManager.IsRunning() {
-			tm.Bot.eventManager, err = setupEventManager(tm.Bot.CommunicationsManager, tm.Bot.ExchangeManager, tm.Bot.Settings.EventManagerDelay, tm.Bot.Settings.EnableDryRun)
-			if err != nil {
-				gctlog.Errorf(gctlog.Global, "Unable to initialise event manager. Err: %s", err)
-			} else {
-				err = tm.Bot.eventManager.Start()
-				if err != nil {
-					gctlog.Errorf(gctlog.Global, "failed to start event manager. Err: %s", err)
-				}
-			}
-		}
-
-		// start fake manager here since we don't start engine in live mode
+		// start fake order manager here since we don't start engine in live mode
 		if !tm.Bot.FakeOrderManager.IsRunning() {
 			bot.FakeOrderManager, err = SetupFakeOrderManager(
 				bot.ExchangeManager,
@@ -714,22 +695,6 @@ func (tm *TradeManager) setupBot(cfg *config.Config, bot *Engine) error {
 				if err != nil {
 					gctlog.Errorf(gctlog.Global, "Fake Order manager unable to start: %s", err)
 				}
-			}
-		}
-
-		// start OM manager here as we don't start the bot in backtest mode
-		if !tm.Bot.OrderManager.IsRunning() {
-			tm.Bot.OrderManager, err = SetupOrderManager(
-				tm.Bot.ExchangeManager,
-				tm.Bot.CommunicationsManager,
-				&tm.Bot.ServicesWG,
-				bot.Settings.Verbose)
-			if err != nil {
-				return err
-			}
-			err = tm.Bot.OrderManager.Start()
-			if err != nil {
-				return err
 			}
 		}
 
