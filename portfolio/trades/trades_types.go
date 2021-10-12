@@ -5,8 +5,8 @@ import (
 
 	"github.com/shopspring/decimal"
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/order"
 )
 
 type Status string

@@ -8,8 +8,8 @@ import (
 	"gocryptotrader/database"
 	"gocryptotrader/database/repository/datahistoryjob"
 	"gocryptotrader/database/repository/datahistoryjobresult"
-	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/kline"
+	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/kline"
 	"gocryptotrader/exchange/trade"
 
 	"github.com/gofrs/uuid"

@@ -9,8 +9,8 @@ import (
 	"gocryptotrader/currency"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/fill"
-	"gocryptotrader/exchanges/asset"
-	gctorder "gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/asset"
+	gctorder "gocryptotrader/exchange/order"
 	"gocryptotrader/portfolio/compliance"
 	"gocryptotrader/portfolio/holdings"
 )

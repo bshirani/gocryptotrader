@@ -13,7 +13,7 @@ import (
 	"gocryptotrader/currency"
 	"gocryptotrader/database/repository/candle"
 	"gocryptotrader/database/repository/exchange"
-	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchange/asset"
 	"gocryptotrader/log"
 )
 

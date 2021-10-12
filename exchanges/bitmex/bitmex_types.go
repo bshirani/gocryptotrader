@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/order"
 )
 
 // RequestError allows for a general error capture from requests

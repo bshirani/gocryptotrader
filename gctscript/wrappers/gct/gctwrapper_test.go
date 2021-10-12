@@ -12,7 +12,7 @@ import (
 	objects "github.com/d5/tengo/v2"
 	"gocryptotrader/common"
 	"gocryptotrader/engine"
-	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchange/asset"
 	"gocryptotrader/gctscript/modules"
 	"gocryptotrader/gctscript/modules/gct"
 )

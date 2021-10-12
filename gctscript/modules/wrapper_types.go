@@ -5,11 +5,11 @@ import (
 	"time"
 
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/account"
-	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/kline"
-	"gocryptotrader/exchanges/order"
-	"gocryptotrader/exchanges/orderbook"
+	"gocryptotrader/exchange/account"
+	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/kline"
+	"gocryptotrader/exchange/order"
+	"gocryptotrader/exchange/orderbook"
 	"gocryptotrader/exchange/ticker"
 	"gocryptotrader/portfolio/withdraw"
 )

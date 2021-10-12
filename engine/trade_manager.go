@@ -26,10 +26,10 @@ import (
 	"gocryptotrader/eventtypes/fill"
 	"gocryptotrader/eventtypes/order"
 	"gocryptotrader/eventtypes/signal"
-	gctexchange "gocryptotrader/exchanges"
-	"gocryptotrader/exchanges/asset"
-	gctkline "gocryptotrader/exchanges/kline"
-	gctorder "gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange"
+	"gocryptotrader/exchange/asset"
+	gctkline "gocryptotrader/exchange/kline"
+	gctorder "gocryptotrader/exchange/order"
 	"gocryptotrader/log"
 	gctlog "gocryptotrader/log"
 	"gocryptotrader/portfolio/report"
@@ -144,7 +144,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 		b = currency.NewCode(cfg.CurrencySettings[i].Base)
 		q = currency.NewCode(cfg.CurrencySettings[i].Quote)
 		curr = currency.NewPair(b, q)
-		var exch gctexchange.IBotExchange
+		var exch exchange.IBotExchange
 		exch, err = bot.ExchangeManager.GetExchangeByName(cfg.CurrencySettings[i].ExchangeName)
 		if err != nil {
 			return nil, err
@@ -617,7 +617,7 @@ func (tm *TradeManager) setupExchangeSettings(cfg *config.Config) (Exchange, err
 	return resp, nil
 }
 
-func (tm *TradeManager) loadExchangePairAssetBase(exch, base, quote, ass string) (gctexchange.IBotExchange, currency.Pair, asset.Item, error) {
+func (tm *TradeManager) loadExchangePairAssetBase(exch, base, quote, ass string) (exchange.IBotExchange, currency.Pair, asset.Item, error) {
 	e, err := tm.Bot.GetExchangeByName(exch)
 	if err != nil {
 		return nil, currency.Pair{}, "", err
@@ -698,9 +698,9 @@ func (tm *TradeManager) setupBot(cfg *config.Config, bot *Engine) error {
 }
 
 // getFees will return an exchange's fee rate from GCT's wrapper function
-func getFees(ctx context.Context, exch gctexchange.IBotExchange, fPair currency.Pair) (makerFee, takerFee decimal.Decimal) {
+func getFees(ctx context.Context, exch exchange.IBotExchange, fPair currency.Pair) (makerFee, takerFee decimal.Decimal) {
 	fTakerFee, err := exch.GetFeeByType(ctx,
-		&gctexchange.FeeBuilder{FeeType: gctexchange.OfflineTradeFee,
+		&exchange.FeeBuilder{FeeType: exchange.OfflineTradeFee,
 			Pair:          fPair,
 			IsMaker:       false,
 			PurchasePrice: 1,
@@ -711,8 +711,8 @@ func getFees(ctx context.Context, exch gctexchange.IBotExchange, fPair currency.
 	}
 
 	fMakerFee, err := exch.GetFeeByType(ctx,
-		&gctexchange.FeeBuilder{
-			FeeType:       gctexchange.OfflineTradeFee,
+		&exchange.FeeBuilder{
+			FeeType:       exchange.OfflineTradeFee,
 			Pair:          fPair,
 			IsMaker:       true,
 			PurchasePrice: 1,
@@ -727,7 +727,7 @@ func getFees(ctx context.Context, exch gctexchange.IBotExchange, fPair currency.
 
 // loadData will create kline data from the sources defined in start config files. It can exist from databases, csv or API endpoints
 // it can also be generated from trade data which will be converted into kline data
-func (tm *TradeManager) loadData(cfg *config.Config, exch gctexchange.IBotExchange, fPair currency.Pair, a asset.Item) (*kline.DataFromKline, error) {
+func (tm *TradeManager) loadData(cfg *config.Config, exch exchange.IBotExchange, fPair currency.Pair, a asset.Item) (*kline.DataFromKline, error) {
 	if exch == nil {
 		return nil, ErrExchangeNotFound
 	}
@@ -976,7 +976,7 @@ func (tm *TradeManager) processFillEvent(f fill.Event) {
 // ---------------------------
 // DATA LOADING
 // ---------------------------
-func (tm *TradeManager) loadLiveDataLoop(resp *kline.DataFromKline, cfg *config.Config, exch gctexchange.IBotExchange, fPair currency.Pair, a asset.Item, dataType int64) {
+func (tm *TradeManager) loadLiveDataLoop(resp *kline.DataFromKline, cfg *config.Config, exch exchange.IBotExchange, fPair currency.Pair, a asset.Item, dataType int64) {
 	startDate := time.Now().Add(-cfg.DataSettings.Interval * 2)
 	dates, err := gctkline.CalculateCandleDateRanges(
 		startDate,
@@ -1018,7 +1018,7 @@ func (tm *TradeManager) loadLiveDataLoop(resp *kline.DataFromKline, cfg *config.
 	}
 }
 
-func (tm *TradeManager) configureLiveDataAPI(resp *kline.DataFromKline, cfg *config.Config, exch gctexchange.IBotExchange, fPair currency.Pair, a asset.Item, dataType int64) error {
+func (tm *TradeManager) configureLiveDataAPI(resp *kline.DataFromKline, cfg *config.Config, exch exchange.IBotExchange, fPair currency.Pair, a asset.Item, dataType int64) error {
 	if resp == nil {
 		return errNilData
 	}
@@ -1072,7 +1072,7 @@ func (tm *TradeManager) updateStatsForDataEvent(ev eventtypes.DataEventHandler) 
 	return nil
 }
 
-func configureLiveDataAPI(cfg *config.Config, base *gctexchange.Base) error {
+func configureLiveDataAPI(cfg *config.Config, base *exchange.Base) error {
 	if cfg == nil || base == nil || cfg.DataSettings.LiveData == nil {
 		return eventtypes.ErrNilArguments
 	}

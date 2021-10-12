@@ -14,7 +14,7 @@ import (
 	"github.com/gorilla/websocket"
 	"gocryptotrader/common/crypto"
 	exchange "gocryptotrader/exchanges"
-	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/order"
 	"gocryptotrader/exchange/request"
 )
 

@@ -11,9 +11,9 @@ import (
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	exchange "gocryptotrader/exchanges"
-	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/kline"
-	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/kline"
+	"gocryptotrader/exchange/order"
 )
 
 // Please supply your own keys here for due diligence testing

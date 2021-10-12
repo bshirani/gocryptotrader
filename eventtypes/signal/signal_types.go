@@ -3,7 +3,7 @@ package signal
 import (
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/event"
-	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/order"
 
 	"github.com/shopspring/decimal"
 )

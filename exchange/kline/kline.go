@@ -9,8 +9,8 @@ import (
 
 	"gocryptotrader/common"
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/order"
 )
 
 // CreateKline creates candles out of trade history data for a set time interval

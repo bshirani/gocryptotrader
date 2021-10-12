@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchange/asset"
 )
 
 var (

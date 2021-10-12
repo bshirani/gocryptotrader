@@ -10,8 +10,8 @@ import (
 
 	"github.com/shopspring/decimal"
 	"gocryptotrader/eventtypes"
-	"gocryptotrader/exchanges/kline"
-	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/kline"
+	"gocryptotrader/exchange/order"
 	"gocryptotrader/log"
 )
 

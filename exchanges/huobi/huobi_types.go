@@ -2,7 +2,7 @@ package huobi
 
 import (
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/order"
 )
 
 type errorCapture struct {

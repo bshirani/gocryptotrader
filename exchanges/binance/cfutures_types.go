@@ -3,7 +3,7 @@ package binance
 import (
 	"time"
 
-	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/order"
 )
 
 // Response holds basic binance api response data

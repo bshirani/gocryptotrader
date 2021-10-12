@@ -11,9 +11,9 @@ import (
 	"gocryptotrader/eventtypes/event"
 	"gocryptotrader/eventtypes/fill"
 	"gocryptotrader/eventtypes/order"
-	"gocryptotrader/exchanges/asset"
-	gctorder "gocryptotrader/exchanges/order"
-	"gocryptotrader/exchanges/orderbook"
+	"gocryptotrader/exchange/asset"
+	gctorder "gocryptotrader/exchange/order"
+	"gocryptotrader/exchange/orderbook"
 	"gocryptotrader/portfolio/slippage"
 
 	"github.com/gofrs/uuid"

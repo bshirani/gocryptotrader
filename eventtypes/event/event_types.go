@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/kline"
+	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/kline"
 )
 
 // Base is the underlying event across all actions that occur for the backtester

@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"gocryptotrader/config"
-	"gocryptotrader/exchanges/mock"
+	"gocryptotrader/exchange/mock"
 	"gocryptotrader/exchanges/sharedtestvalues"
 )
 

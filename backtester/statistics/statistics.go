@@ -13,7 +13,7 @@ import (
 	"gocryptotrader/eventtypes/fill"
 	"gocryptotrader/eventtypes/order"
 	"gocryptotrader/eventtypes/signal"
-	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchange/asset"
 	"gocryptotrader/log"
 	"gocryptotrader/portfolio/compliance"
 	"gocryptotrader/portfolio/holdings"

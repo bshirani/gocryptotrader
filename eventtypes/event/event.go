@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/kline"
+	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/kline"
 )
 
 // GetOffset returns the offset

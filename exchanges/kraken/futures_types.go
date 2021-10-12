@@ -3,7 +3,7 @@ package kraken
 import (
 	"sync"
 
-	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/order"
 )
 
 var (

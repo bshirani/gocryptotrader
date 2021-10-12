@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/order"
 	"gocryptotrader/portfolio/strategies/base"
 	"gocryptotrader/portfolio/strategies/rsi"
 	"gocryptotrader/portfolio/strategies/trend"

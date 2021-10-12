@@ -7,8 +7,8 @@ import (
 
 	"gocryptotrader/common/convert"
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/alert"
-	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchange/alert"
+	"gocryptotrader/exchange/asset"
 )
 
 var (

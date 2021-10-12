@@ -18,20 +18,21 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pquerna/otp/totp"
 	"gocryptotrader/common"
 	"gocryptotrader/common/file"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/dispatch"
-	exchange "gocryptotrader/exchanges"
-	"gocryptotrader/exchanges/account"
-	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/orderbook"
+	"gocryptotrader/exchange"
+	"gocryptotrader/exchange/account"
+	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/orderbook"
 	"gocryptotrader/exchange/stats"
 	"gocryptotrader/exchange/ticker"
 	"gocryptotrader/gctscript/vm"
 	"gocryptotrader/log"
+
+	"github.com/pquerna/otp/totp"
 )
 
 var (

@@ -4,7 +4,7 @@ import (
 	"github.com/shopspring/decimal"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/signal"
-	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/order"
 )
 
 // Create makes a Trade struct to track total values of strategy holdings over the course of a backtesting run

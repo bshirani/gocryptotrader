@@ -8,8 +8,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"gocryptotrader/config"
-	"gocryptotrader/exchanges/account"
-	"gocryptotrader/exchanges/orderbook"
+	"gocryptotrader/exchange/account"
+	"gocryptotrader/exchange/orderbook"
 	"gocryptotrader/exchange/ticker"
 )
 

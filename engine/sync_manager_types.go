@@ -6,7 +6,7 @@ import (
 
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchange/asset"
 )
 
 // syncBase stores information

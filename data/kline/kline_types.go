@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"gocryptotrader/data"
-	gctkline "gocryptotrader/exchanges/kline"
+	gctkline "gocryptotrader/exchange/kline"
 )
 
 var errNoCandleData = errors.New("no candle data provided")

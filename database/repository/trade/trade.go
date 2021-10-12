@@ -14,7 +14,7 @@ import (
 	"gocryptotrader/database/models/sqlite3"
 	"gocryptotrader/database/repository"
 	"gocryptotrader/database/repository/exchange"
-	"gocryptotrader/exchanges/kline"
+	"gocryptotrader/exchange/kline"
 	"gocryptotrader/log"
 	"github.com/thrasher-corp/sqlboiler/boil"
 	"github.com/thrasher-corp/sqlboiler/queries/qm"

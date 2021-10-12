@@ -11,8 +11,8 @@ import (
 	"gocryptotrader/currency"
 	fbase "gocryptotrader/currency/forexprovider/base"
 	exchangeratehost "gocryptotrader/currency/forexprovider/exchangerate.host"
-	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/order"
 	"gocryptotrader/log"
 )
 

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"gocryptotrader/common/convert"
-	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchange/asset"
 )
 
 var p PairsManager

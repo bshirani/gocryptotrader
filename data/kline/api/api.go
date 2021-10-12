@@ -9,8 +9,8 @@ import (
 	"gocryptotrader/currency"
 	"gocryptotrader/eventtypes"
 	exchange "gocryptotrader/exchanges"
-	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/kline"
+	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/kline"
 	"gocryptotrader/exchange/trade"
 )
 

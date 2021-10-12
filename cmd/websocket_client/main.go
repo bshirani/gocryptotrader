@@ -11,7 +11,7 @@ import (
 	"gocryptotrader/common"
 	"gocryptotrader/common/crypto"
 	"gocryptotrader/config"
-	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchange/asset"
 )
 
 // Vars for the websocket client

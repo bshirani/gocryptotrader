@@ -10,8 +10,8 @@ import (
 	"gocryptotrader/common"
 	"gocryptotrader/currency"
 	exchange "gocryptotrader/exchanges"
-	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/currencystate"
+	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/currencystate"
 )
 
 func TestSetupCurrencyStateManager(t *testing.T) {

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	objects "github.com/d5/tengo/v2"
-	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchange/asset"
 	"gocryptotrader/gctscript/modules"
 	"gocryptotrader/gctscript/wrappers/validator"
 )

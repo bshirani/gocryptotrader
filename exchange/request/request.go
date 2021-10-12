@@ -14,8 +14,8 @@ import (
 	"time"
 
 	"gocryptotrader/common/timedmutex"
-	"gocryptotrader/exchanges/mock"
-	"gocryptotrader/exchanges/nonce"
+	"gocryptotrader/exchange/mock"
+	"gocryptotrader/exchange/nonce"
 	"gocryptotrader/log"
 )
 

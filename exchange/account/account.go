@@ -7,7 +7,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	"gocryptotrader/dispatch"
-	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchange/asset"
 )
 
 func init() {

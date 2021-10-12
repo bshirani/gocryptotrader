@@ -13,7 +13,7 @@ import (
 	"gocryptotrader/common/crypto"
 	"gocryptotrader/currency"
 	exchange "gocryptotrader/exchanges"
-	"gocryptotrader/exchanges/kline"
+	"gocryptotrader/exchange/kline"
 	"gocryptotrader/exchange/request"
 	"gocryptotrader/portfolio/withdraw"
 )

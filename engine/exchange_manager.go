@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync"
 
-	exchange "gocryptotrader/exchanges"
+	"gocryptotrader/exchange"
 	"gocryptotrader/exchanges/binance"
 	"gocryptotrader/exchanges/bitfinex"
 	"gocryptotrader/exchanges/bitflyer"

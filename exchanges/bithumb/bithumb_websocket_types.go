@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/order"
 )
 
 // WsResponse is a generalised response data structure which will defer

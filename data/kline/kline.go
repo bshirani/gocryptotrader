@@ -6,7 +6,7 @@ import (
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/event"
 	"gocryptotrader/eventtypes/kline"
-	gctkline "gocryptotrader/exchanges/kline"
+	gctkline "gocryptotrader/exchange/kline"
 	"gocryptotrader/log"
 
 	"github.com/shopspring/decimal"

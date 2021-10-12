@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"gocryptotrader/common/timedmutex"
-	"gocryptotrader/exchanges/nonce"
+	"gocryptotrader/exchange/nonce"
 )
 
 // Const vars for rate limiter

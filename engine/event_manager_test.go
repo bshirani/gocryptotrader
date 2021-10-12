@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchange/asset"
 )
 
 func TestSetupEventManager(t *testing.T) {

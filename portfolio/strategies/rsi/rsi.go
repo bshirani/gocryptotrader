@@ -8,7 +8,7 @@ import (
 	"gocryptotrader/data"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/signal"
-	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/order"
 	"gocryptotrader/portfolio/strategies/base"
 
 	"github.com/shopspring/decimal"

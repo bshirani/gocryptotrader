@@ -6,7 +6,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	"gocryptotrader/dispatch"
-	"gocryptotrader/exchanges/alert"
+	"gocryptotrader/exchange/alert"
 	"gocryptotrader/log"
 )
 

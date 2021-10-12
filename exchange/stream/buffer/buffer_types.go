@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/orderbook"
+	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/orderbook"
 )
 
 // timerDefault defines the amount of time between alerting the sync manager of

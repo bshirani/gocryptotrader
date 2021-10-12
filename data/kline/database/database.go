@@ -8,8 +8,8 @@ import (
 	"gocryptotrader/currency"
 	"gocryptotrader/data/kline"
 	"gocryptotrader/eventtypes"
-	"gocryptotrader/exchanges/asset"
-	gctkline "gocryptotrader/exchanges/kline"
+	"gocryptotrader/exchange/asset"
+	gctkline "gocryptotrader/exchange/kline"
 	"gocryptotrader/exchange/trade"
 	"gocryptotrader/log"
 )

@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/orderbook"
+	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/orderbook"
 	"gocryptotrader/exchange/stream/buffer"
 	"gocryptotrader/log"
 )

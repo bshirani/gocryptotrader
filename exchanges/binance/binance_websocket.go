@@ -12,9 +12,9 @@ import (
 
 	"github.com/gorilla/websocket"
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/order"
-	"gocryptotrader/exchanges/orderbook"
+	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/order"
+	"gocryptotrader/exchange/orderbook"
 	"gocryptotrader/exchange/stream"
 	"gocryptotrader/exchange/stream/buffer"
 	"gocryptotrader/exchange/ticker"

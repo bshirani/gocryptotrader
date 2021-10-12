@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/order"
 	"gocryptotrader/exchange/stream"
 )
 

@@ -7,7 +7,7 @@ import (
 	"gocryptotrader/config"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/order"
-	gctorder "gocryptotrader/exchanges/order"
+	gctorder "gocryptotrader/exchange/order"
 )
 
 // SizeOrder is responsible for ensuring that the order size is within config limits

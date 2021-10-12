@@ -11,9 +11,9 @@ import (
 	gctmath "gocryptotrader/common/math"
 	"gocryptotrader/currency"
 	"gocryptotrader/eventtypes"
-	"gocryptotrader/exchanges/asset"
-	gctkline "gocryptotrader/exchanges/kline"
-	gctorder "gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/asset"
+	gctkline "gocryptotrader/exchange/kline"
+	gctorder "gocryptotrader/exchange/order"
 	"gocryptotrader/log"
 )
 

@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"gocryptotrader/exchanges/alert"
+	"gocryptotrader/exchange/alert"
 )
 
 // Unsafe is an exported linked list reference to the current bid/ask heads and

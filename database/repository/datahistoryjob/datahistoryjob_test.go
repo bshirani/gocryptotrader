@@ -15,7 +15,7 @@ import (
 	"gocryptotrader/database/drivers"
 	"gocryptotrader/database/repository/exchange"
 	"gocryptotrader/database/testhelpers"
-	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchange/asset"
 
 	"github.com/gofrs/uuid"
 )

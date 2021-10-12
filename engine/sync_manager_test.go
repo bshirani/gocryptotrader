@@ -8,7 +8,7 @@ import (
 	"gocryptotrader/common"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/orderbook"
+	"gocryptotrader/exchange/orderbook"
 	"gocryptotrader/exchange/ticker"
 )
 

@@ -7,9 +7,9 @@ import (
 	"gocryptotrader/backtester/statistics"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/kline"
-	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/kline"
+	"gocryptotrader/exchange/order"
 )
 
 // lightweight charts can ony render 1100 candles

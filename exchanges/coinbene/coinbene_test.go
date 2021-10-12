@@ -10,9 +10,9 @@ import (
 	"gocryptotrader/common"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/kline"
-	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/kline"
+	"gocryptotrader/exchange/order"
 	"gocryptotrader/exchanges/sharedtestvalues"
 )
 

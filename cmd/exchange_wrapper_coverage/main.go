@@ -12,8 +12,8 @@ import (
 	"gocryptotrader/currency"
 	"gocryptotrader/engine"
 	exchange "gocryptotrader/exchanges"
-	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/kline"
+	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/kline"
 )
 
 const (

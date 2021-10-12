@@ -6,7 +6,7 @@ import (
 	"github.com/gofrs/uuid"
 	"gocryptotrader/currency"
 	"gocryptotrader/dispatch"
-	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchange/asset"
 )
 
 // Vars for the ticker package

@@ -9,7 +9,7 @@ import (
 
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchanges/bitfinex"
 	"gocryptotrader/portfolio"
 )

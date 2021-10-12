@@ -7,8 +7,8 @@ import (
 	"time"
 
 	dbwithdraw "gocryptotrader/database/repository/withdraw"
-	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/currencystate"
+	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/currencystate"
 	"gocryptotrader/log"
 	"gocryptotrader/portfolio/withdraw"
 )

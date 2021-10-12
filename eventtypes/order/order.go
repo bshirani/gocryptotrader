@@ -3,7 +3,7 @@ package order
 import (
 	"github.com/shopspring/decimal"
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/order"
 )
 
 // IsOrder returns whether the event is an order event

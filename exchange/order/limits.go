@@ -7,7 +7,7 @@ import (
 
 	"github.com/shopspring/decimal"
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchange/asset"
 )
 
 var (

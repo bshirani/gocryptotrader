@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchange/asset"
 
 	"github.com/gofrs/uuid"
 )

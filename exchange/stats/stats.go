@@ -5,7 +5,7 @@ import (
 	"sort"
 
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchange/asset"
 )
 
 // Item holds various fields for storing currency pair stats

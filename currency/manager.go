@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"gocryptotrader/common/convert"
-	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchange/asset"
 )
 
 var (

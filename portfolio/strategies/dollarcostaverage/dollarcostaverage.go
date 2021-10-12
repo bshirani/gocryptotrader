@@ -9,7 +9,7 @@
 // 	"gocryptotrader/strategies/base"
 // 	"gocryptotrader/eventtypes/signal"
 // 	gctcommon "gocryptotrader/common"
-// 	"gocryptotrader/exchanges/order"
+// 	"gocryptotrader/exchange/order"
 // )
 //
 // const (

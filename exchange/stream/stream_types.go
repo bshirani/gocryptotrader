@@ -6,8 +6,8 @@ import (
 
 	"github.com/gorilla/websocket"
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/order"
 )
 
 // Connection defines a streaming services connection

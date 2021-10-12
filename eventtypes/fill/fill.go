@@ -2,7 +2,7 @@ package fill
 
 import (
 	"github.com/shopspring/decimal"
-	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/order"
 )
 
 // SetDirection sets the direction

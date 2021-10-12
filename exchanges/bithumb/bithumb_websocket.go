@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/stream"
 	"gocryptotrader/exchange/ticker"
 	"gocryptotrader/exchange/trade"

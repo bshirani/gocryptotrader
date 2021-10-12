@@ -5,7 +5,7 @@ import (
 
 	"gocryptotrader/currency"
 	"gocryptotrader/eventtypes"
-	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchange/asset"
 
 	"github.com/shopspring/decimal"
 )

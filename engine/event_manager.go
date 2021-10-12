@@ -9,8 +9,8 @@ import (
 
 	"gocryptotrader/communications/base"
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/orderbook"
+	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/orderbook"
 	"gocryptotrader/exchange/ticker"
 	"gocryptotrader/log"
 )

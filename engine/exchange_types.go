@@ -7,7 +7,7 @@ import (
 	"gocryptotrader/data"
 	"gocryptotrader/eventtypes/fill"
 	"gocryptotrader/eventtypes/order"
-	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchange/asset"
 )
 
 var (

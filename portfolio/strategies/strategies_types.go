@@ -5,7 +5,7 @@ import (
 	"gocryptotrader/currency"
 	"gocryptotrader/data"
 	"gocryptotrader/eventtypes/signal"
-	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/order"
 	"gocryptotrader/portfolio/strategies/base"
 )
 

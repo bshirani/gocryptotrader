@@ -19,7 +19,7 @@ import (
 	"gocryptotrader/common/crypto"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchange/asset"
 	"gocryptotrader/log"
 )
 

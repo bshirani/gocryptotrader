@@ -7,7 +7,7 @@ import (
 
 	"gocryptotrader/currency"
 	exchange "gocryptotrader/exchanges"
-	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/stream"
 	"gocryptotrader/exchange/ticker"
 )

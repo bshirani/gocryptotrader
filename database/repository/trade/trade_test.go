@@ -14,9 +14,9 @@ import (
 	"gocryptotrader/database/drivers"
 	"gocryptotrader/database/repository/exchange"
 	"gocryptotrader/database/testhelpers"
-	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/kline"
-	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/kline"
+	"gocryptotrader/exchange/order"
 )
 
 var (

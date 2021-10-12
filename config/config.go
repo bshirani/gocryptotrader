@@ -22,7 +22,7 @@ import (
 	"gocryptotrader/currency"
 	"gocryptotrader/currency/forexprovider"
 	"gocryptotrader/database"
-	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchange/asset"
 	gctscript "gocryptotrader/gctscript/vm"
 	"gocryptotrader/log"
 	"gocryptotrader/portfolio/banking"

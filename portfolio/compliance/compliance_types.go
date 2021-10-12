@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/order"
 )
 
 var (

@@ -10,9 +10,9 @@ import (
 
 	"gocryptotrader/currency"
 	"gocryptotrader/engine"
-	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/kline"
-	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/kline"
+	"gocryptotrader/exchange/order"
 )
 
 // change these if you wish to test another exchange and/or currency pair

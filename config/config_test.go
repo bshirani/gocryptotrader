@@ -17,7 +17,7 @@ import (
 	"gocryptotrader/connchecker"
 	"gocryptotrader/currency"
 	"gocryptotrader/database"
-	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchange/asset"
 	gctscript "gocryptotrader/gctscript/vm"
 	"gocryptotrader/log"
 	"gocryptotrader/portfolio/banking"

@@ -6,8 +6,8 @@ import (
 	"github.com/shopspring/decimal"
 	"gocryptotrader/common"
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/order"
 )
 
 // FundManager is the benevolent holder of all funding levels across all

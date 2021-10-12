@@ -6,7 +6,7 @@ import (
 
 	"gocryptotrader/currency"
 	"gocryptotrader/eventtypes"
-	"gocryptotrader/exchanges/asset"
+	"gocryptotrader/exchange/asset"
 )
 
 // Setup creates a basic map

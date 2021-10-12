@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"gocryptotrader/currency"
-	exchange "gocryptotrader/exchanges"
-	"gocryptotrader/exchanges/account"
+	"gocryptotrader/exchange"
+	"gocryptotrader/exchange/account"
 	"gocryptotrader/log"
 	"gocryptotrader/portfolio"
 )

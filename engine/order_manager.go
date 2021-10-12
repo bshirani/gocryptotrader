@@ -12,9 +12,9 @@ import (
 	"gocryptotrader/common"
 	"gocryptotrader/communications/base"
 	"gocryptotrader/currency"
-	exchange "gocryptotrader/exchanges"
-	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange"
+	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/order"
 	"gocryptotrader/log"
 
 	"github.com/gofrs/uuid"

@@ -18,9 +18,9 @@ import (
 	"gocryptotrader/database/repository/datahistoryjob"
 	"gocryptotrader/database/repository/datahistoryjobresult"
 	"gocryptotrader/eventtypes"
-	exchange "gocryptotrader/exchanges"
-	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/kline"
+	"gocryptotrader/exchange"
+	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/kline"
 	"gocryptotrader/exchange/trade"
 	"gocryptotrader/log"
 

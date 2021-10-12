@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/order"
 )
 
 // OrderbookResponse holds the orderbook data for a symbol

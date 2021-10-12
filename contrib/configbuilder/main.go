@@ -21,8 +21,8 @@ import (
 	"gocryptotrader/database"
 	dbPSQL "gocryptotrader/database/drivers/postgres"
 	dbsqlite3 "gocryptotrader/database/drivers/sqlite3"
-	"gocryptotrader/exchanges/asset"
-	gctkline "gocryptotrader/exchanges/kline"
+	"gocryptotrader/exchange/asset"
+	gctkline "gocryptotrader/exchange/kline"
 	"gocryptotrader/portfolio/strategies"
 )
 

@@ -7,8 +7,8 @@ import (
 
 	"github.com/gofrs/uuid"
 	"gocryptotrader/currency"
-	"gocryptotrader/exchanges/asset"
-	"gocryptotrader/exchanges/order"
+	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/order"
 )
 
 // DefaultProcessorIntervalTime is the default timer
