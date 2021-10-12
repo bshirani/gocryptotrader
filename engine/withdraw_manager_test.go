@@ -9,7 +9,7 @@ import (
 
 	"gocryptotrader/common"
 	"gocryptotrader/currency"
-	exchange "gocryptotrader/exchanges"
+	"gocryptotrader/exchange"
 	"gocryptotrader/exchanges/binance"
 	"gocryptotrader/portfolio"
 	"gocryptotrader/portfolio/banking"

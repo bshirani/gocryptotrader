@@ -24,7 +24,7 @@ import (
 	"gocryptotrader/database/repository"
 	dbexchange "gocryptotrader/database/repository/exchange"
 	sqltrade "gocryptotrader/database/repository/trade"
-	exchange "gocryptotrader/exchanges"
+	"gocryptotrader/exchange"
 	"gocryptotrader/exchange/account"
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchanges/binance"

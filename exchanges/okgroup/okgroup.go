@@ -15,7 +15,7 @@ import (
 
 	"github.com/google/go-querystring/query"
 	"gocryptotrader/common/crypto"
-	exchange "gocryptotrader/exchanges"
+	"gocryptotrader/exchange"
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/request"
 	"gocryptotrader/log"

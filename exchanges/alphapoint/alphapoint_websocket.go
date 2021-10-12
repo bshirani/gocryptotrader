@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
-	exchange "gocryptotrader/exchanges"
+	"gocryptotrader/exchange"
 	"gocryptotrader/log"
 )
 

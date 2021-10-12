@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"gocryptotrader/common/convert"
-	exchange "gocryptotrader/exchanges"
+	"gocryptotrader/exchange"
 	"gocryptotrader/log"
 )
 

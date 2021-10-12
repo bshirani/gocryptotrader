@@ -11,7 +11,7 @@ import (
 	"gocryptotrader/common"
 	"gocryptotrader/currency"
 	"gocryptotrader/engine"
-	exchange "gocryptotrader/exchanges"
+	"gocryptotrader/exchange"
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/kline"
 )

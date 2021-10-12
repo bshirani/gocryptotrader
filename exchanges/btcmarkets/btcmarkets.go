@@ -16,7 +16,7 @@ import (
 	"gocryptotrader/common"
 	"gocryptotrader/common/crypto"
 	"gocryptotrader/currency"
-	exchange "gocryptotrader/exchanges"
+	"gocryptotrader/exchange"
 	"gocryptotrader/exchange/request"
 )
 

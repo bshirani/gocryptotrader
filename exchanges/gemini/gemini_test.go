@@ -11,7 +11,7 @@ import (
 	"gocryptotrader/common"
 	"gocryptotrader/core"
 	"gocryptotrader/currency"
-	exchange "gocryptotrader/exchanges"
+	"gocryptotrader/exchange"
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/order"
 	"gocryptotrader/exchanges/sharedtestvalues"

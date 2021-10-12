@@ -12,7 +12,7 @@ import (
 
 	"gocryptotrader/common"
 	"gocryptotrader/currency"
-	exchange "gocryptotrader/exchanges"
+	"gocryptotrader/exchange"
 	"gocryptotrader/exchanges/okgroup"
 )
 

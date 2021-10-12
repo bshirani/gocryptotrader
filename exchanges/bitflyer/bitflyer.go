@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	"gocryptotrader/currency"
-	exchange "gocryptotrader/exchanges"
+	"gocryptotrader/exchange"
 	"gocryptotrader/exchange/request"
 )
 

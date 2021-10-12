@@ -9,7 +9,7 @@ import (
 	"gocryptotrader/common"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
-	exchange "gocryptotrader/exchanges"
+	"gocryptotrader/exchange"
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/kline"
 	"gocryptotrader/exchanges/okgroup"

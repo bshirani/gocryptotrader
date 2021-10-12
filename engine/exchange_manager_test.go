@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	exchange "gocryptotrader/exchanges"
+	"gocryptotrader/exchange"
 	"gocryptotrader/exchanges/bitfinex"
 	"gocryptotrader/exchanges/sharedtestvalues"
 )

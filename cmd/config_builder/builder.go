@@ -7,7 +7,7 @@ import (
 
 	"gocryptotrader/config"
 	"gocryptotrader/engine"
-	exchange "gocryptotrader/exchanges"
+	"gocryptotrader/exchange"
 )
 
 func main() {
