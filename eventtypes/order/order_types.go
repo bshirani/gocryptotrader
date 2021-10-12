@@ -27,7 +27,7 @@ type Order struct {
 }
 
 // Event inherits common event interfaces along with extra functions related to handling orders
-type SubmitEvent interface {
+type Event interface {
 	eventtypes.EventHandler
 	eventtypes.Directioner
 	GetOnSubmit() func(*order.SubmitResponse)

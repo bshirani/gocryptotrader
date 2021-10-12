@@ -30,7 +30,7 @@ type EventStore struct {
 	Transactions compliance.Snapshot
 	DataEvent    eventtypes.DataEventHandler
 	SignalEvent  signal.Event
-	OrderEvent   order.SubmitEvent
+	OrderEvent   order.Event
 	FillEvent    fill.Event
 }
 

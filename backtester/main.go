@@ -64,7 +64,7 @@ func main() {
 		ConfigFile:                    path,
 		EnableDryRun:                  true,
 		EnableAllPairs:                false,
-		EnableExchangeHTTPRateLimiter: false,
+		EnableExchangeHTTPRateLimiter: true,
 	}, flags)
 	if err != nil {
 		fmt.Printf("Could not load backtester. Error: %v.\n", err)
@@ -101,7 +101,7 @@ func main() {
 	// print range of backtest
 	// print all symbols in backtest
 	// print all strategies in backtest
-	log.Debugf(
+	log.Infof(
 		log.Global,
 		"%d trades, %d strategies, %d pairs",
 		len(tm.Portfolio.GetAllClosedTrades()),

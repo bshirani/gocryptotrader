@@ -23,9 +23,11 @@ import (
 	gctdatabase "gocryptotrader/database"
 	"gocryptotrader/database/repository/candle"
 	"gocryptotrader/eventtypes"
+	"gocryptotrader/eventtypes/cancel"
 	"gocryptotrader/eventtypes/fill"
 	"gocryptotrader/eventtypes/order"
 	"gocryptotrader/eventtypes/signal"
+	"gocryptotrader/eventtypes/submit"
 	"gocryptotrader/exchange"
 	"gocryptotrader/exchange/asset"
 	gctkline "gocryptotrader/exchange/kline"
@@ -70,8 +72,7 @@ func (tm *TradeManager) Reset() {
 
 // NewFromConfig takes a strategy config and configures a backtester variable to run
 func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, bot *Engine, om ExecutionHandler) (*TradeManager, error) {
-
-	log.Infoln(log.TradeManager, "TradeManager: Initializing...")
+	log.Debugln(log.TradeManager, "TradeManager: Initializing...")
 	if cfg == nil {
 		return nil, errNilConfig
 	}
@@ -251,7 +252,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 // Run will iterate over loaded data events
 // save them and then handle the event based on its type
 func (tm *TradeManager) Run() error {
-	log.Infof(log.TradeManager, "TradeManager Running. Warmup: %v\n", tm.Warmup)
+	log.Debugf(log.TradeManager, "TradeManager Running. Warmup: %v\n", tm.Warmup)
 	if !tm.Bot.Config.LiveMode {
 		tm.loadDatas()
 	}
@@ -873,10 +874,14 @@ func (tm *TradeManager) handleEvent(ev eventtypes.EventHandler) error {
 		return tm.processSingleDataEvent(eType)
 	case signal.Event:
 		tm.processSignalEvent(eType)
-	case order.SubmitEvent:
+	case order.Event:
 		tm.processOrderEvent(eType)
-	// case fill.Event:
-	// 	tm.processFillEvent(eType)
+	case submit.Event:
+		tm.processSubmitEvent(eType)
+	case cancel.Event:
+		tm.processCancelEvent(eType)
+	case fill.Event:
+		tm.processFillEvent(eType)
 	default:
 		return fmt.Errorf("%w %v received, could not process",
 			errUnhandledDatatype,
@@ -993,7 +998,7 @@ func (tm *TradeManager) processSignalEvent(ev signal.Event) {
 	}
 }
 
-func (tm *TradeManager) processOrderEvent(o order.SubmitEvent) {
+func (tm *TradeManager) processOrderEvent(o order.Event) {
 	d := tm.Datas.GetDataForCurrency(o.GetExchange(), o.GetAssetType(), o.Pair())
 	tm.ExecuteOrder(o, d, tm.Bot.FakeOrderManager)
 	// place an order with order manager
@@ -1237,12 +1242,30 @@ func (tm *TradeManager) GetCurrencySettings(exch string, a asset.Item, cp curren
 
 // GetCurrencySettings returns the settings for an exchange, asset currency
 func (tm *TradeManager) onSubmit(sr *OrderSubmitResponse) {
-	// fmt.Println("OnSubmit", sr)
+	// mark the order as submitted
+	// save the order in the database not dry run and live mode
+	fmt.Println("OnSubmit", sr)
+
+	// create a submit event
+	s := &submit.Submit{}
+	tm.EventQueue.AppendEvent(s)
+}
+
+func (tm *TradeManager) processSubmitEvent(ev submit.Event) {
+	tm.Portfolio.OnSubmit(ev)
+}
+
+func (tm *TradeManager) processCancelEvent(ev cancel.Event) {
+	tm.Portfolio.OnCancel(ev)
+}
+
+func (tm *TradeManager) processCancelEvent(ev cancel.Event) {
+	tm.Portfolio.OnFill(ev)
 }
 
 // ExecuteOrder assesses the portfolio manager's order event and if it passes validation
 // will send an order to the exchange/fake order manager to be stored and raise a fill event
-func (tm *TradeManager) ExecuteOrder(o order.SubmitEvent, data data.Handler, om ExecutionHandler) (order.SubmitEvent, error) {
+func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om ExecutionHandler) (order.Event, error) {
 	// u, _ := uuid.NewV4()
 	// var orderID string
 	priceFloat, _ := o.GetPrice().Float64()
@@ -1268,6 +1291,8 @@ func (tm *TradeManager) ExecuteOrder(o order.SubmitEvent, data data.Handler, om 
 
 	// update order event order_id, status
 
+	// add the submission to the store
+
 	if o.GetStrategyID() == "" {
 		return nil, fmt.Errorf("exchange: order has no strategyid")
 	}
@@ -1277,6 +1302,7 @@ func (tm *TradeManager) ExecuteOrder(o order.SubmitEvent, data data.Handler, om 
 		if ords[i].ID != o.GetID() {
 			continue
 		}
+		fmt.Println("status", ords[i].Status)
 		ords[i].Date = o.GetTime()
 		ords[i].LastUpdated = o.GetTime()
 		ords[i].CloseTime = o.GetTime()

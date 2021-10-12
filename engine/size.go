@@ -12,7 +12,7 @@ import (
 )
 
 // SizeOrder is responsible for ensuring that the order size is within config limits
-func (s *Size) SizeOrder(o order.SubmitEvent, amountAvailable decimal.Decimal, cs *ExchangeAssetPairSettings) (*order.Order, error) {
+func (s *Size) SizeOrder(o order.Event, amountAvailable decimal.Decimal, cs *ExchangeAssetPairSettings) (*order.Order, error) {
 	if o == nil || cs == nil {
 		return nil, eventtypes.ErrNilArguments
 	}

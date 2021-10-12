@@ -109,7 +109,7 @@ portfolio creates an order.Submit
 it stores it to the database
 it emits an order.CreateEvent
 trade manager processes order - Create
-    trade manager calls exchange.ExecuteOrder with details of that order.SubmitEvent
+    trade manager calls exchange.ExecuteOrder with details of that order.Event
     ExecuteOrder returns an OrderSubmitResponse
     trade manager emits a submit.Event (order can be placed or not)
 trade manager processes order - Submit
@@ -129,8 +129,9 @@ the fake order manager always get a submission response
 ExcutionHandler.Submit() *order.SubitResponse
 
 
-
-
+portfolio.OnSignal creates an order event
+order event is processed by trade manager
+trade manager receive on submit callback
 
 
 

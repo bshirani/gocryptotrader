@@ -8,9 +8,11 @@ import (
 	"gocryptotrader/currency"
 	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/eventtypes"
+	"gocryptotrader/eventtypes/cancel"
 	"gocryptotrader/eventtypes/fill"
 	"gocryptotrader/eventtypes/order"
 	"gocryptotrader/eventtypes/signal"
+	"gocryptotrader/eventtypes/submit"
 	"gocryptotrader/exchange/asset"
 	gctorder "gocryptotrader/exchange/order"
 	"gocryptotrader/portfolio/compliance"
@@ -104,7 +106,11 @@ type PortfolioHandler interface {
 	GetVerbose() bool
 	SetVerbose(bool)
 	OnSignal(signal.Event, *ExchangeAssetPairSettings) (*order.Order, error)
-	OnFill(fill.Event) (*fill.Fill, error)
+
+	OnFill(fill.Event)
+	OnSubmit(submit.Event)
+	OnCancel(cancel.Event)
+
 	GetAllClosedTrades() []*livetrade.Details
 
 	ViewHoldingAtTimePeriod(eventtypes.EventHandler) (*holdings.Holding, error)
@@ -121,5 +127,5 @@ type PortfolioHandler interface {
 
 // SizeHandler is the interface to help size orders
 type SizeHandler interface {
-	SizeOrder(order.SubmitEvent, decimal.Decimal, *ExchangeAssetPairSettings) (*order.Order, error)
+	SizeOrder(order.Event, decimal.Decimal, *ExchangeAssetPairSettings) (*order.Order, error)
 }

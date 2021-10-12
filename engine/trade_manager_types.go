@@ -68,7 +68,7 @@ type ExecutionHandler interface {
 	// SetExchangeAssetCurrencySettings(string, asset.Item, currency.Pair, *ExchangeAssetPairSettings)
 	// GetAllCurrencySettings() ([]ExchangeAssetPairSettings, error)
 	// GetCurrencySettings(string, asset.Item, currency.Pair) (ExchangeAssetPairSettings, error)
-	// ExecuteOrder(order.SubmitEvent, data.Handler, *OrderManager) (*fill.Fill, error)
+	// ExecuteOrder(order.Event, data.Handler, *OrderManager) (*fill.Fill, error)
 
 	GetOrdersSnapshot(order.Status) ([]order.Detail, time.Time)
 	Submit(context.Context, *gctorder.Submit) (*OrderSubmitResponse, error)

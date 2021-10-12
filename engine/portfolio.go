@@ -9,10 +9,12 @@ import (
 	"gocryptotrader/currency"
 	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/eventtypes"
+	"gocryptotrader/eventtypes/cancel"
 	"gocryptotrader/eventtypes/event"
 	"gocryptotrader/eventtypes/fill"
 	"gocryptotrader/eventtypes/order"
 	"gocryptotrader/eventtypes/signal"
+	"gocryptotrader/eventtypes/submit"
 	"gocryptotrader/exchange/asset"
 	gctorder "gocryptotrader/exchange/order"
 	"gocryptotrader/log"
@@ -90,6 +92,14 @@ func (p *Portfolio) Reset() {
 	p.exchangeAssetPairSettings = nil
 }
 
+func (p *Portfolio) OnSubmit(submit submit.Event) {
+	fmt.Println("portfolio received submitted order", submit)
+}
+
+func (p *Portfolio) OnCancel(cancel cancel.Event) {
+	fmt.Println("portfolio received cancelled order", cancel)
+}
+
 // OnSignal receives the event from the strategy on whether it has signalled to buy, do nothing or sell
 // on buy/sell, the portfolio manager will size the order and assess the risk of the order
 // if successful, it will pass on an order.Order to be used by the exchange event handler to place an order based on
@@ -107,21 +117,27 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	if ev.GetStrategyID() == "" {
 		return nil, errStrategyIDUnset
 	}
+
 	switch ev.GetDecision() {
 	case signal.Enter:
 		ev.SetDirection(gctorder.Buy)
 		if p.bot.Config.LiveMode && !p.bot.Settings.EnableDryRun {
 			log.Infof(log.TradeManager, "(live mode) insert trade to db")
-			err := livetrade.Insert(livetrade.Details{
+
+			// // create an order
+			// liveorder.Insert(liveorder.Details{
+			// 	EntryPrice:    123.0,
+			// 	StopLossPrice: 123.0,
+			// 	Status:        "PENDING",
+			// 	StrategyID:    ev.GetStrategyID(),
+			// })
+
+			livetrade.Insert(livetrade.Details{
 				EntryPrice:    123.0,
 				StopLossPrice: 123.0,
 				Status:        "PENDING",
 				StrategyID:    ev.GetStrategyID(),
 			})
-
-			if err != nil {
-				return nil, errStrategyIDUnset
-			}
 		}
 
 		entryPrice, _ := ev.GetPrice().Float64()
@@ -205,14 +221,14 @@ func (p *Portfolio) updatePosition(pos *positions.Position, amount decimal.Decim
 }
 
 // OnFill processes the event after an order has been placed by the exchange. Its purpose is to track holdings for future portfolio decisions.
-func (p *Portfolio) OnFill(f fill.Event) (*fill.Fill, error) {
-	if f == nil {
-		return nil, eventtypes.ErrNilEvent
-	}
+func (p *Portfolio) OnFill(f fill.Event) {
+	// if f == nil {
+	// 	return nil, eventtypes.ErrNilEvent
+	// }
 	lookup := p.exchangeAssetPairSettings[f.GetExchange()][f.GetAssetType()][f.Pair()]
-	if lookup == nil {
-		return nil, fmt.Errorf("%w for %v %v %v", errNoPortfolioSettings, f.GetExchange(), f.GetAssetType(), f.Pair())
-	}
+	// if lookup == nil {
+	// 	return nil, fmt.Errorf("%w for %v %v %v", errNoPortfolioSettings, f.GetExchange(), f.GetAssetType(), f.Pair())
+	// }
 	var err error
 
 	// which strategy was filled?
@@ -263,9 +279,9 @@ func (p *Portfolio) OnFill(f fill.Event) (*fill.Fill, error) {
 		h = lookup.GetLatestHoldings()
 		if h.Timestamp.IsZero() {
 			h, err = holdings.Create(f, decimal.NewFromFloat(1000.0), p.riskFreeRate)
-			if err != nil {
-				return nil, err
-			}
+			// if err != nil {
+			// 	return nil, err
+			// }
 		} else {
 			h.Update(f)
 		}
@@ -283,25 +299,25 @@ func (p *Portfolio) OnFill(f fill.Event) (*fill.Fill, error) {
 		log.Error(log.TradeManager, err)
 	}
 
-	direction := f.GetDirection()
-	if direction == eventtypes.DoNothing ||
-		direction == eventtypes.CouldNotBuy ||
-		direction == eventtypes.CouldNotSell ||
-		direction == eventtypes.MissingData ||
-		direction == "" {
-		fe, ok := f.(*fill.Fill)
-		if !ok {
-			return nil, fmt.Errorf("%w expected fill event", eventtypes.ErrInvalidDataType)
-		}
-		fe.ExchangeFee = decimal.Zero
-		return fe, nil
-	}
+	// direction := f.GetDirection()
+	// if direction == eventtypes.DoNothing ||
+	// 	direction == eventtypes.CouldNotBuy ||
+	// 	direction == eventtypes.CouldNotSell ||
+	// 	direction == eventtypes.MissingData ||
+	// 	direction == "" {
+	// 	// fe, ok := f.(*fill.Fill)
+	// 	// if !ok {
+	// 	// 	return nil, fmt.Errorf("%w expected fill event", eventtypes.ErrInvalidDataType)
+	// 	// }
+	// 	// fe.ExchangeFee = decimal.Zero
+	// 	// return fe, nil
+	// }
 
-	fe, ok := f.(*fill.Fill)
-	if !ok {
-		return nil, fmt.Errorf("%w expected fill event", eventtypes.ErrInvalidDataType)
-	}
-	return fe, nil
+	// fe, ok := f.(*fill.Fill)
+	// if !ok {
+	// 	return nil, fmt.Errorf("%w expected fill event", eventtypes.ErrInvalidDataType)
+	// }
+	// return fe, nil
 }
 
 func (p *Portfolio) GetStrategy(id string) *strategies.Handler {
