@@ -17,6 +17,7 @@ import (
 func SetupFactorEngine(p currency.Pair) (*FactorEngine, error) {
 	f := &FactorEngine{}
 
+	f.Pair = p
 	f.minute = &factors.MinuteDataFrame{}
 	f.daily = &factors.DailyDataFrame{}
 
@@ -33,8 +34,6 @@ func (f *FactorEngine) Daily() *factors.DailyDataFrame {
 
 func (f *FactorEngine) OnBar(d data.Handler) {
 	bar := d.Latest()
-	fmt.Println("on bar factor engine for pair", bar.Pair())
-	// fmt.Println(len(f.minute.Close), &d)
 	f.minute.Close = append(f.minute.Close, bar.ClosePrice())
 	f.minute.Open = append(f.minute.Open, bar.OpenPrice())
 	f.minute.High = append(f.minute.High, bar.HighPrice())

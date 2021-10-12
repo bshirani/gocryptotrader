@@ -3,6 +3,7 @@ package engine
 import (
 	"errors"
 
+	"gocryptotrader/currency"
 	"gocryptotrader/factors"
 )
 
@@ -11,6 +12,7 @@ var (
 )
 
 type FactorEngine struct {
+	Pair   currency.Pair
 	minute *factors.MinuteDataFrame
 	daily  *factors.DailyDataFrame
 }

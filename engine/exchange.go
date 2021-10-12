@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/gofrs/uuid"
-	"github.com/shopspring/decimal"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/data"
@@ -17,6 +15,9 @@ import (
 	gctorder "gocryptotrader/exchanges/order"
 	"gocryptotrader/exchanges/orderbook"
 	"gocryptotrader/portfolio/slippage"
+
+	"github.com/gofrs/uuid"
+	"github.com/shopspring/decimal"
 )
 
 // Reset returns the exchange to initial settings

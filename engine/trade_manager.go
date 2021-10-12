@@ -71,7 +71,7 @@ func (tm *TradeManager) Reset() {
 // NewFromConfig takes a strategy config and configures a backtester variable to run
 func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, bot *Engine) (*TradeManager, error) {
 
-	log.Infoln(log.TradeManager, "TradeManager: Loading config...")
+	log.Infoln(log.TradeManager, "TradeManager: Initializing...")
 	if cfg == nil {
 		return nil, errNilConfig
 	}
@@ -250,7 +250,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 // Run will iterate over loaded data events
 // save them and then handle the event based on its type
 func (tm *TradeManager) Run() error {
-	// log.Info(log.TradeManager, "running trade manager")
+	log.Infof(log.TradeManager, "TradeManager Running. Warmup: %v\n", tm.Warmup)
 	if !tm.Bot.Config.LiveMode {
 		tm.loadDatas()
 	}
@@ -352,63 +352,72 @@ func (tm *TradeManager) RunLive() error {
 	if err != nil {
 		return err
 	}
-	x := cs[0]
-	start := time.Now().Add(time.Minute * -10)
-	end := time.Now()
-	retCandle, err := candle.Series(x.ExchangeName,
-		x.CurrencyPair.Base.String(), x.CurrencyPair.Quote.String(),
-		int64(60), string(x.AssetType), start, end)
 
-	dbData, _ := database.LoadData(
-		start,
-		end,
-		time.Minute,
-		x.ExchangeName,
-		eventtypes.DataCandle,
-		x.CurrencyPair,
-		x.AssetType)
+	for _, pair := range cs {
+		start := time.Now().Add(time.Minute * -10)
+		end := time.Now()
+		retCandle, _ := candle.Series(pair.ExchangeName,
+			pair.CurrencyPair.Base.String(), pair.CurrencyPair.Quote.String(),
+			int64(60), string(pair.AssetType), start, end)
 
-	dbData.Load()
+		dbData, _ := database.LoadData(
+			start,
+			end,
+			time.Minute,
+			pair.ExchangeName,
+			eventtypes.DataCandle,
+			pair.CurrencyPair,
+			pair.AssetType)
 
-	dbData.Item.RemoveDuplicates()
-	dbData.Item.SortCandlesByTimestamp(false)
-	dbData.RangeHolder, err = gctkline.CalculateCandleDateRanges(
-		start,
-		end,
-		gctkline.Interval(time.Minute),
-		0,
-	)
+		dbData.Load()
 
-	tm.Datas.SetDataForCurrency(
-		x.ExchangeName,
-		x.AssetType,
-		x.CurrencyPair,
-		dbData)
+		dbData.Item.RemoveDuplicates()
+		dbData.Item.SortCandlesByTimestamp(false)
+		dbData.RangeHolder, err = gctkline.CalculateCandleDateRanges(
+			start,
+			end,
+			gctkline.Interval(time.Minute),
+			0,
+		)
 
-	//
-	// validate the catchup process
-	//
-	lt := retCandle.Candles[len(retCandle.Candles)-1].Timestamp
-	t := time.Now().UTC()
-	t1 := time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location())
-	t2 := time.Date(lt.Year(), lt.Month(), lt.Day(), lt.Hour(), lt.Minute(), 0, 0, t.Location())
+		tm.Datas.SetDataForCurrency(
+			pair.ExchangeName,
+			pair.AssetType,
+			pair.CurrencyPair,
+			dbData)
 
-	if t2 != t1 {
-		fmt.Println("sync time is off", t1, t2)
-		os.Exit(1)
+		//
+		// validate the history is populated with current data
+		//
+		lc := retCandle.Candles[len(retCandle.Candles)-1].Timestamp
+		t := time.Now().UTC()
+		t1 := time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location())
+		t2 := time.Date(lc.Year(), lc.Month(), lc.Day(), lc.Hour(), lc.Minute(), 0, 0, t.Location())
+		fmt.Println("data history minute check", pair.CurrencyPair, t1, t2)
+
+		if t2 != t1 {
+			fmt.Println("sync time is off. History Catchup Failed. Exiting.", t1, t2)
+			os.Exit(1)
+		}
+
+		if len(retCandle.Candles) == 0 {
+			fmt.Println("No candles returned, History catchup failed. Exiting.")
+			os.Exit(1)
+		}
 	}
 
-	if len(retCandle.Candles) == 0 {
-		fmt.Println("no candles returned")
-		os.Exit(1)
-	}
-	// the historical data has been loaded already by the data history manager
-
 	//
-	// precache the factor engine
+	// precache the factor engines
 	//
-	log.Debugln(log.TradeManager, "Warming up factor engine...")
+	log.Debugln(log.TradeManager, "Warming up factor engines...")
 	tm.Run()
+
+	//
+	// validate factor engines are cached
+	//
+	for _, fe := range tm.FactorEngines {
+		log.Debugf(log.TradeManager, "fe %v %v", fe.Pair, fe.Minute().LastDate())
+	}
 
 	//
 	// load datas, now setup
@@ -824,7 +833,6 @@ func (tm *TradeManager) handleEvent(ev eventtypes.EventHandler) error {
 	case order.Event:
 		tm.processOrderEvent(eType)
 	case fill.Event:
-		// fmt.Println("fill event")
 		tm.processFillEvent(eType)
 	default:
 		return fmt.Errorf("%w %v received, could not process",
@@ -844,6 +852,7 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 	d := tm.Datas.GetDataForCurrency(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 
 	// update factor engine
+	fmt.Println("factor on bar update", ev.Pair(), ev.GetTime(), len(tm.FactorEngines[ev.Pair()].Minute().Close))
 	tm.FactorEngines[ev.Pair()].OnBar(d)
 
 	// HANDLE warmup MODE
@@ -1034,7 +1043,7 @@ func (tm *TradeManager) configureLiveDataAPI(resp *kline.DataFromKline, cfg *con
 	}
 	resp.AppendResults(candles)
 	tm.Reports.UpdateItem(&resp.Item)
-	log.Info(log.TradeManager, "sleeping for 30 seconds before checking for new candle data")
+	log.Debug(log.TradeManager, "sleeping for 30 seconds before checking for new candle data")
 	return nil
 }
 

@@ -7,6 +7,7 @@ import (
 	"gocryptotrader/data"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/signal"
+	"gocryptotrader/log"
 	"gocryptotrader/portfolio/strategies/base"
 
 	"github.com/shopspring/decimal"
@@ -92,7 +93,8 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 		m.GetCurrentDateHigh(),
 		m.GetCurrentDateLow(),
 		len(daily.Open))
-	fmt.Println(factors)
+
+	log.Debugf(log.TradeManager, "%s trend factors %s", es.CurrencyPair, factors)
 
 	// 	// fmt.Println("bar", m.LatestClose(), m.LastUpdate, d.Latest().GetTime())
 	// 	// what was the open of the day

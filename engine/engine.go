@@ -94,7 +94,7 @@ func NewFromSettings(settings *Settings, flagSet map[string]bool) (*Engine, erro
 	if *b.Config.Logging.Enabled {
 		gctlog.SetupGlobalLogger()
 		gctlog.SetupSubLoggers(b.Config.Logging.SubLoggers)
-		gctlog.Infoln(gctlog.Global, "Logger initialised.")
+		gctlog.Debugln(gctlog.Global, "Logger initialised.")
 	}
 
 	b.Settings.ConfigFile = settings.ConfigFile
