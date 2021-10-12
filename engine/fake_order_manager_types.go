@@ -13,4 +13,6 @@ type FakeOrderManager struct {
 	cfg              orderManagerConfig
 	verbose          bool
 	onSubmit         func(*OrderSubmitResponse)
+	onFill           func(*OrderSubmitResponse)
+	onCancel         func(*OrderSubmitResponse)
 }

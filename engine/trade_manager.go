@@ -27,6 +27,7 @@ import (
 	"gocryptotrader/eventtypes/fill"
 	"gocryptotrader/eventtypes/order"
 	"gocryptotrader/eventtypes/signal"
+	"gocryptotrader/eventtypes/submit"
 	"gocryptotrader/exchange"
 	"gocryptotrader/exchange/asset"
 	gctkline "gocryptotrader/exchange/kline"
@@ -242,19 +243,22 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	}
 	tm.Portfolio = p
 
-	// om.SetOnSubmit(p.OnSubmit)
-
 	// cfg.PrintSetting()
 
 	return tm, nil
+}
+
+func (tm *TradeManager) setOrderManagerCallbacks() {
+	tm.orderManager.SetOnSubmit(tm.onSubmit)
+	tm.orderManager.SetOnFill(tm.onFill)
+	tm.orderManager.SetOnCancel(tm.onCancel)
 }
 
 // BACKTEST FUNCTIONALITY
 // Run will iterate over loaded data events
 // save them and then handle the event based on its type
 func (tm *TradeManager) Run() error {
-	tm.Bot.FakeOrderManager.SetOnSubmit(tm.Portfolio.OnSubmit)
-	// on.SetOnSubmit(p.onSubmit)
+	tm.setOrderManagerCallbacks()
 	log.Debugf(log.TradeManager, "TradeManager Running. Warmup: %v\n", tm.Warmup)
 	if !tm.Bot.Config.LiveMode {
 		tm.loadDatas()
@@ -337,8 +341,8 @@ func (tm *TradeManager) runLive() error {
 
 // LIVE FUNCTIONALITY
 func (tm *TradeManager) RunLive() error {
+	tm.setOrderManagerCallbacks()
 
-	tm.Bot.FakeOrderManager.SetOnSubmit(tm.Portfolio.OnSubmit)
 	//
 	// run the catchup process
 	//
@@ -702,25 +706,13 @@ func (tm *TradeManager) setupBot(cfg *config.Config, bot *Engine) error {
 				&bot.ServicesWG,
 				bot.Settings.Verbose,
 			)
+			tm.orderManager = bot.FakeOrderManager
 			if err != nil {
 				gctlog.Errorf(gctlog.Global, "Fake Order manager unable to setup: %s", err)
 			} else {
 				err = bot.FakeOrderManager.Start()
 				if err != nil {
 					gctlog.Errorf(gctlog.Global, "Fake Order manager unable to start: %s", err)
-				}
-			}
-		}
-
-		// start DB manager here as we don't start the bot in backtest mode
-		if !tm.Bot.DatabaseManager.IsRunning() {
-			tm.Bot.DatabaseManager, err = SetupDatabaseConnectionManager(gctdatabase.DB.GetConfig())
-			if err != nil {
-				return err
-			} else {
-				err = bot.DatabaseManager.Start(&bot.ServicesWG)
-				if err != nil {
-					gctlog.Errorf(gctlog.Global, "Database manager unable to start: %v", err)
 				}
 			}
 		}
@@ -740,6 +732,20 @@ func (tm *TradeManager) setupBot(cfg *config.Config, bot *Engine) error {
 				return err
 			}
 		}
+
+		// start DB manager here as we don't start the bot in backtest mode
+		if !tm.Bot.DatabaseManager.IsRunning() {
+			tm.Bot.DatabaseManager, err = SetupDatabaseConnectionManager(gctdatabase.DB.GetConfig())
+			if err != nil {
+				return err
+			} else {
+				err = bot.DatabaseManager.Start(&bot.ServicesWG)
+				if err != nil {
+					gctlog.Errorf(gctlog.Global, "Database manager unable to start: %v", err)
+				}
+			}
+		}
+
 	}
 
 	return nil
@@ -880,12 +886,12 @@ func (tm *TradeManager) handleEvent(ev eventtypes.EventHandler) error {
 		tm.processSignalEvent(eType)
 	case order.Event:
 		tm.processOrderEvent(eType)
-	// case submit.Event:
-	// 	tm.processSubmitEvent(eType)
-	// case cancel.Event:
-	// 	tm.processCancelEvent(eType)
-	// case fill.Event:
-	// 	tm.processFillEvent(eType)
+	case submit.Event:
+		tm.processSubmitEvent(eType)
+	case cancel.Event:
+		tm.processCancelEvent(eType)
+	case fill.Event:
+		tm.processFillEvent(eType)
 	default:
 		return fmt.Errorf("%w %v received, could not process",
 			errUnhandledDatatype,
@@ -1005,7 +1011,28 @@ func (tm *TradeManager) processSignalEvent(ev signal.Event) {
 	}
 }
 
-func (tm *TradeManager) processSubmitEvent(ev *OrderSubmitResponse) {
+func (tm *TradeManager) onSubmit(o *OrderSubmitResponse) {
+	// convert to submit event
+	fmt.Println("tmonsubmit", o)
+	ev := &submit.Submit{}
+	tm.EventQueue.AppendEvent(ev)
+}
+
+func (tm *TradeManager) onFill(o *OrderSubmitResponse) {
+	// convert to submit event
+	fmt.Println("onFill", o)
+	ev := &fill.Fill{}
+	tm.EventQueue.AppendEvent(ev)
+}
+
+func (tm *TradeManager) onCancel(o *OrderSubmitResponse) {
+	// convert to submit event
+	fmt.Println("onCancel", o)
+	ev := &cancel.Cancel{}
+	tm.EventQueue.AppendEvent(ev)
+}
+
+func (tm *TradeManager) processSubmitEvent(ev submit.Event) {
 	// convert order submit response to submit.Event here
 	tm.Portfolio.OnSubmit(ev)
 }
@@ -1015,13 +1042,18 @@ func (tm *TradeManager) processCancelEvent(ev cancel.Event) {
 }
 
 func (tm *TradeManager) processFillEvent(ev fill.Event) {
+	fmt.Println("processFillEvent")
 	tm.Portfolio.OnFill(ev)
 }
 
+// new orders
 func (tm *TradeManager) processOrderEvent(o order.Event) {
 	d := tm.Datas.GetDataForCurrency(o.GetExchange(), o.GetAssetType(), o.Pair())
-	tm.ExecuteOrder(o, d, tm.Bot.FakeOrderManager)
-	// tm.EventQueue.AppendEvent(s)
+	ev, err := tm.ExecuteOrder(o, d, tm.Bot.FakeOrderManager)
+	if err != nil {
+		log.Error(log.TradeManager, err)
+	}
+	tm.EventQueue.AppendEvent(ev)
 }
 
 // ---------------------------
@@ -1234,7 +1266,7 @@ func (tm *TradeManager) GetCurrencySettings(exch string, a asset.Item, cp curren
 
 // ExecuteOrder assesses the portfolio manager's order event and if it passes validation
 // will send an order to the exchange/fake order manager to be stored and raise a fill event
-func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om ExecutionHandler) (order.Event, error) {
+func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om ExecutionHandler) (submit.Event, error) {
 	// u, _ := uuid.NewV4()
 	// var orderID string
 	priceFloat, _ := o.GetPrice().Float64()
@@ -1256,7 +1288,11 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 		StrategyID:  o.GetStrategyID(),
 	}
 
-	om.Submit(context.TODO(), submission)
+	osr, _ := om.Submit(context.TODO(), submission)
+
+	resp := &submit.Submit{}
+
+	fmt.Println("order submission response", osr)
 
 	// update order event order_id, status
 
@@ -1276,7 +1312,7 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 		ords[i].CloseTime = o.GetTime()
 	}
 
-	return o, nil
+	return resp, nil
 }
 
 func (p *Portfolio) sizeOfflineOrder(high, low, volume decimal.Decimal, cs *ExchangeAssetPairSettings, f *fill.Fill) (adjustedPrice, adjustedAmount decimal.Decimal, err error) {

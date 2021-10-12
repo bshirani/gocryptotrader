@@ -15,6 +15,7 @@ import (
 	"gocryptotrader/eventtypes/fill"
 	"gocryptotrader/eventtypes/order"
 	"gocryptotrader/eventtypes/signal"
+	"gocryptotrader/eventtypes/submit"
 	"gocryptotrader/exchange/asset"
 	gctorder "gocryptotrader/exchange/order"
 	"gocryptotrader/log"
@@ -48,6 +49,7 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, sh SizeHandler, r risk
 	// you need the strategy IDS here
 	p.store.positions = make(map[string]*positions.Position)
 	p.store.openTrade = make(map[string]*livetrade.Details)
+	p.store.openOrders = make(map[string][]*liveorder.Details)
 	p.store.closedTrades = make(map[string][]*livetrade.Details)
 
 	// load open trade from the database
@@ -70,7 +72,8 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, sh SizeHandler, r risk
 	for _, s := range p.strategies {
 		s.SetID(fmt.Sprintf("%s_%s", s.Name(), s.Direction()))
 		p.store.positions[s.ID()] = &positions.Position{}
-		p.store.closedTrades[s.ID()] = make([]*livetrade.Details, 10)
+		p.store.closedTrades[s.ID()] = make([]*livetrade.Details, 0)
+		p.store.openOrders[s.ID()] = make([]*liveorder.Details, 0)
 		s.SetWeight(decimal.NewFromFloat(1.5))
 	}
 
@@ -92,8 +95,8 @@ func (p *Portfolio) Reset() {
 	p.exchangeAssetPairSettings = nil
 }
 
-func (p *Portfolio) OnSubmit(submit *OrderSubmitResponse) {
-	fmt.Println("portfolio received submitted order", submit.InternalOrderID)
+func (p *Portfolio) OnSubmit(submit submit.Event) {
+	// fmt.Println("portfolio received submitted order", submit)
 	// find the order from the store
 }
 
@@ -144,10 +147,10 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		// write order and trade to database
 		//
 		if p.bot.Config.LiveMode && !p.bot.Settings.EnableDryRun {
-			log.Infof(log.TradeManager, "(live mode) insert trade to db")
+			log.Debugln(log.TradeManager, "(live mode) insert trade to db")
 
 			// create an order
-			dbid, _ := liveorder.Insert(liveorder.Details{
+			liveorder.Insert(liveorder.Details{
 				Status:     "PENDING",
 				OrderType:  "Market",
 				Exchange:   ev.GetExchange(),
@@ -267,6 +270,7 @@ func (p *Portfolio) OnFill(f fill.Event) {
 
 	t := p.store.openTrade[f.GetStrategyID()]
 
+	// update trades and orders here
 	if t != nil {
 		if t.Status == livetrade.Open {
 			t.Status = livetrade.Closed
@@ -452,6 +456,10 @@ func (p *Portfolio) GetPositionForStrategy(sid string) *positions.Position {
 
 func (p *Portfolio) GetTradeForStrategy(sid string) *livetrade.Details {
 	return p.store.openTrade[sid]
+}
+
+func (p *Portfolio) GetOpenOrdersForStrategy(sid string) []*liveorder.Details {
+	return p.store.openOrders[sid]
 }
 
 func (p *Portfolio) GetAllClosedTrades() []*livetrade.Details {

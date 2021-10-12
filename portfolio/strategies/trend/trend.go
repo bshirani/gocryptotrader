@@ -73,6 +73,12 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	} else {
 		es.SetDecision(signal.Exit)
 	}
+
+	trade := p.GetTradeForStrategy(s.Strategy.ID())
+	fmt.Println("trend.go trade", trade)
+
+	orders := p.GetOpenOrdersForStrategy(s.Strategy.ID())
+	fmt.Println("trend.go orderse", orders)
 	// else {
 	// 	es.SetDecision(signal.Exit)
 	// 	es.SetDirection(order.Sell)

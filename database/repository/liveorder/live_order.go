@@ -69,7 +69,6 @@ func Active() (out []Details, err error) {
 
 // Insert writes a single entry into database
 func Insert(in Details) (int64, error) {
-	boil.DebugMode = true
 	if database.DB.SQL == nil {
 		return 0, database.ErrDatabaseSupportDisabled
 	}

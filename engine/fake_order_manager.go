@@ -46,9 +46,16 @@ func SetupFakeOrderManager(exchangeManager iExchangeManager, communicationsManag
 	}, nil
 }
 
-// IsRunning safely checks whether the subsystem is running
 func (m *FakeOrderManager) SetOnSubmit(onSubmit func(*OrderSubmitResponse)) {
 	m.onSubmit = onSubmit
+}
+
+func (m *FakeOrderManager) SetOnFill(onFill func(*OrderSubmitResponse)) {
+	m.onFill = onFill
+}
+
+func (m *FakeOrderManager) SetOnCancel(onCancel func(*OrderSubmitResponse)) {
+	m.onCancel = onCancel
 }
 
 // IsRunning safely checks whether the subsystem is running
@@ -371,9 +378,7 @@ func (m *FakeOrderManager) Modify(ctx context.Context, mod *order.Modify) (*orde
 // Submit will take in an order struct, send it to the exchange and
 // populate it in the FakeOrderManager if successful
 func (m *FakeOrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*OrderSubmitResponse, error) {
-	// if m.bot.Config.LiveMode {
-	// log.Infoln(log.FakeOrderMgr, "Order manager: Order Submitted", newOrder.ID)
-	// }
+	log.Debugln(log.FakeOrderMgr, "Order manager: Order Submitted", newOrder.ID)
 
 	if m == nil {
 		return nil, fmt.Errorf("fake order manager %w", ErrNilSubsystem)

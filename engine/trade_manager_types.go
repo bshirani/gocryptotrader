@@ -41,6 +41,7 @@ type TradeManager struct {
 	Statistic          statistics.Handler
 	EventQueue         EventHolder
 	Reports            report.Handler
+	orderManager       ExecutionHandler
 	Warmup             bool
 	FactorEngines      map[currency.Pair]*FactorEngine
 	DataHistoryManager *DataHistoryManager
@@ -68,10 +69,11 @@ type ExecutionHandler interface {
 	// SetExchangeAssetCurrencySettings(string, asset.Item, currency.Pair, *ExchangeAssetPairSettings)
 	// GetAllCurrencySettings() ([]ExchangeAssetPairSettings, error)
 	// GetCurrencySettings(string, asset.Item, currency.Pair) (ExchangeAssetPairSettings, error)
-	// ExecuteOrder(order.Event, data.Handler, *OrderManager) (*fill.Fill, error)
 
 	GetOrdersSnapshot(order.Status) ([]order.Detail, time.Time)
 	Submit(context.Context, *gctorder.Submit) (*OrderSubmitResponse, error)
 	SetOnSubmit(func(*OrderSubmitResponse))
+	SetOnFill(func(*OrderSubmitResponse))
+	SetOnCancel(func(*OrderSubmitResponse))
 	// Reset()
 }
