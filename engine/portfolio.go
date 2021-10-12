@@ -7,6 +7,7 @@ import (
 
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
+	"gocryptotrader/database/repository/liveorder"
 	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/cancel"
@@ -118,47 +119,6 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		return nil, errStrategyIDUnset
 	}
 
-	switch ev.GetDecision() {
-	case signal.Enter:
-		ev.SetDirection(gctorder.Buy)
-		if p.bot.Config.LiveMode && !p.bot.Settings.EnableDryRun {
-			log.Infof(log.TradeManager, "(live mode) insert trade to db")
-
-			// // create an order
-			// liveorder.Insert(liveorder.Details{
-			// 	EntryPrice:    123.0,
-			// 	StopLossPrice: 123.0,
-			// 	Status:        "PENDING",
-			// 	StrategyID:    ev.GetStrategyID(),
-			// })
-
-			livetrade.Insert(livetrade.Details{
-				EntryPrice:    123.0,
-				StopLossPrice: 123.0,
-				Status:        "PENDING",
-				StrategyID:    ev.GetStrategyID(),
-			})
-		}
-
-		entryPrice, _ := ev.GetPrice().Float64()
-		stopLossPrice, _ := ev.GetPrice().Float64()
-		p.store.openTrade[ev.GetStrategyID()] = &livetrade.Details{
-			Status:        livetrade.Pending,
-			EntryPrice:    entryPrice,
-			StopLossPrice: stopLossPrice,
-			Pair:          fmt.Sprint(ev.Pair().Base, ev.Pair().Quote),
-		}
-
-	case signal.Exit:
-		ev.SetDirection(gctorder.Sell)
-	case signal.DoNothing:
-		// fmt.Println("portfolio: do nothing", ev.GetReason())
-		return nil, nil
-	default:
-		fmt.Println("no decision for", ev.GetStrategyID())
-		return nil, errNoDecision
-	}
-
 	id, _ := uuid.NewV4()
 
 	o := &order.Order{
@@ -175,6 +135,57 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		Direction: ev.GetDirection(),
 		Amount:    ev.GetAmount(),
 	}
+
+	switch ev.GetDecision() {
+	case signal.Enter:
+		ev.SetDirection(gctorder.Buy)
+
+		//
+		// write order and trade to database
+		//
+		if p.bot.Config.LiveMode && !p.bot.Settings.EnableDryRun {
+			log.Infof(log.TradeManager, "(live mode) insert trade to db")
+
+			// create an order
+			dbid, _ := liveorder.Insert(liveorder.Details{
+				Status:     "PENDING",
+				OrderType:  "Market",
+				Exchange:   ev.GetExchange(),
+				InternalID: id.String(),
+			})
+
+			livetrade.Insert(livetrade.Details{
+				EntryPrice:    123.0,
+				StopLossPrice: 123.0,
+				Status:        "PENDING",
+				StrategyID:    ev.GetStrategyID(),
+				Pair:          ev.Pair().String(),
+				EntryOrderID:  id.String(),
+			})
+		}
+
+		entryPrice, _ := ev.GetPrice().Float64()
+		stopLossPrice, _ := ev.GetPrice().Float64()
+		p.store.openTrade[ev.GetStrategyID()] = &livetrade.Details{
+			Status:        livetrade.Pending,
+			EntryPrice:    entryPrice,
+			StopLossPrice: stopLossPrice,
+			Pair:          fmt.Sprint(ev.Pair().Base, ev.Pair().Quote),
+			EntryOrderID:  id.String(),
+		}
+
+	case signal.Exit:
+		ev.SetDirection(gctorder.Sell)
+
+	case signal.DoNothing:
+		// fmt.Println("portfolio: do nothing", ev.GetReason())
+		return nil, nil
+
+	default:
+		fmt.Println("no decision for", ev.GetStrategyID())
+		return nil, errNoDecision
+	}
+
 	if ev.GetDirection() == "" {
 		return o, errInvalidDirection
 	}

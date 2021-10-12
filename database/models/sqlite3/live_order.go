@@ -28,6 +28,7 @@ type LiveOrder struct {
 	OrderType     string       `boil:"order_type" json:"order_type" toml:"order_type" yaml:"order_type"`
 	Exchange      string       `boil:"exchange" json:"exchange" toml:"exchange" yaml:"exchange"`
 	Side          null.String  `boil:"side" json:"side,omitempty" toml:"side" yaml:"side,omitempty"`
+	InternalID    string       `boil:"internal_id" json:"internal_id" toml:"internal_id" yaml:"internal_id"`
 	ClientOrderID null.String  `boil:"client_order_id" json:"client_order_id,omitempty" toml:"client_order_id" yaml:"client_order_id,omitempty"`
 	Amount        null.Float64 `boil:"amount" json:"amount,omitempty" toml:"amount" yaml:"amount,omitempty"`
 	Symbol        null.String  `boil:"symbol" json:"symbol,omitempty" toml:"symbol" yaml:"symbol,omitempty"`
@@ -51,6 +52,7 @@ var LiveOrderColumns = struct {
 	OrderType     string
 	Exchange      string
 	Side          string
+	InternalID    string
 	ClientOrderID string
 	Amount        string
 	Symbol        string
@@ -69,6 +71,7 @@ var LiveOrderColumns = struct {
 	OrderType:     "order_type",
 	Exchange:      "exchange",
 	Side:          "side",
+	InternalID:    "internal_id",
 	ClientOrderID: "client_order_id",
 	Amount:        "amount",
 	Symbol:        "symbol",
@@ -91,6 +94,7 @@ var LiveOrderWhere = struct {
 	OrderType     whereHelperstring
 	Exchange      whereHelperstring
 	Side          whereHelpernull_String
+	InternalID    whereHelperstring
 	ClientOrderID whereHelpernull_String
 	Amount        whereHelpernull_Float64
 	Symbol        whereHelpernull_String
@@ -109,6 +113,7 @@ var LiveOrderWhere = struct {
 	OrderType:     whereHelperstring{field: "\"live_order\".\"order_type\""},
 	Exchange:      whereHelperstring{field: "\"live_order\".\"exchange\""},
 	Side:          whereHelpernull_String{field: "\"live_order\".\"side\""},
+	InternalID:    whereHelperstring{field: "\"live_order\".\"internal_id\""},
 	ClientOrderID: whereHelpernull_String{field: "\"live_order\".\"client_order_id\""},
 	Amount:        whereHelpernull_Float64{field: "\"live_order\".\"amount\""},
 	Symbol:        whereHelpernull_String{field: "\"live_order\".\"symbol\""},
@@ -140,9 +145,9 @@ func (*liveOrderR) NewStruct() *liveOrderR {
 type liveOrderL struct{}
 
 var (
-	liveOrderAllColumns            = []string{"id", "status", "order_type", "exchange", "side", "client_order_id", "amount", "symbol", "price", "fee", "cost", "created_at", "updated_at", "submitted_at", "cancelled_at", "filled_at", "asset_type"}
+	liveOrderAllColumns            = []string{"id", "status", "order_type", "exchange", "side", "internal_id", "client_order_id", "amount", "symbol", "price", "fee", "cost", "created_at", "updated_at", "submitted_at", "cancelled_at", "filled_at", "asset_type"}
 	liveOrderColumnsWithoutDefault = []string{}
-	liveOrderColumnsWithDefault    = []string{"id", "status", "order_type", "exchange", "side", "client_order_id", "amount", "symbol", "price", "fee", "cost", "created_at", "updated_at", "submitted_at", "cancelled_at", "filled_at", "asset_type"}
+	liveOrderColumnsWithDefault    = []string{"id", "status", "order_type", "exchange", "side", "internal_id", "client_order_id", "amount", "symbol", "price", "fee", "cost", "created_at", "updated_at", "submitted_at", "cancelled_at", "filled_at", "asset_type"}
 	liveOrderPrimaryKeyColumns     = []string{"id"}
 )
 

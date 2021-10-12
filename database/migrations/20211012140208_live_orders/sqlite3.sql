@@ -8,6 +8,7 @@ CREATE TABLE live_order (
     exchange text NOT NULL,
 
     side text,
+    internal_id text NOT NULL,
     client_order_id text,
     amount REAL,
     symbol text,
@@ -24,5 +25,5 @@ CREATE TABLE live_order (
 -- +goose StatementEnd
 -- +goose Down
 -- +goose StatementBegin
-SELECT 'down SQL query';
+DROP TABLE live_order;
 -- +goose StatementEnd

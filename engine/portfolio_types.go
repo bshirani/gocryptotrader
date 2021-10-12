@@ -6,6 +6,7 @@ import (
 
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
+	"gocryptotrader/database/repository/liveorder"
 	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/cancel"

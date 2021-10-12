@@ -1,6 +1,7 @@
 -- +goose Up
 CREATE TABLE live_trade (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+    entry_order_id text NOT NULL,
     entry_price REAL NOT NULL,
     stop_loss_price REAL NOT NULL,
     strategy_id TEXT NOT NULL,
