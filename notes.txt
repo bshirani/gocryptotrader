@@ -97,3 +97,6 @@ for fake trading, we will want to operate in the same manner. create the same or
 
 what does the order manager do exactly? how does it operate? we will need to understand this
 
+how does the portfolio get notified of order manager events?
+we can pass a callback function, but that's a little messy is there a better way?
+

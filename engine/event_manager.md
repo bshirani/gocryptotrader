@@ -10,5 +10,3 @@
 | ------ | ----------- | ------- |
 | eventmanagerdelay | Sets the event managers sleep delay between event checking by a Golang `time.Duration` |  `0` |
 | verbose | Outputs debug messaging allowing for greater transparency for what the event manager is doing |  `false` |
-
-

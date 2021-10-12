@@ -7,10 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gofrs/uuid"
 	"gocryptotrader/common"
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange/validate"
+
+	"github.com/gofrs/uuid"
 )
 
 // Validate checks the supplied data and returns whether or not it's valid

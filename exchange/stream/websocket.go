@@ -9,9 +9,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gorilla/websocket"
 	"gocryptotrader/config"
 	"gocryptotrader/log"
+
+	"github.com/gorilla/websocket"
 )
 
 const (

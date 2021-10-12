@@ -332,7 +332,6 @@ func (tm *TradeManager) runLive() error {
 
 // LIVE FUNCTIONALITY
 func (tm *TradeManager) RunLive() error {
-
 	//
 	// run the catchup process
 	//
@@ -460,11 +459,14 @@ func (tm *TradeManager) Stop() error {
 	if tm.Bot.FakeOrderManager.IsRunning() {
 		tm.Bot.FakeOrderManager.Stop()
 	}
+	if tm.Bot.OrderManager.IsRunning() {
+		tm.Bot.OrderManager.Stop()
+	}
 	if tm.Bot.DatabaseManager.IsRunning() {
 		tm.Bot.DatabaseManager.Stop()
 	}
-	if tm.Bot.OrderManager.IsRunning() {
-		tm.Bot.OrderManager.Stop()
+	if tm.Bot.eventManager.IsRunning() {
+		tm.Bot.eventManager.Stop()
 	}
 
 	for _, s := range tm.Strategies {
@@ -674,6 +676,19 @@ func (tm *TradeManager) setupBot(cfg *config.Config, bot *Engine) error {
 	}
 
 	if !tm.Bot.Config.LiveMode {
+		// start DB manager here as we don't start the bot in backtest mode
+		if !tm.Bot.eventManager.IsRunning() {
+			tm.Bot.eventManager, err = setupEventManager(tm.Bot.CommunicationsManager, tm.Bot.ExchangeManager, tm.Bot.Settings.EventManagerDelay, tm.Bot.Settings.EnableDryRun)
+			if err != nil {
+				gctlog.Errorf(gctlog.Global, "Unable to initialise event manager. Err: %s", err)
+			} else {
+				err = tm.Bot.eventManager.Start()
+				if err != nil {
+					gctlog.Errorf(gctlog.Global, "failed to start event manager. Err: %s", err)
+				}
+			}
+		}
+
 		// start fake manager here since we don't start engine in live mode
 		if !tm.Bot.FakeOrderManager.IsRunning() {
 			bot.FakeOrderManager, err = SetupFakeOrderManager(
@@ -977,19 +992,19 @@ func (tm *TradeManager) processSignalEvent(ev signal.Event) {
 
 func (tm *TradeManager) processOrderEvent(o order.Event) {
 	d := tm.Datas.GetDataForCurrency(o.GetExchange(), o.GetAssetType(), o.Pair())
-	f, err := tm.Exchange.ExecuteOrder(o, d, tm.Bot.OrderManager)
+	s, err := tm.Exchange.ExecuteOrder(o, d, tm.Bot.OrderManager)
 	if err != nil {
-		if f == nil {
+		if s == nil {
 			log.Errorf(log.TradeManager, "fill event should always be returned, please fix, %v", err)
 			return
 		}
-		log.Errorf(log.TradeManager, "%v %v %v %v", f.GetExchange(), f.GetAssetType(), f.Pair(), err)
+		log.Errorf(log.TradeManager, "%v %v %v %v", s.GetExchange(), s.GetAssetType(), s.Pair(), err)
 	}
-	err = tm.Statistic.SetEventForOffset(f)
+	err = tm.Statistic.SetEventForOffset(s)
 	if err != nil {
 		log.Error(log.TradeManager, err)
 	}
-	tm.EventQueue.AppendEvent(f)
+	tm.EventQueue.AppendEvent(s)
 }
 
 func (tm *TradeManager) processFillEvent(f fill.Event) {
