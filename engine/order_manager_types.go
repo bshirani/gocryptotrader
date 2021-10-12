@@ -14,6 +14,7 @@ import (
 
 // OrderManagerName is an exported subsystem name
 const OrderManagerName = "orders"
+const FakeOrderManagerName = "fakeorders"
 
 // vars for the fund manager package
 var (
@@ -48,7 +49,7 @@ type store struct {
 }
 
 // OrderManager processes and stores orders across enabled exchanges
-type RealOrderManager struct {
+type OrderManager struct {
 	started          int32
 	processingOrders int32
 	shutdown         chan struct{}
@@ -58,6 +59,15 @@ type RealOrderManager struct {
 	onSubmit         func(*OrderSubmitResponse)
 	onFill           func(*OrderSubmitResponse)
 	onCancel         func(*OrderSubmitResponse)
+}
+
+type FakeOrderManager struct {
+	OrderManager
+}
+
+// OrderManager processes and stores orders across enabled exchanges
+type RealOrderManager struct {
+	OrderManager
 }
 
 // OrderSubmitResponse contains the order response along with an internal order ID

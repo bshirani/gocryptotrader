@@ -680,34 +680,29 @@ func (tm *TradeManager) setupBot(cfg *config.Config, bot *Engine) error {
 
 	if !tm.Bot.Config.LiveMode {
 		// start fake order manager here since we don't start engine in live mode
-		if !tm.Bot.FakeOrderManager.IsRunning() {
-			bot.FakeOrderManager, err = SetupFakeOrderManager(
-				bot.ExchangeManager,
-				bot.CommunicationsManager,
-				&bot.ServicesWG,
-				bot.Settings.Verbose,
-			)
-			tm.orderManager = bot.FakeOrderManager
+		bot.FakeOrderManager, err = SetupFakeOrderManager(
+			bot.ExchangeManager,
+			bot.CommunicationsManager,
+			&bot.ServicesWG,
+			bot.Settings.Verbose,
+		)
+		tm.orderManager = bot.FakeOrderManager
+		if err != nil {
+			gctlog.Errorf(gctlog.Global, "Fake Order manager unable to setup: %s", err)
+		} else {
+			err = tm.orderManager.Start()
 			if err != nil {
-				gctlog.Errorf(gctlog.Global, "Fake Order manager unable to setup: %s", err)
-			} else {
-				err = bot.FakeOrderManager.Start()
-				if err != nil {
-					gctlog.Errorf(gctlog.Global, "Fake Order manager unable to start: %s", err)
-				}
+				gctlog.Errorf(gctlog.Global, "Fake Order manager unable to start: %s", err)
 			}
 		}
 
-		// start DB manager here as we don't start the bot in backtest mode
-		if !tm.Bot.DatabaseManager.IsRunning() {
-			tm.Bot.DatabaseManager, err = SetupDatabaseConnectionManager(gctdatabase.DB.GetConfig())
+		tm.Bot.DatabaseManager, err = SetupDatabaseConnectionManager(gctdatabase.DB.GetConfig())
+		if err != nil {
+			return err
+		} else {
+			err = bot.DatabaseManager.Start(&bot.ServicesWG)
 			if err != nil {
-				return err
-			} else {
-				err = bot.DatabaseManager.Start(&bot.ServicesWG)
-				if err != nil {
-					gctlog.Errorf(gctlog.Global, "Database manager unable to start: %v", err)
-				}
+				gctlog.Errorf(gctlog.Global, "Database manager unable to start: %v", err)
 			}
 		}
 
