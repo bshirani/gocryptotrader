@@ -62,7 +62,8 @@ func (m *OrderManager) Start() error {
 	}
 	log.Debugln(log.OrderMgr, "Order manager starting...")
 	m.shutdown = make(chan struct{})
-	go m.run()
+	// go m.run()
+	go m.runFake()
 	return nil
 }
 
@@ -94,6 +95,29 @@ func (m *OrderManager) gracefulShutdown() {
 			return
 		}
 		m.CancelAllOrders(context.TODO(), exchanges)
+	}
+}
+
+// run will periodically process orders
+func (m *OrderManager) runFake() {
+	log.Debugln(log.OrderMgr, "Order manager started.")
+	m.processOrders()
+	tick := time.NewTicker(orderManagerDelay)
+	m.orderStore.wg.Add(1)
+	defer func() {
+		log.Debugln(log.OrderMgr, "Order manager shutdown.")
+		tick.Stop()
+		m.orderStore.wg.Done()
+	}()
+
+	for {
+		select {
+		case <-m.shutdown:
+			m.gracefulShutdown()
+			return
+		case <-tick.C:
+			go m.processOrders()
+		}
 	}
 }
 

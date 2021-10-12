@@ -295,7 +295,6 @@ func (e *Exchange) placeOrder(ctx context.Context, price, amount decimal.Decimal
 			FullyMatched:  true,
 		}
 
-		// store the position of this fake order
 		resp, err := om.SubmitFake(o, submitResponse, useExchangeLimits)
 		if resp != nil {
 			orderID = resp.OrderID
