@@ -143,39 +143,45 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	case signal.Enter:
 		ev.SetDirection(gctorder.Buy)
 
-		//
-		// write order and trade to database
-		//
-		if p.bot.Config.LiveMode && !p.bot.Settings.EnableDryRun {
-			log.Debugln(log.TradeManager, "(live mode) insert trade to db")
-
-			// create an order
-			liveorder.Insert(liveorder.Details{
-				Status:     "PENDING",
-				OrderType:  "Market",
-				Exchange:   ev.GetExchange(),
-				InternalID: id.String(),
-			})
-
-			livetrade.Insert(livetrade.Details{
-				EntryPrice:    123.0,
-				StopLossPrice: 123.0,
-				Status:        "PENDING",
-				StrategyID:    ev.GetStrategyID(),
-				Pair:          ev.Pair().String(),
-				EntryOrderID:  id.String(),
-			})
-		}
-
 		entryPrice, _ := ev.GetPrice().Float64()
 		stopLossPrice, _ := ev.GetPrice().Float64()
-		p.store.openTrade[ev.GetStrategyID()] = &livetrade.Details{
-			Status:        livetrade.Pending,
-			EntryPrice:    entryPrice,
-			StopLossPrice: stopLossPrice,
-			Pair:          fmt.Sprint(ev.Pair().Base, ev.Pair().Quote),
-			EntryOrderID:  id.String(),
+
+		lo := liveorder.Details{
+			Status:     "PENDING",
+			OrderType:  "Market",
+			Exchange:   ev.GetExchange(),
+			InternalID: id.String(),
 		}
+
+		// lt := livetrade.Details{
+		// 	EntryPrice:    123.0,
+		// 	StopLossPrice: 123.0,
+		// 	Status:        "PENDING",
+		// 	StrategyID:    ev.GetStrategyID(),
+		// 	Pair:          ev.Pair().String(),
+		// 	EntryOrderID:  id.String(),
+		// }
+		// &liveorder.Details{
+		// 	Status:   livetrade.Pending,
+		// 	Pair:     fmt.Sprint(ev.Pair().Base, ev.Pair().Quote),
+		// 	Exchange: ev.GetExchange(),
+		// }
+		// &livetrade.Details{
+		// 	Status:        livetrade.Pending,
+		// 	EntryPrice:    entryPrice,
+		// 	StopLossPrice: stopLossPrice,
+		// 	Pair:          fmt.Sprint(ev.Pair().Base, ev.Pair().Quote),
+		// 	EntryOrderID:  id.String(),
+		// }
+
+		if p.bot.Config.LiveMode && !p.bot.Settings.EnableDryRun {
+			log.Debugln(log.TradeManager, "(live mode) insert trade to db")
+			liveorder.Insert(lo)
+			// livetrade.Insert(lt)
+		}
+
+		p.store.openOrders[ev.GetStrategyID()] = append(p.store.openOrders[ev.GetStrategyID()], &lo)
+		// p.store.openTrade[ev.GetStrategyID()] = &lt
 
 	case signal.Exit:
 		ev.SetDirection(gctorder.Sell)
