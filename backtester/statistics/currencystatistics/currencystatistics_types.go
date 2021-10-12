@@ -3,13 +3,14 @@ package currencystatistics
 import (
 	"time"
 
-	"github.com/shopspring/decimal"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/fill"
 	"gocryptotrader/eventtypes/order"
 	"gocryptotrader/eventtypes/signal"
 	"gocryptotrader/portfolio/compliance"
 	"gocryptotrader/portfolio/holdings"
+
+	"github.com/shopspring/decimal"
 )
 
 // CurrencyStats defines what is expected in order to
@@ -29,7 +30,7 @@ type EventStore struct {
 	Transactions compliance.Snapshot
 	DataEvent    eventtypes.DataEventHandler
 	SignalEvent  signal.Event
-	OrderEvent   order.Event
+	OrderEvent   order.SubmitEvent
 	FillEvent    fill.Event
 }
 

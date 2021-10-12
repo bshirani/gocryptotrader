@@ -492,21 +492,21 @@ func (bot *Engine) Start() error {
 		}()
 	}
 
-	if bot.Settings.EnableOrderManager {
-		bot.OrderManager, err = SetupOrderManager(
-			bot.ExchangeManager,
-			bot.CommunicationsManager,
-			&bot.ServicesWG,
-			bot.Settings.Verbose)
-		if err != nil {
-			gctlog.Errorf(gctlog.Global, "Order manager unable to setup: %s", err)
-		} else {
-			err = bot.OrderManager.Start()
-			if err != nil {
-				gctlog.Errorf(gctlog.Global, "Order manager unable to start: %s", err)
-			}
-		}
-	}
+	// if bot.Settings.EnableOrderManager {
+	// 	bot.OrderManager, err = SetupOrderManager(
+	// 		bot.ExchangeManager,
+	// 		bot.CommunicationsManager,
+	// 		&bot.ServicesWG,
+	// 		bot.Settings.Verbose)
+	// 	if err != nil {
+	// 		gctlog.Errorf(gctlog.Global, "Order manager unable to setup: %s", err)
+	// 	} else {
+	// 		err = bot.OrderManager.Start()
+	// 		if err != nil {
+	// 			gctlog.Errorf(gctlog.Global, "Order manager unable to start: %s", err)
+	// 		}
+	// 	}
+	// }
 
 	// if bot.Settings.EnableOrderManager {
 	bot.FakeOrderManager, err = SetupFakeOrderManager(
@@ -565,17 +565,17 @@ func (bot *Engine) Start() error {
 		}
 	}
 
-	if bot.Settings.EnableWebsocketRoutine {
-		bot.websocketRoutineManager, err = setupWebsocketRoutineManager(bot.ExchangeManager, bot.OrderManager, bot.currencyPairSyncer, &bot.Config.Currency, bot.Settings.Verbose)
-		if err != nil {
-			gctlog.Errorf(gctlog.Global, "Unable to initialise websocket routine manager. Err: %s", err)
-		} else {
-			err = bot.websocketRoutineManager.Start()
-			if err != nil {
-				gctlog.Errorf(gctlog.Global, "failed to start websocket routine manager. Err: %s", err)
-			}
-		}
-	}
+	// if bot.Settings.EnableWebsocketRoutine {
+	// 	bot.websocketRoutineManager, err = setupWebsocketRoutineManager(bot.ExchangeManager, bot.OrderManager, bot.currencyPairSyncer, &bot.Config.Currency, bot.Settings.Verbose)
+	// 	if err != nil {
+	// 		gctlog.Errorf(gctlog.Global, "Unable to initialise websocket routine manager. Err: %s", err)
+	// 	} else {
+	// 		err = bot.websocketRoutineManager.Start()
+	// 		if err != nil {
+	// 			gctlog.Errorf(gctlog.Global, "failed to start websocket routine manager. Err: %s", err)
+	// 		}
+	// 	}
+	// }
 
 	if bot.Settings.EnableGCTScriptManager {
 		bot.gctScriptManager, err = gctscript.NewManager(&bot.Config.GCTScript)
@@ -620,7 +620,8 @@ func (bot *Engine) Start() error {
 			}
 		}
 		if bot.TradeManager == nil {
-			bot.TradeManager, err = NewTradeManager(bot)
+			bot.TradeManager, err = NewTradeManager(bot, bot.FakeOrderManager)
+			bot.FakeOrderManager.SetOnSubmit(bot.TradeManager.onSubmit)
 			if err != nil {
 				fmt.Printf("Could not setup trade manager from config. Error: %v.\n", err)
 				os.Exit(1)
@@ -654,11 +655,11 @@ func (bot *Engine) Stop() {
 			gctlog.Errorf(gctlog.Global, "GCTScript manager unable to stop. Error: %v", err)
 		}
 	}
-	if bot.OrderManager.IsRunning() {
-		if err := bot.OrderManager.Stop(); err != nil {
-			gctlog.Errorf(gctlog.Global, "Order manager unable to stop. Error: %v", err)
-		}
-	}
+	// if bot.OrderManager.IsRunning() {
+	// 	if err := bot.OrderManager.Stop(); err != nil {
+	// 		gctlog.Errorf(gctlog.Global, "Order manager unable to stop. Error: %v", err)
+	// 	}
+	// }
 	if bot.FakeOrderManager.IsRunning() {
 		if err := bot.FakeOrderManager.Stop(); err != nil {
 			gctlog.Errorf(gctlog.Global, "Fake Order manager unable to stop. Error: %v", err)

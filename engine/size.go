@@ -3,15 +3,16 @@ package engine
 import (
 	"fmt"
 
-	"github.com/shopspring/decimal"
 	"gocryptotrader/config"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/order"
 	gctorder "gocryptotrader/exchange/order"
+
+	"github.com/shopspring/decimal"
 )
 
 // SizeOrder is responsible for ensuring that the order size is within config limits
-func (s *Size) SizeOrder(o order.Event, amountAvailable decimal.Decimal, cs *ExchangeAssetPairSettings) (*order.Order, error) {
+func (s *Size) SizeOrder(o order.SubmitEvent, amountAvailable decimal.Decimal, cs *ExchangeAssetPairSettings) (*order.Order, error) {
 	if o == nil || cs == nil {
 		return nil, eventtypes.ErrNilArguments
 	}

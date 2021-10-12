@@ -1,17 +1,18 @@
 package engine
 
 import (
+	"context"
 	"errors"
 	"gocryptotrader/backtester/statistics"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/data"
 	"gocryptotrader/eventtypes"
-	"gocryptotrader/eventtypes/fill"
-	"gocryptotrader/eventtypes/order"
-	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/order"
+	gctorder "gocryptotrader/exchange/order"
 	"gocryptotrader/portfolio/report"
 	"gocryptotrader/portfolio/strategies"
+	"time"
 )
 
 var (
@@ -33,8 +34,9 @@ var (
 type TradeManager struct {
 	Bot                *Engine
 	Datas              data.Holder
+	CurrencySettings   []ExchangeAssetPairSettings
 	Strategies         []strategies.Handler
-	Portfolio          StrategyPortfolioHandler
+	Portfolio          PortfolioHandler
 	Exchange           ExecutionHandler
 	Statistic          statistics.Handler
 	EventQueue         EventHolder
@@ -63,13 +65,12 @@ type EventHolder interface {
 
 // ExecutionHandler interface dictates what functions are required to submit an order
 type ExecutionHandler interface {
-	SetExchangeAssetCurrencySettings(string, asset.Item, currency.Pair, *ExchangeAssetPairSettings)
-	GetAllCurrencySettings() ([]ExchangeAssetPairSettings, error)
-	GetCurrencySettings(string, asset.Item, currency.Pair) (ExchangeAssetPairSettings, error)
-	ExecuteOrder(order.Event, data.Handler, *OrderManager) (*fill.Fill, error)
-	Reset()
-}
+	// SetExchangeAssetCurrencySettings(string, asset.Item, currency.Pair, *ExchangeAssetPairSettings)
+	// GetAllCurrencySettings() ([]ExchangeAssetPairSettings, error)
+	// GetCurrencySettings(string, asset.Item, currency.Pair) (ExchangeAssetPairSettings, error)
+	// ExecuteOrder(order.SubmitEvent, data.Handler, *OrderManager) (*fill.Fill, error)
 
-type OrderManagerHandler interface {
-	ExecuteOrder(order.Event, data.Handler) (*fill.Fill, error)
+	GetOrdersSnapshot(order.Status) ([]order.Detail, time.Time)
+	Submit(context.Context, *gctorder.Submit) (*OrderSubmitResponse, error)
+	// Reset()
 }

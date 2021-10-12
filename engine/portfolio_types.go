@@ -52,6 +52,7 @@ type portfolioStore struct {
 // Portfolio stores all holdings and rules to assess orders, allowing the portfolio manager to
 // modify, accept or reject strategy signals
 type Portfolio struct {
+	verbose                   bool
 	riskFreeRate              decimal.Decimal
 	sizeManager               SizeHandler
 	riskManager               risk.Handler
@@ -98,13 +99,10 @@ type ExchangeAssetPairSettings struct {
 	SkipCandleVolumeFitting bool
 }
 
-// Exchange contains all the currency settings
-type Exchange struct {
-	CurrencySettings []ExchangeAssetPairSettings
-}
-
 // Handler contains all functions expected to operate a portfolio manager
-type StrategyPortfolioHandler interface {
+type PortfolioHandler interface {
+	GetVerbose() bool
+	SetVerbose(bool)
 	OnSignal(signal.Event, *ExchangeAssetPairSettings) (*order.Order, error)
 	OnFill(fill.Event) (*fill.Fill, error)
 	GetAllClosedTrades() []*livetrade.Details
@@ -123,5 +121,5 @@ type StrategyPortfolioHandler interface {
 
 // SizeHandler is the interface to help size orders
 type SizeHandler interface {
-	SizeOrder(order.Event, decimal.Decimal, *ExchangeAssetPairSettings) (*order.Order, error)
+	SizeOrder(order.SubmitEvent, decimal.Decimal, *ExchangeAssetPairSettings) (*order.Order, error)
 }

@@ -83,18 +83,20 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	// 	// get the current bar from the factor engine
 	// 	// bar := fe.Minute().LatestClose()
 
-	m := fe.Minute()
-	daily := fe.Daily()
-	factors := fmt.Sprintf(
-		"%s,%d,%v,%v,%v,%v",
-		s.ID(),
-		m.GetCurrentTime().Unix(),
-		m.GetCurrentDateOpen(),
-		m.GetCurrentDateHigh(),
-		m.GetCurrentDateLow(),
-		len(daily.Open))
+	if p.GetVerbose() {
+		m := fe.Minute()
+		daily := fe.Daily()
+		factors := fmt.Sprintf(
+			"%s,%d,%v,%v,%v,%v",
+			s.ID(),
+			m.GetCurrentTime().Unix(),
+			m.GetCurrentDateOpen(),
+			m.GetCurrentDateHigh(),
+			m.GetCurrentDateLow(),
+			len(daily.Open))
 
-	log.Debugf(log.TradeManager, "%s trend factors %s", es.CurrencyPair, factors)
+		log.Debugf(log.TradeManager, "%s trend factors %s", es.CurrencyPair, factors)
+	}
 
 	// 	// fmt.Println("bar", m.LatestClose(), m.LastUpdate, d.Latest().GetTime())
 	// 	// what was the open of the day

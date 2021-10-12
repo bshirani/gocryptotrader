@@ -3,17 +3,18 @@ package risk
 import (
 	"fmt"
 
-	"github.com/shopspring/decimal"
 	"gocryptotrader/currency"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/order"
 	"gocryptotrader/portfolio/compliance"
 	"gocryptotrader/portfolio/holdings"
+
+	"github.com/shopspring/decimal"
 )
 
 // EvaluateOrder goes through a standard list of evaluations to make to ensure that
 // we are in a position to follow through with an order
-func (r *Risk) EvaluateOrder(o order.Event, latestHoldings []holdings.Holding, s compliance.Snapshot) (*order.Order, error) {
+func (r *Risk) EvaluateOrder(o order.SubmitEvent, latestHoldings []holdings.Holding, s compliance.Snapshot) (*order.Order, error) {
 	if o == nil || latestHoldings == nil {
 		return nil, eventtypes.ErrNilArguments
 	}

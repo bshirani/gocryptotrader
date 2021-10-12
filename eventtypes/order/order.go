@@ -1,9 +1,10 @@
 package order
 
 import (
-	"github.com/shopspring/decimal"
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange/order"
+
+	"github.com/shopspring/decimal"
 )
 
 // IsOrder returns whether the event is an order event
@@ -29,6 +30,26 @@ func (o *Order) SetAmount(i decimal.Decimal) {
 // GetAmount returns the amount
 func (o *Order) GetAmount() decimal.Decimal {
 	return o.Amount
+}
+
+// SetPrice sets the amount
+func (o *Order) SetPrice(i decimal.Decimal) {
+	o.Price = i
+}
+
+// GetPrice returns the amount
+func (o *Order) GetPrice() decimal.Decimal {
+	return o.Price
+}
+
+// SetExchangeFee sets the amount
+func (o *Order) SetExchangeFee(i decimal.Decimal) {
+	o.ExchangeFee = i
+}
+
+// GetExchangeFee returns the amount
+func (o *Order) GetExchangeFee() decimal.Decimal {
+	return o.ExchangeFee
 }
 
 // GetBuyLimit returns the buy limit
@@ -78,6 +99,14 @@ func (o *Order) SetStrategy(name string) {
 
 func (o *Order) GetStrategy() string {
 	return o.Strategy
+}
+
+func (o *Order) GetOnSubmit() func(*order.SubmitResponse) {
+	return o.onSubmit
+}
+
+func (o *Order) SetOnSubmit(onSubmit func(*order.SubmitResponse)) {
+	o.onSubmit = onSubmit
 }
 
 // IsLeveraged returns if it is leveraged

@@ -1,20 +1,23 @@
 package order
 
 import (
-	"github.com/shopspring/decimal"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/event"
 	"gocryptotrader/exchange/order"
+
+	"github.com/shopspring/decimal"
 )
 
 // Order contains all details for an order event
 type Order struct {
 	event.Base
+	onSubmit       func(*order.SubmitResponse)
 	ID             string
 	Direction      order.Side
 	StrategyID     string
 	Status         order.Status
 	Price          decimal.Decimal
+	ExchangeFee    decimal.Decimal
 	Amount         decimal.Decimal
 	OrderType      order.Type
 	Leverage       decimal.Decimal
@@ -24,11 +27,17 @@ type Order struct {
 }
 
 // Event inherits common event interfaces along with extra functions related to handling orders
-type Event interface {
+type SubmitEvent interface {
 	eventtypes.EventHandler
 	eventtypes.Directioner
+	GetOnSubmit() func(*order.SubmitResponse)
+	SetOnSubmit(func(*order.SubmitResponse))
 	GetBuyLimit() decimal.Decimal
 	GetSellLimit() decimal.Decimal
+	SetPrice(decimal.Decimal)
+	GetPrice() decimal.Decimal
+	SetExchangeFee(decimal.Decimal)
+	GetExchangeFee() decimal.Decimal
 	SetAmount(decimal.Decimal)
 	GetAmount() decimal.Decimal
 	IsOrder() bool

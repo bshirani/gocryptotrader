@@ -120,6 +120,7 @@ func (m *OrderManager) runFake() {
 		}
 	}
 }
+
 func (m *OrderManager) processFakeOrders() error {
 	log.Debugln(log.OrderMgr, "processing fake orders")
 	return nil
@@ -481,6 +482,7 @@ func (m *OrderManager) SubmitFake(newOrder *order.Submit, resultingOrder order.S
 // but a status of "" or ANY will include all
 // the time adds contexts for the when the snapshot is relevant for
 func (m *OrderManager) GetOrdersSnapshot(s order.Status) ([]order.Detail, time.Time) {
+
 	if m == nil || atomic.LoadInt32(&m.started) == 0 {
 		return nil, time.Time{}
 	}

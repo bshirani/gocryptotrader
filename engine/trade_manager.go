@@ -45,14 +45,14 @@ import (
 
 // Helper method for starting from live engine
 // New returns a new TradeManager instance
-func NewTradeManager(bot *Engine) (*TradeManager, error) {
+func NewTradeManager(bot *Engine, om ExecutionHandler) (*TradeManager, error) {
 	wd, err := os.Getwd()
 	configPath := filepath.Join(wd, "backtester", "config", "trend.strat")
 	btcfg, err := config.ReadConfigFromFile(configPath)
 	if err != nil {
 		return nil, err
 	}
-	return NewTradeManagerFromConfig(btcfg, "xx", "xx", bot)
+	return NewTradeManagerFromConfig(btcfg, "xx", "xx", bot, om)
 }
 
 // Reset TradeManager values to default
@@ -62,14 +62,14 @@ func (tm *TradeManager) Reset() {
 	tm.Datas.Reset()
 	tm.Portfolio.Reset()
 	tm.Statistic.Reset()
-	tm.Exchange.Reset()
+	// tm.Exchange.Reset()
 	// reset live trades here
 	// tm.Bot = nil
 	// tm.FactorEngine = nil
 }
 
 // NewFromConfig takes a strategy config and configures a backtester variable to run
-func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, bot *Engine) (*TradeManager, error) {
+func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, bot *Engine, om ExecutionHandler) (*TradeManager, error) {
 
 	log.Infoln(log.TradeManager, "TradeManager: Initializing...")
 	if cfg == nil {
@@ -196,6 +196,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	// setup portfolio with strategies
 	var p *Portfolio
 	p, err = SetupPortfolio(tm.Strategies, bot, sizeManager, portfolioRisk, cfg.StatisticSettings.RiskFreeRate)
+	p.SetVerbose(false)
 	if err != nil {
 		return nil, err
 	}
@@ -211,33 +212,33 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	tm.Statistic = stats
 	reports.Statistics = stats
 
-	e, err := tm.setupExchangeSettings(cfg)
+	err = tm.setupExchangeSettings(cfg)
 	if err != nil {
 		return nil, err
 	}
 
 	// load from configuration into datastructure
 	// currencysettings returns the data from the config, exchangeassetpairsettings
-	tm.Exchange = &e
+	// tm.Exchange = &e
 
 	tm.FactorEngines = make(map[currency.Pair]*FactorEngine)
-	for i := range e.CurrencySettings {
+	for i := range tm.CurrencySettings {
 		var lookup *PortfolioSettings
-		lookup, err = p.SetupCurrencySettingsMap(e.CurrencySettings[i].ExchangeName, e.CurrencySettings[i].AssetType, e.CurrencySettings[i].CurrencyPair)
+		lookup, err = p.SetupCurrencySettingsMap(tm.CurrencySettings[i].ExchangeName, tm.CurrencySettings[i].AssetType, tm.CurrencySettings[i].CurrencyPair)
 		if err != nil {
 			return nil, err
 		}
-		lookup.Fee = e.CurrencySettings[i].TakerFee
-		lookup.Leverage = e.CurrencySettings[i].Leverage
-		lookup.BuySideSizing = e.CurrencySettings[i].BuySide
-		lookup.SellSideSizing = e.CurrencySettings[i].SellSide
+		lookup.Fee = tm.CurrencySettings[i].TakerFee
+		lookup.Leverage = tm.CurrencySettings[i].Leverage
+		lookup.BuySideSizing = tm.CurrencySettings[i].BuySide
+		lookup.SellSideSizing = tm.CurrencySettings[i].SellSide
 		lookup.ComplianceManager = compliance.Manager{
 			Snapshots: []compliance.Snapshot{},
 		}
 		// this needs to be per currency
-		log.Debugf(log.TradeManager, "Initialize Factor Engine for %v\n", e.CurrencySettings[i].CurrencyPair)
-		fe, _ := SetupFactorEngine(e.CurrencySettings[i].CurrencyPair)
-		tm.FactorEngines[e.CurrencySettings[i].CurrencyPair] = fe
+		log.Debugf(log.TradeManager, "Initialize Factor Engine for %v\n", tm.CurrencySettings[i].CurrencyPair)
+		fe, _ := SetupFactorEngine(tm.CurrencySettings[i].CurrencyPair)
+		tm.FactorEngines[tm.CurrencySettings[i].CurrencyPair] = fe
 	}
 	tm.Portfolio = p
 
@@ -338,7 +339,7 @@ func (tm *TradeManager) RunLive() error {
 	if tm.verbose {
 		log.Infoln(log.TradeManager, "Running catchup processes")
 	}
-	_, err := tm.Bot.dataHistoryManager.Catchup(tm.Exchange.GetAllCurrencySettings())
+	_, err := tm.Bot.dataHistoryManager.Catchup(tm.GetAllCurrencySettings())
 	if err != nil {
 		log.Infoln(log.TradeManager, "history catchup failed")
 		os.Exit(1)
@@ -347,7 +348,7 @@ func (tm *TradeManager) RunLive() error {
 	tm.Bot.dataHistoryManager.Stop()
 
 	// get latest bars for warmup
-	cs, err := tm.Exchange.GetAllCurrencySettings()
+	cs, err := tm.GetAllCurrencySettings()
 	if err != nil {
 		return err
 	}
@@ -518,10 +519,8 @@ func (b *TradeManager) IsRunning() bool {
 	return atomic.LoadInt32(&b.started) == 1
 }
 
-func (tm *TradeManager) setupExchangeSettings(cfg *config.Config) (Exchange, error) {
+func (tm *TradeManager) setupExchangeSettings(cfg *config.Config) error {
 	log.Debugln(log.TradeManager, "setting exchange settings...")
-	resp := Exchange{}
-
 	for i := range cfg.CurrencySettings {
 		exch, pair, a, err := tm.loadExchangePairAssetBase(
 			cfg.CurrencySettings[i].ExchangeName,
@@ -529,7 +528,7 @@ func (tm *TradeManager) setupExchangeSettings(cfg *config.Config) (Exchange, err
 			cfg.CurrencySettings[i].Quote,
 			cfg.CurrencySettings[i].Asset)
 		if err != nil {
-			return resp, err
+			return err
 		}
 
 		var makerFee, takerFee decimal.Decimal
@@ -590,7 +589,7 @@ func (tm *TradeManager) setupExchangeSettings(cfg *config.Config) (Exchange, err
 
 		limits, err := exch.GetOrderExecutionLimits(a, pair)
 		if err != nil && !errors.Is(err, gctorder.ErrExchangeLimitNotLoaded) {
-			return resp, err
+			return err
 		}
 
 		if limits != nil {
@@ -603,7 +602,7 @@ func (tm *TradeManager) setupExchangeSettings(cfg *config.Config) (Exchange, err
 			}
 		}
 
-		resp.CurrencySettings = append(resp.CurrencySettings, ExchangeAssetPairSettings{
+		tm.CurrencySettings = append(tm.CurrencySettings, ExchangeAssetPairSettings{
 			ExchangeName:        cfg.CurrencySettings[i].ExchangeName,
 			MinimumSlippageRate: cfg.CurrencySettings[i].MinimumSlippagePercent,
 			MaximumSlippageRate: cfg.CurrencySettings[i].MaximumSlippagePercent,
@@ -626,7 +625,7 @@ func (tm *TradeManager) setupExchangeSettings(cfg *config.Config) (Exchange, err
 		})
 	}
 
-	return resp, nil
+	return nil
 }
 
 func (tm *TradeManager) loadExchangePairAssetBase(exch, base, quote, ass string) (exchange.IBotExchange, currency.Pair, asset.Item, error) {
@@ -695,11 +694,13 @@ func (tm *TradeManager) setupBot(cfg *config.Config, bot *Engine) error {
 				bot.ExchangeManager,
 				bot.CommunicationsManager,
 				&bot.ServicesWG,
-				bot.Settings.Verbose)
+				bot.Settings.Verbose,
+			)
 			if err != nil {
 				gctlog.Errorf(gctlog.Global, "Fake Order manager unable to setup: %s", err)
 			} else {
 				err = bot.FakeOrderManager.Start()
+				bot.FakeOrderManager.SetOnSubmit(tm.onSubmit)
 				if err != nil {
 					gctlog.Errorf(gctlog.Global, "Fake Order manager unable to start: %s", err)
 				}
@@ -817,7 +818,7 @@ func (tm *TradeManager) loadData(cfg *config.Config, exch exchange.IBotExchange,
 			log.Warnf(log.TradeManager, "%v", summary)
 		}
 	case tm.Bot.Config.LiveMode && !tm.Warmup:
-		log.Infof(log.TradeManager, "loading live data for %v %v %v...\n", exch.GetName(), a, fPair)
+		log.Debugf(log.TradeManager, "loading live data for %v %v %v...\n", exch.GetName(), a, fPair)
 
 		// if len(cfg.CurrencySettings) > 1 {
 		// 	err := errors.New("live data simulation only supports one currency")
@@ -872,10 +873,10 @@ func (tm *TradeManager) handleEvent(ev eventtypes.EventHandler) error {
 		return tm.processSingleDataEvent(eType)
 	case signal.Event:
 		tm.processSignalEvent(eType)
-	case order.Event:
+	case order.SubmitEvent:
 		tm.processOrderEvent(eType)
-	case fill.Event:
-		tm.processFillEvent(eType)
+	// case fill.Event:
+	// 	tm.processFillEvent(eType)
 	default:
 		return fmt.Errorf("%w %v received, could not process",
 			errUnhandledDatatype,
@@ -894,7 +895,9 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 	d := tm.Datas.GetDataForCurrency(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 
 	// update factor engine
-	fmt.Println("factor on bar update", ev.Pair(), ev.GetTime(), len(tm.FactorEngines[ev.Pair()].Minute().Close))
+	if tm.Portfolio.GetVerbose() {
+		fmt.Println("factor on bar update", ev.Pair(), ev.GetTime(), len(tm.FactorEngines[ev.Pair()].Minute().Close))
+	}
 	tm.FactorEngines[ev.Pair()].OnBar(d)
 
 	// HANDLE warmup MODE
@@ -969,7 +972,7 @@ func (tm *TradeManager) processSimultaneousDataEvents() error {
 
 // processSignalEvent receives an event from the strategy for processing under the portfolio
 func (tm *TradeManager) processSignalEvent(ev signal.Event) {
-	cs, err := tm.Exchange.GetCurrencySettings(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
+	cs, err := tm.GetCurrencySettings(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 	if err != nil {
 		log.Error(log.TradeManager, err)
 		return
@@ -990,36 +993,38 @@ func (tm *TradeManager) processSignalEvent(ev signal.Event) {
 	}
 }
 
-func (tm *TradeManager) processOrderEvent(o order.Event) {
+func (tm *TradeManager) processOrderEvent(o order.SubmitEvent) {
 	d := tm.Datas.GetDataForCurrency(o.GetExchange(), o.GetAssetType(), o.Pair())
+	tm.ExecuteOrder(o, d, tm.Bot.FakeOrderManager)
+	// place an order with order manager
+	// and receive a callback
 
-	switch t := o.(type) {
-	case order.Submit:
-		// if it is a submit event, we execute the order
-		s, err := tm.Exchange.ExecuteOrder(o, d, tm.Bot.OrderManager)
-		// if it is a submit response event, we save the order ID
-	case order.Cancel:
-		// order cancel event - we call on cancel
-		// if it is an order fill event, we call portfolio Onfill
-		_, err := tm.Portfolio.OnCancel(f)
-		if err != nil {
-			log.Error(log.TradeManager, err)
-			return
-		}
-	case order.Fill:
-		// if it is an order fill event, we call portfolio Onfill
-		_, err := tm.Portfolio.OnFill(f)
-		if err != nil {
-			log.Error(log.TradeManager, err)
-			return
-		}
-	}
+	// switch t := o.(type) {
+	// case order.Submit:
+	// 	// if it is a submit event, we execute the order
+	// 	// if it is a submit response event, we save the order ID
+	// case order.Cancel:
+	// 	// order cancel event - we call on cancel
+	// 	// if it is an order fill event, we call portfolio Onfill
+	// 	_, err := tm.Portfolio.OnCancel(f)
+	// 	if err != nil {
+	// 		log.Error(log.TradeManager, err)
+	// 		return
+	// 	}
+	// case order.Fill:
+	// 	// if it is an order fill event, we call portfolio Onfill
+	// 	_, err := tm.Portfolio.OnFill(f)
+	// 	if err != nil {
+	// 		log.Error(log.TradeManager, err)
+	// 		return
+	// 	}
+	// }
 
-	err = tm.Statistic.SetEventForOffset(s)
-	if err != nil {
-		log.Error(log.TradeManager, err)
-	}
-	tm.EventQueue.AppendEvent(s)
+	// err = tm.Statistic.SetEventForOffset(s)
+	// if err != nil {
+	// 	log.Error(log.TradeManager, err)
+	// }
+	// tm.EventQueue.AppendEvent(s)
 }
 
 // ---------------------------
@@ -1056,7 +1061,7 @@ func (tm *TradeManager) loadLiveDataLoop(resp *kline.DataFromKline, cfg *config.
 		case <-tm.shutdown:
 			return
 		case <-loadNewDataTimer.C:
-			log.Infof(log.TradeManager, "fetching data for %v %v %v %v", exch.GetName(), a, fPair, cfg.DataSettings.Interval)
+			log.Debugf(log.TradeManager, "fetching data for %v %v %v %v", exch.GetName(), a, fPair, cfg.DataSettings.Interval)
 			loadNewDataTimer.Reset(time.Second * 15)
 			err = tm.configureLiveDataAPI(resp, cfg, exch, fPair, a, dataType)
 			if err != nil {
@@ -1191,4 +1196,172 @@ func (e *Holder) NextEvent() (i eventtypes.EventHandler) {
 	e.Queue = e.Queue[1:]
 
 	return i
+}
+
+func (tm *TradeManager) GetAllCurrencySettings() ([]ExchangeAssetPairSettings, error) {
+	return tm.CurrencySettings, nil
+}
+
+// SetExchangeAssetCurrencySettings sets the settings for an exchange, asset, currency
+func (tm *TradeManager) SetExchangeAssetCurrencySettings(exch string, a asset.Item, cp currency.Pair, c *ExchangeAssetPairSettings) {
+	if c.ExchangeName == "" ||
+		c.AssetType == "" ||
+		c.CurrencyPair.IsEmpty() {
+		return
+	}
+
+	for i := range tm.CurrencySettings {
+		if tm.CurrencySettings[i].CurrencyPair == cp &&
+			tm.CurrencySettings[i].AssetType == a &&
+			exch == tm.CurrencySettings[i].ExchangeName {
+			tm.CurrencySettings[i] = *c
+			return
+		}
+	}
+	tm.CurrencySettings = append(tm.CurrencySettings, *c)
+}
+
+// GetCurrencySettings returns the settings for an exchange, asset currency
+func (tm *TradeManager) GetCurrencySettings(exch string, a asset.Item, cp currency.Pair) (ExchangeAssetPairSettings, error) {
+	for i := range tm.CurrencySettings {
+		if tm.CurrencySettings[i].CurrencyPair.Equal(cp) {
+			if tm.CurrencySettings[i].AssetType == a {
+				if exch == tm.CurrencySettings[i].ExchangeName {
+					return tm.CurrencySettings[i], nil
+				}
+			}
+		}
+	}
+	return ExchangeAssetPairSettings{}, fmt.Errorf("no currency settings found for %v %v %v", exch, a, cp)
+}
+
+// GetCurrencySettings returns the settings for an exchange, asset currency
+func (tm *TradeManager) onSubmit(sr *OrderSubmitResponse) {
+	// fmt.Println("OnSubmit", sr)
+}
+
+// ExecuteOrder assesses the portfolio manager's order event and if it passes validation
+// will send an order to the exchange/fake order manager to be stored and raise a fill event
+func (tm *TradeManager) ExecuteOrder(o order.SubmitEvent, data data.Handler, om ExecutionHandler) (order.SubmitEvent, error) {
+	// u, _ := uuid.NewV4()
+	// var orderID string
+	priceFloat, _ := o.GetPrice().Float64()
+	a, _ := o.GetAmount().Float64()
+	fee, _ := o.GetExchangeFee().Float64()
+
+	submission := &gctorder.Submit{
+		Price:       priceFloat,
+		Amount:      a,
+		Fee:         fee,
+		Exchange:    o.GetExchange(),
+		ID:          o.GetID(),
+		Side:        o.GetDirection(),
+		AssetType:   o.GetAssetType(),
+		Date:        o.GetTime(),
+		LastUpdated: o.GetTime(),
+		Pair:        o.Pair(),
+		Type:        gctorder.Market,
+		StrategyID:  o.GetStrategyID(),
+	}
+
+	om.Submit(context.TODO(), submission)
+
+	// update order event order_id, status
+
+	if o.GetStrategyID() == "" {
+		return nil, fmt.Errorf("exchange: order has no strategyid")
+	}
+
+	ords, _ := om.GetOrdersSnapshot("")
+	for i := range ords {
+		if ords[i].ID != o.GetID() {
+			continue
+		}
+		ords[i].Date = o.GetTime()
+		ords[i].LastUpdated = o.GetTime()
+		ords[i].CloseTime = o.GetTime()
+	}
+
+	return o, nil
+}
+
+func (p *Portfolio) sizeOfflineOrder(high, low, volume decimal.Decimal, cs *ExchangeAssetPairSettings, f *fill.Fill) (adjustedPrice, adjustedAmount decimal.Decimal, err error) {
+	if cs == nil || f == nil {
+		return decimal.Zero, decimal.Zero, eventtypes.ErrNilArguments
+	}
+	// provide history and estimate volatility
+	slippageRate := slippage.EstimateSlippagePercentage(cs.MinimumSlippageRate, cs.MaximumSlippageRate)
+	if cs.SkipCandleVolumeFitting {
+		f.VolumeAdjustedPrice = f.ClosePrice
+		adjustedAmount = f.Amount
+	} else {
+		f.VolumeAdjustedPrice, adjustedAmount = ensureOrderFitsWithinHLV(f.ClosePrice, f.Amount, high, low, volume)
+		if !adjustedAmount.Equal(f.Amount) {
+			f.AppendReason(fmt.Sprintf("Order size shrunk from %v to %v to fit candle", f.Amount, adjustedAmount))
+		}
+	}
+
+	if adjustedAmount.LessThanOrEqual(decimal.Zero) && f.Amount.GreaterThan(decimal.Zero) {
+		return decimal.Zero, decimal.Zero, fmt.Errorf("amount set to 0, %w", errDataMayBeIncorrect)
+	}
+	adjustedPrice = applySlippageToPrice(f.GetDirection(), f.GetVolumeAdjustedPrice(), slippageRate)
+
+	f.Slippage = slippageRate.Mul(decimal.NewFromInt(100)).Sub(decimal.NewFromInt(100))
+	f.ExchangeFee = calculateExchangeFee(adjustedPrice, adjustedAmount, cs.TakerFee)
+	return adjustedPrice, adjustedAmount, nil
+}
+
+func applySlippageToPrice(direction gctorder.Side, price, slippageRate decimal.Decimal) decimal.Decimal {
+	adjustedPrice := price
+	if direction == gctorder.Buy {
+		adjustedPrice = price.Add(price.Mul(decimal.NewFromInt(1).Sub(slippageRate)))
+	} else if direction == gctorder.Sell {
+		adjustedPrice = price.Mul(slippageRate)
+	}
+	return adjustedPrice
+}
+
+func ensureOrderFitsWithinHLV(slippagePrice, amount, high, low, volume decimal.Decimal) (adjustedPrice, adjustedAmount decimal.Decimal) {
+	adjustedPrice = slippagePrice
+	if adjustedPrice.LessThan(low) {
+		adjustedPrice = low
+	}
+	if adjustedPrice.GreaterThan(high) {
+		adjustedPrice = high
+	}
+	if volume.LessThanOrEqual(decimal.Zero) {
+		return adjustedPrice, adjustedAmount
+	}
+	currentVolume := amount.Mul(adjustedPrice)
+	if currentVolume.GreaterThan(volume) {
+		// reduce the volume to not exceed the total volume of the candle
+		// it is slightly less than the total to still allow for the illusion
+		// that open high low close values are valid with the remaining volume
+		// this is very opinionated
+		currentVolume = volume.Mul(decimal.NewFromFloat(0.99999999))
+	}
+	// extract the amount from the adjusted volume
+	adjustedAmount = currentVolume.Div(adjustedPrice)
+
+	return adjustedPrice, adjustedAmount
+}
+
+func calculateExchangeFee(price, amount, fee decimal.Decimal) decimal.Decimal {
+	return fee.Mul(price).Mul(amount)
+}
+
+func reduceAmountToFitPortfolioLimit(adjustedPrice, amount, sizedPortfolioTotal decimal.Decimal, side gctorder.Side) decimal.Decimal {
+	// switch side {
+	// case gctorder.Buy:
+	// 	if adjustedPrice.Mul(amount).GreaterThan(sizedPortfolioTotal) {
+	// 		// adjusted amounts exceeds portfolio manager's allowed funds
+	// 		// the amount has to be reduced to equal the sizedPortfolioTotal
+	// 		amount = sizedPortfolioTotal.Div(adjustedPrice)
+	// 	}
+	// case gctorder.Sell:
+	// 	if amount.GreaterThan(sizedPortfolioTotal) {
+	// 		amount = sizedPortfolioTotal
+	// 	}
+	// }
+	return amount
 }

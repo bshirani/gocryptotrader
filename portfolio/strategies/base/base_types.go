@@ -29,6 +29,7 @@ var (
 type StrategyPortfolioHandler interface {
 	ViewHoldingAtTimePeriod(eventtypes.EventHandler) (*holdings.Holding, error)
 	GetPositionForStrategy(string) *positions.Position
+	GetVerbose() bool
 	GetTradeForStrategy(string) *livetrade.Details
 }
 

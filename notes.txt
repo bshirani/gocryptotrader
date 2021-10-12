@@ -109,17 +109,24 @@ portfolio creates an order.Submit
 it stores it to the database
 it emits an order.CreateEvent
 trade manager processes order - Create
-    trade manager calls exchange.ExecuteOrder with details of that order.Event
+    trade manager calls exchange.ExecuteOrder with details of that order.SubmitEvent
     ExecuteOrder returns an OrderSubmitResponse
     trade manager emits a submit.Event (order can be placed or not)
 trade manager processes order - Submit
     Submit processing calls the portfoliolo OnSubmit
 
 
+the portfolio can call the excecution handler to transmit the order
+how does the portfolio get notified of executions?
+
+lets try it with channels
+we want to create a channel on the portfolio that we pass to the order manager
 
 
 
+the fake order manager always get a submission response
 
+ExcutionHandler.Submit() *order.SubitResponse
 
 
 

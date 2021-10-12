@@ -22,7 +22,8 @@ import (
 
 // SetupOrderManager will boot up the OrderManager
 func SetupFakeOrderManager(exchangeManager iExchangeManager, communicationsManager iCommsManager, wg *sync.WaitGroup, verbose bool) (*FakeOrderManager, error) {
-	log.Debugln(log.FakeOrderMgr, "fake order manager starting...")
+	// log.Debugln(log.FakeOrderMgr, "...")
+
 	if exchangeManager == nil {
 		return nil, errNilExchangeManager
 	}
@@ -43,6 +44,11 @@ func SetupFakeOrderManager(exchangeManager iExchangeManager, communicationsManag
 		},
 		verbose: verbose,
 	}, nil
+}
+
+// IsRunning safely checks whether the subsystem is running
+func (m *FakeOrderManager) SetOnSubmit(onSubmit func(*OrderSubmitResponse)) {
+	m.onSubmit = onSubmit
 }
 
 // IsRunning safely checks whether the subsystem is running
@@ -99,7 +105,7 @@ func (m *FakeOrderManager) gracefulShutdown() {
 
 // run will periodically process orders
 func (m *FakeOrderManager) run() {
-	log.Debugln(log.FakeOrderMgr, "fake order manager started.")
+	// log.Debugln(log.FakeOrderMgr, "fake order manager started.")
 	m.processOrders()
 	tick := time.NewTicker(orderManagerDelay)
 	m.orderStore.wg.Add(1)
@@ -365,6 +371,10 @@ func (m *FakeOrderManager) Modify(ctx context.Context, mod *order.Modify) (*orde
 // Submit will take in an order struct, send it to the exchange and
 // populate it in the FakeOrderManager if successful
 func (m *FakeOrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*OrderSubmitResponse, error) {
+	// if m.bot.Config.LiveMode {
+	// log.Infoln(log.FakeOrderMgr, "Order manager: Order Submitted", newOrder.ID)
+	// }
+
 	if m == nil {
 		return nil, fmt.Errorf("fake order manager %w", ErrNilSubsystem)
 	}
@@ -405,48 +415,28 @@ func (m *FakeOrderManager) Submit(ctx context.Context, newOrder *order.Submit) (
 			err)
 	}
 
-	result, err := exch.SubmitOrder(ctx, newOrder)
+	// we want to create a fake submission here
+	// we only call SubmitOrder for real orders, we act like we are the exchange
+	// result, err := exch.SubmitOrder(ctx, newOrder)
+	// if err != nil {
+	// 	log.Errorln(log.FakeOrderMgr, "error submitting order", err)
+	// 	return nil, err
+	// }
+
+	fakeResponse := order.SubmitResponse{
+		IsOrderPlaced: true,
+		OrderID:       newOrder.ID,
+	}
+
+	resp, err := m.processSubmittedOrder(newOrder, fakeResponse)
 	if err != nil {
-		return nil, err
+		log.Errorln(log.FakeOrderMgr, "error", err)
 	}
 
-	return m.processSubmittedOrder(newOrder, result)
-}
-
-// SubmitFake runs through the same process as order submission
-// but does not touch live endpoints
-func (m *FakeOrderManager) SubmitFake(newOrder *order.Submit, resultingOrder order.SubmitResponse, checkExchangeLimits bool) (*OrderSubmitResponse, error) {
-	if m == nil {
-		return nil, fmt.Errorf("order manager %w", ErrNilSubsystem)
+	if m.onSubmit != nil {
+		m.onSubmit(resp)
 	}
-	if atomic.LoadInt32(&m.started) == 0 {
-		return nil, fmt.Errorf("order manager %w", ErrSubSystemNotStarted)
-	}
-
-	err := m.validate(newOrder)
-	if err != nil {
-		return nil, err
-	}
-	exch, err := m.orderStore.exchangeManager.GetExchangeByName(newOrder.Exchange)
-	if err != nil {
-		return nil, err
-	}
-
-	if checkExchangeLimits {
-		// Checks for exchange min max limits for order amounts before order
-		// execution can occur
-		err = exch.CheckOrderExecutionLimits(newOrder.AssetType,
-			newOrder.Pair,
-			newOrder.Price,
-			newOrder.Amount,
-			newOrder.Type)
-		if err != nil {
-			return nil, fmt.Errorf("order manager: exchange %s unable to place order: %w",
-				newOrder.Exchange,
-				err)
-		}
-	}
-	return m.processSubmittedOrder(newOrder, resultingOrder)
+	return resp, nil
 }
 
 // GetOrdersSnapshot returns a snapshot of all orders in the orderstore. It optionally filters any orders that do not match the status

@@ -99,7 +99,7 @@ func applyEventAtOffset(ev eventtypes.EventHandler, lookup *currencystatistics.C
 		lookup.Events[i].DataEvent = t
 	case signal.Event:
 		lookup.Events[i].SignalEvent = t
-	case order.Event:
+	case order.SubmitEvent:
 		lookup.Events[i].OrderEvent = t
 	case fill.Event:
 		lookup.Events[i].FillEvent = t

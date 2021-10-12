@@ -3,12 +3,13 @@ package risk
 import (
 	"errors"
 
-	"github.com/shopspring/decimal"
 	"gocryptotrader/currency"
 	"gocryptotrader/eventtypes/order"
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/portfolio/compliance"
 	"gocryptotrader/portfolio/holdings"
+
+	"github.com/shopspring/decimal"
 )
 
 var (
@@ -19,7 +20,7 @@ var (
 
 // Handler defines what is expected to be able to assess risk of an order
 type Handler interface {
-	EvaluateOrder(order.Event, []holdings.Holding, compliance.Snapshot) (*order.Order, error)
+	EvaluateOrder(order.SubmitEvent, []holdings.Holding, compliance.Snapshot) (*order.Order, error)
 }
 
 // Risk contains all currency settings in order to evaluate potential orders
