@@ -66,23 +66,27 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 		return &es, nil
 	}
 
-	pos := p.GetPositionForStrategy(s.GetID())
+	// pos := p.GetPositionForStrategy(s.GetID())
+	// if len(orders) > 0 {
+	// 	fmt.Printf("%s has %d orders type %s status %s\n", s.GetID(), len(orders), orders[0].OrderType, orders[0].Status)
+	// }
+
+	// if trade != nil {
+	// 	fmt.Println("trend.go trade", trade, s.GetID())
+	// }
+
 	orders := p.GetOpenOrdersForStrategy(s.GetID())
-	if len(orders) > 0 {
-		fmt.Printf("%s has %d orders type %s\n", s.GetID(), len(orders), orders[0].OrderType, orders[0].Status)
-	}
-	if !pos.Active && len(orders) == 0 {
+	trade := p.GetTradeForStrategy(s.GetID())
+	if trade == nil && len(orders) == 0 {
+		// fmt.Println(s.GetID(), "has no open orders and can trade")
 		es.SetDecision(signal.Enter)
-		fmt.Printf("%s go ENTER\n", s.GetID())
+	} else {
+		// fmt.Println(s.GetID(), "")
+		es.SetDecision(signal.Exit)
 	}
 	// else {
 	// 	es.SetDecision(signal.Exit)
 	// }
-
-	trade := p.GetTradeForStrategy(s.GetID())
-	if trade != nil {
-		fmt.Println("trend.go trade", trade, s.GetID())
-	}
 
 	// else {
 	// 	es.SetDecision(signal.Exit)

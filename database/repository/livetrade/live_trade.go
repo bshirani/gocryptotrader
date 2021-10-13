@@ -7,6 +7,7 @@ import (
 
 	"gocryptotrader/database"
 	modelSQLite "gocryptotrader/database/models/sqlite3"
+	"gocryptotrader/exchange/order"
 	"gocryptotrader/log"
 
 	"github.com/thrasher-corp/sqlboiler/boil"
@@ -57,7 +58,7 @@ func Active() (out []Details, err error) {
 			EntryPrice: x.EntryPrice,
 			ID:         x.ID,
 			StrategyID: x.StrategyID,
-			Status:     Status(x.Status),
+			Status:     order.Status(x.Status),
 		})
 	}
 	if errS != nil {

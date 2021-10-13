@@ -24,6 +24,7 @@ import (
 	"gocryptotrader/database/repository/candle"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/cancel"
+	"gocryptotrader/eventtypes/event"
 	"gocryptotrader/eventtypes/fill"
 	"gocryptotrader/eventtypes/order"
 	"gocryptotrader/eventtypes/signal"
@@ -136,6 +137,7 @@ dataLoadingIssue:
 							break dataLoadingIssue
 						}
 						tm.EventQueue.AppendEvent(d)
+						// fmt.Println("appending data", d.Latest().GetDate())
 					}
 				}
 			}
@@ -143,6 +145,7 @@ dataLoadingIssue:
 		if ev != nil {
 			err := tm.handleEvent(ev)
 			if err != nil {
+				fmt.Println("error handling event", err)
 				return err
 			}
 		}
@@ -646,7 +649,7 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 	var slit []strategies.Handler
 	var s strategies.Handler
 
-	count := 1
+	count := 0
 	fmt.Println("lencfg", len(cfg.StrategiesSettings))
 	for _, strat := range cfg.StrategiesSettings {
 		fmt.Println("strat", strat, strat.Name)
@@ -864,6 +867,7 @@ func (tm *TradeManager) loadData(cfg *config.Config, exch exchange.IBotExchange,
 // handle event will process events and add further events to the queue if they
 // are required
 func (tm *TradeManager) handleEvent(ev eventtypes.EventHandler) error {
+	// fmt.Println("handle event", reflect.TypeOf(ev))
 	switch eType := ev.(type) {
 	case eventtypes.DataEventHandler:
 		return tm.processSingleDataEvent(eType)
@@ -873,11 +877,10 @@ func (tm *TradeManager) handleEvent(ev eventtypes.EventHandler) error {
 		tm.processOrderEvent(eType)
 	case submit.Event:
 		tm.processSubmitEvent(eType)
-	case cancel.Event:
-		tm.processCancelEvent(eType)
 	case fill.Event:
 		tm.processFillEvent(eType)
 	default:
+		os.Exit(2)
 		return fmt.Errorf("%w %v received, could not process",
 			errUnhandledDatatype,
 			ev)
@@ -1006,11 +1009,30 @@ func (tm *TradeManager) processSignalEvent(ev signal.Event) {
 
 // creates a fill event based on an order submit response
 func (tm *TradeManager) onFill(o *OrderSubmitResponse) {
-	// fmt.Println("onFill for strategy:", o.StrategyID)
+	if o.StrategyID == "" {
+		fmt.Println("order submit response has no strategyID")
+		os.Exit(2)
+	}
+	// return &OrderSubmitResponse{
+	// 	SubmitResponse: order.SubmitResponse{
+	// 		IsOrderPlaced: result.IsOrderPlaced,
+	// 		OrderID:       result.OrderID,
+	// 	},
+	// 	InternalOrderID: id.String(),
+	// 	StrategyID:      newOrder.StrategyID,
+	// }, nil
 	// convert to submit event
+
 	ev := &fill.Fill{
-		StrategyID: o.StrategyID,
-		OrderID:    o.SubmitResponse.OrderID,
+		Base: event.Base{
+			StrategyID: o.StrategyID,
+		},
+		OrderID: o.SubmitResponse.OrderID,
+	}
+	// fmt.Println("tmonfill creating fill event for:", ev.GetStrategyID())
+	if ev.GetStrategyID() == "" {
+		fmt.Println("noooooo")
+		os.Exit(2)
 	}
 	tm.EventQueue.AppendEvent(ev)
 }
@@ -1044,9 +1066,10 @@ func (tm *TradeManager) processFillEvent(ev fill.Event) {
 func (tm *TradeManager) processOrderEvent(o order.Event) {
 	if o.GetStrategyID() == "" {
 		log.Error(log.TradeManager, "order event has no strategy ID")
-	} else {
-		gctlog.Debugln(log.TradeManager, "creating order for", o.GetStrategyID())
 	}
+	// else {
+	// 	// gctlog.Debugln(log.TradeManager, "creating order for", o.GetStrategyID())
+	// }
 	d := tm.Datas.GetDataForCurrency(o.GetExchange(), o.GetAssetType(), o.Pair())
 	// this blocks and returns a submission event
 	submitEvent, err := tm.ExecuteOrder(o, d, tm.Bot.FakeOrderManager)
@@ -1057,10 +1080,12 @@ func (tm *TradeManager) processOrderEvent(o order.Event) {
 		log.Error(log.TradeManager, err)
 		return
 	}
+
 	if submitEvent.GetStrategyID() == "" {
 		log.Error(log.TradeManager, "Not strategy ID in order event")
 		return
 	}
+
 	tm.EventQueue.AppendEvent(submitEvent)
 }
 

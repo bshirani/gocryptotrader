@@ -3,6 +3,7 @@ package engine
 import (
 	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	"gocryptotrader/config"
@@ -154,7 +155,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 
 	switch ev.GetDecision() {
 	case signal.Enter:
-		ev.SetDirection(gctorder.Buy)
+		ev.SetDirection(gctorder.Buy) // FIXME
 
 		lo := liveorder.Details{
 			Status:     gctorder.New,
@@ -171,7 +172,18 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		p.store.openOrders[ev.GetStrategyID()] = append(p.store.openOrders[ev.GetStrategyID()], &lo)
 
 	case signal.Exit:
-		ev.SetDirection(gctorder.Sell)
+		lo := liveorder.Details{
+			Status:     gctorder.New,
+			OrderType:  gctorder.Market,
+			Exchange:   ev.GetExchange(),
+			InternalID: id.String(),
+			StrategyID: ev.GetStrategyID(),
+		}
+
+		// get strategy direction here
+		// find strategy by id
+		ev.SetDirection(gctorder.Sell) // FIXME
+		p.store.openOrders[ev.GetStrategyID()] = append(p.store.openOrders[ev.GetStrategyID()], &lo)
 
 	case signal.DoNothing:
 		return nil, nil
@@ -219,6 +231,8 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 
 	p.recordTrade(ev)
 
+	// fmt.Println("NEW ORDER", ev.GetStrategyID())
+
 	return p.evaluateOrder(ev, o, sizedOrder)
 }
 
@@ -226,17 +240,87 @@ func (p *Portfolio) updatePosition(pos *positions.Position, amount decimal.Decim
 	pos.Amount = decimal.NewFromFloat(100.0)
 }
 
+func (p *Portfolio) createTrade(ev fill.Event, order *liveorder.Details) {
+	lt := livetrade.Details{
+		Status:     gctorder.Open,
+		StrategyID: ev.GetStrategyID(),
+	}
+
+	if !p.bot.Settings.EnableDryRun {
+		livetrade.Insert(lt)
+	}
+
+	p.store.openTrade[ev.GetStrategyID()] = &lt
+}
+
+func (p *Portfolio) closeTrade(f fill.Event, t *livetrade.Details) {
+	// fmt.Println("close trade", t.Status)
+	if t.Status == gctorder.Open {
+		t.Status = gctorder.Closed
+		p.store.closedTrades[f.GetStrategyID()] = append(p.store.closedTrades[f.GetStrategyID()], t)
+		p.store.openTrade[f.GetStrategyID()] = nil
+	} else {
+		fmt.Println("TRYING TO CLOSE  ALREADY CLOSED TRADE. TRADE IS NOT OPEN")
+		os.Exit(1)
+	}
+	// Velse if t.Status == livetrade.Pending {
+	// 	ot := *p.store.openTrade[f.GetStrategyID()]
+	// 	ot.Status = livetrade.Open
+	// 	p.store.openTrade[f.GetStrategyID()] = &ot
+	// }
+}
+
 // OnFill processes the event after an order has been placed by the exchange. Its purpose is to track holdings for future portfolio decisions.
 func (p *Portfolio) OnFill(f fill.Event) {
+	if f.GetStrategyID() == "" {
+		fmt.Println("fill has no strategy ID")
+		os.Exit(2)
+	}
+
+	// fmt.Println("PF ONFILL", f.GetStrategyID())
+
+	// // create or update position
+	// for _, pos := range p.store.positions {
+	// 	if f.GetDirection() == gctorder.Sell {
+	// 		pos.Amount = pos.Amount.Sub(f.GetAmount())
+	// 	} else if f.GetDirection() == gctorder.Buy {
+	// 		pos.Amount = pos.Amount.Add(f.GetAmount())
+	// 	}
+	//
+	// 	if !pos.Amount.IsZero() {
+	// 		pos.Active = true
+	// 	} else {
+	// 		pos.Active = false
+	// 	}
+	// }
+
+	// update the orders
+	// fmt.Println(submit.GetStrategyID(), "portfolio.OnFill", submit.GetInternalOrderID())
+
+	// fmt.Println(f.GetStrategyID(), "closing order")
+	order := p.store.openOrders[f.GetStrategyID()][0]
+	p.store.closedOrders[f.GetStrategyID()] = append(p.store.closedOrders[f.GetStrategyID()], order)
+	p.store.openOrders[f.GetStrategyID()] = make([]*liveorder.Details, 0)
+	// fmt.Println(f.GetStrategyID(), " now has ", len(p.store.closedOrders[f.GetStrategyID()]))
+
+	// update trades and orders here
+	t := p.store.openTrade[f.GetStrategyID()]
+	if t == nil {
+		// fmt.Println("NEW TRADE")
+		p.createTrade(f, order)
+	} else if t.Status == gctorder.Open {
+		// fmt.Println("NEW CLOSE TRADE")
+		p.closeTrade(f, t)
+	}
 
 	// if f == nil {
 	// 	return nil, eventtypes.ErrNilEvent
 	// }
-	lookup := p.exchangeAssetPairSettings[f.GetExchange()][f.GetAssetType()][f.Pair()]
+	// lookup := p.exchangeAssetPairSettings[f.GetExchange()][f.GetAssetType()][f.Pair()]
 	// if lookup == nil {
 	// 	return nil, fmt.Errorf("%w for %v %v %v", errNoPortfolioSettings, f.GetExchange(), f.GetAssetType(), f.Pair())
 	// }
-	var err error
+	// var err error
 
 	// which strategy was filled?
 	// what was the amount filled?
@@ -246,69 +330,39 @@ func (p *Portfolio) OnFill(f fill.Event) {
 	// entryPrice, _ := ev.GetPrice().Float64()
 	// stopLossPrice, _ := ev.GetPrice().Float64()
 
-	// create or update position
-	for _, pos := range p.store.positions {
-		if f.GetDirection() == gctorder.Sell {
-			pos.Amount = pos.Amount.Sub(f.GetAmount())
-		} else if f.GetDirection() == gctorder.Buy {
-			pos.Amount = pos.Amount.Add(f.GetAmount())
-		}
-
-		if !pos.Amount.IsZero() {
-			pos.Active = true
-		} else {
-			pos.Active = false
-		}
-	}
-
 	// st := p.GetStrategy(f.GetStrategyID())
 	// fmt.Println("strategy", st)
-
-	t := p.store.openTrade[f.GetStrategyID()]
-
-	// update trades and orders here
-	if t != nil {
-		if t.Status == livetrade.Open {
-			t.Status = livetrade.Closed
-			p.store.closedTrades[f.GetStrategyID()] = append(p.store.closedTrades[f.GetStrategyID()], t)
-			p.store.openTrade[f.GetStrategyID()] = nil
-		} else if t.Status == livetrade.Pending {
-			ot := *p.store.openTrade[f.GetStrategyID()]
-			ot.Status = livetrade.Open
-			p.store.openTrade[f.GetStrategyID()] = &ot
-		}
-	}
 
 	// t.Status = trades.Open
 	// whats the strategy id of this fill?
 
-	// Get the holding from the previous iteration, create it if it doesn't yet have a timestamp
-	h := lookup.GetHoldingsForTime(f.GetTime().Add(-f.GetInterval().Duration()))
-	if !h.Timestamp.IsZero() {
-		h.Update(f)
-	} else {
-		h = lookup.GetLatestHoldings()
-		if h.Timestamp.IsZero() {
-			h, err = holdings.Create(f, decimal.NewFromFloat(1000.0), p.riskFreeRate)
-			// if err != nil {
-			// 	return nil, err
-			// }
-		} else {
-			h.Update(f)
-		}
-	}
-	err = p.setHoldingsForOffset(&h, true)
-	if errors.Is(err, errNoHoldings) {
-		err = p.setHoldingsForOffset(&h, false)
-	}
-	if err != nil {
-		log.Error(log.TradeManager, err)
-	}
+	// // Get the holding from the previous iteration, create it if it doesn't yet have a timestamp
+	// h := lookup.GetHoldingsForTime(f.GetTime().Add(-f.GetInterval().Duration()))
+	// if !h.Timestamp.IsZero() {
+	// 	h.Update(f)
+	// } else {
+	// 	h = lookup.GetLatestHoldings()
+	// 	if h.Timestamp.IsZero() {
+	// 		h, err = holdings.Create(f, decimal.NewFromFloat(1000.0), p.riskFreeRate)
+	// 		// if err != nil {
+	// 		// 	return nil, err
+	// 		// }
+	// 	} else {
+	// 		h.Update(f)
+	// 	}
+	// }
+	// err = p.setHoldingsForOffset(&h, true)
+	// if errors.Is(err, errNoHoldings) {
+	// 	err = p.setHoldingsForOffset(&h, false)
+	// }
+	// if err != nil {
+	// 	log.Error(log.TradeManager, err)
+	// }
 
-	err = p.addComplianceSnapshot(f)
-	if err != nil {
-		log.Error(log.TradeManager, err)
-	}
+	// err = p.addComplianceSnapshot(f)
+	// if err != nil {
+	// 	log.Error(log.TradeManager, err)
+	// }
 
 	// direction := f.GetDirection()
 	// if direction == eventtypes.DoNothing ||

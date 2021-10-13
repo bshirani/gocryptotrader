@@ -11,8 +11,7 @@ import (
 // Fill is an event that details the events from placing an order
 type Fill struct {
 	event.Base
-	OrderID    string
-	StrategyID string `json:"strategy-id"`
+	OrderID string
 
 	InternalOrderID     string          `json:"internal-order-id"`
 	Direction           order.Side      `json:"side"`

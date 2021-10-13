@@ -2,6 +2,7 @@ package livetrade
 
 import (
 	"errors"
+	"gocryptotrader/exchange/order"
 )
 
 var (
@@ -11,14 +12,14 @@ var (
 	ErrTradeNotFound = errors.New("no trade found")
 )
 
-type Status string
-
-// Order side types
-const (
-	Pending Status = "PENDING"
-	Open    Status = "OPEN"
-	Closed  Status = "CLOSED"
-)
+// type Status string
+//
+// // Order side types
+// const (
+// 	Pending Status = "PENDING"
+// 	Open    Status = "OPEN"
+// 	Closed  Status = "CLOSED"
+// )
 
 // Item generic candle holder for modelPSQL & modelSQLite
 type Details struct {
@@ -27,7 +28,7 @@ type Details struct {
 	EntryPrice    float64
 	ExitPrice     float64
 	StopLossPrice float64
-	Status        Status
+	Status        order.Status
 	StrategyID    string
 	Pair          string
 	EntryOrderID  string
