@@ -6,14 +6,14 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"gtc/common"
-	"gtc/data"
-	datakline "gtc/data/kline"
-	"gtc/eventtypes/event"
-	"gtc/eventtypes/kline"
-	"gtc/currency"
-	"gtc/exchanges/asset"
-	gctkline "gtc/exchanges/kline"
+	"gocryptotrader/common"
+	"gocryptotrader/data"
+	datakline "gocryptotrader/data/kline"
+	"gocryptotrader/eventtypes/event"
+	"gocryptotrader/eventtypes/kline"
+	"gocryptotrader/currency"
+	"gocryptotrader/exchange/asset"
+	gctkline "gocryptotrader/exchanges/kline"
 )
 
 func TestGetBase(t *testing.T) {

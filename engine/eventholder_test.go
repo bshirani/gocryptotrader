@@ -3,8 +3,8 @@ package engine
 import (
 	"testing"
 
-	"gtc/eventtypes"
-	"gtc/eventtypes/order"
+	"gocryptotrader/eventtypes"
+	"gocryptotrader/eventtypes/order"
 )
 
 func TestReset(t *testing.T) {

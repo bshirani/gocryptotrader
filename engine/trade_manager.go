@@ -11,8 +11,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"gocryptotrader/backtester/statistics"
-	"gocryptotrader/backtester/statistics/currencystatistics"
 	gctcommon "gocryptotrader/common"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
@@ -38,6 +36,8 @@ import (
 	"gocryptotrader/portfolio/report"
 	"gocryptotrader/portfolio/risk"
 	"gocryptotrader/portfolio/slippage"
+	"gocryptotrader/portfolio/statistics"
+	"gocryptotrader/portfolio/statistics/currencystatistics"
 	"gocryptotrader/portfolio/strategies"
 	"gocryptotrader/portfolio/strategies/base"
 

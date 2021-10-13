@@ -7,16 +7,16 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"gtc/common"
-	"gtc/data"
-	"gtc/data/kline"
-	"gtc/strategies/base"
-	"gtc/eventtypes/event"
-	eventkline "gtc/eventtypes/kline"
-	"gtc/eventtypes/signal"
-	"gtc/currency"
-	"gtc/exchanges/asset"
-	gctkline "gtc/exchanges/kline"
+	"gocryptotrader/common"
+	"gocryptotrader/data"
+	"gocryptotrader/data/kline"
+	"gocryptotrader/strategies/base"
+	"gocryptotrader/eventtypes/event"
+	eventkline "gocryptotrader/eventtypes/kline"
+	"gocryptotrader/eventtypes/signal"
+	"gocryptotrader/currency"
+	"gocryptotrader/exchange/asset"
+	gctkline "gocryptotrader/exchanges/kline"
 )
 
 func TestName(t *testing.T) {

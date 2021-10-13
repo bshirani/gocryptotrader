@@ -5,11 +5,11 @@ import (
 	"testing"
 
 	"github.com/shopspring/decimal"
-	"gtc/backtester/eventhandlers/exchange"
-	config "gtc/bt_config"
-	"gtc/common"
-	"gtc/eventtypes/order"
-	gctorder "gtc/exchanges/order"
+	"gocryptotrader/backtester/eventhandlers/exchange"
+	config "gocryptotrader/bt_config"
+	"gocryptotrader/common"
+	"gocryptotrader/eventtypes/order"
+	gctorder "gocryptotrader/exchanges/order"
 )
 
 func TestSizingAccuracy(t *testing.T) {

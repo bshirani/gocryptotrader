@@ -6,15 +6,15 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"gtc/common"
-	"gtc/eventtypes/event"
-	"gtc/eventtypes/fill"
-	"gtc/eventtypes/kline"
-	"gtc/backtester/funding"
-	"gtc/currency"
-	"gtc/exchanges/asset"
-	gctkline "gtc/exchanges/kline"
-	"gtc/exchanges/order"
+	"gocryptotrader/common"
+	"gocryptotrader/eventtypes/event"
+	"gocryptotrader/eventtypes/fill"
+	"gocryptotrader/eventtypes/kline"
+	"gocryptotrader/backtester/funding"
+	"gocryptotrader/currency"
+	"gocryptotrader/exchange/asset"
+	gctkline "gocryptotrader/exchanges/kline"
+	"gocryptotrader/exchanges/order"
 )
 
 const (

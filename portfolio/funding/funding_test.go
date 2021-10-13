@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"gtc/common"
-	"gtc/currency"
-	"gtc/exchanges/asset"
-	gctkline "gtc/exchanges/kline"
-	gctorder "gtc/exchanges/order"
+	"gocryptotrader/common"
+	"gocryptotrader/currency"
+	"gocryptotrader/exchange/asset"
+	gctkline "gocryptotrader/exchanges/kline"
+	gctorder "gocryptotrader/exchanges/order"
 )
 
 var (

@@ -3,13 +3,14 @@ package report
 import (
 	"errors"
 
-	"github.com/shopspring/decimal"
-	"gocryptotrader/backtester/statistics"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/kline"
 	"gocryptotrader/exchange/order"
+	"gocryptotrader/portfolio/statistics"
+
+	"github.com/shopspring/decimal"
 )
 
 // lightweight charts can ony render 1100 candles

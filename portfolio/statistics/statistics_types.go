@@ -4,8 +4,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/shopspring/decimal"
-	"gocryptotrader/backtester/statistics/currencystatistics"
 	"gocryptotrader/currency"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/fill"
@@ -13,6 +11,9 @@ import (
 	gctorder "gocryptotrader/exchange/order"
 	"gocryptotrader/portfolio/compliance"
 	"gocryptotrader/portfolio/holdings"
+	"gocryptotrader/portfolio/statistics/currencystatistics"
+
+	"github.com/shopspring/decimal"
 )
 
 var (

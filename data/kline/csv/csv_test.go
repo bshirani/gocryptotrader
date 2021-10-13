@@ -5,10 +5,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"gtc/common"
-	"gtc/currency"
-	"gtc/exchanges/asset"
-	gctkline "gtc/exchanges/kline"
+	"gocryptotrader/common"
+	"gocryptotrader/currency"
+	"gocryptotrader/exchange/asset"
+	gctkline "gocryptotrader/exchanges/kline"
 )
 
 const testExchange = "binance"

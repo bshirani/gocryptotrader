@@ -6,7 +6,6 @@ import (
 	"sort"
 	"time"
 
-	"gocryptotrader/backtester/statistics/currencystatistics"
 	gctcommon "gocryptotrader/common"
 	"gocryptotrader/currency"
 	"gocryptotrader/eventtypes"
@@ -17,6 +16,7 @@ import (
 	"gocryptotrader/log"
 	"gocryptotrader/portfolio/compliance"
 	"gocryptotrader/portfolio/holdings"
+	"gocryptotrader/portfolio/statistics/currencystatistics"
 )
 
 // Reset returns the struct to defaults

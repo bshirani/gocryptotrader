@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"gtc/currency"
-	"gtc/exchanges/asset"
-	"gtc/exchanges/kline"
+	"gocryptotrader/currency"
+	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchanges/kline"
 )
 
 const testExchange = "binance"

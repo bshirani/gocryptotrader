@@ -1,8 +1,0 @@
-## Dollarcostaverage package overview
-
-The dollar cost average is a strategy which is designed to purchase on _every_ data candle. Unless data is missing, all output signals will be to buy.
-This strategy supports simultaneous signal processing, aka `config.StrategySettings.SimultaneousSignalProcessing` set to true will use the function `OnSignals(d []data.Handler, p portfolio.Handler) ([]signal.Event, error)`. This function, like the basic `OnSignal` function, will signal to buy on every iteration.
-This strategy does not support customisation
-
-
-

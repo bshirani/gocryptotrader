@@ -6,12 +6,12 @@ import (
 	"testing"
 	"time"
 
-	"gtc/common"
-	"gtc/common/convert"
-	"gtc/currency"
-	"gtc/engine"
-	"gtc/exchanges/asset"
-	gctkline "gtc/exchanges/kline"
+	"gocryptotrader/common"
+	"gocryptotrader/common/convert"
+	"gocryptotrader/currency"
+	"gocryptotrader/engine"
+	"gocryptotrader/exchange/asset"
+	gctkline "gocryptotrader/exchanges/kline"
 )
 
 const testExchange = "binance"

@@ -3,7 +3,6 @@ package engine
 import (
 	"context"
 	"errors"
-	"gocryptotrader/backtester/statistics"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/data"
@@ -11,6 +10,7 @@ import (
 	"gocryptotrader/exchange/order"
 	gctorder "gocryptotrader/exchange/order"
 	"gocryptotrader/portfolio/report"
+	"gocryptotrader/portfolio/statistics"
 	"gocryptotrader/portfolio/strategies"
 	"time"
 )

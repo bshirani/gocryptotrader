@@ -5,13 +5,13 @@ import (
 	"testing"
 
 	"github.com/shopspring/decimal"
-	"gtc/common"
-	"gtc/compliance"
-	"gtc/holdings"
-	"gtc/eventtypes/order"
-	"gtc/currency"
-	"gtc/exchanges/asset"
-	gctorder "gtc/exchanges/order"
+	"gocryptotrader/common"
+	"gocryptotrader/compliance"
+	"gocryptotrader/holdings"
+	"gocryptotrader/eventtypes/order"
+	"gocryptotrader/currency"
+	"gocryptotrader/exchange/asset"
+	gctorder "gocryptotrader/exchanges/order"
 )
 
 func TestAssessHoldingsRatio(t *testing.T) {
