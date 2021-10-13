@@ -11,7 +11,7 @@ import (
 
 	"gocryptotrader/config"
 	"gocryptotrader/exchange/mock"
-	"gocryptotrader/exchanges/sharedtestvalues"
+	"gocryptotrader/exchange/sharedtestvalues"
 )
 
 const mockFile = "../../testdata/http_mock/gemini/gemini.json"

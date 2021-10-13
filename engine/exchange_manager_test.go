@@ -8,7 +8,7 @@ import (
 
 	"gocryptotrader/exchange"
 	"gocryptotrader/exchanges/bitfinex"
-	"gocryptotrader/exchanges/sharedtestvalues"
+	"gocryptotrader/exchange/sharedtestvalues"
 )
 
 func TestSetupExchangeManager(t *testing.T) {

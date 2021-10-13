@@ -16,7 +16,7 @@ import (
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/kline"
 	"gocryptotrader/exchange/order"
-	"gocryptotrader/exchanges/sharedtestvalues"
+	"gocryptotrader/exchange/sharedtestvalues"
 	"gocryptotrader/exchange/stream"
 	"gocryptotrader/portfolio/withdraw"
 )

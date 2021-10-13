@@ -61,6 +61,11 @@ func (f *Fill) GetOrder() *order.Detail {
 	return f.Order
 }
 
+// GetOrder returns the order
+func (f *Fill) GetOrderID() string {
+	return f.OrderID
+}
+
 // GetSlippageRate returns the slippage rate
 func (f *Fill) GetSlippageRate() decimal.Decimal {
 	return f.Slippage

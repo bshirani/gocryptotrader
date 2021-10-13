@@ -30,6 +30,7 @@ type Event interface {
 	eventtypes.EventHandler
 	eventtypes.Directioner
 
+	GetOrderID() string
 	SetAmount(decimal.Decimal)
 	GetAmount() decimal.Decimal
 	GetClosePrice() decimal.Decimal

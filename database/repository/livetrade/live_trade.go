@@ -102,6 +102,7 @@ func Insert(in Details) error {
 }
 
 func insertSQLite(ctx context.Context, tx *sql.Tx, in []Details) (err error) {
+	boil.DebugMode = true
 	for x := range in {
 		var tempInsert = modelSQLite.LiveTrade{
 			EntryPrice:    in[x].EntryPrice,

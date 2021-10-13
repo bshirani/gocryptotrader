@@ -90,7 +90,6 @@ func NewFromSettings(settings *Settings, flagSet map[string]bool) (*Engine, erro
 	}
 
 	// gctlog.Infoln(gctlog.Global, "setting dry run to true for testing")
-	// b.Config.DryRun = true
 
 	if *b.Config.Logging.Enabled {
 		gctlog.SetupGlobalLogger()
@@ -922,54 +921,10 @@ func (bot *Engine) LoadExchange(name string, wg *sync.WaitGroup) error {
 	return nil
 }
 
-func (bot *Engine) dryRunParamInteraction(param string) {
-	if !bot.Settings.CheckParamInteraction {
-		return
-	}
-
-	if !bot.Settings.EnableDryRun {
-		gctlog.Warnf(gctlog.Global,
-			"Command line argument '-%s' induces dry run mode."+
-				" Set -dryrun=false if you wish to override this.",
-			param)
-		bot.Settings.EnableDryRun = true
-	}
-}
-
 // SetupExchanges sets up the exchanges used by the Bot
 func (bot *Engine) SetupExchanges() error {
 	var wg sync.WaitGroup
 	configs := bot.Config.GetAllExchangeConfigs()
-	if bot.Settings.EnableAllPairs {
-		bot.dryRunParamInteraction("enableallpairs")
-	}
-	if bot.Settings.EnableAllExchanges {
-		bot.dryRunParamInteraction("enableallexchanges")
-	}
-	if bot.Settings.EnableExchangeVerbose {
-		bot.dryRunParamInteraction("exchangeverbose")
-	}
-	if bot.Settings.EnableExchangeWebsocketSupport {
-		bot.dryRunParamInteraction("exchangewebsocketsupport")
-	}
-	if bot.Settings.EnableExchangeAutoPairUpdates {
-		bot.dryRunParamInteraction("exchangeautopairupdates")
-	}
-	if bot.Settings.DisableExchangeAutoPairUpdates {
-		bot.dryRunParamInteraction("exchangedisableautopairupdates")
-	}
-	if bot.Settings.HTTPUserAgent != "" {
-		bot.dryRunParamInteraction("httpuseragent")
-	}
-	if bot.Settings.HTTPProxy != "" {
-		bot.dryRunParamInteraction("httpproxy")
-	}
-	if bot.Settings.HTTPTimeout != exchange.DefaultHTTPTimeout {
-		bot.dryRunParamInteraction("httptimeout")
-	}
-	if bot.Settings.EnableExchangeHTTPDebugging {
-		bot.dryRunParamInteraction("exchangehttpdebugging")
-	}
 
 	for x := range configs {
 		if !configs[x].Enabled && !bot.Settings.EnableAllExchanges {

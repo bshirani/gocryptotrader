@@ -95,8 +95,10 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, sh SizeHandler, r risk
 		p.store.openOrders[t.StrategyID] = append(p.store.openOrders[t.StrategyID], &t)
 	}
 
-	log.Infoln(log.TradeManager, "(live mode) Loaded Trades", len(activeTrades))
-	log.Infoln(log.TradeManager, "(live mode) Loaded Orders", len(activeOrders))
+	if !p.bot.Settings.EnableDryRun {
+		log.Infoln(log.TradeManager, "(live mode) Loaded Trades", len(activeTrades))
+		log.Infoln(log.TradeManager, "(live mode) Loaded Orders", len(activeOrders))
+	}
 
 	return p, nil
 }
@@ -241,9 +243,17 @@ func (p *Portfolio) updatePosition(pos *positions.Position, amount decimal.Decim
 }
 
 func (p *Portfolio) createTrade(ev fill.Event, order *liveorder.Details) {
+	closePrice, _ := ev.GetClosePrice().Float64()
 	lt := livetrade.Details{
-		Status:     gctorder.Open,
-		StrategyID: ev.GetStrategyID(),
+		Status:       gctorder.Open,
+		StrategyID:   ev.GetStrategyID(),
+		EntryOrderID: ev.GetOrderID(),
+		EntryPrice:   closePrice,
+	}
+
+	if lt.EntryPrice == 0 {
+		fmt.Println("1111 no entry price")
+		os.Exit(2)
 	}
 
 	if !p.bot.Settings.EnableDryRun {

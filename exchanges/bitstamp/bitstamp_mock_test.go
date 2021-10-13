@@ -12,7 +12,7 @@ import (
 
 	"gocryptotrader/config"
 	"gocryptotrader/exchange/mock"
-	"gocryptotrader/exchanges/sharedtestvalues"
+	"gocryptotrader/exchange/sharedtestvalues"
 )
 
 const mockfile = "../../testdata/http_mock/bitstamp/bitstamp.json"

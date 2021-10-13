@@ -73,7 +73,7 @@ func (tm *TradeManager) Reset() {
 
 // NewFromConfig takes a strategy config and configures a backtester variable to run
 func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, bot *Engine) (*TradeManager, error) {
-	log.Debugln(log.TradeManager, "TradeManager: Initializing...")
+	log.Debugln(log.TradeManager, "TradeManager: Initializing... dry run", bot.Config.DryRun)
 	if cfg == nil {
 		return nil, errNilConfig
 	}
@@ -650,7 +650,6 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 	var s strategies.Handler
 
 	count := 0
-	fmt.Println("lencfg", len(cfg.StrategiesSettings))
 	for _, strat := range cfg.StrategiesSettings {
 		fmt.Println("strat", strat, strat.Name)
 		for _, dir := range []gctorder.Side{gctorder.Buy, gctorder.Sell} {
@@ -683,9 +682,9 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 	}
 	tm.Strategies = slit
 
-	// if tm.verbose {
-	log.Infof(log.TradeManager, "Loaded %d strategies\n", len(tm.Strategies))
-	// }
+	if tm.verbose {
+		log.Infof(log.TradeManager, "Loaded %d strategies\n", len(tm.Strategies))
+	}
 
 	// setup portfolio with strategies
 	var p *Portfolio

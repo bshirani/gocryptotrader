@@ -17,7 +17,7 @@ import (
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/kline"
 	"gocryptotrader/exchange/order"
-	"gocryptotrader/exchanges/sharedtestvalues"
+	"gocryptotrader/exchange/sharedtestvalues"
 )
 
 // Please supply your own keys here to do better tests

@@ -169,6 +169,7 @@ func (m *FakeOrderManager) processSubmittedOrder(newOrder *order.Submit, result 
 		status = order.Filled
 	}
 	err = m.orderStore.add(&order.Detail{
+		StrategyID:        newOrder.StrategyID,
 		ImmediateOrCancel: newOrder.ImmediateOrCancel,
 		HiddenOrder:       newOrder.HiddenOrder,
 		FillOrKill:        newOrder.FillOrKill,

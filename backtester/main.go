@@ -17,15 +17,16 @@ import (
 
 func main() {
 	var configPath, templatePath, reportOutput, strategiesArg, pairsArg string
-	var printLogo, generateReport, darkReport bool
+	var printLogo, generateReport, dryrun, darkReport bool
 	wd, err := os.Getwd()
 	if err != nil {
 		fmt.Printf("Could not get working directory. Error: %v.\n", err)
 		os.Exit(1)
 	}
+	flag.BoolVar(&dryrun, "dryrun", true, "write orders/trades to db")
+	flag.BoolVar(&generateReport, "generatereport", false, "whether to generate the report file")
 	flag.StringVar(&configPath, "configpath", filepath.Join(wd, "config", "trend.strat"), "the config containing strategy params")
 	flag.StringVar(&templatePath, "templatepath", filepath.Join(wd, "report", "tpl.gohtml"), "the report template to use")
-	flag.BoolVar(&generateReport, "generatereport", false, "whether to generate the report file")
 	flag.StringVar(&reportOutput, "outputpath", filepath.Join(wd, "results"), "the path where to output results")
 	flag.StringVar(&strategiesArg, "strategy", "", "strategies")
 	flag.StringVar(&pairsArg, "pairs", "", "pairs")
@@ -62,7 +63,7 @@ func main() {
 	}
 	bot, err = engine.NewFromSettings(&engine.Settings{
 		ConfigFile:                    path,
-		EnableDryRun:                  true,
+		EnableDryRun:                  dryrun,
 		EnableAllPairs:                false,
 		EnableExchangeHTTPRateLimiter: true,
 	}, flags)

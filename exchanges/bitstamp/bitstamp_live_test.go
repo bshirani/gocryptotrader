@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"gocryptotrader/config"
-	"gocryptotrader/exchanges/sharedtestvalues"
+	"gocryptotrader/exchange/sharedtestvalues"
 )
 
 var mockTests = false
