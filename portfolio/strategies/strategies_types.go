@@ -13,6 +13,7 @@ import (
 // Handler defines all functions required to run strategies against data events
 type Handler interface {
 	SetID(string)
+	GetID() string
 	Direction() order.Side
 	GetPair() currency.Pair
 	SetPair(currency.Pair)

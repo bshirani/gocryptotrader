@@ -23,7 +23,7 @@ import (
 	"gocryptotrader/portfolio/holdings"
 	"gocryptotrader/portfolio/positions"
 	"gocryptotrader/portfolio/risk"
-	"gocryptotrader/portfolio/strategies/base"
+	"gocryptotrader/portfolio/strategies"
 	"gocryptotrader/portfolio/trades"
 
 	"github.com/gofrs/uuid"
@@ -31,7 +31,7 @@ import (
 )
 
 // Setup creates a portfolio manager instance and sets private fields
-func SetupPortfolio(st []*base.Strategy, bot *Engine, sh SizeHandler, r risk.Handler, riskFreeRate decimal.Decimal) (*Portfolio, error) {
+func SetupPortfolio(st []strategies.Handler, bot *Engine, sh SizeHandler, r risk.Handler, riskFreeRate decimal.Decimal) (*Portfolio, error) {
 	// log.Infof(log.TradeManager, "Setting up Portfolio")
 	if sh == nil {
 		return nil, errSizeManagerUnset
@@ -70,11 +70,12 @@ func SetupPortfolio(st []*base.Strategy, bot *Engine, sh SizeHandler, r risk.Han
 
 	// set initial opentrade/positions
 	for _, s := range p.strategies {
+		fmt.Println("loading strategy name", s.Name)
 		// for each pair
 		s.SetID(fmt.Sprintf("%s_%s_%s", s.Name, s.Direction()))
-		p.store.positions[s.ID] = &positions.Position{}
-		p.store.closedTrades[s.ID] = make([]*livetrade.Details, 0)
-		p.store.openOrders[s.ID] = make([]*liveorder.Details, 0)
+		p.store.positions[s.GetID()] = &positions.Position{}
+		p.store.closedTrades[s.GetID()] = make([]*livetrade.Details, 0)
+		p.store.openOrders[s.GetID()] = make([]*liveorder.Details, 0)
 		s.SetWeight(decimal.NewFromFloat(1.5))
 
 	}
@@ -331,14 +332,14 @@ func (p *Portfolio) OnFill(f fill.Event) {
 	// return fe, nil
 }
 
-func (p *Portfolio) GetStrategy(id string) *base.Strategy {
-	for _, s := range p.strategies {
-		if s.ID == id {
-			return s
-		}
-	}
-	return nil
-}
+// func (p *Portfolio) GetStrategy(id string) *base.Strategy {
+// 	for _, s := range p.strategies {
+// 		if s.GetID() == id {
+// 			return s
+// 		}
+// 	}
+// 	return nil
+// }
 
 // GetComplianceManager returns the order snapshots for a given exchange, asset, pair
 func (p *Portfolio) GetComplianceManager(exchangeName string, a asset.Item, cp currency.Pair) (*compliance.Manager, error) {

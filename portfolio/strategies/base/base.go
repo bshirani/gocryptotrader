@@ -26,6 +26,10 @@ func (s *Strategy) GetName() string {
 	return s.Name
 }
 
+func (s *Strategy) GetID() string {
+	return s.ID
+}
+
 // GetBaseData returns the non-interface version of the Handler
 func GetBaseData(d data.Handler) (signal.Signal, error) {
 	if d == nil {

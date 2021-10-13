@@ -641,14 +641,14 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 		}
 	}
 
-	var slit []*base.Strategy
+	var slit []strategies.Handler
 	for _, strat := range cfg.StrategiesSettings {
 		for _, dir := range []gctorder.Side{gctorder.Buy, gctorder.Sell} {
 			s, _ := strategies.LoadStrategyByName(strat.Name, dir, false)
 			id := fmt.Sprintf("%s_%s_%v", s.Name(), string(dir), s.GetPair())
 			s.SetID(id)
 			s.SetDefaults()
-			slit = append(slit, &s)
+			slit = append(slit, s)
 		}
 	}
 	tm.Strategies = slit
