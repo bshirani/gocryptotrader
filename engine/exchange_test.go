@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shopspring/decimal"
 	config "gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/data/kline"
@@ -16,10 +15,12 @@ import (
 	"gocryptotrader/eventtypes/event"
 	"gocryptotrader/eventtypes/fill"
 	"gocryptotrader/eventtypes/order"
-	exchange "gocryptotrader/exchanges"
+	exchange "gocryptotrader/exchange"
 	"gocryptotrader/exchange/asset"
 	gctkline "gocryptotrader/exchange/kline"
 	gctorder "gocryptotrader/exchange/order"
+
+	"github.com/shopspring/decimal"
 )
 
 const testExchange = "binance"
