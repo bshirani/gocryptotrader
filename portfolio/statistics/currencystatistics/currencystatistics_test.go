@@ -11,7 +11,7 @@ import (
 	"gocryptotrader/eventtypes/event"
 	"gocryptotrader/eventtypes/kline"
 	"gocryptotrader/eventtypes/signal"
-	"gocryptotrader/backtester/funding"
+	"gocryptotrader/portfolio/funding"
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange/asset"
 	gctkline "gocryptotrader/exchanges/kline"

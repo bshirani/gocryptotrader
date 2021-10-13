@@ -24,7 +24,7 @@ import (
 	"gocryptotrader/strategies/dollarcostaverage"
 	"gocryptotrader/statistics"
 	"gocryptotrader/statistics/currencystatistics"
-	"gocryptotrader/backtester/funding"
+	"gocryptotrader/portfolio/funding"
 	"gocryptotrader/backtester/report"
 	gctcommon "gocryptotrader/common"
 	"gocryptotrader/common/convert"

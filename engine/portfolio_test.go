@@ -7,7 +7,7 @@ import (
 
 	"github.com/shopspring/decimal"
 	"gocryptotrader/backtester/eventhandlers/exchange"
-	"gocryptotrader/backtester/funding"
+	"gocryptotrader/portfolio/funding"
 	"gocryptotrader/common"
 	"gocryptotrader/compliance"
 	"gocryptotrader/currency"

@@ -14,7 +14,7 @@ import (
 	"gocryptotrader/holdings"
 	"gocryptotrader/statistics"
 	"gocryptotrader/statistics/currencystatistics"
-	"gocryptotrader/backtester/funding"
+	"gocryptotrader/portfolio/funding"
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange/asset"
 	gctkline "gocryptotrader/exchanges/kline"
