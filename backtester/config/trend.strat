@@ -9,7 +9,7 @@
  ],
  "currency-settings": [
   {
-   "exchange-name": "kraken",
+   "exchange-name": "fake",
    "asset": "spot",
    "base": "XBT",
    "quote": "USD",

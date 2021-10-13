@@ -27,6 +27,7 @@ var Exchanges = []string{
 	"coinbene",
 	"coinut",
 	"exmo",
+	"fake",
 	"ftx",
 	"gateio",
 	"gemini",

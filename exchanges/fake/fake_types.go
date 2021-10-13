@@ -39,6 +39,28 @@ const (
 	fakeWithdrawCancel   = "WithdrawCancel"
 	fakeWebsocketToken   = "GetWebSocketsToken"
 
+	// Futures
+	futuresTickers      = "/api/v3/tickers"
+	futuresOrderbook    = "/api/v3/orderbook"
+	futuresInstruments  = "/api/v3/instruments"
+	futuresTradeHistory = "/api/v3/history"
+
+	futuresSendOrder         = "/api/v3/sendorder"
+	futuresCancelOrder       = "/api/v3/cancelorder"
+	futuresOrderFills        = "/api/v3/fills"
+	futuresTransfer          = "/api/v3/transfer"
+	futuresOpenPositions     = "/api/v3/openpositions"
+	futuresBatchOrder        = "/api/v3/batchorder"
+	futuresNotifications     = "/api/v3/notifications"
+	futuresAccountData       = "/api/v3/accounts"
+	futuresCancelAllOrders   = "/api/v3/cancelallorders"
+	futuresCancelOrdersAfter = "/api/v3/cancelallordersafter"
+	futuresOpenOrders        = "/api/v3/openorders"
+	futuresRecentOrders      = "/api/v3/recentorders"
+	futuresWithdraw          = "/api/v3/withdrawal"
+	futuresTransfers         = "/api/v3/transfers"
+	futuresEditOrder         = "/api/v3/editorder"
+
 	// Rate limit consts
 	fakeRateInterval = time.Second
 	fakeRequestRate  = 1

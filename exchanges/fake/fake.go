@@ -22,8 +22,11 @@ import (
 )
 
 const (
-	fakeAPIURL      = "https://example.com"
-	fakeSpotVersion = "0"
+	fakeAPIURL         = "https://api.fake.com"
+	fakeFuturesURL     = "https://futures.fake.com"
+	futuresURL         = "https://futures.fake.com/derivatives"
+	fakeSpotVersion    = "0"
+	fakeFuturesVersion = "3"
 )
 
 // Fake is the overarching type across the alphapoint package

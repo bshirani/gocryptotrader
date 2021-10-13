@@ -177,6 +177,101 @@
  },
  "exchanges": [
   {
+   "name": "fake",
+   "enabled": true,
+   "verbose": false,
+   "httpTimeout": 15000000000,
+   "websocketResponseCheckTimeout": 30000000,
+   "websocketResponseMaxLimit": 7000000000,
+   "websocketTrafficTimeout": 30000000000,
+   "baseCurrencies": "EUR,USD,CAD,GBP,JPY",
+   "currencyPairs": {
+    "pairs": {
+     "futures": {
+      "assetEnabled": true,
+      "enabled": "FI_ETHUSD_220325",
+      "available": "PI_XBTUSD,PI_ETHUSD,PI_LTCUSD,PI_BCHUSD,PI_XRPUSD,FI_ETHUSD_211231,FI_XBTUSD_211231,FI_XBTUSD_220325,FI_ETHUSD_220325,FI_XRPUSD_211231,FI_BCHUSD_211231,FI_LTCUSD_211231,FI_XBTUSD_211029,FI_ETHUSD_211029,FI_BCHUSD_211029,FI_XRPUSD_211029,FI_LTCUSD_211029",
+      "requestFormat": {
+       "uppercase": true,
+       "delimiter": "_"
+      },
+      "configFormat": {
+       "uppercase": true,
+       "delimiter": "_"
+      }
+     },
+     "spot": {
+      "assetEnabled": true,
+      "enabled": "XBT-USD,XRP-XBT",
+      "available": "BCH_USD,EOS_XBT,GRT_USD,USDT_USD,USDC_USDT,ETH2.S_ETH,EUR_CHF,KSM_EUR,MATIC_EUR,MATIC_GBP,SRM_EUR,STORJ_USD,LPT_GBP,PAXG_XBT,PERP_EUR,SOL_USD,USDT_GBP,MLN_XBT,REP_USD,ENJ_XBT,FLOW_XBT,KAVA_USD,SUSHI_EUR,MLN_EUR,EUR_CAD,EUR_GBP,LINK_XBT,XBT_AUD,INJ_EUR,XBT_USDC,XLM_GBP,YFI_ETH,REN_GBP,SNX_XBT,USDT_CHF,ADA_EUR,REN_EUR,SC_USD,SUSHI_GBP,SUSHI_XBT,ANT_ETH,EWT_GBP,WAVES_ETH,YFI_GBP,WBTC_XBT,BAL_EUR,BAL_USD,CRV_USD,FIL_AUD,KEEP_USD,LTC_USDT,SRM_USD,XBT_USD,AUD_JPY,BAT_ETH,LSK_XBT,REN_USD,USDC_USD,XLM_XBT,BAT_USD,STORJ_EUR,XLM_USD,AAVE_XBT,ANKR_EUR,COMP_ETH,LTC_AUD,MINA_EUR,MOVR_EUR,XTZ_AUD,ETH_EUR,KAVA_EUR,MINA_GBP,OMG_EUR,RARI_XBT,SNX_EUR,TBTC_ETH,ETC_USD,WBTC_USD,AAVE_EUR,BCH_XBT,BNT_USD,GRT_XBT,NANO_XBT,SNX_USD,SRM_XBT,REP_ETH,XRP_EUR,XMR_USD,BCH_AUD,BCH_GBP,EOS_ETH,FLOW_EUR,MANA_XBT,MLN_USD,XBT_CAD,BAND_EUR,KNC_USD,LPT_EUR,RARI_GBP,YFI_AUD,ADA_AUD,COMP_XBT,CRV_ETH,DASH_USD,USDT_AUD,USDT_JPY,XTZ_ETH,ADA_USDT,ETH_CHF,OCEAN_USD,OXY_EUR,QTUM_XBT,XMR_EUR,AAVE_GBP,DOT_EUR,MATIC_USD,OGN_EUR,OMG_XBT,UNI_EUR,LTC_USD,ADA_ETH,ATOM_AUD,BCH_EUR,SAND_XBT,SC_ETH,UNI_USD,CRV_XBT,LINK_USDT,OXT_XBT,SUSHI_USD,ADA_USD,ATOM_ETH,BAL_XBT,EOS_EUR,GRT_GBP,STORJ_XBT,REP_EUR,USDT_EUR,DOT_USDT,GRT_AUD,INJ_USD,LRC_EUR,OXT_ETH,RARI_USD,SOL_EUR,NANO_ETH,SOL_XBT,TBTC_XBT,ETC_EUR,GNO_XBT,ANT_XBT,LRC_USD,LSK_ETH,XDG_EUR,XRP_XBT,BCH_JPY,KEEP_XBT,MANA_EUR,MIR_EUR,TBTC_EUR,YFI_USD,TRX_EUR,AAVE_AUD,BNT_EUR,KAR_USD,LSK_EUR,MKR_EUR,MOVR_USD,QTUM_USD,USD_JPY,ATOM_USD,FIL_GBP,LPT_USD,OCEAN_XBT,REN_XBT,UNI_XBT,GHST_XBT,GNO_USD,SAND_USD,EWT_XBT,KEEP_EUR,QTUM_ETH,SNX_GBP,ZRX_XBT,EUR_AUD,FLOW_ETH,KSM_GBP,PAXG_ETH,ZEC_EUR,CQT_USD,DOT_ETH,GHST_USD,KAVA_ETH,XLM_AUD,YFI_EUR,ZRX_EUR,QTUM_EUR,AAVE_ETH,ANKR_GBP,ANKR_XBT,BCH_USDT,KEEP_ETH,LINK_AUD,LPT_XBT,REPV2_USD,SAND_GBP,SC_XBT,USDT_CAD,TRX_USD,ADA_GBP,EUR_JPY,FIL_USD,LTC_GBP,MATIC_XBT,MKR_GBP,RAY_USD,ETH_CAD,ETH_USD,ZEC_XBT,BADGER_EUR,ICX_ETH,LINK_USD,MINA_USD,NANO_EUR,OMG_ETH,SOL_GBP,USD_CHF,ANKR_USD,AXS_USD,BAND_USD,BAT_EUR,DYDX_USD,PAXG_EUR,PAXG_USD,WAVES_XBT,XRP_JPY,DOT_AUD,ICX_USD,STORJ_ETH,WAVES_USD,XDG_USDT,XTZ_USD,XRP_CAD,EWT_USD,KNC_EUR,KSM_XBT,MIR_USD,LTC_JPY,CTSI_USD,DAI_USDT,XRP_USDT,ZEC_USD,OXY_USD,1inch_USD,ALGO_EUR,ATOM_XBT,CHZ_USD,DASH_XBT,ENJ_USD,GNO_ETH,SDN_EUR,XLM_EUR,GBP_USD,EOS_USDT,FIL_ETH,FLOW_USD,LSK_USD,USDC_EUR,LTC_EUR,XTZ_EUR,TBTC_USD,BCH_ETH,DAI_EUR,DASH_EUR,ETH_USDT,ICX_XBT,KSM_DOT,SRM_GBP,ETH_USDC,LINK_ETH,OGN_USD,REPV2_XBT,USDC_GBP,XBT_DAI,XBT_JPY,REPV2_EUR,ETH_XBT,1inch_EUR,ALGO_USD,MINA_XBT,OMG_USD,SNX_AUD,FIL_XBT,KSM_USD,LINK_EUR,LTC_ETH,XBT_CHF,ETH_GBP,MLN_ETH,AAVE_USD,DAI_USD,GRT_EUR,ETH_JPY,AUD_USD,KNC_ETH,MANA_USD,BNT_GBP,DOT_GBP,DOT_USD,EOS_USD,GRT_ETH,KAVA_XBT,KNC_XBT,MKR_XBT,CHZ_EUR,KSM_ETH,NANO_USD,SNX_ETH,ZRX_GBP,BNT_XBT,ENJ_GBP,LINK_GBP,SC_EUR,XTZ_XBT,XDG_XBT,YFI_XBT,ADA_XBT,BAL_ETH,KAR_EUR,KSM_AUD,UNI_ETH,REP_XBT,ALGO_GBP,AXS_EUR,CQT_EUR,DOT_XBT,DYDX_EUR,GHST_EUR,OCEAN_GBP,XBT_EUR,XMR_XBT,ANT_EUR,ANT_USD,ICX_EUR,OCEAN_EUR,REPV2_ETH,TRX_XBT,USD_CAD,CRV_EUR,GNO_EUR,MKR_USD,XBT_USDT,ETC_ETH,XBT_GBP,XRP_USD,COMP_EUR,EWT_EUR,FIL_EUR,MANA_ETH,SAND_EUR,USDC_AUD,EUR_USD,ALGO_XBT,ATOM_EUR,GHST_GBP,RAY_EUR,SDN_USD,XDG_USD,XTZ_GBP,ALGO_ETH,BAT_XBT,PERP_USD,TRX_ETH,XRP_ETH,BADGER_USD,CTSI_EUR,LTC_XBT,ZRX_USD,ENJ_EUR,ETH_AUD,OXT_EUR,RARI_EUR,WAVES_EUR,ETC_XBT,XRP_AUD,ATOM_GBP,COMP_USD,ETH_DAI,FLOW_GBP,OXT_USD,WBTC_EUR,XRP_GBP",
+      "requestFormat": {
+       "uppercase": true,
+       "separator": ","
+      },
+      "configFormat": {
+       "uppercase": true,
+       "delimiter": "_",
+       "separator": ","
+      }
+     }
+    }
+   },
+   "api": {
+    "authenticatedSupport": false,
+    "authenticatedWebsocketApiSupport": false,
+    "credentials": {
+     "key": "Key",
+     "secret": "Secret"
+    },
+    "credentialsValidator": {
+     "requiresKey": true,
+     "requiresSecret": true,
+     "requiresBase64DecodeSecret": true
+    },
+    "urlEndpoints": {
+     "RestFuturesURL": "https://futures.kraken.com/derivatives",
+     "RestSpotURL": "https://api.kraken.com",
+     "WebsocketSpotURL": "wss://ws.kraken.com"
+    }
+   },
+   "features": {
+    "supports": {
+     "restAPI": true,
+     "restCapabilities": {
+      "tickerBatching": true,
+      "autoPairUpdates": true
+     },
+     "websocketAPI": true,
+     "websocketCapabilities": {}
+    },
+    "enabled": {
+     "autoPairUpdates": true,
+     "websocketAPI": false,
+     "saveTradeData": false
+    }
+   },
+   "bankAccounts": [
+    {
+     "enabled": false,
+     "bankName": "",
+     "bankAddress": "",
+     "bankPostalCode": "",
+     "bankPostalCity": "",
+     "bankCountry": "",
+     "accountName": "",
+     "accountNumber": "",
+     "swiftCode": "",
+     "iban": "",
+     "supportedCurrencies": ""
+    }
+   ],
+   "orderbook": {
+    "verificationBypass": false,
+    "websocketBufferLimit": 5,
+    "websocketBufferEnabled": false
+   }
+  },
+  {
    "name": "Kraken",
    "enabled": true,
    "verbose": false,

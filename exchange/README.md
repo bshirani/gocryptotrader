@@ -1,17 +1,9 @@
-# GoCryptoTrader package Exchanges
-
 ## Current Features for exchanges
 
 + This package is used to connect and query data from supported exchanges.
-
 + Please checkout individual exchange README for more information on
 implementation
 
 ## Guide for adding a new exchange
 
 + A guide on implementing API support for a new exchange can be found [here](../docs/ADD_NEW_EXCHANGE.md)
-
-## websocket notes
-
-+ If contributing websocket improvements, please make sure order reports
-follow [these rules](../docs/WS_ORDER_EVENTS.md).

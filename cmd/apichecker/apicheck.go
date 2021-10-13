@@ -21,6 +21,7 @@ import (
 	"gocryptotrader/exchange"
 	"gocryptotrader/exchange/request"
 	"gocryptotrader/log"
+
 	"golang.org/x/net/html"
 )
 

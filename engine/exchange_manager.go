@@ -20,6 +20,7 @@ import (
 	"gocryptotrader/exchanges/coinbene"
 	"gocryptotrader/exchanges/coinut"
 	"gocryptotrader/exchanges/exmo"
+	"gocryptotrader/exchanges/fake"
 	"gocryptotrader/exchanges/ftx"
 	"gocryptotrader/exchanges/gateio"
 	"gocryptotrader/exchanges/gemini"
@@ -168,6 +169,8 @@ func (m *ExchangeManager) NewExchangeByName(name string) (exchange.IBotExchange,
 		exch = new(exmo.EXMO)
 	case "coinbasepro":
 		exch = new(coinbasepro.CoinbasePro)
+	case "fake":
+		exch = new(fake.Fake)
 	case "ftx":
 		exch = new(ftx.FTX)
 	case "gateio":
