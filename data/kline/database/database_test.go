@@ -19,8 +19,8 @@ import (
 	"gocryptotrader/database/testhelpers"
 	"gocryptotrader/engine"
 	"gocryptotrader/exchange/asset"
-	gctkline "gocryptotrader/exchanges/kline"
-	gctorder "gocryptotrader/exchanges/order"
+	gctkline "gocryptotrader/exchange/kline"
+	gctorder "gocryptotrader/exchange/order"
 )
 
 const (

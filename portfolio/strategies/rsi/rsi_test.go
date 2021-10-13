@@ -10,13 +10,13 @@ import (
 	"gocryptotrader/common"
 	"gocryptotrader/data"
 	"gocryptotrader/data/kline"
-	"gocryptotrader/strategies/base"
+	"gocryptotradere/portfolio/strategies/base"
 	"gocryptotrader/eventtypes/event"
 	eventkline "gocryptotrader/eventtypes/kline"
 	"gocryptotrader/eventtypes/signal"
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange/asset"
-	gctkline "gocryptotrader/exchanges/kline"
+	gctkline "gocryptotrader/exchange/kline"
 )
 
 func TestName(t *testing.T) {

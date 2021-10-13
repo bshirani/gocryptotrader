@@ -7,7 +7,7 @@ import (
 
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange/asset"
-	gctkline "gocryptotrader/exchanges/kline"
+	gctkline "gocryptotrader/exchange/kline"
 )
 
 func TestEvent_AppendWhy(t *testing.T) {

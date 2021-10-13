@@ -7,7 +7,7 @@ import (
 	"github.com/shopspring/decimal"
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange/asset"
-	"gocryptotrader/exchanges/kline"
+	"gocryptotrader/exchange/kline"
 )
 
 const testExchange = "binance"

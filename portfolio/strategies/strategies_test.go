@@ -4,9 +4,9 @@ import (
 	"errors"
 	"testing"
 
-	"gocryptotrader/strategies/base"
-	"gocryptotrader/strategies/dollarcostaverage"
-	"gocryptotrader/strategies/rsi"
+	"gocryptotradere/portfolio/strategies/base"
+	"gocryptotradere/portfolio/strategies/dollarcostaverage"
+	"gocryptotradere/portfolio/strategies/rsi"
 )
 
 func TestGetStrategies(t *testing.T) {

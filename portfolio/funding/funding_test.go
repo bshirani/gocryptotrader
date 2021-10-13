@@ -9,8 +9,8 @@ import (
 	"gocryptotrader/common"
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange/asset"
-	gctkline "gocryptotrader/exchanges/kline"
-	gctorder "gocryptotrader/exchanges/order"
+	gctkline "gocryptotrader/exchange/kline"
+	gctorder "gocryptotrader/exchange/order"
 )
 
 var (

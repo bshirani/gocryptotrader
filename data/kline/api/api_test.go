@@ -11,7 +11,7 @@ import (
 	"gocryptotrader/currency"
 	"gocryptotrader/engine"
 	"gocryptotrader/exchange/asset"
-	gctkline "gocryptotrader/exchanges/kline"
+	gctkline "gocryptotrader/exchange/kline"
 )
 
 const testExchange = "binance"

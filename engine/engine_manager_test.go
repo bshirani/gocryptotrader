@@ -11,7 +11,7 @@ import (
 
 	"github.com/shopspring/decimal"
 	"gocryptotrader/common"
-	"gocryptotrader/bt_config"
+	"gocryptotrader/config"
 	"gocryptotrader/data"
 	"gocryptotrader/data/kline"
 	"gocryptotrader/backtester/eventhandlers/eventholder"
@@ -19,9 +19,9 @@ import (
 	"gtc"
 	"gocryptotrader/risk"
 	"gocryptotrader/size"
-	"gocryptotrader/strategies"
-	"gocryptotrader/strategies/base"
-	"gocryptotrader/strategies/dollarcostaverage"
+	"gocryptotradere/portfolio/strategies"
+	"gocryptotradere/portfolio/strategies/base"
+	"gocryptotradere/portfolio/strategies/dollarcostaverage"
 	"gocryptotrader/statistics"
 	"gocryptotrader/statistics/currencystatistics"
 	"gocryptotrader/portfolio/funding"
@@ -35,7 +35,7 @@ import (
 	"gocryptotrader/engine"
 	gctexchange "gocryptotrader/exchanges"
 	"gocryptotrader/exchange/asset"
-	gctkline "gocryptotrader/exchanges/kline"
+	gctkline "gocryptotrader/exchange/kline"
 )
 
 const testExchange = "Bitstamp"

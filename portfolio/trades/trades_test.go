@@ -13,8 +13,8 @@ import (
 	"gocryptotrader/portfolio/funding"
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange/asset"
-	gctkline "gocryptotrader/exchanges/kline"
-	"gocryptotrader/exchanges/order"
+	gctkline "gocryptotrader/exchange/kline"
+	"gocryptotrader/exchange/order"
 )
 
 const (

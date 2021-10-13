@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/shopspring/decimal"
-	gctorder "gocryptotrader/exchanges/order"
+	gctorder "gocryptotrader/exchange/order"
 )
 
 func TestSetDirection(t *testing.T) {

@@ -6,10 +6,10 @@ import (
 
 	"github.com/shopspring/decimal"
 	"gocryptotrader/backtester/eventhandlers/exchange"
-	config "gocryptotrader/bt_config"
+	config "gocryptotrader/config"
 	"gocryptotrader/common"
 	"gocryptotrader/eventtypes/order"
-	gctorder "gocryptotrader/exchanges/order"
+	gctorder "gocryptotrader/exchange/order"
 )
 
 func TestSizingAccuracy(t *testing.T) {

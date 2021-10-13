@@ -13,7 +13,7 @@ import (
 	"gocryptotrader/eventtypes/kline"
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange/asset"
-	gctkline "gocryptotrader/exchanges/kline"
+	gctkline "gocryptotrader/exchange/kline"
 )
 
 func TestGetBase(t *testing.T) {

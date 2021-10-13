@@ -8,7 +8,7 @@ import (
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchanges/bitstamp"
-	gctorder "gocryptotrader/exchanges/order"
+	gctorder "gocryptotrader/exchange/order"
 )
 
 func TestRandomSlippage(t *testing.T) {

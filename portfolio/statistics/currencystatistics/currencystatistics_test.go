@@ -6,16 +6,16 @@ import (
 
 	"github.com/shopspring/decimal"
 	"gocryptotrader/common"
-	"gocryptotrader/compliance"
-	"gocryptotrader/holdings"
+	"gocryptotrader/portfolio/compliance"
+	"portfolio/holdings"
 	"gocryptotrader/eventtypes/event"
 	"gocryptotrader/eventtypes/kline"
 	"gocryptotrader/eventtypes/signal"
 	"gocryptotrader/portfolio/funding"
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange/asset"
-	gctkline "gocryptotrader/exchanges/kline"
-	"gocryptotrader/exchanges/order"
+	gctkline "gocryptotrader/exchange/kline"
+	"gocryptotrader/exchange/order"
 )
 
 const testExchange = "binance"
