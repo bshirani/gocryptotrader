@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"gocryptotrader/exchange/order"
 	"gocryptotrader/portfolio/strategies/base"
 	"gocryptotrader/portfolio/strategies/rsi"
 	"gocryptotrader/portfolio/strategies/trend"
@@ -12,11 +11,9 @@ import (
 )
 
 // LoadStrategyByName returns the strategy by its name
-func LoadStrategyByName(name string, direction order.Side, useSimultaneousProcessing bool) (Handler, error) {
+func LoadStrategyByName(name string) (Handler, error) {
 	strats := GetStrategies()
 	for i := range strats {
-		strats[i].SetDirection(direction)
-
 		if !strings.EqualFold(name, strats[i].Name()) {
 			continue
 		}
@@ -31,6 +28,7 @@ func LoadStrategyByName(name string, direction order.Side, useSimultaneousProces
 		// }
 		return strats[i], nil
 	}
+	fmt.Printf("strategy '%v' %w", name, base.ErrStrategyNotFound)
 	return nil, fmt.Errorf("strategy '%v' %w", name, base.ErrStrategyNotFound)
 }
 

@@ -91,12 +91,12 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	pos := p.GetPositionForStrategy(s.ID)
 	if !pos.Active {
 		// check for entry
-		if s.Direction() == order.Sell {
+		if s.Strategy.GetDirection() == order.Sell {
 			if latestRSIValue.GreaterThanOrEqual(s.rsiHigh) {
 				es.SetDecision(signal.Enter)
 				es.SetDirection(order.Sell)
 			}
-		} else if s.Direction() == order.Buy {
+		} else if s.Strategy.GetDirection() == order.Buy {
 			if latestRSIValue.LessThanOrEqual(s.rsiLow) {
 				es.SetDecision(signal.Enter)
 				es.SetDirection(order.Buy)

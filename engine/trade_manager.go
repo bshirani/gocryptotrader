@@ -642,16 +642,40 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 	}
 
 	var slit []strategies.Handler
+	var s strategies.Handler
+
 	for _, strat := range cfg.StrategiesSettings {
+		fmt.Println("strat", strat, strat.Name)
 		for _, dir := range []gctorder.Side{gctorder.Buy, gctorder.Sell} {
-			s, _ := strategies.LoadStrategyByName(strat.Name, dir, false)
-			id := fmt.Sprintf("%s_%s_%v", s.Name(), string(dir), s.GetPair())
-			s.SetID(id)
-			s.SetDefaults()
-			slit = append(slit, s)
+			for c, _ := range cfg.CurrencySettings {
+				fmt.Println("c", c)
+				fmt.Println("lookup strategy", strat.Name)
+				s, _ = strategies.LoadStrategyByName(strat.Name)
+
+				// fmt.Println("type of s", reflect.New(reflect.TypeOf(s)))
+
+				// fmt.Println("type", reflect.New(reflect.ValueOf(s).Elem().Type()).Interface())
+				// fmt.Println("valueof", reflect.New(reflect.ValueOf(s).Elem().Type()))
+				// strategy = reflect.New(reflect.ValueOf(s).Elem().Type()).Interface().(strategy.Handler)
+				// fmt.Println("loaded", strategy)
+
+				s.SetID("hello")
+				s.GetID()
+
+				id := fmt.Sprintf("%s_%s_%v", s.Name())
+				id = fmt.Sprintf("%s_%s_%v", s.Name(), string(dir), s.GetPair())
+				s.SetID(id)
+				if s.GetID() == "" {
+					fmt.Println("no strategy id")
+					os.Exit(2)
+				}
+				s.SetDefaults()
+				slit = append(slit, s)
+			}
 		}
 	}
 	tm.Strategies = slit
+	os.Exit(2)
 
 	// if tm.verbose {
 	log.Infof(log.TradeManager, "Loaded %d strategies\n", len(tm.Strategies))

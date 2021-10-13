@@ -70,9 +70,6 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, sh SizeHandler, r risk
 
 	// set initial opentrade/positions
 	for _, s := range p.strategies {
-		fmt.Println("loading strategy name", s.Name)
-		// for each pair
-		s.SetID(fmt.Sprintf("%s_%s_%s", s.Name, s.Direction()))
 		p.store.positions[s.GetID()] = &positions.Position{}
 		p.store.closedTrades[s.GetID()] = make([]*livetrade.Details, 0)
 		p.store.openOrders[s.GetID()] = make([]*liveorder.Details, 0)

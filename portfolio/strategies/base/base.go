@@ -30,6 +30,10 @@ func (s *Strategy) GetID() string {
 	return s.ID
 }
 
+func (s *Strategy) GetDirection() order.Side {
+	return s.direction
+}
+
 // GetBaseData returns the non-interface version of the Handler
 func GetBaseData(d data.Handler) (signal.Signal, error) {
 	if d == nil {
@@ -96,9 +100,9 @@ func (s *Strategy) SetExchangeLevelFunding(b bool) {
 	s.usingExchangeLevelFunding = b
 }
 
-func (s *Strategy) Direction() order.Side {
-	return s.direction
-}
+// func (s *Strategy) Direction() order.Side {
+// 	return s.direction
+// }
 
 func (s *Strategy) SetDirection(direction order.Side) {
 	s.direction = direction

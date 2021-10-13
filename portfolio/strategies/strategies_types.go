@@ -14,12 +14,11 @@ import (
 type Handler interface {
 	SetID(string)
 	GetID() string
-	Direction() order.Side
+	GetDirection() order.Side
 	GetPair() currency.Pair
 	SetPair(currency.Pair)
 	Name() string
 	Stop()
-	Description() string
 	OnData(data.Handler, base.StrategyPortfolioHandler, base.FactorEngineHandler) (signal.Event, error)
 	OnSimultaneousSignals([]data.Handler, base.StrategyPortfolioHandler, base.FactorEngineHandler) ([]signal.Event, error)
 	UsingSimultaneousProcessing() bool
