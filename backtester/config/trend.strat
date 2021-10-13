@@ -9,7 +9,7 @@
  ],
  "currency-settings": [
   {
-   "exchange-name": "fake",
+   "exchange-name": "kraken",
    "asset": "spot",
    "base": "XBT",
    "quote": "USD",
@@ -20,11 +20,6 @@
   "interval": 60000000000,
   "data-type": "candle",
   "live-data": {
-   "api-key-override": "",
-   "api-secret-override": "",
-   "api-client-id-override": "",
-   "api-2fa-override": "",
-   "api-sub-account-override": "",
    "real-orders": false
   },
   "database-data": {

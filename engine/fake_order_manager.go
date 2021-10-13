@@ -202,7 +202,7 @@ func (m *FakeOrderManager) processSubmittedOrder(newOrder *order.Submit, result 
 		return nil, fmt.Errorf("unable to add %v order %v to orderStore: %s", newOrder.Exchange, result.OrderID, err)
 	}
 
-	// // custom on submit callback
+	// // // custom on submit callback
 	// if m.onSubmit != nil {
 	// 	m.onSubmit(resp)
 	// }
@@ -213,5 +213,6 @@ func (m *FakeOrderManager) processSubmittedOrder(newOrder *order.Submit, result 
 			OrderID:       result.OrderID,
 		},
 		InternalOrderID: id.String(),
+		StrategyID:      newOrder.StrategyID,
 	}, nil
 }

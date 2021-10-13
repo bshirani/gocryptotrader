@@ -67,7 +67,7 @@ func (m *OrderManager) Start() error {
 }
 
 func (m *OrderManager) Update() {
-	fmt.Println("updating order manager from trade manager")
+	// fmt.Println("updating order manager from trade manager")
 }
 
 // Stop attempts to shutdown the subsystem

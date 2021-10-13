@@ -69,9 +69,7 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	pos := p.GetPositionForStrategy(s.GetID())
 	orders := p.GetOpenOrdersForStrategy(s.GetID())
 	if len(orders) > 0 {
-		fmt.Printf("%s has %d orders\n", s.GetID(), len(orders))
-		fmt.Println("order type:", orders[0].OrderType)
-		fmt.Println("order status:", orders[0].Status)
+		fmt.Printf("%s has %d orders type %s\n", s.GetID(), len(orders), orders[0].OrderType, orders[0].Status)
 	}
 	if !pos.Active && len(orders) == 0 {
 		es.SetDecision(signal.Enter)

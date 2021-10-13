@@ -75,6 +75,7 @@ type RealOrderManager struct {
 type OrderSubmitResponse struct {
 	order.SubmitResponse
 	InternalOrderID string
+	StrategyID      string
 }
 
 // OrderUpsertResponse contains a copy of the resulting order details and a bool

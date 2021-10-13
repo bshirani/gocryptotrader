@@ -9,10 +9,15 @@ import (
 type Submit struct {
 	event.Base
 	InternalOrderID string
+	OrderID         string
+	StrategyID      string
+	IsOrderPlaced   bool
 }
 
 // Event holds all functions required to handle a fill event
 type Event interface {
 	eventtypes.EventHandler
 	GetInternalOrderID() string
+	GetOrderID() string
+	GetIsOrderPlaced() bool
 }

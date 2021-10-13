@@ -105,7 +105,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 }
 
 func (tm *TradeManager) setOrderManagerCallbacks() {
-	tm.Bot.OrderManager.SetOnSubmit(tm.onSubmit)
+	// tm.Bot.OrderManager.SetOnSubmit(tm.onSubmit)
 	tm.Bot.OrderManager.SetOnFill(tm.onFill)
 	tm.Bot.OrderManager.SetOnCancel(tm.onCancel)
 }
@@ -875,8 +875,8 @@ func (tm *TradeManager) handleEvent(ev eventtypes.EventHandler) error {
 		tm.processSubmitEvent(eType)
 	case cancel.Event:
 		tm.processCancelEvent(eType)
-	// case fill.Event:
-	// 	tm.processFillEvent(eType)
+	case fill.Event:
+		tm.processFillEvent(eType)
 	default:
 		return fmt.Errorf("%w %v received, could not process",
 			errUnhandledDatatype,
@@ -1004,25 +1004,14 @@ func (tm *TradeManager) processSignalEvent(ev signal.Event) {
 	}
 }
 
-func (tm *TradeManager) onSubmit(o *OrderSubmitResponse) {
-	// convert to submit event
-	// fmt.Println("tmonsubmit", o)
-	if o.InternalOrderID == "" {
-		fmt.Println("error order has no internal order id")
-	}
-
-	// find the order here ?
-	// just provide the order id here
-	submitEvent := &submit.Submit{
-		InternalOrderID: o.InternalOrderID,
-	}
-	fmt.Println("submit event", submitEvent.InternalOrderID)
-	tm.EventQueue.AppendEvent(submitEvent)
-}
-
+// creates a fill event based on an order submit response
 func (tm *TradeManager) onFill(o *OrderSubmitResponse) {
+	// fmt.Println("onFill for strategy:", o.StrategyID)
 	// convert to submit event
-	ev := &fill.Fill{}
+	ev := &fill.Fill{
+		StrategyID: o.StrategyID,
+		OrderID:    o.SubmitResponse.OrderID,
+	}
 	tm.EventQueue.AppendEvent(ev)
 }
 
@@ -1034,6 +1023,11 @@ func (tm *TradeManager) onCancel(o *OrderSubmitResponse) {
 }
 
 func (tm *TradeManager) processSubmitEvent(ev submit.Event) {
+	// fmt.Println("processing submit event", ev.GetStrategyID())
+	if ev.GetStrategyID() == "" {
+		log.Error(log.TradeManager, "submit event has no strategy ID")
+		return
+	}
 	// convert order submit response to submit.Event here
 	tm.Portfolio.OnSubmit(ev)
 }
@@ -1043,29 +1037,31 @@ func (tm *TradeManager) processCancelEvent(ev cancel.Event) {
 }
 
 func (tm *TradeManager) processFillEvent(ev fill.Event) {
-	fmt.Println("processFillEvent")
-	// tm.Portfolio.OnFill(ev)
+	tm.Portfolio.OnFill(ev)
 }
 
 // new orders
 func (tm *TradeManager) processOrderEvent(o order.Event) {
+	if o.GetStrategyID() == "" {
+		log.Error(log.TradeManager, "order event has no strategy ID")
+	} else {
+		gctlog.Debugln(log.TradeManager, "creating order for", o.GetStrategyID())
+	}
 	d := tm.Datas.GetDataForCurrency(o.GetExchange(), o.GetAssetType(), o.Pair())
 	// this blocks and returns a submission event
-	ev, err := tm.ExecuteOrder(o, d, tm.Bot.FakeOrderManager)
+	submitEvent, err := tm.ExecuteOrder(o, d, tm.Bot.FakeOrderManager)
 
-	// we need to ensure that we are calling the order manager to process at every tick
-	// the trade manager and fake order manager are highly related
-	// the need to operate syncronously
-	// how do we handle submissions?
-	// is the order always immediately submitted?
-	// yes, the order is always immediately submitted.
-	// so we cannot let the fake order manager to be processing orders separately
-	// it has to be done syncronously with the trade manager at each bar event
-	// the order manager should have an onBar method that gets updated along with data events
+	// call on submit here
+
 	if err != nil {
 		log.Error(log.TradeManager, err)
+		return
 	}
-	tm.EventQueue.AppendEvent(ev)
+	if submitEvent.GetStrategyID() == "" {
+		log.Error(log.TradeManager, "Not strategy ID in order event")
+		return
+	}
+	tm.EventQueue.AppendEvent(submitEvent)
 }
 
 // ---------------------------
@@ -1302,12 +1298,10 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 
 	omr, err := om.Submit(context.TODO(), submission)
 	if err != nil {
-		fmt.Println("tm: ERROR order manager response", err, submission.Side)
+		fmt.Println("tm: ERROR order manager submission", err, submission.Side, omr)
 	}
 
 	// fmt.Println("tm: order manager response", omr)
-
-	tm.onSubmit(omr)
 
 	// if order is placed, update the status of the order to Open
 
@@ -1328,14 +1322,31 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 			continue
 		}
 		internalOrderID = ords[i].InternalOrderID
+		internalOrderID = ords[i].InternalOrderID
+		ords[i].StrategyID = o.GetStrategyID()
 		ords[i].Date = o.GetTime()
 		ords[i].LastUpdated = o.GetTime()
 		ords[i].CloseTime = o.GetTime()
 	}
 
-	return &submit.Submit{
+	ev := &submit.Submit{
+		IsOrderPlaced:   omr.IsOrderPlaced,
 		InternalOrderID: internalOrderID,
-	}, nil // transform into submit signal
+		StrategyID:      o.GetStrategyID(),
+	} // transform into submit event
+
+	if ev.GetInternalOrderID() == "" {
+		fmt.Println("error order has no internal order id")
+	}
+
+	if ev.IsOrderPlaced {
+		// fmt.Println("TM ORDERPLACED, create fill event")
+		tm.onFill(omr)
+	} else {
+		fmt.Println("TM ERROR: ORDERPLACED NOT")
+	}
+
+	return ev, nil
 }
 
 func (p *Portfolio) sizeOfflineOrder(high, low, volume decimal.Decimal, cs *ExchangeAssetPairSettings, f *fill.Fill) (adjustedPrice, adjustedAmount decimal.Decimal, err error) {

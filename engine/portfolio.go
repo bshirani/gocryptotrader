@@ -50,6 +50,7 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, sh SizeHandler, r risk
 	p.store.positions = make(map[string]*positions.Position)
 	p.store.openTrade = make(map[string]*livetrade.Details)
 	p.store.openOrders = make(map[string][]*liveorder.Details)
+	p.store.closedOrders = make(map[string][]*liveorder.Details)
 	p.store.closedTrades = make(map[string][]*livetrade.Details)
 
 	// load open trade from the database
@@ -105,43 +106,13 @@ func (p *Portfolio) Reset() {
 }
 
 func (p *Portfolio) OnSubmit(submit submit.Event) {
-	fmt.Println("portfolio received submitted order", submit)
-
-	// get the order from the order manager's store
-	details, _ := p.orderManager.GetOrdersSnapshot(gctorder.Filled)
-	fmt.Println("count filled", len(details))
-
-	ords, _ := p.orderManager.GetOrdersSnapshot(gctorder.Open)
-
-	var internalOrderID string
-	for i := range ords {
-		if ords[i].InternalOrderID != submit.GetInternalOrderID() {
-			continue
-		}
-		internalOrderID = ords[i].InternalOrderID
-		// ords[i].Date = o.GetTime()
-		// ords[i].LastUpdated = o.GetTime()
-		// ords[i].CloseTime = o.GetTime()
-	}
-	fmt.Println("count open", len(details))
-	fmt.Println("found order", internalOrderID)
-
-	if internalOrderID == "" {
-		fmt.Println("error portfolio no internal order id")
-	}
-
-	// get teh strategy id of the order
-
-	// remove from open orders
-	// p.store.openOrders[ev.GetStrategyID()] = append(p.store.openOrders[ev.GetStrategyID()], &lo)
-	// fmt.Println(p.orderManager.GetOrdersSnapshot(""))
-
-	// update the order status to open
-	// find the order from the store
+	// fmt.Println(submit.GetStrategyID(), "portfolio.OnSubmit", submit.GetInternalOrderID())
+	// p.store.closedOrders[submit.GetStrategyID()] = append(p.store.closedOrders[submit.GetStrategyID()], ord)
+	// p.store.openOrders[submit.GetStrategyID()] = make([]*liveorder.Details, 0)
 }
 
 func (p *Portfolio) OnCancel(cancel cancel.Event) {
-	fmt.Println("portfolio received cancelled order", cancel)
+	// fmt.Println("portfolio received cancelled order", cancel)
 }
 
 // OnSignal receives the event from the strategy on whether it has signalled to buy, do nothing or sell
