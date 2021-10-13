@@ -5,12 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shopspring/decimal"
 	"gocryptotrader/backtester/eventhandlers/exchange"
-	"gocryptotrader/portfolio/funding"
 	"gocryptotrader/common"
-	"gocryptotrader/portfolio/compliance"
 	"gocryptotrader/currency"
+	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/event"
 	"gocryptotrader/eventtypes/fill"
 	"gocryptotrader/eventtypes/kline"
@@ -18,10 +16,14 @@ import (
 	"gocryptotrader/eventtypes/signal"
 	"gocryptotrader/exchange/asset"
 	gctorder "gocryptotrader/exchange/order"
-	"portfolio/holdings"
+	"gocryptotrader/portfolio/compliance"
+	"gocryptotrader/portfolio/funding"
 	"gocryptotrader/risk"
 	"gocryptotrader/settings"
 	"gocryptotrader/size"
+	"portfolio/holdings"
+
+	"github.com/shopspring/decimal"
 )
 
 const testExchange = "binance"

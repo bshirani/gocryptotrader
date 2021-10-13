@@ -1,15 +1,16 @@
-package engine
+package engine_test
 
 import (
 	"errors"
 	"testing"
 
-	"github.com/shopspring/decimal"
 	"gocryptotrader/backtester/eventhandlers/exchange"
 	config "gocryptotrader/config"
-	"gocryptotrader/common"
+	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/order"
 	gctorder "gocryptotrader/exchange/order"
+
+	"github.com/shopspring/decimal"
 )
 
 func TestSizingAccuracy(t *testing.T) {
