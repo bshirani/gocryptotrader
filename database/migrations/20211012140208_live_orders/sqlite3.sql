@@ -2,13 +2,12 @@
 -- +goose StatementBegin
 CREATE TABLE live_order (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-
     status text NOT NULL,
     order_type text NOT NULL,
     exchange text NOT NULL,
-
-    side text,
+    strategy_id TEXT NOT NULL,
     internal_id text NOT NULL,
+    side text,
     client_order_id text,
     amount REAL,
     symbol text,

@@ -20,7 +20,7 @@ import (
 	"gocryptotrader/portfolio/holdings"
 	"gocryptotrader/portfolio/positions"
 	"gocryptotrader/portfolio/risk"
-	"gocryptotrader/portfolio/strategies"
+	"gocryptotrader/portfolio/strategies/base"
 
 	"github.com/shopspring/decimal"
 )
@@ -63,7 +63,7 @@ type Portfolio struct {
 	riskManager               risk.Handler
 	factorEngine              *FactorEngine
 	bot                       *Engine
-	strategies                []strategies.Handler
+	strategies                []*base.Strategy
 	store                     portfolioStore
 	exchangeAssetPairSettings map[string]map[asset.Item]map[currency.Pair]*PortfolioSettings
 }

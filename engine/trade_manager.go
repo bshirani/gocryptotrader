@@ -47,14 +47,14 @@ import (
 
 // Helper method for starting from live engine
 // New returns a new TradeManager instance
-func NewTradeManager(bot *Engine, om ExecutionHandler) (*TradeManager, error) {
+func NewTradeManager(bot *Engine) (*TradeManager, error) {
 	wd, err := os.Getwd()
 	configPath := filepath.Join(wd, "backtester", "config", "trend.strat")
 	btcfg, err := config.ReadConfigFromFile(configPath)
 	if err != nil {
 		return nil, err
 	}
-	return NewTradeManagerFromConfig(btcfg, "xx", "xx", bot, om)
+	return NewTradeManagerFromConfig(btcfg, "xx", "xx", bot)
 }
 
 // Reset TradeManager values to default
@@ -71,7 +71,7 @@ func (tm *TradeManager) Reset() {
 }
 
 // NewFromConfig takes a strategy config and configures a backtester variable to run
-func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, bot *Engine, om ExecutionHandler) (*TradeManager, error) {
+func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, bot *Engine) (*TradeManager, error) {
 	log.Debugln(log.TradeManager, "TradeManager: Initializing...")
 	if cfg == nil {
 		return nil, errNilConfig
@@ -98,160 +98,16 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 		OutputPath:   output,
 	}
 	tm.Reports = reports
+	tm.Bot = bot
 
-	err := tm.setupBot(cfg, bot)
-	if err != nil {
-		return nil, err
-	}
-
-	buyRule := config.MinMax{
-		MinimumSize:  cfg.PortfolioSettings.BuySide.MinimumSize,
-		MaximumSize:  cfg.PortfolioSettings.BuySide.MaximumSize,
-		MaximumTotal: cfg.PortfolioSettings.BuySide.MaximumTotal,
-	}
-	sellRule := config.MinMax{
-		MinimumSize:  cfg.PortfolioSettings.SellSide.MinimumSize,
-		MaximumSize:  cfg.PortfolioSettings.SellSide.MaximumSize,
-		MaximumTotal: cfg.PortfolioSettings.SellSide.MaximumTotal,
-	}
-	sizeManager := &Size{
-		BuySide:  buyRule,
-		SellSide: sellRule,
-	}
-
-	portfolioRisk := &risk.Risk{
-		CurrencySettings: make(map[string]map[asset.Item]map[currency.Pair]*risk.CurrencySettings),
-	}
-	for i := range cfg.CurrencySettings {
-		if portfolioRisk.CurrencySettings[cfg.CurrencySettings[i].ExchangeName] == nil {
-			portfolioRisk.CurrencySettings[cfg.CurrencySettings[i].ExchangeName] = make(map[asset.Item]map[currency.Pair]*risk.CurrencySettings)
-		}
-		var a asset.Item
-		a, err = asset.New(cfg.CurrencySettings[i].Asset)
-		if err != nil {
-			return nil, fmt.Errorf(
-				"%w for %v %v %v. Err %v",
-				errInvalidConfigAsset,
-				cfg.CurrencySettings[i].ExchangeName,
-				cfg.CurrencySettings[i].Asset,
-				cfg.CurrencySettings[i].Base+cfg.CurrencySettings[i].Quote,
-				err)
-		}
-		if portfolioRisk.CurrencySettings[cfg.CurrencySettings[i].ExchangeName][a] == nil {
-			portfolioRisk.CurrencySettings[cfg.CurrencySettings[i].ExchangeName][a] = make(map[currency.Pair]*risk.CurrencySettings)
-		}
-		var curr currency.Pair
-		var b, q currency.Code
-		b = currency.NewCode(cfg.CurrencySettings[i].Base)
-		q = currency.NewCode(cfg.CurrencySettings[i].Quote)
-		curr = currency.NewPair(b, q)
-		var exch exchange.IBotExchange
-		exch, err = bot.ExchangeManager.GetExchangeByName(cfg.CurrencySettings[i].ExchangeName)
-		if err != nil {
-			return nil, err
-		}
-		exchBase := exch.GetBase()
-		var requestFormat currency.PairFormat
-		requestFormat, err = exchBase.GetPairFormat(a, true)
-		if err != nil {
-			return nil, fmt.Errorf("could not format currency %v, %w", curr, err)
-		}
-		curr = curr.Format(requestFormat.Delimiter, requestFormat.Uppercase)
-		err = exchBase.CurrencyPairs.EnablePair(a, curr)
-		if err != nil && !errors.Is(err, currency.ErrPairAlreadyEnabled) {
-			return nil, fmt.Errorf(
-				"could not enable currency %v %v %v. Err %w",
-				cfg.CurrencySettings[i].ExchangeName,
-				cfg.CurrencySettings[i].Asset,
-				cfg.CurrencySettings[i].Base+cfg.CurrencySettings[i].Quote,
-				err)
-		}
-		portfolioRisk.CurrencySettings[cfg.CurrencySettings[i].ExchangeName][a][curr] = &risk.CurrencySettings{
-			MaximumOrdersWithLeverageRatio: cfg.CurrencySettings[i].Leverage.MaximumOrdersWithLeverageRatio,
-			MaxLeverageRate:                cfg.CurrencySettings[i].Leverage.MaximumLeverageRate,
-			MaximumHoldingRatio:            cfg.CurrencySettings[i].MaximumHoldingsRatio,
-		}
-		if cfg.CurrencySettings[i].MakerFee.GreaterThan(cfg.CurrencySettings[i].TakerFee) {
-			log.Warnf(log.TradeManager, "maker fee '%v' should not exceed taker fee '%v'. Please review config",
-				cfg.CurrencySettings[i].MakerFee,
-				cfg.CurrencySettings[i].TakerFee)
-		}
-	}
-
-	var slit []strategies.Handler
-	for _, strat := range cfg.StrategiesSettings {
-		for _, dir := range []gctorder.Side{gctorder.Buy, gctorder.Sell} {
-			s, _ := strategies.LoadStrategyByName(strat.Name, dir, false)
-			id := fmt.Sprintf("%s_%s", s.Name(), string(dir))
-			s.SetID(id)
-			s.SetDefaults()
-			slit = append(slit, s)
-		}
-	}
-	tm.Strategies = slit
-
-	if tm.verbose {
-		log.Infof(log.TradeManager, "Loaded %d strategies\n", len(tm.Strategies))
-	}
-
-	// setup portfolio with strategies
-	var p *Portfolio
-	p, err = SetupPortfolio(tm.Strategies, bot, sizeManager, portfolioRisk, cfg.StatisticSettings.RiskFreeRate)
-	p.SetVerbose(false)
-	if err != nil {
-		return nil, err
-	}
-
-	stats := &statistics.Statistic{
-		StrategyName:                "ok",
-		StrategyNickname:            cfg.Nickname,
-		StrategyDescription:         "ok",
-		StrategyGoal:                cfg.Goal,
-		ExchangeAssetPairStatistics: make(map[string]map[asset.Item]map[currency.Pair]*currencystatistics.CurrencyStatistic),
-		RiskFreeRate:                cfg.StatisticSettings.RiskFreeRate,
-	}
-	tm.Statistic = stats
-	reports.Statistics = stats
-
-	err = tm.setupExchangeSettings(cfg)
-	if err != nil {
-		return nil, err
-	}
-
-	// load from configuration into datastructure
-	// currencysettings returns the data from the config, exchangeassetpairsettings
-	// tm.Exchange = &e
-
-	tm.FactorEngines = make(map[currency.Pair]*FactorEngine)
-	for i := range tm.CurrencySettings {
-		var lookup *PortfolioSettings
-		lookup, err = p.SetupCurrencySettingsMap(tm.CurrencySettings[i].ExchangeName, tm.CurrencySettings[i].AssetType, tm.CurrencySettings[i].CurrencyPair)
-		if err != nil {
-			return nil, err
-		}
-		lookup.Fee = tm.CurrencySettings[i].TakerFee
-		lookup.Leverage = tm.CurrencySettings[i].Leverage
-		lookup.BuySideSizing = tm.CurrencySettings[i].BuySide
-		lookup.SellSideSizing = tm.CurrencySettings[i].SellSide
-		lookup.ComplianceManager = compliance.Manager{
-			Snapshots: []compliance.Snapshot{},
-		}
-		// this needs to be per currency
-		log.Debugf(log.TradeManager, "Initialize Factor Engine for %v\n", tm.CurrencySettings[i].CurrencyPair)
-		fe, _ := SetupFactorEngine(tm.CurrencySettings[i].CurrencyPair)
-		tm.FactorEngines[tm.CurrencySettings[i].CurrencyPair] = fe
-	}
-	tm.Portfolio = p
-
-	// cfg.PrintSetting()
-
-	return tm, nil
+	err := tm.setupBot(cfg)
+	return tm, err
 }
 
 func (tm *TradeManager) setOrderManagerCallbacks() {
-	tm.orderManager.SetOnSubmit(tm.onSubmit)
-	tm.orderManager.SetOnFill(tm.onFill)
-	tm.orderManager.SetOnCancel(tm.onCancel)
+	tm.Bot.OrderManager.SetOnSubmit(tm.onSubmit)
+	tm.Bot.OrderManager.SetOnFill(tm.onFill)
+	tm.Bot.OrderManager.SetOnCancel(tm.onCancel)
 }
 
 // BACKTEST FUNCTIONALITY
@@ -403,7 +259,6 @@ func (tm *TradeManager) RunLive() error {
 		t := time.Now().UTC()
 		t1 := time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location())
 		t2 := time.Date(lc.Year(), lc.Month(), lc.Day(), lc.Hour(), lc.Minute(), 0, 0, t.Location())
-		fmt.Println("data history minute check", pair.CurrencyPair, t1, t2)
 
 		if t2 != t1 {
 			fmt.Println("sync time is off. History Catchup Failed. Exiting.", t1, t2)
@@ -467,8 +322,8 @@ func (tm *TradeManager) Stop() error {
 	// 	return err
 	// }
 
-	if tm.Bot.FakeOrderManager.IsRunning() {
-		tm.Bot.FakeOrderManager.Stop()
+	if tm.Bot.OrderManager.IsRunning() {
+		tm.Bot.OrderManager.Stop()
 	}
 	if tm.Bot.DatabaseManager.IsRunning() {
 		tm.Bot.DatabaseManager.Stop()
@@ -666,41 +521,41 @@ func (tm *TradeManager) loadExchangePairAssetBase(exch, base, quote, ass string)
 // setupBot sets up a basic bot to retrieve exchange data
 // as well as process orders
 // setup order manager, exchange manager, database manager
-func (tm *TradeManager) setupBot(cfg *config.Config, bot *Engine) error {
+func (tm *TradeManager) setupBot(cfg *config.Config) error {
 	var err error
-	tm.Bot = bot
-	tm.Bot.ExchangeManager = SetupExchangeManager()
-
-	for i := range cfg.CurrencySettings {
-		err = tm.Bot.LoadExchange(cfg.CurrencySettings[i].ExchangeName, nil)
-		if err != nil && !errors.Is(err, ErrExchangeAlreadyLoaded) {
-			return err
-		}
-	}
+	// this already run in engine.newfromsettings
+	// tm.Bot.ExchangeManager = SetupExchangeManager()
 
 	if !tm.Bot.Config.LiveMode {
+		for i := range cfg.CurrencySettings {
+			err = tm.Bot.LoadExchange(cfg.CurrencySettings[i].ExchangeName, nil)
+			if err != nil && !errors.Is(err, ErrExchangeAlreadyLoaded) {
+				return err
+			}
+		}
+
 		// start fake order manager here since we don't start engine in live mode
-		bot.FakeOrderManager, err = SetupFakeOrderManager(
-			bot.ExchangeManager,
-			bot.CommunicationsManager,
-			&bot.ServicesWG,
-			bot.Settings.Verbose,
+		tm.Bot.FakeOrderManager, err = SetupFakeOrderManager(
+			tm.Bot.ExchangeManager,
+			tm.Bot.CommunicationsManager,
+			&tm.Bot.ServicesWG,
+			tm.Bot.Settings.Verbose,
 		)
-		tm.orderManager = bot.FakeOrderManager
 		if err != nil {
 			gctlog.Errorf(gctlog.Global, "Fake Order manager unable to setup: %s", err)
 		} else {
-			err = tm.orderManager.Start()
+			err = tm.Bot.FakeOrderManager.Start()
 			if err != nil {
 				gctlog.Errorf(gctlog.Global, "Fake Order manager unable to start: %s", err)
 			}
+			tm.Bot.OrderManager = tm.Bot.FakeOrderManager
 		}
 
 		tm.Bot.DatabaseManager, err = SetupDatabaseConnectionManager(gctdatabase.DB.GetConfig())
 		if err != nil {
 			return err
 		} else {
-			err = bot.DatabaseManager.Start(&bot.ServicesWG)
+			err = tm.Bot.DatabaseManager.Start(&tm.Bot.ServicesWG)
 			if err != nil {
 				gctlog.Errorf(gctlog.Global, "Database manager unable to start: %v", err)
 			}
@@ -708,6 +563,149 @@ func (tm *TradeManager) setupBot(cfg *config.Config, bot *Engine) error {
 
 	}
 
+	if err != nil {
+		return err
+	}
+
+	buyRule := config.MinMax{
+		MinimumSize:  cfg.PortfolioSettings.BuySide.MinimumSize,
+		MaximumSize:  cfg.PortfolioSettings.BuySide.MaximumSize,
+		MaximumTotal: cfg.PortfolioSettings.BuySide.MaximumTotal,
+	}
+	sellRule := config.MinMax{
+		MinimumSize:  cfg.PortfolioSettings.SellSide.MinimumSize,
+		MaximumSize:  cfg.PortfolioSettings.SellSide.MaximumSize,
+		MaximumTotal: cfg.PortfolioSettings.SellSide.MaximumTotal,
+	}
+	sizeManager := &Size{
+		BuySide:  buyRule,
+		SellSide: sellRule,
+	}
+
+	portfolioRisk := &risk.Risk{
+		CurrencySettings: make(map[string]map[asset.Item]map[currency.Pair]*risk.CurrencySettings),
+	}
+	for i := range cfg.CurrencySettings {
+		if portfolioRisk.CurrencySettings[cfg.CurrencySettings[i].ExchangeName] == nil {
+			portfolioRisk.CurrencySettings[cfg.CurrencySettings[i].ExchangeName] = make(map[asset.Item]map[currency.Pair]*risk.CurrencySettings)
+		}
+		var a asset.Item
+		a, err = asset.New(cfg.CurrencySettings[i].Asset)
+		if err != nil {
+			return fmt.Errorf(
+				"%w for %v %v %v. Err %v",
+				errInvalidConfigAsset,
+				cfg.CurrencySettings[i].ExchangeName,
+				cfg.CurrencySettings[i].Asset,
+				cfg.CurrencySettings[i].Base+cfg.CurrencySettings[i].Quote,
+				err)
+		}
+		if portfolioRisk.CurrencySettings[cfg.CurrencySettings[i].ExchangeName][a] == nil {
+			portfolioRisk.CurrencySettings[cfg.CurrencySettings[i].ExchangeName][a] = make(map[currency.Pair]*risk.CurrencySettings)
+		}
+		var curr currency.Pair
+		var b, q currency.Code
+		b = currency.NewCode(cfg.CurrencySettings[i].Base)
+		q = currency.NewCode(cfg.CurrencySettings[i].Quote)
+		curr = currency.NewPair(b, q)
+		var exch exchange.IBotExchange
+		exch, err = tm.Bot.ExchangeManager.GetExchangeByName(cfg.CurrencySettings[i].ExchangeName)
+		if err != nil {
+			return err
+		}
+		exchBase := exch.GetBase()
+		var requestFormat currency.PairFormat
+		requestFormat, err = exchBase.GetPairFormat(a, true)
+		if err != nil {
+			return fmt.Errorf("could not format currency %v, %w", curr, err)
+		}
+		curr = curr.Format(requestFormat.Delimiter, requestFormat.Uppercase)
+		err = exchBase.CurrencyPairs.EnablePair(a, curr)
+		if err != nil && !errors.Is(err, currency.ErrPairAlreadyEnabled) {
+			return fmt.Errorf(
+				"could not enable currency %v %v %v. Err %w",
+				cfg.CurrencySettings[i].ExchangeName,
+				cfg.CurrencySettings[i].Asset,
+				cfg.CurrencySettings[i].Base+cfg.CurrencySettings[i].Quote,
+				err)
+		}
+		portfolioRisk.CurrencySettings[cfg.CurrencySettings[i].ExchangeName][a][curr] = &risk.CurrencySettings{
+			MaximumOrdersWithLeverageRatio: cfg.CurrencySettings[i].Leverage.MaximumOrdersWithLeverageRatio,
+			MaxLeverageRate:                cfg.CurrencySettings[i].Leverage.MaximumLeverageRate,
+			MaximumHoldingRatio:            cfg.CurrencySettings[i].MaximumHoldingsRatio,
+		}
+		if cfg.CurrencySettings[i].MakerFee.GreaterThan(cfg.CurrencySettings[i].TakerFee) {
+			log.Warnf(log.TradeManager, "maker fee '%v' should not exceed taker fee '%v'. Please review config",
+				cfg.CurrencySettings[i].MakerFee,
+				cfg.CurrencySettings[i].TakerFee)
+		}
+	}
+
+	var slit []*base.Strategy
+	for _, strat := range cfg.StrategiesSettings {
+		for _, dir := range []gctorder.Side{gctorder.Buy, gctorder.Sell} {
+			s, _ := strategies.LoadStrategyByName(strat.Name, dir, false)
+			id := fmt.Sprintf("%s_%s_%v", s.Name(), string(dir), s.GetPair())
+			s.SetID(id)
+			s.SetDefaults()
+			slit = append(slit, &s)
+		}
+	}
+	tm.Strategies = slit
+
+	// if tm.verbose {
+	log.Infof(log.TradeManager, "Loaded %d strategies\n", len(tm.Strategies))
+	// }
+
+	// setup portfolio with strategies
+	var p *Portfolio
+	p, err = SetupPortfolio(tm.Strategies, tm.Bot, sizeManager, portfolioRisk, cfg.StatisticSettings.RiskFreeRate)
+	p.SetVerbose(false)
+	if err != nil {
+		return err
+	}
+
+	stats := &statistics.Statistic{
+		StrategyName:                "ok",
+		StrategyNickname:            cfg.Nickname,
+		StrategyDescription:         "ok",
+		StrategyGoal:                cfg.Goal,
+		ExchangeAssetPairStatistics: make(map[string]map[asset.Item]map[currency.Pair]*currencystatistics.CurrencyStatistic),
+		RiskFreeRate:                cfg.StatisticSettings.RiskFreeRate,
+	}
+	tm.Statistic = stats
+
+	err = tm.setupExchangeSettings(cfg)
+	if err != nil {
+		return err
+	}
+
+	// load from configuration into datastructure
+	// currencysettings returns the data from the config, exchangeassetpairsettings
+	// tm.Exchange = &e
+
+	tm.FactorEngines = make(map[currency.Pair]*FactorEngine)
+	for i := range tm.CurrencySettings {
+		var lookup *PortfolioSettings
+		lookup, err = p.SetupCurrencySettingsMap(tm.CurrencySettings[i].ExchangeName, tm.CurrencySettings[i].AssetType, tm.CurrencySettings[i].CurrencyPair)
+		if err != nil {
+			return err
+		}
+		lookup.Fee = tm.CurrencySettings[i].TakerFee
+		lookup.Leverage = tm.CurrencySettings[i].Leverage
+		lookup.BuySideSizing = tm.CurrencySettings[i].BuySide
+		lookup.SellSideSizing = tm.CurrencySettings[i].SellSide
+		lookup.ComplianceManager = compliance.Manager{
+			Snapshots: []compliance.Snapshot{},
+		}
+		// this needs to be per currency
+		log.Debugf(log.TradeManager, "Initialize Factor Engine for %v\n", tm.CurrencySettings[i].CurrencyPair)
+		fe, _ := SetupFactorEngine(tm.CurrencySettings[i].CurrencyPair)
+		tm.FactorEngines[tm.CurrencySettings[i].CurrencyPair] = fe
+	}
+	tm.Portfolio = p
+
+	// cfg.PrintSetting()
 	return nil
 }
 
@@ -850,8 +848,8 @@ func (tm *TradeManager) handleEvent(ev eventtypes.EventHandler) error {
 		tm.processSubmitEvent(eType)
 	case cancel.Event:
 		tm.processCancelEvent(eType)
-	case fill.Event:
-		tm.processFillEvent(eType)
+	// case fill.Event:
+	// 	tm.processFillEvent(eType)
 	default:
 		return fmt.Errorf("%w %v received, could not process",
 			errUnhandledDatatype,
@@ -980,7 +978,6 @@ func (tm *TradeManager) onSubmit(o *OrderSubmitResponse) {
 
 func (tm *TradeManager) onFill(o *OrderSubmitResponse) {
 	// convert to submit event
-	fmt.Println("onFill", o)
 	ev := &fill.Fill{}
 	tm.EventQueue.AppendEvent(ev)
 }
@@ -1003,7 +1000,7 @@ func (tm *TradeManager) processCancelEvent(ev cancel.Event) {
 
 func (tm *TradeManager) processFillEvent(ev fill.Event) {
 	fmt.Println("processFillEvent")
-	tm.Portfolio.OnFill(ev)
+	// tm.Portfolio.OnFill(ev)
 }
 
 // new orders
@@ -1248,11 +1245,9 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 		StrategyID:  o.GetStrategyID(),
 	}
 
-	osr, _ := om.Submit(context.TODO(), submission)
-
+	om.Submit(context.TODO(), submission)
 	resp := &submit.Submit{}
-
-	fmt.Println("order submission response", osr)
+	// fmt.Println("order submission response", osr)
 
 	// update order event order_id, status
 

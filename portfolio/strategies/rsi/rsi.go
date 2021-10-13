@@ -64,9 +64,6 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 		return nil, err
 	}
 
-	// set defaults
-	es.SetStrategy(Name)
-	es.SetStrategyID(s.ID())
 	es.SetPrice(d.Latest().ClosePrice())
 	es.SetAmount(decimal.NewFromFloat(1.0))
 
@@ -91,7 +88,7 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	// fmt.Println("pair", d.Latest().Pair())
 	// fmt.Println(s.Strategy.GetWeight(), m.LastUpdate, m.Close.Last(1))
 
-	pos := p.GetPositionForStrategy(s.Strategy.ID())
+	pos := p.GetPositionForStrategy(s.ID)
 	if !pos.Active {
 		// check for entry
 		if s.Direction() == order.Sell {

@@ -18,7 +18,7 @@
  },
  "logging": {
   "enabled": true,
-  "level": "INFO|WARN|ERROR",
+  "level": "INFO|DEBUG|WARN|ERROR",
   "output": "console",
   "fileSettings": {
    "filename": "log.txt",

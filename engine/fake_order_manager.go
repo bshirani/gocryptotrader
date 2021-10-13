@@ -40,7 +40,7 @@ func SetupFakeOrderManager(exchangeManager iExchangeManager, communicationsManag
 // Submit will take in an order struct, send it to the exchange and
 // populate it in the FakeOrderManager if successful
 func (m *FakeOrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*OrderSubmitResponse, error) {
-	log.Debugln(log.FakeOrderMgr, "Order manager: Order Submitted", newOrder.ID)
+	log.Debugln(log.FakeOrderMgr, "Order manager: Order Submitted", newOrder.Date, newOrder.StrategyID, newOrder.ID)
 
 	if m == nil {
 		return nil, fmt.Errorf("fake order manager %w", ErrNilSubsystem)

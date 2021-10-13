@@ -7,11 +7,12 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gorilla/websocket"
 	"gocryptotrader/common"
 	"gocryptotrader/common/crypto"
 	"gocryptotrader/config"
 	"gocryptotrader/exchange/asset"
+
+	"github.com/gorilla/websocket"
 )
 
 // Vars for the websocket client

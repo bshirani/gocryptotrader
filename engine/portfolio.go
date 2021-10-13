@@ -23,7 +23,7 @@ import (
 	"gocryptotrader/portfolio/holdings"
 	"gocryptotrader/portfolio/positions"
 	"gocryptotrader/portfolio/risk"
-	"gocryptotrader/portfolio/strategies"
+	"gocryptotrader/portfolio/strategies/base"
 	"gocryptotrader/portfolio/trades"
 
 	"github.com/gofrs/uuid"
@@ -31,7 +31,7 @@ import (
 )
 
 // Setup creates a portfolio manager instance and sets private fields
-func SetupPortfolio(st []strategies.Handler, bot *Engine, sh SizeHandler, r risk.Handler, riskFreeRate decimal.Decimal) (*Portfolio, error) {
+func SetupPortfolio(st []*base.Strategy, bot *Engine, sh SizeHandler, r risk.Handler, riskFreeRate decimal.Decimal) (*Portfolio, error) {
 	// log.Infof(log.TradeManager, "Setting up Portfolio")
 	if sh == nil {
 		return nil, errSizeManagerUnset
@@ -70,11 +70,13 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, sh SizeHandler, r risk
 
 	// set initial opentrade/positions
 	for _, s := range p.strategies {
-		s.SetID(fmt.Sprintf("%s_%s", s.Name(), s.Direction()))
-		p.store.positions[s.ID()] = &positions.Position{}
-		p.store.closedTrades[s.ID()] = make([]*livetrade.Details, 0)
-		p.store.openOrders[s.ID()] = make([]*liveorder.Details, 0)
+		// for each pair
+		s.SetID(fmt.Sprintf("%s_%s_%s", s.Name, s.Direction()))
+		p.store.positions[s.ID] = &positions.Position{}
+		p.store.closedTrades[s.ID] = make([]*livetrade.Details, 0)
+		p.store.openOrders[s.ID] = make([]*liveorder.Details, 0)
 		s.SetWeight(decimal.NewFromFloat(1.5))
+
 	}
 
 	// load existing positions from database
@@ -86,6 +88,14 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, sh SizeHandler, r risk
 		pos := p.store.positions[t.StrategyID]
 		pos.Active = true
 	}
+
+	activeOrders, _ := liveorder.Active()
+	for _, t := range activeOrders {
+		p.store.openOrders[t.StrategyID] = append(p.store.openOrders[t.StrategyID], &t)
+	}
+
+	log.Infoln(log.TradeManager, "(live mode) Loaded Trades", len(activeTrades))
+	log.Infoln(log.TradeManager, "(live mode) Loaded Orders", len(activeOrders))
 
 	return p, nil
 }
@@ -148,9 +158,10 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 			OrderType:  "Market",
 			Exchange:   ev.GetExchange(),
 			InternalID: id.String(),
+			StrategyID: ev.GetStrategyID(),
 		}
 
-		if p.bot.Config.LiveMode && !p.bot.Settings.EnableDryRun {
+		if !p.bot.Settings.EnableDryRun {
 			log.Debugln(log.TradeManager, "(live mode) insert trade to db")
 			liveorder.Insert(lo)
 		}
@@ -320,10 +331,10 @@ func (p *Portfolio) OnFill(f fill.Event) {
 	// return fe, nil
 }
 
-func (p *Portfolio) GetStrategy(id string) *strategies.Handler {
+func (p *Portfolio) GetStrategy(id string) *base.Strategy {
 	for _, s := range p.strategies {
-		if s.ID() == id {
-			return &s
+		if s.ID == id {
+			return s
 		}
 	}
 	return nil

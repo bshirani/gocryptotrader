@@ -1,8 +1,9 @@
 package fill
 
 import (
-	"github.com/shopspring/decimal"
 	"gocryptotrader/exchange/order"
+
+	"github.com/shopspring/decimal"
 )
 
 // SetDirection sets the direction
@@ -63,13 +64,4 @@ func (f *Fill) GetOrder() *order.Detail {
 // GetSlippageRate returns the slippage rate
 func (f *Fill) GetSlippageRate() decimal.Decimal {
 	return f.Slippage
-}
-
-// GetSlippageRate returns the slippage rate
-func (f *Fill) GetStrategyID() string {
-	return f.StrategyID
-}
-
-func (f *Fill) SetStrategyID(sid string) {
-	f.StrategyID = sid
 }

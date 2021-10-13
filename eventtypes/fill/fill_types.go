@@ -1,10 +1,11 @@
 package fill
 
 import (
-	"github.com/shopspring/decimal"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/event"
 	"gocryptotrader/exchange/order"
+
+	"github.com/shopspring/decimal"
 )
 
 // Fill is an event that details the events from placing an order

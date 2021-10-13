@@ -102,6 +102,7 @@ func insertSQLite(ctx context.Context, tx *sql.Tx, in Details) (id int64, err er
 		OrderType:  in.OrderType,
 		Exchange:   in.Exchange,
 		InternalID: in.InternalID,
+		StrategyID: in.StrategyID,
 	}
 
 	err = tempInsert.Insert(ctx, tx, boil.Infer())

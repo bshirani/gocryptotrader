@@ -13,12 +13,17 @@ import (
 
 // Strategy is base implementation of the Handler interface
 type Strategy struct {
-	id                        string
+	Name                      string
+	ID                        string
 	pair                      currency.Pair
 	weight                    decimal.Decimal
 	direction                 order.Side
 	useSimultaneousProcessing bool
 	usingExchangeLevelFunding bool
+}
+
+func (s *Strategy) GetName() string {
+	return s.Name
 }
 
 // GetBaseData returns the non-interface version of the Handler
@@ -47,12 +52,8 @@ func GetBaseData(d data.Handler) (signal.Signal, error) {
 	}, nil
 }
 
-func (s *Strategy) ID() string {
-	return s.id
-}
-
 func (s *Strategy) SetID(id string) {
-	s.id = id
+	s.ID = id
 }
 
 func (s *Strategy) GetPair() currency.Pair {
@@ -106,8 +107,4 @@ func (s *Strategy) Stop() {
 	// 	x := s.indicatorValues[i]
 	// 	fmt.Printf("%d,%s,%s\n", x.Timestamp.Unix(), x.rsiValue, x.maValue)
 	// }
-}
-
-func (s *Strategy) GetID() string {
-	return s.id + " my id"
 }

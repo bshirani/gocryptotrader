@@ -1,17 +1,17 @@
 package strategies
 
 import (
-	"github.com/shopspring/decimal"
 	"gocryptotrader/currency"
 	"gocryptotrader/data"
 	"gocryptotrader/eventtypes/signal"
 	"gocryptotrader/exchange/order"
 	"gocryptotrader/portfolio/strategies/base"
+
+	"github.com/shopspring/decimal"
 )
 
 // Handler defines all functions required to run strategies against data events
 type Handler interface {
-	ID() string
 	SetID(string)
 	Direction() order.Side
 	GetPair() currency.Pair

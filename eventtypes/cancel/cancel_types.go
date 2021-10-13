@@ -28,8 +28,6 @@ type Event interface {
 	eventtypes.EventHandler
 	eventtypes.Directioner
 
-	GetStrategyID() string
-	SetStrategyID(string)
 	SetAmount(decimal.Decimal)
 	GetAmount() decimal.Decimal
 	GetClosePrice() decimal.Decimal

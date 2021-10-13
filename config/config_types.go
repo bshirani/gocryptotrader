@@ -101,6 +101,7 @@ type Config struct {
 	DataSettings             DataSettings       `json:"data-settings"`
 	PortfolioSettings        PortfolioSettings  `json:"portfolio-settings"`
 	StatisticSettings        StatisticSettings  `json:"statistic-settings"`
+	TradeManager             TradeManagerConfig `json:"trade-manager"`
 	GoCryptoTraderConfigPath string             `json:"gocryptotrader-config-path"`
 
 	Name                 string                    `json:"name"`
@@ -131,6 +132,12 @@ type Config struct {
 	// encryption session values
 	storedSalt []byte
 	sessionDK  []byte
+}
+
+// DataHistoryManager holds all information required for the data history manager
+type TradeManagerConfig struct {
+	Enabled bool `json:"enabled"`
+	Verbose bool `json:"verbose"`
 }
 
 // DataHistoryManager holds all information required for the data history manager

@@ -45,9 +45,6 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	// bar := fe.Minute().GetCurrentTime()
 	// fmt.Println("straegy on bar", d.Latest().GetTime(), bar)
 
-	// set defaults
-	es.SetStrategy(Name)
-	es.SetStrategyID(s.ID())
 	es.SetPrice(d.Latest().ClosePrice())
 	es.SetAmount(decimal.NewFromFloat(1.0))
 
@@ -66,7 +63,7 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 		return &es, nil
 	}
 
-	pos := p.GetPositionForStrategy(s.Strategy.ID())
+	pos := p.GetPositionForStrategy(s.ID)
 	if !pos.Active {
 		es.SetDecision(signal.Enter)
 	} else {

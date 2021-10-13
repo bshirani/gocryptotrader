@@ -1,9 +1,10 @@
 package signal
 
 import (
-	"github.com/shopspring/decimal"
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange/order"
+
+	"github.com/shopspring/decimal"
 )
 
 // IsSignal returns whether the event is a signal type
@@ -21,17 +22,12 @@ func (s *Signal) GetDirection() order.Side {
 	return s.Direction
 }
 
-// SetStrategy sets the direction
-func (s *Signal) SetStrategy(name string) {
-	s.Strategy = name
-}
-
 func (s *Signal) GetStrategyID() string {
-	return s.StrategyID
+	return s.Base.StrategyID
 }
 
 func (s *Signal) SetStrategyID(st string) {
-	s.StrategyID = st
+	s.Base.StrategyID = st
 }
 
 // SetBuyLimit sets the buy limit

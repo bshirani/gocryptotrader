@@ -3,6 +3,15 @@ package kline
 import "github.com/shopspring/decimal"
 
 // ClosePrice returns the closing price of a kline
+func (k *Kline) GetStrategyID() string {
+	return ""
+}
+
+func (k *Kline) SetStrategyID(s string) {
+	return
+}
+
+// ClosePrice returns the closing price of a kline
 func (k *Kline) ClosePrice() decimal.Decimal {
 	return k.Close
 }

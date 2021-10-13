@@ -47,8 +47,6 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	// fmt.Println("straegy on bar", d.Latest().GetTime(), bar)
 
 	// set defaults
-	es.SetStrategy(Name)
-	es.SetStrategyID(s.ID())
 	es.SetPrice(d.Latest().ClosePrice())
 	es.SetAmount(decimal.NewFromFloat(1.0))
 
@@ -67,18 +65,23 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 		return &es, nil
 	}
 
-	pos := p.GetPositionForStrategy(s.Strategy.ID())
-	if !pos.Active {
+	pos := p.GetPositionForStrategy(s.ID)
+	orders := p.GetOpenOrdersForStrategy(s.ID)
+	if len(orders) > 0 {
+		fmt.Println("trend.go has orderse", len(orders))
+	}
+	if !pos.Active && len(orders) == 0 {
 		es.SetDecision(signal.Enter)
-	} else {
-		es.SetDecision(signal.Exit)
+	}
+	// else {
+	// 	es.SetDecision(signal.Exit)
+	// }
+
+	trade := p.GetTradeForStrategy(s.ID)
+	if trade != nil {
+		fmt.Println("trend.go trade", trade)
 	}
 
-	trade := p.GetTradeForStrategy(s.Strategy.ID())
-	fmt.Println("trend.go trade", trade)
-
-	orders := p.GetOpenOrdersForStrategy(s.Strategy.ID())
-	fmt.Println("trend.go orderse", orders)
 	// else {
 	// 	es.SetDecision(signal.Exit)
 	// 	es.SetDirection(order.Sell)
@@ -94,7 +97,7 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 		daily := fe.Daily()
 		factors := fmt.Sprintf(
 			"%s,%d,%v,%v,%v,%v",
-			s.ID(),
+			s.ID,
 			m.GetCurrentTime().Unix(),
 			m.GetCurrentDateOpen(),
 			m.GetCurrentDateHigh(),

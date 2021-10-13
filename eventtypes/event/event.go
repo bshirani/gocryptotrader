@@ -44,8 +44,13 @@ func (b *Base) GetAssetType() asset.Item {
 }
 
 // GetStrategy returns the strategy
-func (b *Base) GetStrategy() string {
-	return b.Strategy
+func (b *Base) GetStrategyID() string {
+	return b.StrategyID
+}
+
+// GetStrategy returns the strategy
+func (b *Base) SetStrategyID(s string) {
+	b.StrategyID = s
 }
 
 // GetInterval returns the interval

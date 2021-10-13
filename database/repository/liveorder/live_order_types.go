@@ -28,4 +28,5 @@ type Details struct {
 	OrderType  string
 	Exchange   string
 	InternalID string
+	StrategyID string
 }
