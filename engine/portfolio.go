@@ -162,7 +162,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		}
 
 		if !p.bot.Settings.EnableDryRun {
-			log.Debugln(log.TradeManager, "(live mode) insert trade to db")
+			log.Debugln(log.TradeManager, "creating order")
 			liveorder.Insert(lo)
 		}
 

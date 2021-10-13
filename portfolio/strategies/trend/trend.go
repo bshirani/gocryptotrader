@@ -43,8 +43,8 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 		return nil, err
 	}
 
-	// bar := fe.Minute().GetCurrentTime()
-	// fmt.Println("straegy on bar", s.GetID(), d.Latest().GetTime(), bar)
+	bar := fe.Minute().GetCurrentTime()
+	fmt.Println("straegy on bar", s.GetID(), s.GetDirection(), d.Latest().GetTime(), bar)
 
 	// set defaults
 	es.SetPrice(d.Latest().ClosePrice())
