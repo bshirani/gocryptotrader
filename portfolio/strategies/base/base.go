@@ -15,11 +15,20 @@ import (
 type Strategy struct {
 	Name                      string
 	ID                        string
+	NumID                     int
 	pair                      currency.Pair
 	weight                    decimal.Decimal
 	direction                 order.Side
 	useSimultaneousProcessing bool
 	usingExchangeLevelFunding bool
+}
+
+func (s *Strategy) GetNumID() int {
+	return s.NumID
+}
+
+func (s *Strategy) SetNumID(i int) {
+	s.NumID = i
 }
 
 func (s *Strategy) GetName() string {

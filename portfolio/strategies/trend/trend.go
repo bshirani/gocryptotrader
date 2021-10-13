@@ -43,8 +43,8 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 		return nil, err
 	}
 
-	bar := fe.Minute().GetCurrentTime()
-	fmt.Println("straegy on bar", s.GetID(), s.GetDirection(), d.Latest().GetTime(), bar)
+	// bar := fe.Minute().GetCurrentTime()
+	// fmt.Println("straegy on bar", s.GetID(), s.GetDirection(), d.Latest().GetTime(), bar)
 
 	// set defaults
 	es.SetPrice(d.Latest().ClosePrice())
@@ -69,10 +69,13 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	pos := p.GetPositionForStrategy(s.GetID())
 	orders := p.GetOpenOrdersForStrategy(s.GetID())
 	if len(orders) > 0 {
-		fmt.Println("trend.go has orderse", len(orders), s.GetID())
+		fmt.Printf("%s has %d orders\n", s.GetID(), len(orders))
+		fmt.Println("order type:", orders[0].OrderType)
+		fmt.Println("order status:", orders[0].Status)
 	}
 	if !pos.Active && len(orders) == 0 {
 		es.SetDecision(signal.Enter)
+		fmt.Printf("%s go ENTER\n", s.GetID())
 	}
 	// else {
 	// 	es.SetDecision(signal.Exit)

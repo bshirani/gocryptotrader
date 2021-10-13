@@ -37,6 +37,7 @@ type orderManagerConfig struct {
 	AllowedPairs           currency.Pairs
 	AllowedExchanges       []string
 	OrderSubmissionRetries int64
+	LiveMode               bool
 }
 
 // store holds all orders by exchange
@@ -88,6 +89,7 @@ type OrderManagerHandler interface {
 	IsRunning() bool
 	Start() error
 	Stop() error
+	Update()
 
 	Add(o *order.Detail) error
 	Cancel(ctx context.Context, cancel *order.Cancel) error

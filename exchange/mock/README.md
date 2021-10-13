@@ -1,8 +1,5 @@
 # GoCryptoTrader package Mock
 
-
-This mock package is part of the GoCryptoTrader codebase.
-
 ## Mock Testing Suite
 
 ## Current Features for mock

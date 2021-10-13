@@ -173,8 +173,10 @@ func (tm *TradeManager) runLive() error {
 									if !tm.hasHandledEvent {
 										log.Errorf(log.TradeManager, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
 									}
+								} else {
+									fmt.Println("appending data event", d.GetTime())
+									tm.EventQueue.AppendEvent(d)
 								}
-								tm.EventQueue.AppendEvent(d)
 							}
 						}
 					}
@@ -644,12 +646,15 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 	var slit []strategies.Handler
 	var s strategies.Handler
 
+	count := 1
+	fmt.Println("lencfg", len(cfg.StrategiesSettings))
 	for _, strat := range cfg.StrategiesSettings {
 		fmt.Println("strat", strat, strat.Name)
 		for _, dir := range []gctorder.Side{gctorder.Buy, gctorder.Sell} {
 			for _, c := range cfg.CurrencySettings {
 				_, pair, _, _ := tm.loadExchangePairAssetBase(c.ExchangeName, c.Base, c.Quote, c.Asset)
 				s, _ = strategies.LoadStrategyByName(strat.Name)
+				count += 1
 
 				// fmt.Println("type of s", reflect.New(reflect.TypeOf(s)))
 				// fmt.Println("type", reflect.New(reflect.ValueOf(s).Elem().Type()).Interface())
@@ -657,9 +662,9 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 				// strategy = reflect.New(reflect.ValueOf(s).Elem().Type()).Interface().(strategy.Handler)
 				// fmt.Println("loaded", strategy)
 
-				id := fmt.Sprintf("%s_%s_%v", s.Name())
-				id = fmt.Sprintf("%s_%s_%v", s.Name(), string(dir), pair.String())
+				id := fmt.Sprintf("%d_%s_%s_%v", count, s.Name(), string(dir), pair.String())
 				s.SetID(id)
+				s.SetNumID(count)
 				s.SetPair(pair)
 				s.SetDirection(dir)
 
@@ -890,15 +895,23 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 	d := tm.Datas.GetDataForCurrency(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 
 	// update factor engine
-	// fmt.Println("factor on bar update", ev.Pair(), ev.GetTime(), len(tm.FactorEngines[ev.Pair()].Minute().Close))
+	if tm.Bot.Config.LiveMode {
+		fmt.Println("factor on bar update", ev.Pair(), d.Latest().GetTime(), len(tm.FactorEngines[ev.Pair()].Minute().Close))
+	}
 	tm.FactorEngines[ev.Pair()].OnBar(d)
 
 	// HANDLE warmup MODE
 	// in warmup mode, we do not query the strategies
 	if !tm.Warmup {
 		var s signal.Event
+
+		tm.Bot.OrderManager.Update()
+
 		for _, strategy := range tm.Strategies {
 			if strategy.GetPair() == ev.Pair() {
+				if tm.Bot.Config.LiveMode {
+					fmt.Println("Updating strategy", strategy.GetID(), d.Latest().GetTime())
+				}
 				s, err = strategy.OnData(d, tm.Portfolio, tm.FactorEngines[ev.Pair()])
 				tm.EventQueue.AppendEvent(s)
 			}
@@ -993,9 +1006,18 @@ func (tm *TradeManager) processSignalEvent(ev signal.Event) {
 
 func (tm *TradeManager) onSubmit(o *OrderSubmitResponse) {
 	// convert to submit event
-	fmt.Println("tmonsubmit", o)
-	ev := &submit.Submit{}
-	tm.EventQueue.AppendEvent(ev)
+	// fmt.Println("tmonsubmit", o)
+	if o.InternalOrderID == "" {
+		fmt.Println("error order has no internal order id")
+	}
+
+	// find the order here ?
+	// just provide the order id here
+	submitEvent := &submit.Submit{
+		InternalOrderID: o.InternalOrderID,
+	}
+	fmt.Println("submit event", submitEvent.InternalOrderID)
+	tm.EventQueue.AppendEvent(submitEvent)
 }
 
 func (tm *TradeManager) onFill(o *OrderSubmitResponse) {
@@ -1028,7 +1050,18 @@ func (tm *TradeManager) processFillEvent(ev fill.Event) {
 // new orders
 func (tm *TradeManager) processOrderEvent(o order.Event) {
 	d := tm.Datas.GetDataForCurrency(o.GetExchange(), o.GetAssetType(), o.Pair())
+	// this blocks and returns a submission event
 	ev, err := tm.ExecuteOrder(o, d, tm.Bot.FakeOrderManager)
+
+	// we need to ensure that we are calling the order manager to process at every tick
+	// the trade manager and fake order manager are highly related
+	// the need to operate syncronously
+	// how do we handle submissions?
+	// is the order always immediately submitted?
+	// yes, the order is always immediately submitted.
+	// so we cannot let the fake order manager to be processing orders separately
+	// it has to be done syncronously with the trade manager at each bar event
+	// the order manager should have an onBar method that gets updated along with data events
 	if err != nil {
 		log.Error(log.TradeManager, err)
 	}
@@ -1069,7 +1102,7 @@ func (tm *TradeManager) loadLiveDataLoop(resp *kline.DataFromKline, cfg *config.
 		case <-tm.shutdown:
 			return
 		case <-loadNewDataTimer.C:
-			log.Debugf(log.TradeManager, "fetching data for %v %v %v %v", exch.GetName(), a, fPair, cfg.DataSettings.Interval)
+			// log.Debugf(log.TradeManager, "fetching data for %v %v %v %v", exch.GetName(), a, fPair, cfg.DataSettings.Interval)
 			loadNewDataTimer.Reset(time.Second * 15)
 			err = tm.configureLiveDataAPI(resp, cfg, exch, fPair, a, dataType)
 			if err != nil {
@@ -1267,29 +1300,42 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 		StrategyID:  o.GetStrategyID(),
 	}
 
-	om.Submit(context.TODO(), submission)
-	resp := &submit.Submit{}
-	// fmt.Println("order submission response", osr)
+	omr, err := om.Submit(context.TODO(), submission)
+	if err != nil {
+		fmt.Println("tm: ERROR order manager response", err, submission.Side)
+	}
+
+	// fmt.Println("tm: order manager response", omr)
+
+	tm.onSubmit(omr)
+
+	// if order is placed, update the status of the order to Open
 
 	// update order event order_id, status
 
 	// add the submission to the store
 
-	if o.GetStrategyID() == "" {
-		return nil, fmt.Errorf("exchange: order has no strategyid")
-	}
+	// we can call on submit manually here
+
+	// if o.GetStrategyID() == "" {
+	// 	return nil, fmt.Errorf("exchange: order has no strategyid")
+	// }
 
 	ords, _ := om.GetOrdersSnapshot("")
+	var internalOrderID string
 	for i := range ords {
 		if ords[i].ID != o.GetID() {
 			continue
 		}
+		internalOrderID = ords[i].InternalOrderID
 		ords[i].Date = o.GetTime()
 		ords[i].LastUpdated = o.GetTime()
 		ords[i].CloseTime = o.GetTime()
 	}
 
-	return resp, nil
+	return &submit.Submit{
+		InternalOrderID: internalOrderID,
+	}, nil // transform into submit signal
 }
 
 func (p *Portfolio) sizeOfflineOrder(high, low, volume decimal.Decimal, cs *ExchangeAssetPairSettings, f *fill.Fill) (adjustedPrice, adjustedAmount decimal.Decimal, err error) {

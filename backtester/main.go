@@ -104,7 +104,7 @@ func main() {
 		log.Global,
 		"%d trades, %d strategies, %d pairs",
 		len(tm.Portfolio.GetAllClosedTrades()),
-		len(tm.Strategies),
+		len(tm.Bot.Config.StrategiesSettings),
 		len(pairs),
 	)
 

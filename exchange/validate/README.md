@@ -1,8 +1,3 @@
-# GoCryptoTrader package Validate
-
-
-This validate package is part of the GoCryptoTrader codebase.
-
 ## Current Features for validate
 
 + This package allows for validation options to occur exchange side e.g.
@@ -11,7 +6,7 @@ This validate package is part of the GoCryptoTrader codebase.
 
 + Example Usage below:
 
-```go 
+```go
 // import package
 "github.com/thrasher-corp/exchanges/validate"
 
@@ -45,7 +40,7 @@ func (supercritcalinfo *Critical) Validate(opt ...validate.Checker) error {
 	return nil
 }
 
-// define an exchange or package level check that returns a validate.Checker 
+// define an exchange or package level check that returns a validate.Checker
 // interface
 func (supercritcalinfo *Critical) PleaseDontSendMoneyToParents() validate.Checker {
 	return validate.Check(func() error {
@@ -61,13 +56,13 @@ func (supercritcalinfo *Critical) PleaseDontSendMoneyToParents() validate.Checke
 // Now in the package all you have to do is add in your options or not...
 d := Critical{Person: "Mother Dearest", MoneysUSD: 1337.30}
 
-// This should not error 
+// This should not error
 err := d.Validate()
 if err != nil {
 	return err
 }
 
-// This should error 
+// This should error
 err := d.Validate(d.PleaseDontSendMoneyToParents())
 if err != nil {
 	return err

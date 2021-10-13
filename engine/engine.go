@@ -26,7 +26,6 @@ import (
 	"gocryptotrader/utils"
 )
 
-// Engine contains configuration, portfolio manager, exchange & ticker data and is the
 // overarching type across this code base.
 type Engine struct {
 	Config                  *config.Config

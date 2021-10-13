@@ -28,6 +28,7 @@ var (
 
 // Handler contains all functions expected to operate a portfolio manager
 type StrategyPortfolioHandler interface {
+	GetLiveMode() bool
 	ViewHoldingAtTimePeriod(eventtypes.EventHandler) (*holdings.Holding, error)
 	GetPositionForStrategy(string) *positions.Position
 	GetOpenOrdersForStrategy(string) []*liveorder.Details

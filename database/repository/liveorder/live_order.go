@@ -3,7 +3,6 @@ package liveorder
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	"gocryptotrader/database"
 	modelSQLite "gocryptotrader/database/models/sqlite3"
@@ -98,8 +97,8 @@ func Insert(in Details) (int64, error) {
 
 func insertSQLite(ctx context.Context, tx *sql.Tx, in Details) (id int64, err error) {
 	var tempInsert = modelSQLite.LiveOrder{
-		Status:     fmt.Sprintf("%s", in.Status),
-		OrderType:  in.OrderType,
+		Status:     in.Status.String(),
+		OrderType:  in.OrderType.String(),
 		Exchange:   in.Exchange,
 		InternalID: in.InternalID,
 		StrategyID: in.StrategyID,

@@ -115,6 +115,7 @@ type PortfolioHandler interface {
 	OnSubmit(submit.Event)
 	OnCancel(cancel.Event)
 
+	GetLiveMode() bool
 	GetAllClosedTrades() []*livetrade.Details
 
 	ViewHoldingAtTimePeriod(eventtypes.EventHandler) (*holdings.Holding, error)

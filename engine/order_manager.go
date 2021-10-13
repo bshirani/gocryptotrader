@@ -66,6 +66,10 @@ func (m *OrderManager) Start() error {
 	return nil
 }
 
+func (m *OrderManager) Update() {
+	fmt.Println("updating order manager from trade manager")
+}
+
 // Stop attempts to shutdown the subsystem
 func (m *OrderManager) Stop() error {
 	if m == nil {
@@ -423,42 +427,6 @@ func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*Ord
 	}
 
 	return m.processSubmittedOrder(newOrder, result)
-}
-
-// SubmitFake runs through the same process as order submission
-// but does not touch live endpoints
-func (m *OrderManager) SubmitFake(newOrder *order.Submit, resultingOrder order.SubmitResponse, checkExchangeLimits bool) (*OrderSubmitResponse, error) {
-	if m == nil {
-		return nil, fmt.Errorf("order manager %w", ErrNilSubsystem)
-	}
-	if atomic.LoadInt32(&m.started) == 0 {
-		return nil, fmt.Errorf("order manager %w", ErrSubSystemNotStarted)
-	}
-
-	err := m.validate(newOrder)
-	if err != nil {
-		return nil, err
-	}
-	exch, err := m.orderStore.exchangeManager.GetExchangeByName(newOrder.Exchange)
-	if err != nil {
-		return nil, err
-	}
-
-	if checkExchangeLimits {
-		// Checks for exchange min max limits for order amounts before order
-		// execution can occur
-		err = exch.CheckOrderExecutionLimits(newOrder.AssetType,
-			newOrder.Pair,
-			newOrder.Price,
-			newOrder.Amount,
-			newOrder.Type)
-		if err != nil {
-			return nil, fmt.Errorf("order manager: exchange %s unable to place order: %w",
-				newOrder.Exchange,
-				err)
-		}
-	}
-	return m.processSubmittedOrder(newOrder, resultingOrder)
 }
 
 // GetOrdersSnapshot returns a snapshot of all orders in the orderstore. It optionally filters any orders that do not match the status

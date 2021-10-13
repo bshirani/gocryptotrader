@@ -104,7 +104,8 @@ func (p *Portfolio) Reset() {
 }
 
 func (p *Portfolio) OnSubmit(submit submit.Event) {
-	// fmt.Println("portfolio received submitted order", submit)
+	fmt.Println("portfolio received submitted order", submit)
+	// update the order status to open
 	// find the order from the store
 }
 
@@ -154,15 +155,14 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		ev.SetDirection(gctorder.Buy)
 
 		lo := liveorder.Details{
-			Status:     "PENDING",
-			OrderType:  "Market",
+			Status:     gctorder.New,
+			OrderType:  gctorder.Market,
 			Exchange:   ev.GetExchange(),
 			InternalID: id.String(),
 			StrategyID: ev.GetStrategyID(),
 		}
 
 		if !p.bot.Settings.EnableDryRun {
-			log.Debugln(log.TradeManager, "creating order")
 			liveorder.Insert(lo)
 		}
 
@@ -172,11 +172,9 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		ev.SetDirection(gctorder.Sell)
 
 	case signal.DoNothing:
-		// fmt.Println("portfolio: do nothing", ev.GetReason())
 		return nil, nil
 
 	default:
-		fmt.Println("no decision for", ev.GetStrategyID())
 		return nil, errNoDecision
 	}
 
@@ -209,6 +207,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	}
 
 	o.Price = ev.GetPrice()
+	o.Direction = ev.GetDirection()
 	o.OrderType = gctorder.Market
 	o.BuyLimit = ev.GetBuyLimit()
 	o.SellLimit = ev.GetSellLimit()
@@ -228,7 +227,6 @@ func (p *Portfolio) updatePosition(pos *positions.Position, amount decimal.Decim
 // OnFill processes the event after an order has been placed by the exchange. Its purpose is to track holdings for future portfolio decisions.
 func (p *Portfolio) OnFill(f fill.Event) {
 
-	fmt.Println("portfolio.go order has been filled", f)
 	// if f == nil {
 	// 	return nil, eventtypes.ErrNilEvent
 	// }
@@ -618,6 +616,10 @@ func (p *Portfolio) SetupCurrencySettingsMap(exch string, a asset.Item, cp curre
 // 	}
 // 	return p.openTrade, nil
 // }
+
+func (p *Portfolio) GetLiveMode() bool {
+	return p.bot.Config.LiveMode
+}
 
 // GetLatestHoldings returns the latest holdings after being sorted by time
 func (e *PortfolioSettings) GetLatestHoldings() holdings.Holding {

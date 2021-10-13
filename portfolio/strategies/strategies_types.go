@@ -14,6 +14,8 @@ import (
 type Handler interface {
 	SetID(string)
 	GetID() string
+	SetNumID(int)
+	GetNumID() int
 	GetDirection() order.Side
 	GetPair() currency.Pair
 	SetPair(currency.Pair)
