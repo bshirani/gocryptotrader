@@ -3,8 +3,9 @@ package fill
 import (
 	"testing"
 
-	"github.com/shopspring/decimal"
 	gctorder "gocryptotrader/exchange/order"
+
+	"github.com/shopspring/decimal"
 )
 
 func TestSetDirection(t *testing.T) {

@@ -4,16 +4,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shopspring/decimal"
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/kline"
+
+	"github.com/shopspring/decimal"
 )
 
 const testExchange = "binance"
 
 type fakeDataHandler struct {
-	time int
+	time       int
+	strategyID string
 }
 
 func TestBaseDataFunctions(t *testing.T) {
@@ -210,6 +212,14 @@ func (t fakeDataHandler) GetReason() string {
 }
 
 func (t fakeDataHandler) AppendReason(string) {
+}
+
+func (t fakeDataHandler) GetStrategyID() string {
+	return t.strategyID
+}
+
+func (t fakeDataHandler) SetStrategyID(s string) {
+	t.strategyID = s
 }
 
 func (t fakeDataHandler) ClosePrice() decimal.Decimal {
