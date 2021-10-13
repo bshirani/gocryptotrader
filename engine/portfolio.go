@@ -141,10 +141,12 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 			AssetType:    ev.GetAssetType(),
 			Interval:     ev.GetInterval(),
 			Reason:       ev.GetReason(),
+			StrategyID:   ev.GetStrategyID(),
 		},
-		ID:        id.String(),
-		Direction: ev.GetDirection(),
-		Amount:    ev.GetAmount(),
+		ID:         id.String(),
+		Direction:  ev.GetDirection(),
+		Amount:     ev.GetAmount(),
+		StrategyID: ev.GetStrategyID(),
 	}
 
 	switch ev.GetDecision() {

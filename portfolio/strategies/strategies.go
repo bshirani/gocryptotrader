@@ -14,6 +14,7 @@ import (
 func LoadStrategyByName(name string) (Handler, error) {
 	strats := GetStrategies()
 	for i := range strats {
+
 		if !strings.EqualFold(name, strats[i].Name()) {
 			continue
 		}

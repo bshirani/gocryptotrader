@@ -5,8 +5,7 @@
   "name": "trend"
  },
  "strategies-settings": [
- { "name": "trend" },
- { "name": "trend2" }
+ { "name": "trend" }
  ],
  "currency-settings": [
   {

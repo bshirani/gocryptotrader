@@ -647,24 +647,23 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 	for _, strat := range cfg.StrategiesSettings {
 		fmt.Println("strat", strat, strat.Name)
 		for _, dir := range []gctorder.Side{gctorder.Buy, gctorder.Sell} {
-			for c, _ := range cfg.CurrencySettings {
-				fmt.Println("c", c)
-				fmt.Println("lookup strategy", strat.Name)
+			for _, c := range cfg.CurrencySettings {
+				_, pair, _, _ := tm.loadExchangePairAssetBase(c.ExchangeName, c.Base, c.Quote, c.Asset)
 				s, _ = strategies.LoadStrategyByName(strat.Name)
 
 				// fmt.Println("type of s", reflect.New(reflect.TypeOf(s)))
-
 				// fmt.Println("type", reflect.New(reflect.ValueOf(s).Elem().Type()).Interface())
 				// fmt.Println("valueof", reflect.New(reflect.ValueOf(s).Elem().Type()))
 				// strategy = reflect.New(reflect.ValueOf(s).Elem().Type()).Interface().(strategy.Handler)
 				// fmt.Println("loaded", strategy)
 
-				s.SetID("hello")
-				s.GetID()
-
 				id := fmt.Sprintf("%s_%s_%v", s.Name())
-				id = fmt.Sprintf("%s_%s_%v", s.Name(), string(dir), s.GetPair())
+				id = fmt.Sprintf("%s_%s_%v", s.Name(), string(dir), pair.String())
 				s.SetID(id)
+				s.SetPair(pair)
+				s.SetDirection(dir)
+
+				// validate strategy
 				if s.GetID() == "" {
 					fmt.Println("no strategy id")
 					os.Exit(2)
@@ -675,7 +674,6 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 		}
 	}
 	tm.Strategies = slit
-	os.Exit(2)
 
 	// if tm.verbose {
 	log.Infof(log.TradeManager, "Loaded %d strategies\n", len(tm.Strategies))
@@ -892,9 +890,7 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 	d := tm.Datas.GetDataForCurrency(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 
 	// update factor engine
-	if tm.Portfolio.GetVerbose() {
-		fmt.Println("factor on bar update", ev.Pair(), ev.GetTime(), len(tm.FactorEngines[ev.Pair()].Minute().Close))
-	}
+	// fmt.Println("factor on bar update", ev.Pair(), ev.GetTime(), len(tm.FactorEngines[ev.Pair()].Minute().Close))
 	tm.FactorEngines[ev.Pair()].OnBar(d)
 
 	// HANDLE warmup MODE
@@ -902,8 +898,10 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 	if !tm.Warmup {
 		var s signal.Event
 		for _, strategy := range tm.Strategies {
-			s, err = strategy.OnData(d, tm.Portfolio, tm.FactorEngines[ev.Pair()])
-			tm.EventQueue.AppendEvent(s)
+			if strategy.GetPair() == ev.Pair() {
+				s, err = strategy.OnData(d, tm.Portfolio, tm.FactorEngines[ev.Pair()])
+				tm.EventQueue.AppendEvent(s)
+			}
 		}
 	}
 
