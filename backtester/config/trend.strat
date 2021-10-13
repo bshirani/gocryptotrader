@@ -5,8 +5,7 @@
   "name": "trend"
  },
  "strategies-settings": [
- { "name": "trend" },
- { "name": "trend2" }
+ { "name": "trend" }
  ],
  "currency-settings": [
   {
@@ -14,13 +13,6 @@
    "asset": "spot",
    "base": "XBT",
    "quote": "USD",
-   "initial-quote-funds": "1000"
-  },
-  {
-   "exchange-name": "kraken",
-   "asset": "spot",
-   "base": "XRP",
-   "quote": "XBT",
    "initial-quote-funds": "1000"
   }
  ],
@@ -37,7 +29,7 @@
   },
   "database-data": {
    "start-date": "2021-01-01T00:00:00+10:00",
-   "end-date": "2021-01-01T00:15:00+10:00",
+   "end-date": "2021-01-01T00:02:00+10:00",
    "config-override": {
     "enabled": true,
     "verbose": false,

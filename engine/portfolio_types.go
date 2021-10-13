@@ -59,6 +59,7 @@ type portfolioStore struct {
 type Portfolio struct {
 	verbose                   bool
 	riskFreeRate              decimal.Decimal
+	orderManager              OrderManagerHandler
 	sizeManager               SizeHandler
 	riskManager               risk.Handler
 	factorEngine              *FactorEngine
