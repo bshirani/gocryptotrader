@@ -41,8 +41,6 @@ type Event interface {
 	GetStatus() order.Status
 	SetID(id string)
 	GetID() string
-	SetStrategyID(id string)
-	GetStrategyID() string
 	IsLeveraged() bool
 	GetAllocatedFunds() decimal.Decimal
 }

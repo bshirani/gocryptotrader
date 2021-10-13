@@ -82,24 +82,24 @@ func (o *Order) GetID() string {
 	return o.ID
 }
 
-// SetID sets the order id
-func (o *Order) SetStrategyID(id string) {
-	o.StrategyID = id
-}
+// // SetID sets the order id
+// func (o *Order) SetStrategyID(id string) {
+// 	o.StrategyID = id
+// }
+//
+// // GetID returns the ID
+// func (o *Order) GetStrategyID() string {
+// 	return o.StrategyID
+// }
 
-// GetID returns the ID
-func (o *Order) GetStrategyID() string {
-	return o.StrategyID
-}
-
-// SetID sets the order id
-func (o *Order) SetStrategy(name string) {
-	o.Strategy = name
-}
-
-func (o *Order) GetStrategy() string {
-	return o.Strategy
-}
+// // SetID sets the order id
+// func (o *Order) SetStrategy(name string) {
+// 	o.Strategy = name
+// }
+//
+// func (o *Order) GetStrategy() string {
+// 	return o.Strategy
+// }
 
 // IsLeveraged returns if it is leveraged
 func (o *Order) IsLeveraged() bool {

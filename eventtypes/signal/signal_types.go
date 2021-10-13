@@ -19,7 +19,6 @@ const (
 // Signal contains everything needed for a strategy to raise a signal event
 type Signal struct {
 	event.Base
-	StrategyID string
 	Direction  order.Side
 	Decision   Decision
 	Amount     decimal.Decimal
@@ -45,7 +44,5 @@ type Event interface {
 	GetSellLimit() decimal.Decimal
 	GetBuyLimit() decimal.Decimal
 	GetDecision() Decision
-	GetStrategyID() string
-	SetStrategyID(string)
 	SetDecision(Decision)
 }
