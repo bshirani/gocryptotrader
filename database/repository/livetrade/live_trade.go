@@ -62,17 +62,16 @@ func ByStatus(status order.Status) (out []Details, err error) {
 		return out, database.ErrDatabaseSupportDisabled
 	}
 
-	// whereQM := qm.Where(fmt.Sprintf("status IN ('%s')", status))
-	ret, errS := postgres.LiveTrades().All(context.Background(), database.DB.SQL)
-	// ret.ReloadAll(context.Background(), database.DB.SQL)
+	whereQM := qm.Where(fmt.Sprintf("status IN ('%s')", status))
+	ret, errS := postgres.LiveTrades(whereQM).All(context.Background(), database.DB.SQL)
 
 	for _, x := range ret {
-		fmt.Printf("ByStatus EntryTime  %d ep: %v en:%s up:%s cr:%s\n",
-			x.ID,
-			x.EntryPrice,
-			x.EntryTime,
-			x.UpdatedAt,
-			x.CreatedAt)
+		// fmt.Printf("ByStatus EntryTime  %d ep: %v en:%s up:%s cr:%s\n",
+		// 	x.ID,
+		// 	x.EntryPrice,
+		// 	x.EntryTime,
+		// 	x.UpdatedAt,
+		// 	x.CreatedAt)
 
 		if x.EntryTime.IsZero() {
 			fmt.Println("ERROR entryTime is zero")
@@ -158,18 +157,18 @@ func Update(in *Details) (int64, error) {
 		fmt.Println("error committing update", err)
 		return 0, err
 	}
-	record, err := postgres.LiveTrades().One(context.Background(), database.DB.SQL)
-	if err != nil {
-		fmt.Println("error retrieving update", err)
-		return 0, err
-	}
-	fmt.Println("after update record", record.EntryTime, record.EntryPrice, record.UpdatedAt)
+	// record, err := postgres.LiveTrades().One(context.Background(), database.DB.SQL)
+	// if err != nil {
+	// 	fmt.Println("error retrieving update", err)
+	// 	return 0, err
+	// }
+	// fmt.Println("after update record", record.EntryTime, record.EntryPrice, record.UpdatedAt)
 
 	return id, nil
 }
 
 func insertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int, err error) {
-	boil.DebugMode = true
+	// boil.DebugMode = true
 	entryPrice, _ := in.EntryPrice.Float64()
 	exitPrice, _ := in.ExitPrice.Float64()
 	stopLossPrice, _ := in.StopLossPrice.Float64()
@@ -218,8 +217,6 @@ func updatePostgresql(ctx context.Context, tx *sql.Tx, in []Details) (id int64, 
 			fmt.Println("entrytimezero")
 			log.Errorln(log.DatabaseMgr, "entry time zero")
 			os.Exit(2)
-		} else {
-			fmt.Println("update  entrytime", in[x].EntryTime)
 		}
 		var tempInsert = postgres.LiveTrade{
 			ID:            in[x].ID,

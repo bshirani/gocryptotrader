@@ -262,7 +262,7 @@ func (tm *TradeManager) RunLive() error {
 		// validate the history is populated with current data
 		//
 		lc := retCandle.Candles[len(retCandle.Candles)-1].Timestamp
-		t := time.Now().UTC()
+		t := time.Now()
 		t1 := time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location())
 		t2 := time.Date(lc.Year(), lc.Month(), lc.Day(), lc.Hour(), lc.Minute(), 0, 0, t.Location())
 
@@ -653,7 +653,7 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 
 	count := 0
 	for _, strat := range cfg.StrategiesSettings {
-		fmt.Println("strat", strat, strat.Name)
+		// fmt.Println("strat", strat, strat.Name)
 		// for _, dir := range []gctorder.Side{gctorder.Buy, gctorder.Sell} {
 		for _, c := range cfg.CurrencySettings {
 			_, pair, _, _ := tm.loadExchangePairAssetBase(c.ExchangeName, c.Base, c.Quote, c.Asset)

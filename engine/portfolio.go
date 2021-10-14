@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -9,8 +8,6 @@ import (
 
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
-	"gocryptotrader/database"
-	"gocryptotrader/database/models/postgres"
 	"gocryptotrader/database/repository/liveorder"
 	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/eventtypes"
@@ -81,14 +78,6 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, sh SizeHandler, r risk
 		p.store.openOrders[s.GetID()] = make([]*liveorder.Details, 0)
 		s.SetWeight(decimal.NewFromFloat(1.5))
 
-	}
-
-	// load existing positions from database
-	// only in live mode do we do this
-	// should handle in trademanager
-	ret, _ := postgres.LiveTrades().All(context.Background(), database.DB.SQL)
-	if len(ret) > 0 {
-		fmt.Println("ret", ret[0].EntryTime)
 	}
 
 	activeTrades, _ := livetrade.Active()
@@ -983,9 +972,9 @@ func (p *Portfolio) PrintPortfolioDetails() {
 	for _, t := range active {
 		p.printTradeDetails(&t)
 	}
-	log.Infoln(log.TradeManager, "active orders", len(activeOrders))
-	log.Infoln(log.TradeManager, "active trades", len(active))
-	log.Infoln(log.TradeManager, "closed trades", len(closed))
+	for _, strategy := range p.strategies {
+		log.Infof(log.TradeManager, "%s orders:%d open_trades:%d closed_trades:%d", strategy.GetID(), len(activeOrders), len(active), len(closed))
+	}
 
 	// get strategy last updated time
 	// get factor engine last updated time for each pair
