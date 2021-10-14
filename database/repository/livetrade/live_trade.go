@@ -76,10 +76,10 @@ func ByStatus(status order.Status) (out []Details, err error) {
 			x.UpdatedAt,
 			x.CreatedAt)
 
-		if entryTime.IsZero() {
-			fmt.Println("ERROR entryTime is zero")
-			os.Exit(2)
-		}
+		// if entryTime.IsZero() {
+		// 	fmt.Println("ERROR entryTime is zero")
+		// 	os.Exit(2)
+		// }
 
 		out = append(out, Details{
 			EntryPrice: decimal.NewFromFloat(x.EntryPrice),

@@ -67,11 +67,7 @@ func main() {
 	}
 
 	drv := repository.GetSQLDialect()
-	if drv == database.DBSQLite || drv == database.DBSQLite3 {
-		fmt.Printf("Database file: %s\n", conf.Database.Database)
-	} else {
-		fmt.Printf("Connected to: %s\n", conf.Database.Host)
-	}
+	fmt.Printf("Connected to: %s\n", conf.Database.Host)
 
 	if command == "" {
 		_ = goose.Run("status", dbConn.SQL, drv, migrationDir, "")
