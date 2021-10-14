@@ -36,6 +36,8 @@ type LiveTrade struct {
 	TakeProfitPrice  null.Float64 `boil:"take_profit_price" json:"take_profit_price,omitempty" toml:"take_profit_price" yaml:"take_profit_price,omitempty"`
 	ProfitLossPoints null.Float64 `boil:"profit_loss_points" json:"profit_loss_points,omitempty" toml:"profit_loss_points" yaml:"profit_loss_points,omitempty"`
 	ExitPrice        null.Float64 `boil:"exit_price" json:"exit_price,omitempty" toml:"exit_price" yaml:"exit_price,omitempty"`
+	CreatedAt        string       `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt        string       `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
 	R *liveTradeR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L liveTradeL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -55,6 +57,8 @@ var LiveTradeColumns = struct {
 	TakeProfitPrice  string
 	ProfitLossPoints string
 	ExitPrice        string
+	CreatedAt        string
+	UpdatedAt        string
 }{
 	ID:               "id",
 	Side:             "side",
@@ -69,6 +73,8 @@ var LiveTradeColumns = struct {
 	TakeProfitPrice:  "take_profit_price",
 	ProfitLossPoints: "profit_loss_points",
 	ExitPrice:        "exit_price",
+	CreatedAt:        "created_at",
+	UpdatedAt:        "updated_at",
 }
 
 // Generated where
@@ -87,6 +93,8 @@ var LiveTradeWhere = struct {
 	TakeProfitPrice  whereHelpernull_Float64
 	ProfitLossPoints whereHelpernull_Float64
 	ExitPrice        whereHelpernull_Float64
+	CreatedAt        whereHelperstring
+	UpdatedAt        whereHelperstring
 }{
 	ID:               whereHelperint64{field: "\"live_trade\".\"id\""},
 	Side:             whereHelperstring{field: "\"live_trade\".\"side\""},
@@ -101,6 +109,8 @@ var LiveTradeWhere = struct {
 	TakeProfitPrice:  whereHelpernull_Float64{field: "\"live_trade\".\"take_profit_price\""},
 	ProfitLossPoints: whereHelpernull_Float64{field: "\"live_trade\".\"profit_loss_points\""},
 	ExitPrice:        whereHelpernull_Float64{field: "\"live_trade\".\"exit_price\""},
+	CreatedAt:        whereHelperstring{field: "\"live_trade\".\"created_at\""},
+	UpdatedAt:        whereHelperstring{field: "\"live_trade\".\"updated_at\""},
 }
 
 // LiveTradeRels is where relationship names are stored.
@@ -120,9 +130,9 @@ func (*liveTradeR) NewStruct() *liveTradeR {
 type liveTradeL struct{}
 
 var (
-	liveTradeAllColumns            = []string{"id", "side", "entry_order_id", "entry_price", "entry_time", "stop_loss_price", "strategy_id", "status", "pair", "exit_time", "take_profit_price", "profit_loss_points", "exit_price"}
+	liveTradeAllColumns            = []string{"id", "side", "entry_order_id", "entry_price", "entry_time", "stop_loss_price", "strategy_id", "status", "pair", "exit_time", "take_profit_price", "profit_loss_points", "exit_price", "created_at", "updated_at"}
 	liveTradeColumnsWithoutDefault = []string{}
-	liveTradeColumnsWithDefault    = []string{"id", "side", "entry_order_id", "entry_price", "entry_time", "stop_loss_price", "strategy_id", "status", "pair", "exit_time", "take_profit_price", "profit_loss_points", "exit_price"}
+	liveTradeColumnsWithDefault    = []string{"id", "side", "entry_order_id", "entry_price", "entry_time", "stop_loss_price", "strategy_id", "status", "pair", "exit_time", "take_profit_price", "profit_loss_points", "exit_price", "created_at", "updated_at"}
 	liveTradePrimaryKeyColumns     = []string{"id"}
 )
 

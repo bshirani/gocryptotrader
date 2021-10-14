@@ -4,6 +4,7 @@ import (
 	"errors"
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange/order"
+	"time"
 )
 
 var (
@@ -25,4 +26,6 @@ type Details struct {
 	Exchange   string
 	InternalID string
 	StrategyID string
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }

@@ -13,7 +13,10 @@ CREATE TABLE live_trade (
     exit_time timestamp ,
     take_profit_price REAL,
     profit_loss_points REAL,
-    exit_price REAL
+    exit_price REAL,
+
+    created_at  timestamp not null default CURRENT_TIMESTAMP,
+    updated_at                    timestamp             NOT NULL default CURRENT_TIMESTAMP
 );
 -- +goose Down
 DROP TABLE live_trade;

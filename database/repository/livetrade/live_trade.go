@@ -47,24 +47,38 @@ func one(in, clause string) (out Details, err error) {
 }
 
 func Active() (out []Details, err error) {
+	return ByStatus(order.Open)
+}
+
+func Closed() (out []Details, err error) {
+	return ByStatus(order.Closed)
+}
+
+func ByStatus(status order.Status) (out []Details, err error) {
 	// boil.DebugMode = true
 	if database.DB.SQL == nil {
 		return out, database.ErrDatabaseSupportDisabled
 	}
 
-	whereQM := qm.Where("status IN ('OPEN')")
+	whereQM := qm.Where(fmt.Sprintf("status IN ('%s')", status))
 	ret, errS := modelSQLite.LiveTrades(whereQM).All(context.Background(), database.DB.SQL)
 	layout2 := time.RFC3339
 
 	for _, x := range ret {
-		t2, _ := time.Parse(layout2, x.EntryTime)
+		entryTime, _ := time.Parse(layout2, x.EntryTime)
+		// exitTime, _ := time.Parse(layout2, x.ExitTime)
+		updatedAt, _ := time.Parse(layout2, x.UpdatedAt)
+		createdAt, _ := time.Parse(layout2, x.CreatedAt)
 		out = append(out, Details{
 			EntryPrice: decimal.NewFromFloat(x.EntryPrice),
-			EntryTime:  t2,
+			EntryTime:  entryTime,
+			// ExitTime:   exitTime,
 			ID:         x.ID,
 			StrategyID: x.StrategyID,
 			Status:     order.Status(x.Status),
 			Side:       order.Side(x.Side),
+			UpdatedAt:  updatedAt,
+			CreatedAt:  createdAt,
 		})
 	}
 	if errS != nil {
@@ -79,35 +93,98 @@ func Active() (out []Details, err error) {
 }
 
 // Insert writes a single entry into database
-func Insert(in Details) error {
+func Insert(in Details) (id int64, err error) {
 	if database.DB.SQL == nil {
-		return database.ErrDatabaseSupportDisabled
+		return 0, database.ErrDatabaseSupportDisabled
 	}
 
 	ctx := context.Background()
 	tx, err := database.DB.SQL.BeginTx(ctx, nil)
 	if err != nil {
-		return err
+		return 0, err
 	}
-	err = insertSQLite(ctx, tx, []Details{in})
+	id, err = insertSQLite(ctx, tx, in)
 
 	if err != nil {
 		errRB := tx.Rollback()
 		if errRB != nil {
 			log.Errorln(log.DatabaseMgr, errRB)
 		}
-		return err
+		return 0, err
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	return id, nil
 }
 
-func insertSQLite(ctx context.Context, tx *sql.Tx, in []Details) (err error) {
+// Insert writes a single entry into database
+func Update(in *Details) (int64, error) {
+	if database.DB.SQL == nil {
+		return 0, database.ErrDatabaseSupportDisabled
+	}
+
+	ctx := context.Background()
+	tx, err := database.DB.SQL.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+	fmt.Println("updating trade status", in.Status, in.ID)
+	id, err := updateSQLite(ctx, tx, []Details{*in})
+
+	if err != nil {
+		errRB := tx.Rollback()
+		if errRB != nil {
+			log.Errorln(log.DatabaseMgr, errRB)
+		}
+		return 0, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}
+
+func insertSQLite(ctx context.Context, tx *sql.Tx, in Details) (id int64, err error) {
+	// boil.DebugMode = true
+	entryPrice, _ := in.EntryPrice.Float64()
+	exitPrice, _ := in.ExitPrice.Float64()
+	stopLossPrice, _ := in.StopLossPrice.Float64()
+	fmt.Println("inserting sqlite trade", in.EntryTime)
+
+	var tempInsert = modelSQLite.LiveTrade{
+		EntryPrice:    entryPrice,
+		EntryTime:     in.EntryTime.String(),
+		ExitTime:      null.String{String: in.ExitTime.String()},
+		ExitPrice:     null.Float64{Float64: exitPrice},
+		StopLossPrice: stopLossPrice,
+		Status:        fmt.Sprintf("%s", in.Status),
+		StrategyID:    in.StrategyID,
+		Pair:          in.Pair.String(),
+		EntryOrderID:  in.EntryOrderID,
+		Side:          in.Side.String(),
+	}
+
+	err = tempInsert.Insert(ctx, tx, boil.Infer())
+	if err != nil {
+		log.Errorln(log.DatabaseMgr, err)
+		errRB := tx.Rollback()
+		if errRB != nil {
+			log.Errorln(log.DatabaseMgr, errRB)
+		}
+		return 0, err
+	}
+
+	return tempInsert.ID, nil
+}
+
+func updateSQLite(ctx context.Context, tx *sql.Tx, in []Details) (id int64, err error) {
 	// boil.DebugMode = true
 	for x := range in {
 		entryPrice, _ := in[x].EntryPrice.Float64()
@@ -115,6 +192,8 @@ func insertSQLite(ctx context.Context, tx *sql.Tx, in []Details) (err error) {
 		stopLossPrice, _ := in[x].StopLossPrice.Float64()
 
 		var tempInsert = modelSQLite.LiveTrade{
+			ID:            in[x].ID,
+			UpdatedAt:     time.Now().String(),
 			EntryPrice:    entryPrice,
 			EntryTime:     in[x].EntryTime.String(),
 			ExitTime:      null.String{String: in[x].ExitTime.String()},
@@ -127,16 +206,16 @@ func insertSQLite(ctx context.Context, tx *sql.Tx, in []Details) (err error) {
 			Side:          in[x].Side.String(),
 		}
 
-		err = tempInsert.Insert(ctx, tx, boil.Infer())
+		id, err = tempInsert.Update(ctx, tx, boil.Infer())
 		if err != nil {
 			log.Errorln(log.DatabaseMgr, err)
 			errRB := tx.Rollback()
 			if errRB != nil {
 				log.Errorln(log.DatabaseMgr, errRB)
 			}
-			return err
+			return 0, err
 		}
 	}
 
-	return nil
+	return id, nil
 }

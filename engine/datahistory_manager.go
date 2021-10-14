@@ -312,7 +312,7 @@ func (m *DataHistoryManager) RunJobs() error {
 		return nil
 	}
 
-	log.Infof(log.DataHistory, "processing data history jobs")
+	log.Debugf(log.DataHistory, "processing data history jobs")
 	for i := 0; (i < int(m.maxJobsPerCycle) || m.maxJobsPerCycle == -1) && i < len(validJobs); i++ {
 		err := m.runJob(validJobs[i])
 		if err != nil {
@@ -322,7 +322,7 @@ func (m *DataHistoryManager) RunJobs() error {
 			log.Debugf(log.DataHistory, "completed run of data history job %v", validJobs[i].Nickname)
 		}
 	}
-	log.Infof(log.DataHistory, "completed run of data history jobs")
+	log.Debugf(log.DataHistory, "completed run of data history jobs")
 
 	return nil
 }

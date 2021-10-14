@@ -186,7 +186,8 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	case signal.Enter:
 		lo.Side = gctorder.Buy
 		if !p.bot.Settings.EnableDryRun {
-			liveorder.Insert(lo)
+			id, _ := liveorder.Insert(lo)
+			lo.ID = id
 		}
 
 		p.store.openOrders[ev.GetStrategyID()] = append(p.store.openOrders[ev.GetStrategyID()], &lo)
@@ -242,7 +243,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 
 	p.recordTrade(ev)
 
-	// fmt.Println("NEW ORDER", ev.GetStrategyID())
+	fmt.Println("PORTFOLIO CREATING NEW ORDER FOR", ev.GetDirection(), ev.GetStrategyID(), ev.GetReason())
 
 	return p.evaluateOrder(ev, o, sizedOrder)
 }
@@ -279,6 +280,7 @@ func (p *Portfolio) createTrade(ev fill.Event, order *liveorder.Details) {
 	lt := livetrade.Details{
 		Status:        gctorder.Open,
 		StrategyID:    ev.GetStrategyID(),
+		EntryTime:     foundOrd.Date,
 		EntryOrderID:  foundOrd.ID,
 		EntryPrice:    decimal.NewFromFloat(foundOrd.Price),
 		StopLossPrice: stopLossPrice,
@@ -292,7 +294,8 @@ func (p *Portfolio) createTrade(ev fill.Event, order *liveorder.Details) {
 	}
 
 	if !p.bot.Settings.EnableDryRun {
-		err := livetrade.Insert(lt)
+		id, err := livetrade.Insert(lt)
+		lt.ID = id
 		if err != nil {
 			fmt.Println("error inserting trade", err)
 			os.Exit(2)
@@ -303,11 +306,20 @@ func (p *Portfolio) createTrade(ev fill.Event, order *liveorder.Details) {
 }
 
 func (p *Portfolio) closeTrade(f fill.Event, t *livetrade.Details) {
-	// fmt.Println("close trade", t.Status)
 	if t.Status == gctorder.Open {
 		t.Status = gctorder.Closed
 		p.store.closedTrades[f.GetStrategyID()] = append(p.store.closedTrades[f.GetStrategyID()], t)
 		p.store.openTrade[f.GetStrategyID()] = nil
+
+		if !p.bot.Settings.EnableDryRun {
+			id, err := livetrade.Update(t)
+			t.ID = id
+			if err != nil || id == 0 {
+				fmt.Println("error saving to db")
+				os.Exit(2)
+			}
+		}
+
 	} else {
 		fmt.Println("TRYING TO CLOSE  ALREADY CLOSED TRADE. TRADE IS NOT OPEN")
 		os.Exit(1)
@@ -949,7 +961,9 @@ func (p *Portfolio) printTradeDetails(t *livetrade.Details) {
 func (p *Portfolio) PrintPortfolioDetails() {
 	log.Infoln(log.TradeManager, "portfolio details")
 	active, _ := livetrade.Active()
+	closed, _ := livetrade.Closed()
 	log.Infoln(log.TradeManager, "active trades", len(active))
+	log.Infoln(log.TradeManager, "closed trades", len(closed))
 
 	// get strategy last updated time
 	// get factor engine last updated time for each pair
@@ -963,4 +977,8 @@ func (p *Portfolio) PrintPortfolioDetails() {
 	// log.Infoln(log.TradeManager, "active strategies")
 	// log.Infoln(log.TradeManager, "active pairs")
 	return
+}
+
+func (p *Portfolio) Bot() *Engine {
+	return p.bot
 }

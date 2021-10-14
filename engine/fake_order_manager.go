@@ -49,7 +49,7 @@ func SetupFakeOrderManager(bot *Engine, exchangeManager iExchangeManager, commun
 // Enum: "pending" "open" "closed" "canceled" "expired"
 func (m *FakeOrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*OrderSubmitResponse, error) {
 	if m.bot.Config.LiveMode {
-		log.Debugln(log.FakeOrderMgr, "Order manager: Order Submitted", newOrder.Date, newOrder.StrategyID, newOrder.ID)
+		log.Infoln(log.FakeOrderMgr, "Order manager: Order", newOrder.Side, newOrder.Date, newOrder.StrategyID, newOrder.ID)
 	}
 
 	if m == nil {

@@ -177,7 +177,7 @@ func (tm *TradeManager) runLive() error {
 										log.Errorf(log.TradeManager, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
 									}
 								} else {
-									fmt.Println("appending data event", d.GetTime())
+									// fmt.Println("appending data event", d.GetTime())
 									tm.EventQueue.AppendEvent(d)
 								}
 							}
@@ -654,39 +654,39 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 	count := 0
 	for _, strat := range cfg.StrategiesSettings {
 		fmt.Println("strat", strat, strat.Name)
-		for _, dir := range []gctorder.Side{gctorder.Buy, gctorder.Sell} {
-			for _, c := range cfg.CurrencySettings {
-				_, pair, _, _ := tm.loadExchangePairAssetBase(c.ExchangeName, c.Base, c.Quote, c.Asset)
-				s, _ = strategies.LoadStrategyByName(strat.Name)
-				count += 1
+		// for _, dir := range []gctorder.Side{gctorder.Buy, gctorder.Sell} {
+		for _, c := range cfg.CurrencySettings {
+			_, pair, _, _ := tm.loadExchangePairAssetBase(c.ExchangeName, c.Base, c.Quote, c.Asset)
+			s, _ = strategies.LoadStrategyByName(strat.Name)
+			count += 1
 
-				// fmt.Println("type of s", reflect.New(reflect.TypeOf(s)))
-				// fmt.Println("type", reflect.New(reflect.ValueOf(s).Elem().Type()).Interface())
-				// fmt.Println("valueof", reflect.New(reflect.ValueOf(s).Elem().Type()))
-				// strategy = reflect.New(reflect.ValueOf(s).Elem().Type()).Interface().(strategy.Handler)
-				// fmt.Println("loaded", strategy)
+			// fmt.Println("type of s", reflect.New(reflect.TypeOf(s)))
+			// fmt.Println("type", reflect.New(reflect.ValueOf(s).Elem().Type()).Interface())
+			// fmt.Println("valueof", reflect.New(reflect.ValueOf(s).Elem().Type()))
+			// strategy = reflect.New(reflect.ValueOf(s).Elem().Type()).Interface().(strategy.Handler)
+			// fmt.Println("loaded", strategy)
 
-				id := fmt.Sprintf("%d_%s_%s_%v", count, s.Name(), string(dir), pair.String())
-				s.SetID(id)
-				s.SetNumID(count)
-				s.SetPair(pair)
-				s.SetDirection(dir)
+			id := fmt.Sprintf("%d_%s_%s_%v", count, s.Name(), string(gctorder.Buy), pair.String())
+			s.SetID(id)
+			s.SetNumID(count)
+			s.SetPair(pair)
+			s.SetDirection(gctorder.Buy)
 
-				// validate strategy
-				if s.GetID() == "" {
-					fmt.Println("no strategy id")
-					os.Exit(2)
-				}
-				s.SetDefaults()
-				slit = append(slit, s)
+			// validate strategy
+			if s.GetID() == "" {
+				fmt.Println("no strategy id")
+				os.Exit(2)
 			}
+			s.SetDefaults()
+			slit = append(slit, s)
 		}
+		// }
 	}
 	tm.Strategies = slit
 
-	if tm.verbose {
-		log.Infof(log.TradeManager, "Loaded %d strategies\n", len(tm.Strategies))
-	}
+	// if tm.verbose {
+	log.Infof(log.TradeManager, "Running %d strategies\n", len(tm.Strategies))
+	// }
 
 	// setup portfolio with strategies
 	var p *Portfolio

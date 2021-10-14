@@ -14,12 +14,12 @@ CREATE TABLE live_order (
     price REAL,
     fee REAL,
     cost REAL,
-    created_at  timestamp,
-    updated_at timestamp,
     submitted_at  timestamp,
     cancelled_at  timestamp,
     filled_at  timestamp,
-    asset_type int
+    asset_type int,
+    created_at  timestamp not null default CURRENT_TIMESTAMP,
+    updated_at                    timestamp             NOT NULL default CURRENT_TIMESTAMP
 );
 -- +goose StatementEnd
 -- +goose Down

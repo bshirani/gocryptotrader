@@ -36,12 +36,12 @@ type LiveOrder struct {
 	Price         null.Float64 `boil:"price" json:"price,omitempty" toml:"price" yaml:"price,omitempty"`
 	Fee           null.Float64 `boil:"fee" json:"fee,omitempty" toml:"fee" yaml:"fee,omitempty"`
 	Cost          null.Float64 `boil:"cost" json:"cost,omitempty" toml:"cost" yaml:"cost,omitempty"`
-	CreatedAt     null.String  `boil:"created_at" json:"created_at,omitempty" toml:"created_at" yaml:"created_at,omitempty"`
-	UpdatedAt     null.String  `boil:"updated_at" json:"updated_at,omitempty" toml:"updated_at" yaml:"updated_at,omitempty"`
 	SubmittedAt   null.String  `boil:"submitted_at" json:"submitted_at,omitempty" toml:"submitted_at" yaml:"submitted_at,omitempty"`
 	CancelledAt   null.String  `boil:"cancelled_at" json:"cancelled_at,omitempty" toml:"cancelled_at" yaml:"cancelled_at,omitempty"`
 	FilledAt      null.String  `boil:"filled_at" json:"filled_at,omitempty" toml:"filled_at" yaml:"filled_at,omitempty"`
 	AssetType     null.Int64   `boil:"asset_type" json:"asset_type,omitempty" toml:"asset_type" yaml:"asset_type,omitempty"`
+	CreatedAt     string       `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt     string       `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
 	R *liveOrderR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L liveOrderL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -61,12 +61,12 @@ var LiveOrderColumns = struct {
 	Price         string
 	Fee           string
 	Cost          string
-	CreatedAt     string
-	UpdatedAt     string
 	SubmittedAt   string
 	CancelledAt   string
 	FilledAt      string
 	AssetType     string
+	CreatedAt     string
+	UpdatedAt     string
 }{
 	ID:            "id",
 	Status:        "status",
@@ -81,12 +81,12 @@ var LiveOrderColumns = struct {
 	Price:         "price",
 	Fee:           "fee",
 	Cost:          "cost",
-	CreatedAt:     "created_at",
-	UpdatedAt:     "updated_at",
 	SubmittedAt:   "submitted_at",
 	CancelledAt:   "cancelled_at",
 	FilledAt:      "filled_at",
 	AssetType:     "asset_type",
+	CreatedAt:     "created_at",
+	UpdatedAt:     "updated_at",
 }
 
 // Generated where
@@ -105,12 +105,12 @@ var LiveOrderWhere = struct {
 	Price         whereHelpernull_Float64
 	Fee           whereHelpernull_Float64
 	Cost          whereHelpernull_Float64
-	CreatedAt     whereHelpernull_String
-	UpdatedAt     whereHelpernull_String
 	SubmittedAt   whereHelpernull_String
 	CancelledAt   whereHelpernull_String
 	FilledAt      whereHelpernull_String
 	AssetType     whereHelpernull_Int64
+	CreatedAt     whereHelperstring
+	UpdatedAt     whereHelperstring
 }{
 	ID:            whereHelperint64{field: "\"live_order\".\"id\""},
 	Status:        whereHelperstring{field: "\"live_order\".\"status\""},
@@ -125,12 +125,12 @@ var LiveOrderWhere = struct {
 	Price:         whereHelpernull_Float64{field: "\"live_order\".\"price\""},
 	Fee:           whereHelpernull_Float64{field: "\"live_order\".\"fee\""},
 	Cost:          whereHelpernull_Float64{field: "\"live_order\".\"cost\""},
-	CreatedAt:     whereHelpernull_String{field: "\"live_order\".\"created_at\""},
-	UpdatedAt:     whereHelpernull_String{field: "\"live_order\".\"updated_at\""},
 	SubmittedAt:   whereHelpernull_String{field: "\"live_order\".\"submitted_at\""},
 	CancelledAt:   whereHelpernull_String{field: "\"live_order\".\"cancelled_at\""},
 	FilledAt:      whereHelpernull_String{field: "\"live_order\".\"filled_at\""},
 	AssetType:     whereHelpernull_Int64{field: "\"live_order\".\"asset_type\""},
+	CreatedAt:     whereHelperstring{field: "\"live_order\".\"created_at\""},
+	UpdatedAt:     whereHelperstring{field: "\"live_order\".\"updated_at\""},
 }
 
 // LiveOrderRels is where relationship names are stored.
@@ -150,9 +150,9 @@ func (*liveOrderR) NewStruct() *liveOrderR {
 type liveOrderL struct{}
 
 var (
-	liveOrderAllColumns            = []string{"id", "status", "order_type", "exchange", "strategy_id", "internal_id", "side", "client_order_id", "amount", "symbol", "price", "fee", "cost", "created_at", "updated_at", "submitted_at", "cancelled_at", "filled_at", "asset_type"}
+	liveOrderAllColumns            = []string{"id", "status", "order_type", "exchange", "strategy_id", "internal_id", "side", "client_order_id", "amount", "symbol", "price", "fee", "cost", "submitted_at", "cancelled_at", "filled_at", "asset_type", "created_at", "updated_at"}
 	liveOrderColumnsWithoutDefault = []string{}
-	liveOrderColumnsWithDefault    = []string{"id", "status", "order_type", "exchange", "strategy_id", "internal_id", "side", "client_order_id", "amount", "symbol", "price", "fee", "cost", "created_at", "updated_at", "submitted_at", "cancelled_at", "filled_at", "asset_type"}
+	liveOrderColumnsWithDefault    = []string{"id", "status", "order_type", "exchange", "strategy_id", "internal_id", "side", "client_order_id", "amount", "symbol", "price", "fee", "cost", "submitted_at", "cancelled_at", "filled_at", "asset_type", "created_at", "updated_at"}
 	liveOrderPrimaryKeyColumns     = []string{"id"}
 )
 

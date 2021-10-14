@@ -31,4 +31,6 @@ type Details struct {
 	Status           order.Status
 	Pair             currency.Pair
 	ProfitLossPoints decimal.Decimal
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
 }

@@ -119,42 +119,42 @@ type ModifyResponse struct {
 // Each exchange has their own requirements, so not all fields
 // are required to be populated
 type Detail struct {
-	ImmediateOrCancel    bool
-	HiddenOrder          bool
-	FillOrKill           bool
-	PostOnly             bool
-	Leverage             float64
-	Price                float64
+	AccountID            string
 	Amount               float64
-	LimitPriceUpper      float64
-	LimitPriceLower      float64
-	TriggerPrice         float64
+	AssetType            asset.Item
 	AverageExecutedPrice float64
-	TargetAmount         float64
-	ExecutedAmount       float64
-	RemainingAmount      float64
+	ClientID             string
+	ClientOrderID        string
+	CloseTime            time.Time
 	Cost                 float64
 	CostAsset            currency.Code
+	Date                 time.Time
+	Exchange             string
+	ExecutedAmount       float64
 	Fee                  float64
 	FeeAsset             currency.Code
-	Exchange             string
-	InternalOrderID      string
-	Strategy             string
+	FillOrKill           bool
+	HiddenOrder          bool
 	ID                   string
-	ClientOrderID        string
-	AccountID            string
-	ClientID             string
-	WalletAddress        string
-	Type                 Type
+	ImmediateOrCancel    bool
+	InternalOrderID      string
+	LastUpdated          time.Time
+	Leverage             float64
+	LimitPriceLower      float64
+	LimitPriceUpper      float64
+	Pair                 currency.Pair
+	PostOnly             bool
+	Price                float64
+	RemainingAmount      float64
 	Side                 Side
 	Status               Status
-	AssetType            asset.Item
-	Date                 time.Time
-	CloseTime            time.Time
-	LastUpdated          time.Time
-	Pair                 currency.Pair
-	Trades               []TradeHistory
+	Strategy             string
 	StrategyID           string
+	TargetAmount         float64
+	Trades               []TradeHistory
+	TriggerPrice         float64
+	Type                 Type
+	WalletAddress        string
 }
 
 // Filter contains all properties an order can be filtered for

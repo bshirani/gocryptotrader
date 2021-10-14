@@ -35,6 +35,9 @@ func (s *Strategy) Description() string {
 }
 
 func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe base.FactorEngineHandler) (signal.Event, error) {
+	if p.GetLiveMode() {
+		fmt.Println("trend.go ON DATA")
+	}
 	if d == nil {
 		return nil, eventtypes.ErrNilEvent
 	}
@@ -81,14 +84,25 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 		// fmt.Println(s.GetID(), "has no open orders and can trade")
 		es.SetDecision(signal.Enter)
 	} else {
-		// fmt.Println(s.GetID(), "")
-
-		if trade.ProfitLossPoints.GreaterThan(decimal.NewFromFloat(10)) {
-			fmt.Println("trade profit greater than 10, exiting")
+		secondsInTrade := d.Latest().GetTime().Sub(trade.EntryTime).Seconds()
+		if secondsInTrade > 30 {
 			es.SetDecision(signal.Exit)
+			reason := fmt.Sprintf("%f seconds in trade", secondsInTrade)
+			es.AppendReason(reason)
 		} else {
 			es.SetDecision(signal.DoNothing)
+			es.AppendReason("Less than 30 seconds in trade")
+			fmt.Printf("skipping exit, only %f seconds in trade\n", secondsInTrade)
 		}
+
+		// fmt.Println(s.GetID(), "")
+
+		// if trade.ProfitLossPoints.GreaterThan(decimal.NewFromFloat(10)) {
+		// 	fmt.Println("trade profit greater than 10, exiting")
+		// 	es.SetDecision(signal.Exit)
+		// } else {
+		// 	es.SetDecision(signal.DoNothing)
+		// }
 	}
 	// else {
 	// 	es.SetDecision(signal.Exit)
