@@ -23,69 +23,74 @@ import (
 
 // LiveTrade is an object representing the database table.
 type LiveTrade struct {
-	ID              int64        `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Direction       string       `boil:"direction" json:"direction" toml:"direction" yaml:"direction"`
-	EntryOrderID    string       `boil:"entry_order_id" json:"entry_order_id" toml:"entry_order_id" yaml:"entry_order_id"`
-	EntryPrice      float64      `boil:"entry_price" json:"entry_price" toml:"entry_price" yaml:"entry_price"`
-	StopLossPrice   float64      `boil:"stop_loss_price" json:"stop_loss_price" toml:"stop_loss_price" yaml:"stop_loss_price"`
-	StrategyID      string       `boil:"strategy_id" json:"strategy_id" toml:"strategy_id" yaml:"strategy_id"`
-	Status          string       `boil:"status" json:"status" toml:"status" yaml:"status"`
-	Pair            string       `boil:"pair" json:"pair" toml:"pair" yaml:"pair"`
-	TakeProfitPrice null.Float64 `boil:"take_profit_price" json:"take_profit_price,omitempty" toml:"take_profit_price" yaml:"take_profit_price,omitempty"`
-	ExitPrice       null.Float64 `boil:"exit_price" json:"exit_price,omitempty" toml:"exit_price" yaml:"exit_price,omitempty"`
+	ID               int64        `boil:"id" json:"id" toml:"id" yaml:"id"`
+	Side             string       `boil:"side" json:"side" toml:"side" yaml:"side"`
+	EntryOrderID     string       `boil:"entry_order_id" json:"entry_order_id" toml:"entry_order_id" yaml:"entry_order_id"`
+	EntryPrice       float64      `boil:"entry_price" json:"entry_price" toml:"entry_price" yaml:"entry_price"`
+	StopLossPrice    float64      `boil:"stop_loss_price" json:"stop_loss_price" toml:"stop_loss_price" yaml:"stop_loss_price"`
+	StrategyID       string       `boil:"strategy_id" json:"strategy_id" toml:"strategy_id" yaml:"strategy_id"`
+	Status           string       `boil:"status" json:"status" toml:"status" yaml:"status"`
+	Pair             string       `boil:"pair" json:"pair" toml:"pair" yaml:"pair"`
+	TakeProfitPrice  null.Float64 `boil:"take_profit_price" json:"take_profit_price,omitempty" toml:"take_profit_price" yaml:"take_profit_price,omitempty"`
+	ProfitLossPoints null.Float64 `boil:"profit_loss_points" json:"profit_loss_points,omitempty" toml:"profit_loss_points" yaml:"profit_loss_points,omitempty"`
+	ExitPrice        null.Float64 `boil:"exit_price" json:"exit_price,omitempty" toml:"exit_price" yaml:"exit_price,omitempty"`
 
 	R *liveTradeR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L liveTradeL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var LiveTradeColumns = struct {
-	ID              string
-	Direction       string
-	EntryOrderID    string
-	EntryPrice      string
-	StopLossPrice   string
-	StrategyID      string
-	Status          string
-	Pair            string
-	TakeProfitPrice string
-	ExitPrice       string
+	ID               string
+	Side             string
+	EntryOrderID     string
+	EntryPrice       string
+	StopLossPrice    string
+	StrategyID       string
+	Status           string
+	Pair             string
+	TakeProfitPrice  string
+	ProfitLossPoints string
+	ExitPrice        string
 }{
-	ID:              "id",
-	Direction:       "direction",
-	EntryOrderID:    "entry_order_id",
-	EntryPrice:      "entry_price",
-	StopLossPrice:   "stop_loss_price",
-	StrategyID:      "strategy_id",
-	Status:          "status",
-	Pair:            "pair",
-	TakeProfitPrice: "take_profit_price",
-	ExitPrice:       "exit_price",
+	ID:               "id",
+	Side:             "side",
+	EntryOrderID:     "entry_order_id",
+	EntryPrice:       "entry_price",
+	StopLossPrice:    "stop_loss_price",
+	StrategyID:       "strategy_id",
+	Status:           "status",
+	Pair:             "pair",
+	TakeProfitPrice:  "take_profit_price",
+	ProfitLossPoints: "profit_loss_points",
+	ExitPrice:        "exit_price",
 }
 
 // Generated where
 
 var LiveTradeWhere = struct {
-	ID              whereHelperint64
-	Direction       whereHelperstring
-	EntryOrderID    whereHelperstring
-	EntryPrice      whereHelperfloat64
-	StopLossPrice   whereHelperfloat64
-	StrategyID      whereHelperstring
-	Status          whereHelperstring
-	Pair            whereHelperstring
-	TakeProfitPrice whereHelpernull_Float64
-	ExitPrice       whereHelpernull_Float64
+	ID               whereHelperint64
+	Side             whereHelperstring
+	EntryOrderID     whereHelperstring
+	EntryPrice       whereHelperfloat64
+	StopLossPrice    whereHelperfloat64
+	StrategyID       whereHelperstring
+	Status           whereHelperstring
+	Pair             whereHelperstring
+	TakeProfitPrice  whereHelpernull_Float64
+	ProfitLossPoints whereHelpernull_Float64
+	ExitPrice        whereHelpernull_Float64
 }{
-	ID:              whereHelperint64{field: "\"live_trade\".\"id\""},
-	Direction:       whereHelperstring{field: "\"live_trade\".\"direction\""},
-	EntryOrderID:    whereHelperstring{field: "\"live_trade\".\"entry_order_id\""},
-	EntryPrice:      whereHelperfloat64{field: "\"live_trade\".\"entry_price\""},
-	StopLossPrice:   whereHelperfloat64{field: "\"live_trade\".\"stop_loss_price\""},
-	StrategyID:      whereHelperstring{field: "\"live_trade\".\"strategy_id\""},
-	Status:          whereHelperstring{field: "\"live_trade\".\"status\""},
-	Pair:            whereHelperstring{field: "\"live_trade\".\"pair\""},
-	TakeProfitPrice: whereHelpernull_Float64{field: "\"live_trade\".\"take_profit_price\""},
-	ExitPrice:       whereHelpernull_Float64{field: "\"live_trade\".\"exit_price\""},
+	ID:               whereHelperint64{field: "\"live_trade\".\"id\""},
+	Side:             whereHelperstring{field: "\"live_trade\".\"side\""},
+	EntryOrderID:     whereHelperstring{field: "\"live_trade\".\"entry_order_id\""},
+	EntryPrice:       whereHelperfloat64{field: "\"live_trade\".\"entry_price\""},
+	StopLossPrice:    whereHelperfloat64{field: "\"live_trade\".\"stop_loss_price\""},
+	StrategyID:       whereHelperstring{field: "\"live_trade\".\"strategy_id\""},
+	Status:           whereHelperstring{field: "\"live_trade\".\"status\""},
+	Pair:             whereHelperstring{field: "\"live_trade\".\"pair\""},
+	TakeProfitPrice:  whereHelpernull_Float64{field: "\"live_trade\".\"take_profit_price\""},
+	ProfitLossPoints: whereHelpernull_Float64{field: "\"live_trade\".\"profit_loss_points\""},
+	ExitPrice:        whereHelpernull_Float64{field: "\"live_trade\".\"exit_price\""},
 }
 
 // LiveTradeRels is where relationship names are stored.
@@ -105,9 +110,9 @@ func (*liveTradeR) NewStruct() *liveTradeR {
 type liveTradeL struct{}
 
 var (
-	liveTradeAllColumns            = []string{"id", "direction", "entry_order_id", "entry_price", "stop_loss_price", "strategy_id", "status", "pair", "take_profit_price", "exit_price"}
+	liveTradeAllColumns            = []string{"id", "side", "entry_order_id", "entry_price", "stop_loss_price", "strategy_id", "status", "pair", "take_profit_price", "profit_loss_points", "exit_price"}
 	liveTradeColumnsWithoutDefault = []string{}
-	liveTradeColumnsWithDefault    = []string{"id", "direction", "entry_order_id", "entry_price", "stop_loss_price", "strategy_id", "status", "pair", "take_profit_price", "exit_price"}
+	liveTradeColumnsWithDefault    = []string{"id", "side", "entry_order_id", "entry_price", "stop_loss_price", "strategy_id", "status", "pair", "take_profit_price", "profit_loss_points", "exit_price"}
 	liveTradePrimaryKeyColumns     = []string{"id"}
 )
 

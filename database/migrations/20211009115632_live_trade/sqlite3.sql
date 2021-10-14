@@ -1,7 +1,7 @@
 -- +goose Up
 CREATE TABLE live_trade (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-    direction text not null,
+    side text not null,
     entry_order_id text NOT NULL,
     entry_price REAL NOT NULL,
     stop_loss_price REAL NOT NULL,
@@ -9,6 +9,7 @@ CREATE TABLE live_trade (
     status TEXT NOT NULL,
     pair text NOT NULL,
     take_profit_price REAL,
+    profit_loss_points REAL,
     exit_price REAL
 );
 -- +goose Down

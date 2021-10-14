@@ -138,9 +138,9 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 
 	trade := p.GetTradeForStrategy(ev.GetStrategyID())
 	if trade != nil {
-		if trade.Direction == gctorder.Buy {
+		if trade.Side == gctorder.Buy {
 			trade.ProfitLossPoints = ev.GetPrice().Sub(trade.EntryPrice)
-		} else if trade.Direction == gctorder.Sell {
+		} else if trade.Side == gctorder.Sell {
 			trade.ProfitLossPoints = trade.EntryPrice.Sub(ev.GetPrice())
 		} else {
 			fmt.Println("trade is not sell or buy")
@@ -170,17 +170,17 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		StrategyID: ev.GetStrategyID(),
 	}
 
+	lo := liveorder.Details{
+		Status:     gctorder.New,
+		OrderType:  gctorder.Market,
+		Exchange:   ev.GetExchange(),
+		InternalID: id.String(),
+		StrategyID: ev.GetStrategyID(),
+		Side:       ev.GetDirection(),
+	}
+
 	switch ev.GetDecision() {
 	case signal.Enter:
-		lo := liveorder.Details{
-			Status:     gctorder.New,
-			OrderType:  gctorder.Market,
-			Exchange:   ev.GetExchange(),
-			InternalID: id.String(),
-			StrategyID: ev.GetStrategyID(),
-			Direction:  ev.GetDirection(),
-		}
-
 		if !p.bot.Settings.EnableDryRun {
 			liveorder.Insert(lo)
 		}
@@ -189,18 +189,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 
 	case signal.Exit:
 		ev.SetDirection(gctorder.Sell) // FIXME
-
-		lo := liveorder.Details{
-			Status:     gctorder.New,
-			OrderType:  gctorder.Market,
-			Exchange:   ev.GetExchange(),
-			InternalID: id.String(),
-			StrategyID: ev.GetStrategyID(),
-			Direction:  ev.GetDirection(),
-		}
-
-		// get strategy direction here
-		// find strategy by id
+		lo.Side = gctorder.Sell
 		p.store.openOrders[ev.GetStrategyID()] = append(p.store.openOrders[ev.GetStrategyID()], &lo)
 
 	case signal.DoNothing:
@@ -287,7 +276,7 @@ func (p *Portfolio) createTrade(ev fill.Event, order *liveorder.Details) {
 		StrategyID:   ev.GetStrategyID(),
 		EntryOrderID: foundOrd.ID,
 		EntryPrice:   decimal.NewFromFloat(foundOrd.Price),
-		Direction:    foundOrd.Side,
+		Side:         foundOrd.Side,
 	}
 
 	if lt.EntryPrice.IsZero() {

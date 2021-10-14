@@ -14,19 +14,10 @@ var (
 	ErrTradeNotFound = errors.New("no trade found")
 )
 
-// type Status string
-//
-// // Order side types
-// const (
-// 	Pending Status = "PENDING"
-// 	Open    Status = "OPEN"
-// 	Closed  Status = "CLOSED"
-// )
-
 // Item generic candle holder for modelPSQL & modelSQLite
 type Details struct {
 	ID               int64
-	Direction        order.Side
+	Side             order.Side
 	Name             string
 	EntryPrice       decimal.Decimal
 	ExitPrice        float64
