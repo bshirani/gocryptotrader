@@ -125,6 +125,8 @@ type PortfolioHandler interface {
 	GetTradeForStrategy(string) *livetrade.Details
 	GetPositionForStrategy(string) *positions.Position
 
+	PrintPortfolioDetails()
+
 	SetFee(string, asset.Item, currency.Pair, decimal.Decimal)
 	GetFee(string, asset.Item, currency.Pair) decimal.Decimal
 

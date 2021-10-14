@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -381,6 +382,9 @@ func (m *OrderManager) Modify(ctx context.Context, mod *order.Modify) (*order.Mo
 // Submit will take in an order struct, send it to the exchange and
 // populate it in the OrderManager if successful
 func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*OrderSubmitResponse, error) {
+	fmt.Println("trying to submit real order.")
+	os.Exit(123)
+
 	if m == nil {
 		return nil, fmt.Errorf("order manager %w", ErrNilSubsystem)
 	}
@@ -654,6 +658,7 @@ func (m *OrderManager) processOrders() {
 			}
 
 			for z := range result {
+				fmt.Println("found kraken result", z)
 				upsertResponse, err := m.UpsertOrder(&result[z])
 				if err != nil {
 					log.Error(log.OrderMgr, err)

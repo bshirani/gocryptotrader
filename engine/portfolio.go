@@ -100,8 +100,6 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, sh SizeHandler, r risk
 		log.Infoln(log.TradeManager, "(live mode) Loaded Orders", len(activeOrders))
 	}
 
-	// go p.heartBeat()
-
 	return p, nil
 }
 
@@ -944,12 +942,25 @@ func verifyOrderWithinLimits(f *fill.Fill, limitReducedAmount decimal.Decimal, c
 }
 
 func (p *Portfolio) printTradeDetails(t *livetrade.Details) {
-	log.Infoln(log.TradeManager, "trade profit", t.ProfitLossPoints)
+	// log.Infoln(log.TradeManager, "trade profit", t.ProfitLossPoints)
 	return
 }
 
-func (p *Portfolio) heartBeat() {
-	for range time.Tick(time.Second * 15) {
-		log.Info(log.TradeManager, "portfolio heartbeat")
-	}
+func (p *Portfolio) PrintPortfolioDetails() {
+	log.Infoln(log.TradeManager, "portfolio details")
+	active, _ := livetrade.Active()
+	log.Infoln(log.TradeManager, "active trades", len(active))
+
+	// get strategy last updated time
+	// get factor engine last updated time for each pair
+
+	// total PL past 24 hours
+	// num trades past 24 hours
+	// num orders past 24 hours
+
+	// current positions and their stats
+
+	// log.Infoln(log.TradeManager, "active strategies")
+	// log.Infoln(log.TradeManager, "active pairs")
+	return
 }

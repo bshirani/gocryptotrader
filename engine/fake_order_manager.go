@@ -15,7 +15,7 @@ import (
 )
 
 // SetupOrderManager will boot up the OrderManager
-func SetupFakeOrderManager(exchangeManager iExchangeManager, communicationsManager iCommsManager, wg *sync.WaitGroup, verbose bool) (*FakeOrderManager, error) {
+func SetupFakeOrderManager(bot *Engine, exchangeManager iExchangeManager, communicationsManager iCommsManager, wg *sync.WaitGroup, verbose bool) (*FakeOrderManager, error) {
 	// log.Debugln(log.FakeOrderMgr, "...")
 
 	if exchangeManager == nil {
@@ -30,6 +30,7 @@ func SetupFakeOrderManager(exchangeManager iExchangeManager, communicationsManag
 
 	return &FakeOrderManager{
 		OrderManager{
+			bot:      bot,
 			shutdown: make(chan struct{}),
 			orderStore: store{
 				Orders:          make(map[string][]*order.Detail),
@@ -44,14 +45,12 @@ func SetupFakeOrderManager(exchangeManager iExchangeManager, communicationsManag
 
 // Submit will take in an order struct, send it to the exchange and
 // populate it in the FakeOrderManager if successful
-
 // Kraken Order Status
 // Enum: "pending" "open" "closed" "canceled" "expired"
 func (m *FakeOrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*OrderSubmitResponse, error) {
-	// live only
-	// if m.cfg.LiveMode {
-	// log.Debugln(log.FakeOrderMgr, "Order manager: Order Submitted", newOrder.Date, newOrder.StrategyID, newOrder.ID)
-	// }
+	if m.bot.Config.LiveMode {
+		log.Debugln(log.FakeOrderMgr, "Order manager: Order Submitted", newOrder.Date, newOrder.StrategyID, newOrder.ID)
+	}
 
 	if m == nil {
 		return nil, fmt.Errorf("fake order manager %w", ErrNilSubsystem)

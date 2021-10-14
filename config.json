@@ -188,7 +188,7 @@
    "currencyPairs": {
     "pairs": {
      "futures": {
-      "assetEnabled": true,
+      "assetEnabled": false,
       "enabled": "FI_ETHUSD_220325",
       "available": "PI_XBTUSD,PI_ETHUSD,PI_LTCUSD,PI_BCHUSD,PI_XRPUSD,FI_ETHUSD_211231,FI_XBTUSD_211231,FI_XBTUSD_220325,FI_ETHUSD_220325,FI_XRPUSD_211231,FI_BCHUSD_211231,FI_LTCUSD_211231,FI_XBTUSD_211029,FI_ETHUSD_211029,FI_BCHUSD_211029,FI_XRPUSD_211029,FI_LTCUSD_211029",
       "requestFormat": {
@@ -217,11 +217,11 @@
     }
    },
    "api": {
-    "authenticatedSupport": false,
+    "authenticatedSupport": true,
     "authenticatedWebsocketApiSupport": false,
     "credentials": {
-     "key": "Key",
-     "secret": "Secret"
+     "key": "a0FqPRca7h1cd1hUu8lBa7UjCdHs/NQ7X5ORa+9sgwSn2mEJM9uLfKki",
+     "secret": "mGKwJk0j5l77rbQJUJH7iXFD4wIk0PKU7TgICUfJPjwmSyvYcx5FeNKbBABxqbCJE+pCgoiapP9xaRva5xLKUg=="
     },
     "credentialsValidator": {
      "requiresKey": true,
@@ -270,23 +270,6 @@
     "websocketBufferLimit": 5,
     "websocketBufferEnabled": false
    }
-  }
- ],
- "bankAccounts": [
-  {
-   "enabled": false,
-   "id": "test-account-01",
-   "bankName": "test",
-   "bankAddress": "test",
-   "bankPostalCode": "",
-   "bankPostalCity": "",
-   "bankCountry": "",
-   "accountName": "TestAccount",
-   "accountNumber": "0234",
-   "swiftCode": "91272837",
-   "iban": "98218738671897",
-   "supportedCurrencies": "USD",
-   "supportedExchanges": "Kraken,Bitstamp"
   }
  ]
 }

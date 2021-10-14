@@ -510,6 +510,7 @@ func (bot *Engine) Start() error {
 
 	// if bot.Settings.EnableOrderManager {
 	bot.FakeOrderManager, err = SetupFakeOrderManager(
+		bot,
 		bot.ExchangeManager,
 		bot.CommunicationsManager,
 		&bot.ServicesWG,

@@ -51,6 +51,7 @@ type store struct {
 
 // OrderManager processes and stores orders across enabled exchanges
 type OrderManager struct {
+	bot              *Engine
 	started          int32
 	processingOrders int32
 	shutdown         chan struct{}

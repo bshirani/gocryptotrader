@@ -203,6 +203,7 @@ func (tm *TradeManager) runLive() error {
 // LIVE FUNCTIONALITY
 func (tm *TradeManager) RunLive() error {
 	tm.setOrderManagerCallbacks()
+	go tm.heartBeat()
 
 	//
 	// run the catchup process
@@ -541,6 +542,7 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 
 		// start fake order manager here since we don't start engine in live mode
 		tm.Bot.FakeOrderManager, err = SetupFakeOrderManager(
+			tm.Bot,
 			tm.Bot.ExchangeManager,
 			tm.Bot.CommunicationsManager,
 			&tm.Bot.ServicesWG,
@@ -879,7 +881,6 @@ func (tm *TradeManager) handleEvent(ev eventtypes.EventHandler) error {
 	case fill.Event:
 		tm.processFillEvent(eType)
 	default:
-		os.Exit(2)
 		return fmt.Errorf("%w %v received, could not process",
 			errUnhandledDatatype,
 			ev)
@@ -897,9 +898,9 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 	d := tm.Datas.GetDataForCurrency(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 
 	// update factor engine
-	if tm.Bot.Config.LiveMode {
-		fmt.Println("factor on bar update", ev.Pair(), d.Latest().GetTime(), len(tm.FactorEngines[ev.Pair()].Minute().Close))
-	}
+	// if tm.Bot.Config.LiveMode {
+	// 	fmt.Println("factor on bar update", ev.Pair(), d.Latest().GetTime(), len(tm.FactorEngines[ev.Pair()].Minute().Close))
+	// }
 	tm.FactorEngines[ev.Pair()].OnBar(d)
 
 	// HANDLE warmup MODE
@@ -911,9 +912,9 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 
 		for _, strategy := range tm.Strategies {
 			if strategy.GetPair() == ev.Pair() {
-				if tm.Bot.Config.LiveMode {
-					fmt.Println("Updating strategy", strategy.GetID(), d.Latest().GetTime())
-				}
+				// if tm.Bot.Config.LiveMode {
+				// 	fmt.Println("Updating strategy", strategy.GetID(), d.Latest().GetTime())
+				// }
 				s, err = strategy.OnData(d, tm.Portfolio, tm.FactorEngines[ev.Pair()])
 				tm.EventQueue.AppendEvent(s)
 			}
@@ -1162,9 +1163,9 @@ func (tm *TradeManager) configureLiveDataAPI(resp *kline.DataFromKline, cfg *con
 	return nil
 }
 
-func (b *TradeManager) heartBeat() {
+func (tm *TradeManager) heartBeat() {
 	for range time.Tick(time.Second * 15) {
-		log.Info(log.TradeManager, "heartbeat")
+		tm.Portfolio.PrintPortfolioDetails()
 	}
 }
 

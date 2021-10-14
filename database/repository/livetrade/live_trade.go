@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
 	"gocryptotrader/database"
 	modelSQLite "gocryptotrader/database/models/sqlite3"
@@ -53,10 +54,13 @@ func Active() (out []Details, err error) {
 
 	whereQM := qm.Where("status IN ('OPEN')")
 	ret, errS := modelSQLite.LiveTrades(whereQM).All(context.Background(), database.DB.SQL)
+	layout2 := time.RFC3339
 
 	for _, x := range ret {
+		t2, _ := time.Parse(layout2, x.EntryTime)
 		out = append(out, Details{
 			EntryPrice: decimal.NewFromFloat(x.EntryPrice),
+			EntryTime:  t2,
 			ID:         x.ID,
 			StrategyID: x.StrategyID,
 			Status:     order.Status(x.Status),
@@ -112,6 +116,8 @@ func insertSQLite(ctx context.Context, tx *sql.Tx, in []Details) (err error) {
 
 		var tempInsert = modelSQLite.LiveTrade{
 			EntryPrice:    entryPrice,
+			EntryTime:     in[x].EntryTime.String(),
+			ExitTime:      null.String{String: in[x].ExitTime.String()},
 			ExitPrice:     null.Float64{Float64: exitPrice},
 			StopLossPrice: stopLossPrice,
 			Status:        fmt.Sprintf("%s", in[x].Status),

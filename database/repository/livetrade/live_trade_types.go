@@ -4,6 +4,7 @@ import (
 	"errors"
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange/order"
+	"time"
 
 	"github.com/shopspring/decimal"
 )
@@ -22,6 +23,8 @@ type Details struct {
 	Name             string
 	StrategyID       string
 	EntryOrderID     string
+	EntryTime        time.Time
+	ExitTime         time.Time
 	EntryPrice       decimal.Decimal
 	ExitPrice        decimal.Decimal
 	StopLossPrice    decimal.Decimal
