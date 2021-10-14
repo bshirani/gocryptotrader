@@ -9,7 +9,7 @@ import (
 	dbPSQL "gocryptotrader/database/drivers/postgres"
 	dbsqlite3 "gocryptotrader/database/drivers/sqlite3"
 	"gocryptotrader/database/repository"
-	"github.com/thrasher-corp/sqlboiler/boil"
+	"github.com/volatiletech/sqlboiler/boil"
 	"github.com/urfave/cli/v2"
 )
 

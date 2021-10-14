@@ -13,8 +13,8 @@ import (
 	"gocryptotrader/database/repository/datahistoryjobresult"
 	"gocryptotrader/log"
 
-	"github.com/thrasher-corp/sqlboiler/boil"
-	"github.com/thrasher-corp/sqlboiler/queries/qm"
+	"github.com/volatiletech/sqlboiler/boil"
+	"github.com/volatiletech/sqlboiler/queries/qm"
 	"github.com/volatiletech/null"
 )
 

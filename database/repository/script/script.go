@@ -10,7 +10,7 @@ import (
 	modelSQLite "gocryptotrader/database/models/sqlite3"
 	"gocryptotrader/database/repository"
 	"gocryptotrader/log"
-	"github.com/thrasher-corp/sqlboiler/boil"
+	"github.com/volatiletech/sqlboiler/boil"
 	"github.com/volatiletech/null"
 )
 

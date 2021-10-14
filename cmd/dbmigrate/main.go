@@ -14,7 +14,7 @@ import (
 	dbPSQL "gocryptotrader/database/drivers/postgres"
 	dbsqlite3 "gocryptotrader/database/drivers/sqlite3"
 	"gocryptotrader/database/repository"
-	"github.com/thrasher-corp/goose"
+	"github.com/pressly/goose"
 )
 
 var (

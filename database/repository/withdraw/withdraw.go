@@ -15,8 +15,8 @@ import (
 	exchangeDB "gocryptotrader/database/repository/exchange"
 	"gocryptotrader/log"
 	"gocryptotrader/portfolio/withdraw"
-	"github.com/thrasher-corp/sqlboiler/boil"
-	"github.com/thrasher-corp/sqlboiler/queries/qm"
+	"github.com/volatiletech/sqlboiler/boil"
+	"github.com/volatiletech/sqlboiler/queries/qm"
 )
 
 var (

@@ -4,25 +4,25 @@
 
 + Establishes & Maintains database connection across program life cycle
 + Migration handed by [Goose](https://github.com/thrasher-corp/goose)
-+ Model generation handled by [SQLBoiler](https://github.com/thrasher-corp/sqlboiler)
++ Model generation handled by [SQLBoiler](https://github.com/volatiletech/sqlboiler)
 
 ## How to use
 
 ##### Prerequisites
 
-[SQLBoiler](https://github.com/thrasher-corp/sqlboiler)
+[SQLBoiler](https://github.com/volatiletech/sqlboiler)
 ```shell script
-go get -u github.com/thrasher-corp/sqlboiler
+go get -u github.com/volatiletech/sqlboiler
 ```
 
-[Postgres Driver](https://github.com/thrasher-corp/sqlboiler/drivers/sqlboiler-psql)
+[Postgres Driver](https://github.com/volatiletech/sqlboiler/drivers/sqlboiler-psql)
 ```shell script
-go get -u github.com/thrasher-corp/sqlboiler/drivers/sqlboiler-psql
+go get -u github.com/volatiletech/sqlboiler/drivers/sqlboiler-psql
 ```
 
-[SQLite Driver](https://github.com/thrasher-corp/sqlboiler-sqlite3)
+[SQLite Driver](https://github.com/volatiletech/sqlboiler-sqlite3)
 ```shell script
-go get -u github.com/thrasher-corp/sqlboiler-sqlite3
+go get -u github.com/volatiletech/sqlboiler-sqlite3
 ```
 
 ##### Configuration
@@ -92,7 +92,7 @@ dbmigrate provides a -migrationdir flag override to tell it what path to look in
 
 
 ##### Adding a new model
-Model's are generated using [SQLBoiler](https://github.com/thrasher-corp/sqlboiler)
+Model's are generated using [SQLBoiler](https://github.com/volatiletech/sqlboiler)
 A helper tool has been made located in gen_sqlboiler_config that will parse your GoCryptoTrader config and output a SQLBoiler config
 
 ```sh

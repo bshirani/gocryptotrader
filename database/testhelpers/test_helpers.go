@@ -12,8 +12,8 @@ import (
 	sqliteConn "gocryptotrader/database/drivers/sqlite3"
 	"gocryptotrader/database/repository"
 	"gocryptotrader/log"
-	"github.com/thrasher-corp/goose"
-	"github.com/thrasher-corp/sqlboiler/boil"
+	"github.com/pressly/goose"
+	"github.com/volatiletech/sqlboiler/boil"
 )
 
 var (
