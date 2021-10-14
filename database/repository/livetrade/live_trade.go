@@ -63,6 +63,7 @@ func ByStatus(status order.Status) (out []Details, err error) {
 
 	whereQM := qm.Where(fmt.Sprintf("status IN ('%s')", status))
 	ret, errS := modelSQLite.LiveTrades(whereQM).All(context.Background(), database.DB.SQL)
+	ret.ReloadAll(context.Background(), database.DB.SQL)
 	layout2 := time.RFC3339
 
 	for _, x := range ret {
@@ -79,7 +80,7 @@ func ByStatus(status order.Status) (out []Details, err error) {
 		createdAt, _ := time.Parse(layout2, x.CreatedAt)
 		out = append(out, Details{
 			EntryPrice: decimal.NewFromFloat(x.EntryPrice),
-			// EntryTime:  entryTime,
+			EntryTime:  entryTime,
 			// ExitTime:   exitTime,
 			ID:         x.ID,
 			StrategyID: x.StrategyID,
@@ -168,7 +169,7 @@ func insertSQLite(ctx context.Context, tx *sql.Tx, in Details) (id int64, err er
 
 	var tempInsert = modelSQLite.LiveTrade{
 		EntryPrice:    entryPrice,
-		CreatedAt:     time.Now().UTC().String(),
+		CreatedAt:     time.Now().UTC().Format(time.RFC3339),
 		EntryTime:     in.EntryTime.String(),
 		ExitTime:      null.String{String: in.ExitTime.String()},
 		ExitPrice:     null.Float64{Float64: exitPrice},

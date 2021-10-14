@@ -16,7 +16,7 @@ CREATE TABLE live_trade (
     exit_price REAL,
 
     created_at  timestamp not null default CURRENT_TIMESTAMP,
-    updated_at                    timestamp             NOT NULL default CURRENT_TIMESTAMP
+    updated_at timestamp NOT NULL default CURRENT_TIMESTAMP
 );
 -- +goose Down
 DROP TABLE live_trade;

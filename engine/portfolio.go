@@ -297,6 +297,8 @@ func (p *Portfolio) createTrade(ev fill.Event, order *liveorder.Details) {
 	if lt.EntryTime.IsZero() {
 		fmt.Println("EntryTime cannot be empty")
 		os.Exit(2)
+	} else {
+		fmt.Println("creating trade, entrytime:", lt.EntryTime)
 	}
 
 	if !p.bot.Settings.EnableDryRun {
