@@ -139,14 +139,14 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	trade := p.GetTradeForStrategy(ev.GetStrategyID())
 	if trade != nil {
 		if trade.Direction == gctorder.Buy {
-			trade.ProfitLoss = -1
+			trade.ProfitLossPoints = ev.GetPrice().Sub(trade.EntryPrice)
 		} else if trade.Direction == gctorder.Sell {
-			trade.ProfitLoss = 100
+			trade.ProfitLossPoints = trade.EntryPrice.Sub(ev.GetPrice())
 		} else {
 			fmt.Println("trade is not sell or buy")
 			os.Exit(2)
 		}
-		fmt.Println("trade for ", ev.GetStrategyID(), trade.ProfitLoss)
+		p.printTradeDetails(trade)
 	}
 
 	id, _ := uuid.NewV4()
@@ -286,11 +286,11 @@ func (p *Portfolio) createTrade(ev fill.Event, order *liveorder.Details) {
 		Status:       gctorder.Open,
 		StrategyID:   ev.GetStrategyID(),
 		EntryOrderID: foundOrd.ID,
-		EntryPrice:   foundOrd.Price,
-		Direction:    ev.GetDirection(),
+		EntryPrice:   decimal.NewFromFloat(foundOrd.Price),
+		Direction:    foundOrd.Side,
 	}
 
-	if lt.EntryPrice == 0 {
+	if lt.EntryPrice.IsZero() {
 		fmt.Println("1111")
 		os.Exit(2)
 	}
@@ -939,4 +939,9 @@ func verifyOrderWithinLimits(f *fill.Fill, limitReducedAmount decimal.Decimal, c
 		return fmt.Errorf("%w %v", errExceededPortfolioLimit, e)
 	}
 	return nil
+}
+
+func (p *Portfolio) printTradeDetails(t *livetrade.Details) {
+	fmt.Println("trade profit", t.ProfitLossPoints)
+	return
 }

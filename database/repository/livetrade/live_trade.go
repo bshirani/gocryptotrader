@@ -10,6 +10,7 @@ import (
 	"gocryptotrader/exchange/order"
 	"gocryptotrader/log"
 
+	"github.com/shopspring/decimal"
 	"github.com/thrasher-corp/sqlboiler/boil"
 	"github.com/thrasher-corp/sqlboiler/queries/qm"
 	"github.com/volatiletech/null"
@@ -55,7 +56,7 @@ func Active() (out []Details, err error) {
 
 	for _, x := range ret {
 		out = append(out, Details{
-			EntryPrice: x.EntryPrice,
+			EntryPrice: decimal.NewFromFloat(x.EntryPrice),
 			ID:         x.ID,
 			StrategyID: x.StrategyID,
 			Status:     order.Status(x.Status),
@@ -104,8 +105,9 @@ func Insert(in Details) error {
 func insertSQLite(ctx context.Context, tx *sql.Tx, in []Details) (err error) {
 	boil.DebugMode = true
 	for x := range in {
+		entryPrice, _ := in[x].EntryPrice.Float64()
 		var tempInsert = modelSQLite.LiveTrade{
-			EntryPrice:    in[x].EntryPrice,
+			EntryPrice:    entryPrice,
 			ExitPrice:     null.Float64{Float64: in[x].ExitPrice},
 			StopLossPrice: in[x].StopLossPrice,
 			Status:        fmt.Sprintf("%s", in[x].Status),

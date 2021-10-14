@@ -3,6 +3,8 @@ package livetrade
 import (
 	"errors"
 	"gocryptotrader/exchange/order"
+
+	"github.com/shopspring/decimal"
 )
 
 var (
@@ -23,15 +25,15 @@ var (
 
 // Item generic candle holder for modelPSQL & modelSQLite
 type Details struct {
-	ID            int64
-	Direction     order.Side
-	Name          string
-	EntryPrice    float64
-	ExitPrice     float64
-	StopLossPrice float64
-	Status        order.Status
-	StrategyID    string
-	Pair          string
-	EntryOrderID  string
-	ProfitLoss    float64
+	ID               int64
+	Direction        order.Side
+	Name             string
+	EntryPrice       decimal.Decimal
+	ExitPrice        float64
+	StopLossPrice    float64
+	Status           order.Status
+	StrategyID       string
+	Pair             string
+	EntryOrderID     string
+	ProfitLossPoints decimal.Decimal
 }

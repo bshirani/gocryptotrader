@@ -82,7 +82,13 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 		es.SetDecision(signal.Enter)
 	} else {
 		// fmt.Println(s.GetID(), "")
-		es.SetDecision(signal.Exit)
+
+		if trade.ProfitLossPoints.GreaterThan(decimal.NewFromFloat(10)) {
+			fmt.Println("trade profit greater than 10, exiting")
+			es.SetDecision(signal.Exit)
+		} else {
+			es.SetDecision(signal.DoNothing)
+		}
 	}
 	// else {
 	// 	es.SetDecision(signal.Exit)

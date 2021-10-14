@@ -14,7 +14,7 @@ func TestSetDirection(t *testing.T) {
 		Direction: gctorder.Sell,
 	}
 	f.SetDirection(gctorder.Buy)
-	if f.GetDirection() != gctorder.Buy {
+	if f.Direction() != gctorder.Buy {
 		t.Error("expected buy")
 	}
 }

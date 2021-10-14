@@ -19,7 +19,7 @@ func TestSetDirection(t *testing.T) {
 	t.Parallel()
 	s := Signal{Direction: gctorder.Sell}
 	s.SetDirection(gctorder.Buy)
-	if s.GetDirection() != gctorder.Buy {
+	if s.Direction() != gctorder.Buy {
 		t.Error("expected buy")
 	}
 }

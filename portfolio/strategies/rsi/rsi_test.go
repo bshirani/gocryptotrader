@@ -161,7 +161,7 @@ func TestOnSignal(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if resp.GetDirection() != eventtypes.DoNothing {
+	if resp.Direction() != eventtypes.DoNothing {
 		t.Error("expected do nothing")
 	}
 }

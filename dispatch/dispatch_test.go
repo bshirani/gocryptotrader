@@ -194,7 +194,7 @@ func TestMux(t *testing.T) {
 		t.Error("error cannot be nil")
 	}
 
-	_, err = mux.GetID()
+	_, err = mux.ID()
 	if err == nil {
 		t.Error("error cannot be nil")
 	}
@@ -228,7 +228,7 @@ func TestMux(t *testing.T) {
 }
 
 func TestSubscribe(t *testing.T) {
-	itemID, err := mux.GetID()
+	itemID, err := mux.ID()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -251,7 +251,7 @@ func TestSubscribe(t *testing.T) {
 }
 
 func TestPublish(t *testing.T) {
-	itemID, err := mux.GetID()
+	itemID, err := mux.ID()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -296,7 +296,7 @@ func TestPublish(t *testing.T) {
 }
 
 func BenchmarkSubscribe(b *testing.B) {
-	newID, err := mux.GetID()
+	newID, err := mux.ID()
 	if err != nil {
 		b.Error(err)
 	}
