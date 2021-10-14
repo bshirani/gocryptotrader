@@ -8,18 +8,19 @@ import (
 	"time"
 
 	"gocryptotrader/database"
-	modelSQLite "gocryptotrader/database/models/sqlite3"
 	"gocryptotrader/exchange/order"
+
+	"gocryptotrader/database/models/postgres"
 	"gocryptotrader/log"
 
 	"github.com/shopspring/decimal"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
-	"github.com/volatiletech/null/v8"
 )
 
 func Count() int64 {
-	i, _ := modelSQLite.LiveTrades().Count(context.Background(), database.DB.SQL)
+	i, _ := postgres.LiveTrades().Count(context.Background(), database.DB.SQL)
 	return i
 }
 
@@ -38,8 +39,8 @@ func one(in, clause string) (out Details, err error) {
 	// boil.DebugMode = true
 
 	whereQM := qm.Where(clause+"= ?", in)
-	ret, errS := modelSQLite.LiveTrades(whereQM).One(context.Background(), database.DB.SQL)
-	out.ID = ret.ID
+	ret, errS := postgres.LiveTrades(whereQM).One(context.Background(), database.DB.SQL)
+	out.ID = int64(ret.ID)
 	if errS != nil {
 		return out, errS
 	}
@@ -62,7 +63,7 @@ func ByStatus(status order.Status) (out []Details, err error) {
 	}
 
 	// whereQM := qm.Where(fmt.Sprintf("status IN ('%s')", status))
-	ret, errS := modelSQLite.LiveTrades().All(context.Background(), database.DB.SQL)
+	ret, errS := postgres.LiveTrades().All(context.Background(), database.DB.SQL)
 	// ret.ReloadAll(context.Background(), database.DB.SQL)
 	layout2 := time.RFC3339
 
@@ -74,12 +75,6 @@ func ByStatus(status order.Status) (out []Details, err error) {
 			x.EntryTime,
 			x.UpdatedAt,
 			x.CreatedAt)
-		// IntervalStartTime: results[i].IntervalStartDate.UTC().Format(time.RFC3339),
-		// entryTime, _ := time.Parse(layout2, x.EntryTime)
-		updatedAt, _ := time.Parse(layout2, x.UpdatedAt)
-		createdAt, _ := time.Parse(layout2, x.CreatedAt)
-		entryTime, _ := time.Parse(layout2, x.EntryTime)
-		// exitTime, _ := time.Parse(layout2, x.ExitTime)
 
 		if entryTime.IsZero() {
 			fmt.Println("ERROR entryTime is zero")
@@ -88,14 +83,14 @@ func ByStatus(status order.Status) (out []Details, err error) {
 
 		out = append(out, Details{
 			EntryPrice: decimal.NewFromFloat(x.EntryPrice),
-			EntryTime:  entryTime,
+			EntryTime:  x.EntryTime,
 			// ExitTime:   exitTime,
 			ID:         x.ID,
 			StrategyID: x.StrategyID,
 			Status:     order.Status(x.Status),
 			Side:       order.Side(x.Side),
-			UpdatedAt:  updatedAt,
-			CreatedAt:  createdAt,
+			UpdatedAt:  x.UpdatedAt,
+			CreatedAt:  x.CreatedAt,
 		})
 	}
 	if errS != nil {
@@ -120,7 +115,7 @@ func Insert(in Details) (id int64, err error) {
 	if err != nil {
 		return 0, err
 	}
-	id, err = insertSQLite(ctx, tx, in)
+	id, err = insertPostgresql(ctx, tx, in)
 
 	if err != nil {
 		errRB := tx.Rollback()
@@ -150,7 +145,7 @@ func Update(in *Details) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	id, err := updateSQLite(ctx, tx, []Details{*in})
+	id, err := updatePostgresql(ctx, tx, []Details{*in})
 
 	if err != nil {
 		errRB := tx.Rollback()
@@ -165,7 +160,7 @@ func Update(in *Details) (int64, error) {
 		fmt.Println("error committing update", err)
 		return 0, err
 	}
-	record, err := modelSQLite.LiveTrades().One(context.Background(), database.DB.SQL)
+	record, err := postgres.LiveTrades().One(context.Background(), database.DB.SQL)
 	if err != nil {
 		fmt.Println("error retrieving update", err)
 		return 0, err
@@ -175,13 +170,13 @@ func Update(in *Details) (int64, error) {
 	return id, nil
 }
 
-func insertSQLite(ctx context.Context, tx *sql.Tx, in Details) (id int64, err error) {
+func insertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int64, err error) {
 	// boil.DebugMode = true
 	entryPrice, _ := in.EntryPrice.Float64()
 	exitPrice, _ := in.ExitPrice.Float64()
 	stopLossPrice, _ := in.StopLossPrice.Float64()
 
-	var tempInsert = modelSQLite.LiveTrade{
+	var tempInsert = postgres.LiveTrade{
 		EntryPrice:    entryPrice,
 		CreatedAt:     time.Now().UTC().Format(time.RFC3339),
 		EntryTime:     in.EntryTime.UTC().Format(time.RFC3339),
@@ -195,7 +190,7 @@ func insertSQLite(ctx context.Context, tx *sql.Tx, in Details) (id int64, err er
 		Side:          in.Side.String(),
 	}
 
-	err = tempInsert.Insert(ctx, tx, boil.Infer())
+	err = tempCandle.Upsert(ctx, tx, true, []string{"timestamp", "exchange_name_id", "base", "quote", "interval", "asset"}, boil.Infer(), boil.Infer())
 	if err != nil {
 		log.Errorln(log.DatabaseMgr, err)
 		errRB := tx.Rollback()
@@ -208,7 +203,7 @@ func insertSQLite(ctx context.Context, tx *sql.Tx, in Details) (id int64, err er
 	return tempInsert.ID, nil
 }
 
-func updateSQLite(ctx context.Context, tx *sql.Tx, in []Details) (id int64, err error) {
+func updatePostgresql(ctx context.Context, tx *sql.Tx, in []Details) (id int64, err error) {
 	// boil.DebugMode = true
 	for x := range in {
 		entryPrice, _ := in[x].EntryPrice.Float64()
@@ -222,7 +217,7 @@ func updateSQLite(ctx context.Context, tx *sql.Tx, in []Details) (id int64, err 
 		} else {
 			fmt.Println("update  entrytime", in[x].EntryTime)
 		}
-		var tempInsert = modelSQLite.LiveTrade{
+		var tempInsert = postgres.LiveTrade{
 			ID:            in[x].ID,
 			UpdatedAt:     time.Now().String(),
 			EntryPrice:    entryPrice,

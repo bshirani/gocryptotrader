@@ -22,7 +22,6 @@ import (
 	"gocryptotrader/currency"
 	"gocryptotrader/database"
 	"gocryptotrader/database/models/postgres"
-	"gocryptotrader/database/models/sqlite3"
 	"gocryptotrader/database/repository/audit"
 	exchangeDB "gocryptotrader/database/repository/exchange"
 	"gocryptotrader/exchange"
@@ -2153,16 +2152,6 @@ func (s *RPCServer) GetAuditEvent(_ context.Context, r *gctrpc.GetAuditEventRequ
 				Timestamp:  v[x].CreatedAt.In(time.UTC).Format(common.SimpleTimeFormatWithTimezone),
 			}
 
-			resp.Events = append(resp.Events, tempEvent)
-		}
-	case sqlite3.AuditEventSlice:
-		for x := range v {
-			tempEvent := &gctrpc.AuditEvent{
-				Type:       v[x].Type,
-				Identifier: v[x].Identifier,
-				Message:    v[x].Message,
-				Timestamp:  v[x].CreatedAt,
-			}
 			resp.Events = append(resp.Events, tempEvent)
 		}
 	}

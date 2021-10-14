@@ -21,22 +21,6 @@ func (i *Instance) SetConfig(cfg *Config) error {
 	return nil
 }
 
-// SetSQLiteConnection safely sets the global database instance's connection
-// to use SQLite
-func (i *Instance) SetSQLiteConnection(con *sql.DB) error {
-	if i == nil {
-		return ErrNilInstance
-	}
-	if con == nil {
-		return errNilSQL
-	}
-	i.m.Lock()
-	defer i.m.Unlock()
-	i.SQL = con
-	i.SQL.SetMaxOpenConns(1)
-	return nil
-}
-
 // SetPostgresConnection safely sets the global database instance's connection
 // to use Postgres
 func (i *Instance) SetPostgresConnection(con *sql.DB) error {

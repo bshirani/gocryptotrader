@@ -4,14 +4,12 @@ import (
 	"context"
 	"time"
 
-	"github.com/gofrs/uuid"
 	"gocryptotrader/database"
 	modelPSQL "gocryptotrader/database/models/postgres"
-	modelSQLite "gocryptotrader/database/models/sqlite3"
-	"gocryptotrader/database/repository"
 	"gocryptotrader/log"
-	"github.com/volatiletech/sqlboiler/v4/boil"
+
 	"github.com/volatiletech/null/v8"
+	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
 // Event inserts a new script event into database with execution details (script name time status hash of script)
@@ -28,91 +26,36 @@ func Event(id, name, path string, data null.Bytes, executionType, status string,
 		return
 	}
 
-	if repository.GetSQLDialect() == database.DBSQLite3 {
-		query := modelSQLite.ScriptWhere.ScriptID.EQ(id)
-		f, errQry := modelSQLite.Scripts(query).Exists(ctx, tx)
-		if errQry != nil {
-			log.Errorf(log.DatabaseMgr, "Query failed: %v", errQry)
-			err = tx.Rollback()
-			if err != nil {
-				log.Errorf(log.DatabaseMgr, "Event Transaction rollback failed: %v", err)
-			}
-			return
-		}
-		var tempEvent = modelSQLite.Script{}
-		if !f {
-			newUUID, errUUID := uuid.NewV4()
-			if errUUID != nil {
-				log.Errorf(log.DatabaseMgr, "Failed to generate UUID: %v", errUUID)
-				_ = tx.Rollback()
-				return
-			}
-
-			tempEvent.ID = newUUID.String()
-			tempEvent.ScriptID = id
-			tempEvent.ScriptName = name
-			tempEvent.ScriptPath = path
-			tempEvent.ScriptData = data
-			err = tempEvent.Insert(ctx, tx, boil.Infer())
-			if err != nil {
-				log.Errorf(log.DatabaseMgr, "Event insert failed: %v", err)
-				err = tx.Rollback()
-				if err != nil {
-					log.Errorf(log.DatabaseMgr, "Event Transaction rollback failed: %v", err)
-				}
-				return
-			}
-		} else {
-			tempEvent.ID = id
-		}
-
-		tempScriptExecution := &modelSQLite.ScriptExecution{
-			ScriptID:        id,
-			ExecutionTime:   time.UTC().String(),
-			ExecutionStatus: status,
-			ExecutionType:   executionType,
-		}
-		err = tempEvent.AddScriptExecutions(ctx, tx, true, tempScriptExecution)
+	var tempEvent = modelPSQL.Script{
+		ScriptID:   id,
+		ScriptName: name,
+		ScriptPath: path,
+		ScriptData: data,
+	}
+	err = tempEvent.Upsert(ctx, tx, true, []string{"script_id"}, boil.Whitelist("last_executed_at"), boil.Infer())
+	if err != nil {
+		log.Errorf(log.DatabaseMgr, "Event insert failed: %v", err)
+		err = tx.Rollback()
 		if err != nil {
-			log.Errorf(log.DatabaseMgr, "Event insert failed: %v", err)
-			err = tx.Rollback()
-			if err != nil {
-				log.Errorf(log.DatabaseMgr, "Event Transaction rollback failed: %v", err)
-			}
-			return
+			log.Errorf(log.DatabaseMgr, "Event Transaction rollback failed: %v", err)
 		}
-	} else {
-		var tempEvent = modelPSQL.Script{
-			ScriptID:   id,
-			ScriptName: name,
-			ScriptPath: path,
-			ScriptData: data,
-		}
-		err = tempEvent.Upsert(ctx, tx, true, []string{"script_id"}, boil.Whitelist("last_executed_at"), boil.Infer())
-		if err != nil {
-			log.Errorf(log.DatabaseMgr, "Event insert failed: %v", err)
-			err = tx.Rollback()
-			if err != nil {
-				log.Errorf(log.DatabaseMgr, "Event Transaction rollback failed: %v", err)
-			}
-			return
-		}
+		return
+	}
 
-		tempScriptExecution := &modelPSQL.ScriptExecution{
-			ExecutionTime:   time.UTC(),
-			ExecutionStatus: status,
-			ExecutionType:   executionType,
-		}
+	tempScriptExecution := &modelPSQL.ScriptExecution{
+		ExecutionTime:   time.UTC(),
+		ExecutionStatus: status,
+		ExecutionType:   executionType,
+	}
 
-		err = tempEvent.AddScriptExecutions(ctx, tx, true, tempScriptExecution)
+	err = tempEvent.AddScriptExecutions(ctx, tx, true, tempScriptExecution)
+	if err != nil {
+		log.Errorf(log.DatabaseMgr, "Event insert failed: %v", err)
+		err = tx.Rollback()
 		if err != nil {
-			log.Errorf(log.DatabaseMgr, "Event insert failed: %v", err)
-			err = tx.Rollback()
-			if err != nil {
-				log.Errorf(log.DatabaseMgr, "Event Transaction rollback failed: %v", err)
-			}
-			return
+			log.Errorf(log.DatabaseMgr, "Event Transaction rollback failed: %v", err)
 		}
+		return
 	}
 
 	err = tx.Commit()

@@ -8,7 +8,6 @@ import (
 
 	"gocryptotrader/database"
 	dbpsql "gocryptotrader/database/drivers/postgres"
-	dbsqlite3 "gocryptotrader/database/drivers/sqlite3"
 	"gocryptotrader/log"
 )
 
@@ -85,24 +84,12 @@ func (m *DatabaseConnectionManager) Start(wg *sync.WaitGroup) (err error) {
 
 	if m.cfg.Enabled {
 		m.shutdown = make(chan struct{})
-		switch m.cfg.Driver {
-		case database.DBPostgreSQL:
-			log.Debugf(log.DatabaseMgr,
-				"Attempting to establish database connection to host %s/%s utilising %s driver\n",
-				m.cfg.Host,
-				m.cfg.Database,
-				m.cfg.Driver)
-			m.dbConn, err = dbpsql.Connect(&m.cfg)
-		case database.DBSQLite,
-			database.DBSQLite3:
-			log.Debugf(log.DatabaseMgr,
-				"Attempting to establish database connection to %s utilising %s driver\n",
-				m.cfg.Database,
-				m.cfg.Driver)
-			m.dbConn, err = dbsqlite3.Connect(m.cfg.Database)
-		default:
-			return database.ErrNoDatabaseProvided
-		}
+		log.Debugf(log.DatabaseMgr,
+			"Attempting to establish database connection to host %s/%s utilising %s driver\n",
+			m.cfg.Host,
+			m.cfg.Database,
+			m.cfg.Driver)
+		m.dbConn, err = dbpsql.Connect(&m.cfg)
 		if err != nil {
 			return fmt.Errorf("%w: %v Some features that utilise a database will be unavailable", database.ErrFailedToConnect, err)
 		}

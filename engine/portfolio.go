@@ -10,7 +10,6 @@ import (
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/database"
-	"gocryptotrader/database/models/sqlite3"
 	"gocryptotrader/database/repository/liveorder"
 	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/eventtypes"
@@ -88,8 +87,10 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, sh SizeHandler, r risk
 	// should handle in trademanager
 	fmt.Println("here")
 
-	ret, _ := sqlite3.LiveTrades().All(context.Background(), database.DB.SQL)
-	fmt.Println("ret", ret[0].EntryTime)
+	ret, _ := postgres.LiveTrades().All(context.Background(), database.DB.SQL)
+	if len(ret) > 0 {
+		fmt.Println("ret", ret[0].EntryTime)
+	}
 
 	activeTrades, _ := livetrade.Active()
 	for _, t := range activeTrades {

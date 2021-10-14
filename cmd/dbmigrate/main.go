@@ -12,8 +12,8 @@ import (
 	"gocryptotrader/core"
 	"gocryptotrader/database"
 	dbPSQL "gocryptotrader/database/drivers/postgres"
-	dbsqlite3 "gocryptotrader/database/drivers/sqlite3"
 	"gocryptotrader/database/repository"
+
 	"github.com/pressly/goose"
 )
 
@@ -27,19 +27,11 @@ var (
 )
 
 func openDBConnection(cfg *database.Config) (err error) {
-	if cfg.Driver == database.DBPostgreSQL {
-		dbConn, err = dbPSQL.Connect(cfg)
-		if err != nil {
-			return fmt.Errorf("database failed to connect: %v, some features that utilise a database will be unavailable", err)
-		}
-		return nil
-	} else if cfg.Driver == database.DBSQLite || cfg.Driver == database.DBSQLite3 {
-		dbConn, err = dbsqlite3.Connect(cfg.Database)
-		if err != nil {
-			return fmt.Errorf("database failed to connect: %v, some features that utilise a database will be unavailable", err)
-		}
-		return nil
+	dbConn, err = dbPSQL.Connect(cfg)
+	if err != nil {
+		return fmt.Errorf("database failed to connect: %v, some features that utilise a database will be unavailable", err)
 	}
+	return nil
 	return errors.New("no connection established")
 }
 

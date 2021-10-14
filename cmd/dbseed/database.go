@@ -7,10 +7,10 @@ import (
 	"gocryptotrader/config"
 	"gocryptotrader/database"
 	dbPSQL "gocryptotrader/database/drivers/postgres"
-	dbsqlite3 "gocryptotrader/database/drivers/sqlite3"
 	"gocryptotrader/database/repository"
-	"github.com/volatiletech/sqlboiler/v4/boil"
+
 	"github.com/urfave/cli/v2"
+	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
 var (
@@ -34,11 +34,7 @@ func load(c *cli.Context) error {
 	}
 
 	drv := repository.GetSQLDialect()
-	if drv == database.DBSQLite || drv == database.DBSQLite3 {
-		fmt.Printf("Database file: %s\n", conf.Database.Database)
-	} else {
-		fmt.Printf("Connected to: %s\n", conf.Database.Host)
-	}
+	fmt.Printf("Connected to: %s\n", conf.Database.Host)
 
 	return nil
 }
@@ -47,18 +43,11 @@ func openDBConnection(c *cli.Context, cfg *database.Config) (err error) {
 	if c.IsSet("verbose") {
 		boil.DebugMode = true
 	}
-	if cfg.Driver == database.DBPostgreSQL {
-		dbConn, err = dbPSQL.Connect(cfg)
-		if err != nil {
-			return fmt.Errorf("database failed to connect: %v, some features that utilise a database will be unavailable", err)
-		}
-		return nil
-	} else if cfg.Driver == database.DBSQLite || cfg.Driver == database.DBSQLite3 {
-		dbConn, err = dbsqlite3.Connect(cfg.Database)
-		if err != nil {
-			return fmt.Errorf("database failed to connect: %v, some features that utilise a database will be unavailable", err)
-		}
-		return nil
+	dbConn, err = dbPSQL.Connect(cfg)
+	if err != nil {
+		return fmt.Errorf("database failed to connect: %v, some features that utilise a database will be unavailable", err)
 	}
+	return nil
+
 	return errors.New("no connection established")
 }

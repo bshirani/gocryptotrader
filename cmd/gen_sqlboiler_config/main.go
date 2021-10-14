@@ -77,22 +77,12 @@ func convertGCTtoSQLBoilerConfig(c *database.Config) {
 	if dbType == database.DBPostgreSQL {
 		dbType = "psql"
 	}
-	if dbType == database.DBSQLite || dbType == database.DBSQLite3 {
-		tempConfig.DBName = getLoadedDBPath()
-	} else {
-		tempConfig.User = c.Username
-		tempConfig.Pass = c.Password
-		tempConfig.Port = c.Port
-		tempConfig.Host = c.Host
-		tempConfig.DBName = c.Database
-		tempConfig.SSLMode = c.SSLMode
-	}
+	tempConfig.User = c.Username
+	tempConfig.Pass = c.Password
+	tempConfig.Port = c.Port
+	tempConfig.Host = c.Host
+	tempConfig.DBName = c.Database
+	tempConfig.SSLMode = c.SSLMode
 
 	sqlboilerConfig[dbType] = tempConfig
-}
-
-// getLoadedDBPath gets the path loaded by 'database/drivers/sqlite3'
-func getLoadedDBPath() string {
-	cfg := database.DB.GetConfig()
-	return filepath.Join(database.DB.DataPath, cfg.Database)
 }

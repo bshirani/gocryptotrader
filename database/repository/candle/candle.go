@@ -14,15 +14,12 @@ import (
 
 	"gocryptotrader/database"
 	modelPSQL "gocryptotrader/database/models/postgres"
-	modelSQLite "gocryptotrader/database/models/sqlite3"
-	"gocryptotrader/database/repository"
 	"gocryptotrader/database/repository/exchange"
 	"gocryptotrader/log"
 
-	"github.com/gofrs/uuid"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
-	"github.com/volatiletech/null/v8"
 )
 
 // Series returns candle data
@@ -44,49 +41,24 @@ func Series(exchangeName, base, quote string, interval int64, asset string, star
 		return out, errS
 	}
 	queries = append(queries, qm.Where("exchange_name_id = ?", exchangeUUID.String()))
-	if repository.GetSQLDialect() == database.DBSQLite3 {
-		queries = append(queries, qm.Where("timestamp between ? and ?", start.UTC().Format(time.RFC3339), end.UTC().Format(time.RFC3339)))
-		retCandle, errC := modelSQLite.Candles(queries...).All(context.Background(), database.DB.SQL)
-		if errC != nil {
-			return out, errC
-		}
-		for x := range retCandle {
-			t, errT := time.Parse(time.RFC3339, retCandle[x].Timestamp)
-			if errT != nil {
-				return out, errT
-			}
-			out.Candles = append(out.Candles, Candle{
-				Timestamp:        t,
-				Open:             retCandle[x].Open,
-				High:             retCandle[x].High,
-				Low:              retCandle[x].Low,
-				Close:            retCandle[x].Close,
-				Volume:           retCandle[x].Volume,
-				SourceJobID:      retCandle[x].SourceJobID.String,
-				ValidationJobID:  retCandle[x].ValidationJobID.String,
-				ValidationIssues: retCandle[x].ValidationIssues.String,
-			})
-		}
-	} else {
-		queries = append(queries, qm.Where("timestamp between ? and ?", start.UTC(), end.UTC()))
-		retCandle, errC := modelPSQL.Candles(queries...).All(context.Background(), database.DB.SQL)
-		if errC != nil {
-			return out, errC
-		}
+	queries = append(queries, qm.Where("timestamp between ? and ?", start.UTC(), end.UTC()))
+	retCandle, errC := modelPSQL.Candles(queries...).All(context.Background(), database.DB.SQL)
+	if errC != nil {
+		return out, errC
+	}
 
-		for x := range retCandle {
-			out.Candles = append(out.Candles, Candle{
-				Timestamp:        retCandle[x].Timestamp,
-				Open:             retCandle[x].Open,
-				High:             retCandle[x].High,
-				Low:              retCandle[x].Low,
-				Close:            retCandle[x].Close,
-				Volume:           retCandle[x].Volume,
-				SourceJobID:      retCandle[x].SourceJobID.String,
-				ValidationJobID:  retCandle[x].ValidationJobID.String,
-				ValidationIssues: retCandle[x].ValidationIssues.String,
-			})
-		}
+	for x := range retCandle {
+		out.Candles = append(out.Candles, Candle{
+			Timestamp:        retCandle[x].Timestamp,
+			Open:             retCandle[x].Open,
+			High:             retCandle[x].High,
+			Low:              retCandle[x].Low,
+			Close:            retCandle[x].Close,
+			Volume:           retCandle[x].Volume,
+			SourceJobID:      retCandle[x].SourceJobID.String,
+			ValidationJobID:  retCandle[x].ValidationJobID.String,
+			ValidationIssues: retCandle[x].ValidationIssues.String,
+		})
 	}
 	if len(out.Candles) < 1 {
 		return out, fmt.Errorf("%w: %s %s %s %v %s", ErrNoCandleDataFound, exchangeName, base, quote, interval, asset)
@@ -117,40 +89,9 @@ func DeleteCandles(in *Item) (int64, error) {
 		qm.Where("asset = ?", strings.ToLower(in.Asset)),
 		qm.Where("exchange_name_id = ?", in.ExchangeID),
 	}
-	if repository.GetSQLDialect() == database.DBSQLite3 {
-		queries = append(queries, qm.Where("timestamp between ? and ?", in.Candles[0].Timestamp.UTC().Format(time.RFC3339), in.Candles[len(in.Candles)-1].Timestamp.UTC().Format(time.RFC3339)))
-		return deleteSQLite(ctx, queries)
-	}
 
 	queries = append(queries, qm.Where("timestamp between ? and ?", in.Candles[0].Timestamp.UTC(), in.Candles[len(in.Candles)-1].Timestamp.UTC()))
 	return deletePostgres(ctx, queries)
-}
-
-func deleteSQLite(ctx context.Context, queries []qm.QueryMod) (int64, error) {
-	retCandle, err := modelSQLite.Candles(queries...).All(context.Background(), database.DB.SQL)
-	if err != nil {
-		return 0, err
-	}
-	var tx *sql.Tx
-	tx, err = database.DB.SQL.BeginTx(ctx, nil)
-	if err != nil {
-		return 0, err
-	}
-	var totalDeleted int64
-	totalDeleted, err = retCandle.DeleteAll(ctx, tx)
-	if err != nil {
-		errRB := tx.Rollback()
-		if errRB != nil {
-			log.Errorln(log.DatabaseMgr, errRB)
-		}
-		return 0, err
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return 0, err
-	}
-	return totalDeleted, nil
 }
 
 func deletePostgres(ctx context.Context, queries []qm.QueryMod) (int64, error) {
@@ -197,11 +138,7 @@ func Insert(in *Item) (uint64, error) {
 	}
 
 	var totalInserted uint64
-	if repository.GetSQLDialect() == database.DBSQLite3 {
-		totalInserted, err = insertSQLite(ctx, tx, in)
-	} else {
-		totalInserted, err = insertPostgresSQL(ctx, tx, in)
-	}
+	totalInserted, err = insertPostgresSQL(ctx, tx, in)
 	if err != nil {
 		errRB := tx.Rollback()
 		if errRB != nil {
@@ -213,41 +150,6 @@ func Insert(in *Item) (uint64, error) {
 	err = tx.Commit()
 	if err != nil {
 		return 0, err
-	}
-	return totalInserted, nil
-}
-
-func insertSQLite(ctx context.Context, tx *sql.Tx, in *Item) (uint64, error) {
-	var totalInserted uint64
-	for x := range in.Candles {
-		var tempCandle = modelSQLite.Candle{
-			ExchangeNameID: in.ExchangeID,
-			Base:           strings.ToUpper(in.Base),
-			Quote:          strings.ToUpper(in.Quote),
-			Interval:       strconv.FormatInt(in.Interval, 10),
-			Asset:          strings.ToLower(in.Asset),
-			Timestamp:      in.Candles[x].Timestamp.UTC().Format(time.RFC3339),
-			Open:           in.Candles[x].Open,
-			High:           in.Candles[x].High,
-			Low:            in.Candles[x].Low,
-			Close:          in.Candles[x].Close,
-			Volume:         in.Candles[x].Volume,
-		}
-		tempUUID, err := uuid.NewV4()
-		if err != nil {
-			return 0, err
-		}
-		tempCandle.ID = tempUUID.String()
-		tempCandle.ValidationJobID = null.String{String: in.Candles[x].ValidationJobID, Valid: in.Candles[x].ValidationJobID != ""}
-		tempCandle.ValidationIssues = null.String{String: in.Candles[x].ValidationIssues, Valid: in.Candles[x].ValidationIssues != ""}
-		tempCandle.SourceJobID = null.String{String: in.Candles[x].SourceJobID, Valid: in.Candles[x].SourceJobID != ""}
-		err = tempCandle.Insert(ctx, tx, boil.Infer())
-		if err != nil {
-			return 0, err
-		}
-		if totalInserted < math.MaxUint64 {
-			totalInserted++
-		}
 	}
 	return totalInserted, nil
 }

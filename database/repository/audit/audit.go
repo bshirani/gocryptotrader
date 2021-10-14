@@ -6,12 +6,10 @@ import (
 
 	"gocryptotrader/database"
 	modelPSQL "gocryptotrader/database/models/postgres"
-	modelSQLite "gocryptotrader/database/models/sqlite3"
-	"gocryptotrader/database/repository"
 	"gocryptotrader/log"
 
-	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
 // Event inserts a new audit event to database
@@ -29,21 +27,12 @@ func Event(id, msgtype, message string) {
 		return
 	}
 
-	if repository.GetSQLDialect() == database.DBSQLite3 {
-		var tempEvent = modelSQLite.AuditEvent{
-			Type:       msgtype,
-			Identifier: id,
-			Message:    message,
-		}
-		err = tempEvent.Insert(ctx, tx, boil.Blacklist("created_at"))
-	} else {
-		var tempEvent = modelPSQL.AuditEvent{
-			Type:       msgtype,
-			Identifier: id,
-			Message:    message,
-		}
-		err = tempEvent.Insert(ctx, tx, boil.Blacklist("created_at"))
+	var tempEvent = modelPSQL.AuditEvent{
+		Type:       msgtype,
+		Identifier: id,
+		Message:    message,
 	}
+	err = tempEvent.Insert(ctx, tx, boil.Blacklist("created_at"))
 
 	if err != nil {
 		log.Errorf(log.Global, "Event insert failed: %v", err)
@@ -78,9 +67,6 @@ func GetEvent(startTime, endTime time.Time, order string, limit int) (interface{
 	limitQuery := qm.Limit(limit)
 
 	ctx := context.Background()
-	if repository.GetSQLDialect() == database.DBSQLite3 {
-		return modelSQLite.AuditEvents(query, orderByQuery, limitQuery).All(ctx, database.DB.SQL)
-	}
 
 	return modelPSQL.AuditEvents(query, orderByQuery, limitQuery).All(ctx, database.DB.SQL)
 }

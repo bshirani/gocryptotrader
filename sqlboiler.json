@@ -1,6 +1,6 @@
 {
- "sqlite3": {
-  "dbname": "/home/bijan/.gocryptotrader/database/XBTUSD.db",
+ "postgresql": {
+  "dbname": "gct-dev",
   "blacklist": [
    "goose_db_version"
   ]

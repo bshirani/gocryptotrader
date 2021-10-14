@@ -48,7 +48,7 @@ However, we welcome pull requests for any exchange which does not match this cri
 + Unified API for exchange usage.
 + Customisation of HTTP client features including setting a proxy, user agent and adjusting transport settings.
 + NTP client package.
-+ Database support (Postgres and SQLite3). See [database](/database/README.md).
++ Database support (Postgres). See [database](/database/README.md).
 + OTP generation tool. See [gen otp](/cmd/gen_otp).
 + Connection monitor package.
 + gRPC service and JSON RPC proxy. See [gRPC service](/gctrpc/README.md).

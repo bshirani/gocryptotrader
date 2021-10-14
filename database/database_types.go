@@ -37,13 +37,11 @@ var (
 	// ErrDatabaseSupportDisabled error to display when no database is provided
 	ErrDatabaseSupportDisabled = errors.New("database support is disabled")
 	// SupportedDrivers slice of supported database driver types
-	SupportedDrivers = []string{DBSQLite, DBSQLite3, DBPostgreSQL}
+	SupportedDrivers = []string{DBPostgreSQL}
 	// ErrFailedToConnect for when a database fails to connect
 	ErrFailedToConnect = errors.New("database failed to connect")
 	// ErrDatabaseNotConnected for when a database is not connected
 	ErrDatabaseNotConnected = errors.New("database is not connected")
-	// DefaultSQLiteDatabase is the default sqlite3 database name to use
-	DefaultSQLiteDatabase = "gocryptotrader.db"
 	// ErrNilInstance for when a database is nil
 	ErrNilInstance = errors.New("database instance is nil")
 	// ErrNilConfig for when a config is nil
@@ -53,10 +51,6 @@ var (
 )
 
 const (
-	// DBSQLite const string for sqlite across code base
-	DBSQLite = "sqlite"
-	// DBSQLite3 const string for sqlite3 across code base
-	DBSQLite3 = "sqlite3"
 	// DBPostgreSQL const string for PostgreSQL across code base
 	DBPostgreSQL = "postgres"
 	// DBInvalidDriver const string for invalid driver

@@ -41,7 +41,7 @@
    "config-override": {
     "enabled": true,
     "verbose": false,
-    "driver": "sqlite",
+    "driver": "postgresql",
     "connectionDetails": {
      "host": "localhost",
      "port": 0,

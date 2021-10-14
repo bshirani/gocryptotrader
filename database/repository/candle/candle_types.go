@@ -12,7 +12,7 @@ var (
 	ErrNoCandleDataFound = errors.New("no candle data found")
 )
 
-// Item generic candle holder for modelPSQL & modelSQLite
+// Item generic candle holder for modelPSQL
 type Item struct {
 	ID         string
 	ExchangeID string

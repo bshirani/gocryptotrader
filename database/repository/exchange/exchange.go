@@ -11,8 +11,6 @@ import (
 	"gocryptotrader/common/cache"
 	"gocryptotrader/database"
 	modelPSQL "gocryptotrader/database/models/postgres"
-	modelSQLite "gocryptotrader/database/models/sqlite3"
-	"gocryptotrader/database/repository"
 	"gocryptotrader/log"
 
 	"github.com/gofrs/uuid"
@@ -37,26 +35,14 @@ func one(in, clause string) (out Details, err error) {
 	}
 
 	whereQM := qm.Where(clause+"= ?", in)
-	if repository.GetSQLDialect() == database.DBSQLite3 {
-		ret, errS := modelSQLite.Exchanges(whereQM).One(context.Background(), database.DB.SQL)
-		if errS != nil {
-			return out, errS
-		}
-		out.Name = ret.Name
-		out.UUID, errS = uuid.FromString(ret.ID)
-		if errS != nil {
-			return out, errS
-		}
-	} else {
-		ret, errS := modelPSQL.Exchanges(whereQM).One(context.Background(), database.DB.SQL)
-		if errS != nil {
-			return out, errS
-		}
-		out.Name = ret.Name
-		out.UUID, errS = uuid.FromString(ret.ID)
-		if errS != nil {
-			return out, errS
-		}
+	ret, errS := modelPSQL.Exchanges(whereQM).One(context.Background(), database.DB.SQL)
+	if errS != nil {
+		return out, errS
+	}
+	out.Name = ret.Name
+	out.UUID, errS = uuid.FromString(ret.ID)
+	if errS != nil {
+		return out, errS
 	}
 
 	return out, err
@@ -73,11 +59,7 @@ func Insert(in Details) error {
 	if err != nil {
 		return err
 	}
-	if repository.GetSQLDialect() == database.DBSQLite3 {
-		err = insertSQLite(ctx, tx, []Details{in})
-	} else {
-		err = insertPostgresql(ctx, tx, []Details{in})
-	}
+	err = insertPostgresql(ctx, tx, []Details{in})
 
 	if err != nil {
 		errRB := tx.Rollback()
@@ -107,11 +89,7 @@ func InsertMany(in []Details) error {
 		return err
 	}
 
-	if repository.GetSQLDialect() == database.DBSQLite3 {
-		err = insertSQLite(ctx, tx, in)
-	} else {
-		err = insertPostgresql(ctx, tx, in)
-	}
+	err = insertPostgresql(ctx, tx, in)
 
 	if err != nil {
 		errRB := tx.Rollback()
@@ -129,30 +107,6 @@ func InsertMany(in []Details) error {
 		}
 		return err
 	}
-	return nil
-}
-
-func insertSQLite(ctx context.Context, tx *sql.Tx, in []Details) (err error) {
-	for x := range in {
-		tempUUID, errUUID := uuid.NewV4()
-		if errUUID != nil {
-			return errUUID
-		}
-		var tempInsert = modelSQLite.Exchange{
-			Name: strings.ToLower(in[x].Name),
-			ID:   tempUUID.String(),
-		}
-
-		err = tempInsert.Insert(ctx, tx, boil.Infer())
-		if err != nil {
-			errRB := tx.Rollback()
-			if errRB != nil {
-				log.Errorln(log.DatabaseMgr, errRB)
-			}
-			return err
-		}
-	}
-
 	return nil
 }
 

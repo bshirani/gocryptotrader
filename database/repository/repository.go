@@ -8,8 +8,6 @@ import (
 func GetSQLDialect() string {
 	cfg := database.DB.GetConfig()
 	switch cfg.Driver {
-	case "sqlite", "sqlite3":
-		return database.DBSQLite3
 	case "psql", "postgres", "postgresql":
 		return database.DBPostgreSQL
 	}

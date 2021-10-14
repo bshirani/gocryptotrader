@@ -5,7 +5,7 @@ import (
 	"database/sql"
 
 	"gocryptotrader/database"
-	modelSQLite "gocryptotrader/database/models/sqlite3"
+	"gocryptotrader/database/models/postgres"
 	"gocryptotrader/log"
 
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -13,7 +13,7 @@ import (
 )
 
 func Count() int64 {
-	i, _ := modelSQLite.LiveOrders().Count(context.Background(), database.DB.SQL)
+	i, _ := postgres.LiveOrders().Count(context.Background(), database.DB.SQL)
 	return i
 }
 
@@ -32,8 +32,8 @@ func one(in, clause string) (out Details, err error) {
 	// boil.DebugMode = true
 
 	whereQM := qm.Where(clause+"= ?", in)
-	ret, errS := modelSQLite.LiveOrders(whereQM).One(context.Background(), database.DB.SQL)
-	out.ID = ret.ID
+	ret, errS := postgres.LiveOrders(whereQM).One(context.Background(), database.DB.SQL)
+	out.ID = int64(ret.ID)
 	if errS != nil {
 		return out, errS
 	}
@@ -48,11 +48,11 @@ func Active() (out []Details, err error) {
 	}
 
 	whereQM := qm.Where("status IN ('OPEN')")
-	ret, errS := modelSQLite.LiveOrders(whereQM).All(context.Background(), database.DB.SQL)
+	ret, errS := postgres.LiveOrders(whereQM).All(context.Background(), database.DB.SQL)
 
 	for _, x := range ret {
 		out = append(out, Details{
-			ID: x.ID,
+			ID: int64(x.ID),
 		})
 	}
 	if errS != nil {
@@ -77,7 +77,7 @@ func Insert(in Details) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	id, err := insertSQLite(ctx, tx, in)
+	id, err := insertPostgresql(ctx, tx, in)
 
 	if err != nil {
 		errRB := tx.Rollback()
@@ -95,15 +95,15 @@ func Insert(in Details) (int64, error) {
 	return id, nil
 }
 
-func insertSQLite(ctx context.Context, tx *sql.Tx, in Details) (id int64, err error) {
-	var tempInsert = modelSQLite.LiveOrder{
+func insertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int64, err error) {
+	var tempInsert = postgres.LiveOrder{
 		Status:     in.Status.String(),
 		OrderType:  in.OrderType.String(),
 		Exchange:   in.Exchange,
 		InternalID: in.InternalID,
 		StrategyID: in.StrategyID,
-		UpdatedAt:  in.UpdatedAt.String(),
-		CreatedAt:  in.CreatedAt.String(),
+		UpdatedAt:  in.UpdatedAt,
+		CreatedAt:  in.CreatedAt,
 	}
 
 	err = tempInsert.Insert(ctx, tx, boil.Infer())
@@ -116,5 +116,5 @@ func insertSQLite(ctx context.Context, tx *sql.Tx, in Details) (id int64, err er
 		return 0, err
 	}
 
-	return tempInsert.ID, nil
+	return int64(tempInsert.ID), nil
 }

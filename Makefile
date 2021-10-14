@@ -57,8 +57,6 @@ profile_cpu:
 gen_db_models: target/sqlboiler.json
 ifeq ($(DRIVER), psql)
 	sqlboiler -c $< -o database/models/postgres -p postgres --no-auto-timestamps --wipe $(DRIVER)
-else ifeq ($(DRIVER), sqlite3)
-	sqlboiler -c $< -o database/models/sqlite3 -p sqlite3 --no-auto-timestamps --wipe $(DRIVER)
 else
 	$(error Driver '$(DRIVER)' not supported)
 endif
