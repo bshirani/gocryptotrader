@@ -745,15 +745,6 @@ func (bot *Engine) Stop() {
 		}
 	}
 
-	// if !bot.Settings.EnableDryRun {
-	// 	err := bot.Config.SaveConfigToFile(bot.Settings.ConfigFile)
-	// 	if err != nil {
-	// 		gctlog.Errorln(gctlog.Global, "Unable to save config.")
-	// 	} else {
-	// 		gctlog.Debugln(gctlog.Global, "Config file saved successfully.")
-	// 	}
-	// }
-
 	// Wait for services to gracefully shutdown
 	bot.ServicesWG.Wait()
 	err := gctlog.CloseLogger()

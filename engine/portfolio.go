@@ -242,7 +242,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 
 	p.recordTrade(ev)
 
-	fmt.Println("PORTFOLIO", ev.GetDirection(), ev.GetStrategyID(), ev.GetReason())
+	// fmt.Println("PORTFOLIO", ev.GetDirection(), ev.GetStrategyID(), ev.GetReason())
 
 	return p.evaluateOrder(ev, o, sizedOrder)
 }
@@ -294,9 +294,10 @@ func (p *Portfolio) createTrade(ev fill.Event, order *liveorder.Details) {
 	if lt.EntryTime.IsZero() {
 		fmt.Println("EntryTime cannot be empty")
 		os.Exit(2)
-	} else {
-		fmt.Println("creating trade, entrytime:", lt.EntryTime)
 	}
+	// else {
+	// 	fmt.Println("creating trade, entrytime:", lt.EntryTime)
+	// }
 
 	if !p.bot.Settings.EnableDryRun {
 		id, err := livetrade.Insert(lt)
@@ -959,7 +960,7 @@ func verifyOrderWithinLimits(f *fill.Fill, limitReducedAmount decimal.Decimal, c
 
 func (p *Portfolio) printTradeDetails(t *livetrade.Details) {
 	secondsInTrade := int64(p.lastUpdate.Sub(t.EntryTime).Seconds())
-	log.Infof(log.TradeManager, "trade pl:%v time:%d\n", t.ProfitLossPoints, secondsInTrade)
+	log.Infof(log.TradeManager, "%s trade: pl:%v time:%d\n", t.StrategyID, t.ProfitLossPoints, secondsInTrade)
 	return
 }
 
@@ -972,9 +973,7 @@ func (p *Portfolio) PrintPortfolioDetails() {
 	for _, t := range active {
 		p.printTradeDetails(&t)
 	}
-	for _, strategy := range p.strategies {
-		log.Infof(log.TradeManager, "%s orders:%d open_trades:%d closed_trades:%d", strategy.GetID(), len(activeOrders), len(active), len(closed))
-	}
+	log.Infof(log.TradeManager, "orders:%d open_trades:%d closed_trades:%d", len(activeOrders), len(active), len(closed))
 
 	// get strategy last updated time
 	// get factor engine last updated time for each pair

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	"github.com/fatih/color"
 )
@@ -60,14 +61,14 @@ func (l *Logger) newLogEvent(data, header, slName string, w io.Writer) error {
 	slName = fmt.Sprintf("%12s", slName)
 	header = fmt.Sprintf("%8s", header)
 	e.data = append(e.data, []byte(header)...)
+	if l.Timestamp != "" {
+		e.data = append(e.data, l.Spacer...)
+		e.data = time.Now().AppendFormat(e.data, l.Timestamp)
+	}
 	if l.ShowLogSystemName {
 		e.data = append(e.data, l.Spacer...)
 		e.data = append(e.data, slName...)
 	}
-	// if l.Timestamp != "" {
-	// e.data = append(e.data, l.Spacer...)
-	// 	e.data = time.Now().AppendFormat(e.data, l.Timestamp)
-	// }
 	e.data = append(e.data, l.Spacer...)
 	e.data = append(e.data, []byte(data)...)
 	if data == "" || data[len(data)-1] != '\n' {

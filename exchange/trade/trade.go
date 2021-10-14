@@ -8,7 +8,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/gofrs/uuid"
 	"gocryptotrader/common"
 	"gocryptotrader/currency"
 	"gocryptotrader/database"
@@ -17,6 +16,8 @@ import (
 	"gocryptotrader/exchange/kline"
 	"gocryptotrader/exchange/order"
 	"gocryptotrader/log"
+
+	"github.com/gofrs/uuid"
 )
 
 // Setup creates the trade processor if trading is supported
@@ -98,6 +99,7 @@ func (p *Processor) Run(wg *sync.WaitGroup) {
 	ticker := time.NewTicker(p.bufferProcessorInterval)
 	p.mutex.Unlock()
 	for {
+		fmt.Println("here")
 		<-ticker.C
 		p.mutex.Lock()
 		bufferCopy := append(p.buffer[:0:0], p.buffer...)

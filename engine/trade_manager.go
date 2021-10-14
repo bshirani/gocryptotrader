@@ -137,7 +137,6 @@ dataLoadingIssue:
 							break dataLoadingIssue
 						}
 						tm.EventQueue.AppendEvent(d)
-						// fmt.Println("appending data", d.Latest().GetDate())
 					}
 				}
 			}
@@ -165,39 +164,52 @@ func (tm *TradeManager) runLive() error {
 		case <-tm.shutdown:
 			return nil
 		case <-processEventTicker.C:
-			for ev := tm.EventQueue.NextEvent(); ; ev = tm.EventQueue.NextEvent() {
-				if ev == nil {
-					dataHandlerMap := tm.Datas.GetAllData()
-					for exchangeName, exchangeMap := range dataHandlerMap {
-						for assetItem, assetMap := range exchangeMap {
-							for currencyPair, dataHandler := range assetMap {
-								d := dataHandler.Next()
-								if d == nil {
-									if !tm.hasHandledEvent {
-										log.Errorf(log.TradeManager, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
-									}
-								} else {
-									// fmt.Println("appending data event", d.GetTime())
-									tm.EventQueue.AppendEvent(d)
-								}
-							}
-						}
-					}
-				}
-
-				if ev != nil {
-					err := tm.handleEvent(ev)
-					if err != nil {
-						return err
-					}
-				}
-				if !tm.hasHandledEvent {
-					tm.hasHandledEvent = true
-				}
+			err := tm.loadDataEvents()
+			if err != nil {
+				log.Errorln(log.TradeManager, "error loading data events", err)
+			}
+			err = tm.processEvents()
+			if err != nil {
+				log.Errorln(log.TradeManager, "procesing events", err)
 			}
 		}
 	}
 	return nil
+}
+
+func (tm *TradeManager) loadDataEvents() error {
+	for exchangeName, exchangeMap := range tm.Datas.GetAllData() {
+		for assetItem, assetMap := range exchangeMap {
+			for currencyPair, dataHandler := range assetMap {
+				d := dataHandler.Next()
+				if d == nil {
+					if !tm.hasHandledEvent {
+						log.Errorf(log.TradeManager, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
+					}
+					return nil
+				}
+				tm.EventQueue.AppendEvent(d)
+			}
+		}
+	}
+	return nil
+}
+
+func (tm *TradeManager) processEvents() error {
+	for ev := tm.EventQueue.NextEvent(); ; ev = tm.EventQueue.NextEvent() {
+		if ev != nil {
+			err := tm.handleEvent(ev)
+			if err != nil {
+				return err
+			}
+		} else {
+			return nil
+		}
+
+		if !tm.hasHandledEvent {
+			tm.hasHandledEvent = true
+		}
+	}
 }
 
 // LIVE FUNCTIONALITY

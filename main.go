@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"runtime"
+	"runtime/pprof"
 	"time"
 
 	"gocryptotrader/common"

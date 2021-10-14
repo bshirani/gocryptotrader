@@ -28,7 +28,7 @@
   "advancedSettings": {
    "showLogSystemName": true,
    "spacer": " | ",
-   "timeStampFormat": "02/01/2006 15:04:05",
+   "timeStampFormat": "15:04:05",
    "headers": {
     "info": "[INFO] ",
     "warn": "[WARN] ",
@@ -217,7 +217,7 @@
     }
    },
    "api": {
-    "authenticatedSupport": true,
+    "authenticatedSupport": false,
     "authenticatedWebsocketApiSupport": false,
     "credentials": {
      "key": "a0FqPRca7h1cd1hUu8lBa7UjCdHs/NQ7X5ORa+9sgwSn2mEJM9uLfKki",

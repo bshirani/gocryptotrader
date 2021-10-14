@@ -83,11 +83,13 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	orders := p.GetOpenOrdersForStrategy(s.GetID())
 	trade := p.GetTradeForStrategy(s.GetID())
 	if trade == nil && len(orders) == 0 {
-		fmt.Println(s.GetID(), "has no open orders and can trade")
+		if p.GetLiveMode() {
+			log.Debugln(log.TradeManager, s.GetID(), "can trade")
+		}
 		es.SetDecision(signal.Enter)
 	} else {
 		secondsInTrade := currentTime.Sub(trade.EntryTime).Seconds()
-		if secondsInTrade < -60 {
+		if secondsInTrade < -120 {
 			fmt.Println("ERROR negative seconds in trade", currentTime, trade.EntryTime)
 			reason := fmt.Sprintf("negative %f seconds in trade", secondsInTrade)
 			es.AppendReason(reason)
