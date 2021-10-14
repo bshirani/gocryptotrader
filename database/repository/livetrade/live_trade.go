@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
 	"time"
 
 	"gocryptotrader/database"
@@ -65,13 +66,20 @@ func ByStatus(status order.Status) (out []Details, err error) {
 	layout2 := time.RFC3339
 
 	for _, x := range ret {
+		fmt.Println("parsing entry time", x.EntryTime, x.CreatedAt, x.UpdatedAt)
+		// IntervalStartTime: results[i].IntervalStartDate.UTC().Format(time.RFC3339),
+		// fmt.Println("parsing entry time", x.EntryTime, entryTime)
 		entryTime, _ := time.Parse(layout2, x.EntryTime)
+		if entryTime.IsZero() {
+			fmt.Println("ERROR entryTime is zero")
+			os.Exit(2)
+		}
 		// exitTime, _ := time.Parse(layout2, x.ExitTime)
 		updatedAt, _ := time.Parse(layout2, x.UpdatedAt)
 		createdAt, _ := time.Parse(layout2, x.CreatedAt)
 		out = append(out, Details{
 			EntryPrice: decimal.NewFromFloat(x.EntryPrice),
-			EntryTime:  entryTime,
+			// EntryTime:  entryTime,
 			// ExitTime:   exitTime,
 			ID:         x.ID,
 			StrategyID: x.StrategyID,
@@ -160,6 +168,7 @@ func insertSQLite(ctx context.Context, tx *sql.Tx, in Details) (id int64, err er
 
 	var tempInsert = modelSQLite.LiveTrade{
 		EntryPrice:    entryPrice,
+		CreatedAt:     time.Now().UTC().String(),
 		EntryTime:     in.EntryTime.String(),
 		ExitTime:      null.String{String: in.ExitTime.String()},
 		ExitPrice:     null.Float64{Float64: exitPrice},
@@ -191,11 +200,17 @@ func updateSQLite(ctx context.Context, tx *sql.Tx, in []Details) (id int64, err 
 		exitPrice, _ := in[x].ExitPrice.Float64()
 		stopLossPrice, _ := in[x].StopLossPrice.Float64()
 
+		if in[x].EntryTime.IsZero() {
+			fmt.Println("entrytimezero")
+			os.Exit(2)
+		} else {
+			fmt.Println("saving trade", in[x].EntryTime)
+		}
 		var tempInsert = modelSQLite.LiveTrade{
 			ID:            in[x].ID,
 			UpdatedAt:     time.Now().String(),
 			EntryPrice:    entryPrice,
-			EntryTime:     in[x].EntryTime.String(),
+			EntryTime:     in[x].EntryTime.UTC().String(),
 			ExitTime:      null.String{String: in[x].ExitTime.String()},
 			ExitPrice:     null.Float64{Float64: exitPrice},
 			StopLossPrice: stopLossPrice,

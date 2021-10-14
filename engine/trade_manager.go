@@ -280,7 +280,7 @@ func (tm *TradeManager) RunLive() error {
 	//
 	// precache the factor engines
 	//
-	log.Debugln(log.TradeManager, "Warming up factor engines...")
+	// log.Debugln(log.TradeManager, "Warming up factor engines...")
 	tm.Run()
 
 	//
@@ -293,7 +293,7 @@ func (tm *TradeManager) RunLive() error {
 	//
 	// load datas, now setup
 	//
-	log.Debugln(log.TradeManager, "Load datas...")
+	// log.Debugln(log.TradeManager, "Load datas...")
 	tm.loadDatas()
 	// throw error if not live
 	if !atomic.CompareAndSwapInt32(&tm.started, 0, 1) {
@@ -1159,7 +1159,7 @@ func (tm *TradeManager) configureLiveDataAPI(resp *kline.DataFromKline, cfg *con
 	}
 	resp.AppendResults(candles)
 	tm.Reports.UpdateItem(&resp.Item)
-	log.Debug(log.TradeManager, "sleeping for 30 seconds before checking for new candle data")
+	// log.Debug(log.TradeManager, "sleeping for 30 seconds before checking for new candle data")
 	return nil
 }
 

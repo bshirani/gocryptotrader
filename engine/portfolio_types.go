@@ -3,6 +3,7 @@ package engine
 import (
 	"errors"
 	"sync"
+	"time"
 
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
@@ -66,6 +67,7 @@ type Portfolio struct {
 	bot                       *Engine
 	strategies                []strategies.Handler
 	store                     portfolioStore
+	lastUpdate                time.Time
 	exchangeAssetPairSettings map[string]map[asset.Item]map[currency.Pair]*PortfolioSettings
 }
 

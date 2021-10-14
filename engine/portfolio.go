@@ -136,6 +136,8 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		return nil, errStrategyIDUnset
 	}
 
+	p.lastUpdate = ev.GetTime()
+
 	trade := p.GetTradeForStrategy(ev.GetStrategyID())
 	if trade != nil {
 		if trade.Side == gctorder.Buy {
@@ -243,7 +245,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 
 	p.recordTrade(ev)
 
-	fmt.Println("PORTFOLIO CREATING NEW ORDER FOR", ev.GetDirection(), ev.GetStrategyID(), ev.GetReason())
+	fmt.Println("PORTFOLIO", ev.GetDirection(), ev.GetStrategyID(), ev.GetReason())
 
 	return p.evaluateOrder(ev, o, sizedOrder)
 }
@@ -289,7 +291,11 @@ func (p *Portfolio) createTrade(ev fill.Event, order *liveorder.Details) {
 	}
 
 	if lt.EntryPrice.IsZero() {
-		fmt.Println("1111")
+		fmt.Println("EntryPrice cannot be empty")
+		os.Exit(2)
+	}
+	if lt.EntryTime.IsZero() {
+		fmt.Println("EntryTime cannot be empty")
 		os.Exit(2)
 	}
 
@@ -954,14 +960,21 @@ func verifyOrderWithinLimits(f *fill.Fill, limitReducedAmount decimal.Decimal, c
 }
 
 func (p *Portfolio) printTradeDetails(t *livetrade.Details) {
-	// log.Infoln(log.TradeManager, "trade profit", t.ProfitLossPoints)
+	secondsInTrade := int64(p.lastUpdate.Sub(t.EntryTime).Seconds())
+	log.Infof(log.TradeManager, "trade pl:%v time:%d\n", t.ProfitLossPoints, secondsInTrade)
 	return
 }
 
 func (p *Portfolio) PrintPortfolioDetails() {
-	log.Infoln(log.TradeManager, "portfolio details")
+	log.Infoln(log.TradeManager, "portfolio details", p.lastUpdate)
 	active, _ := livetrade.Active()
+	activeOrders, _ := liveorder.Active()
 	closed, _ := livetrade.Closed()
+
+	for _, t := range active {
+		p.printTradeDetails(&t)
+	}
+	log.Infoln(log.TradeManager, "active orders", len(activeOrders))
 	log.Infoln(log.TradeManager, "active trades", len(active))
 	log.Infoln(log.TradeManager, "closed trades", len(closed))
 

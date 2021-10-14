@@ -81,10 +81,10 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	orders := p.GetOpenOrdersForStrategy(s.GetID())
 	trade := p.GetTradeForStrategy(s.GetID())
 	if trade == nil && len(orders) == 0 {
-		// fmt.Println(s.GetID(), "has no open orders and can trade")
+		fmt.Println(s.GetID(), "has no open orders and can trade")
 		es.SetDecision(signal.Enter)
 	} else {
-		secondsInTrade := d.Latest().GetTime().Sub(trade.EntryTime).Seconds()
+		secondsInTrade := trade.EntryTime.Sub(d.Latest().GetTime()).Seconds()
 		if secondsInTrade > 30 {
 			es.SetDecision(signal.Exit)
 			reason := fmt.Sprintf("%f seconds in trade", secondsInTrade)
