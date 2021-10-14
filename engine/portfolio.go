@@ -10,6 +10,7 @@ import (
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/database"
+	"gocryptotrader/database/models/postgres"
 	"gocryptotrader/database/repository/liveorder"
 	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/eventtypes"
@@ -85,8 +86,6 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, sh SizeHandler, r risk
 	// load existing positions from database
 	// only in live mode do we do this
 	// should handle in trademanager
-	fmt.Println("here")
-
 	ret, _ := postgres.LiveTrades().All(context.Background(), database.DB.SQL)
 	if len(ret) > 0 {
 		fmt.Println("ret", ret[0].EntryTime)
@@ -98,7 +97,6 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, sh SizeHandler, r risk
 		pos := p.store.positions[t.StrategyID]
 		pos.Active = true
 	}
-	fmt.Println("here2")
 
 	activeOrders, _ := liveorder.Active()
 	for _, t := range activeOrders {
@@ -331,7 +329,7 @@ func (p *Portfolio) closeTrade(f fill.Event, t *livetrade.Details) {
 
 		if !p.bot.Settings.EnableDryRun {
 			id, err := livetrade.Update(t)
-			t.ID = id
+			t.ID = int(id)
 			if err != nil || id == 0 {
 				fmt.Println("error saving to db")
 				os.Exit(2)

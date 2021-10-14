@@ -1,7 +1,6 @@
 package trades
 
 import (
-	"fmt"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/signal"
 	"gocryptotrader/exchange/order"
@@ -14,8 +13,6 @@ func Create(ev signal.Event) (Trade, error) {
 	if ev == nil {
 		return Trade{}, eventtypes.ErrNilEvent
 	}
-
-	fmt.Println("CREATING TRADEiiiiiiiiii")
 
 	return Trade{
 		Offset:     ev.GetOffset(),

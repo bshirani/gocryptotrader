@@ -40,7 +40,7 @@ func one(in, clause string) (out Details, err error) {
 
 	whereQM := qm.Where(clause+"= ?", in)
 	ret, errS := postgres.LiveTrades(whereQM).One(context.Background(), database.DB.SQL)
-	out.ID = int64(ret.ID)
+	out.ID = ret.ID
 	if errS != nil {
 		return out, errS
 	}
@@ -57,7 +57,7 @@ func Closed() (out []Details, err error) {
 }
 
 func ByStatus(status order.Status) (out []Details, err error) {
-	boil.DebugMode = true
+	// boil.DebugMode = true
 	if database.DB.SQL == nil {
 		return out, database.ErrDatabaseSupportDisabled
 	}
@@ -65,21 +65,19 @@ func ByStatus(status order.Status) (out []Details, err error) {
 	// whereQM := qm.Where(fmt.Sprintf("status IN ('%s')", status))
 	ret, errS := postgres.LiveTrades().All(context.Background(), database.DB.SQL)
 	// ret.ReloadAll(context.Background(), database.DB.SQL)
-	layout2 := time.RFC3339
 
 	for _, x := range ret {
-		fmt.Printf("ByStatus EntryTime %v, %d ep: %v en:%s up:%s cr:%s\n",
-			x,
+		fmt.Printf("ByStatus EntryTime  %d ep: %v en:%s up:%s cr:%s\n",
 			x.ID,
 			x.EntryPrice,
 			x.EntryTime,
 			x.UpdatedAt,
 			x.CreatedAt)
 
-		// if entryTime.IsZero() {
-		// 	fmt.Println("ERROR entryTime is zero")
-		// 	os.Exit(2)
-		// }
+		if x.EntryTime.IsZero() {
+			fmt.Println("ERROR entryTime is zero")
+			os.Exit(2)
+		}
 
 		out = append(out, Details{
 			EntryPrice: decimal.NewFromFloat(x.EntryPrice),
@@ -105,7 +103,7 @@ func ByStatus(status order.Status) (out []Details, err error) {
 }
 
 // Insert writes a single entry into database
-func Insert(in Details) (id int64, err error) {
+func Insert(in Details) (id int, err error) {
 	if database.DB.SQL == nil {
 		return 0, database.ErrDatabaseSupportDisabled
 	}
@@ -170,17 +168,17 @@ func Update(in *Details) (int64, error) {
 	return id, nil
 }
 
-func insertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int64, err error) {
-	// boil.DebugMode = true
+func insertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int, err error) {
+	boil.DebugMode = true
 	entryPrice, _ := in.EntryPrice.Float64()
 	exitPrice, _ := in.ExitPrice.Float64()
 	stopLossPrice, _ := in.StopLossPrice.Float64()
 
 	var tempInsert = postgres.LiveTrade{
 		EntryPrice:    entryPrice,
-		CreatedAt:     time.Now().UTC().Format(time.RFC3339),
-		EntryTime:     in.EntryTime.UTC().Format(time.RFC3339),
-		ExitTime:      null.String{String: in.ExitTime.String()},
+		CreatedAt:     time.Now(),
+		EntryTime:     in.EntryTime,
+		ExitTime:      null.Time{Time: in.ExitTime},
 		ExitPrice:     null.Float64{Float64: exitPrice},
 		StopLossPrice: stopLossPrice,
 		Status:        fmt.Sprintf("%s", in.Status),
@@ -190,7 +188,13 @@ func insertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int64, er
 		Side:          in.Side.String(),
 	}
 
-	err = tempCandle.Upsert(ctx, tx, true, []string{"timestamp", "exchange_name_id", "base", "quote", "interval", "asset"}, boil.Infer(), boil.Infer())
+	err = tempInsert.Upsert(
+		ctx,
+		tx,
+		true,
+		[]string{},
+		boil.Infer(),
+		boil.Infer())
 	if err != nil {
 		log.Errorln(log.DatabaseMgr, err)
 		errRB := tx.Rollback()
@@ -219,10 +223,10 @@ func updatePostgresql(ctx context.Context, tx *sql.Tx, in []Details) (id int64, 
 		}
 		var tempInsert = postgres.LiveTrade{
 			ID:            in[x].ID,
-			UpdatedAt:     time.Now().String(),
+			UpdatedAt:     time.Now(),
 			EntryPrice:    entryPrice,
-			EntryTime:     in[x].EntryTime.UTC().String(),
-			ExitTime:      null.String{String: in[x].ExitTime.String()},
+			EntryTime:     in[x].EntryTime,
+			ExitTime:      null.Time{Time: in[x].ExitTime},
 			ExitPrice:     null.Float64{Float64: exitPrice},
 			StopLossPrice: stopLossPrice,
 			Status:        fmt.Sprintf("%s", in[x].Status),

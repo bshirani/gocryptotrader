@@ -27,16 +27,16 @@ type LiveTrade struct {
 	ID               int          `boil:"id" json:"id" toml:"id" yaml:"id"`
 	Side             string       `boil:"side" json:"side" toml:"side" yaml:"side"`
 	EntryOrderID     string       `boil:"entry_order_id" json:"entry_order_id" toml:"entry_order_id" yaml:"entry_order_id"`
-	EntryPrice       float32      `boil:"entry_price" json:"entry_price" toml:"entry_price" yaml:"entry_price"`
+	EntryPrice       float64      `boil:"entry_price" json:"entry_price" toml:"entry_price" yaml:"entry_price"`
 	EntryTime        time.Time    `boil:"entry_time" json:"entry_time" toml:"entry_time" yaml:"entry_time"`
-	StopLossPrice    float32      `boil:"stop_loss_price" json:"stop_loss_price" toml:"stop_loss_price" yaml:"stop_loss_price"`
+	StopLossPrice    float64      `boil:"stop_loss_price" json:"stop_loss_price" toml:"stop_loss_price" yaml:"stop_loss_price"`
 	StrategyID       string       `boil:"strategy_id" json:"strategy_id" toml:"strategy_id" yaml:"strategy_id"`
 	Status           string       `boil:"status" json:"status" toml:"status" yaml:"status"`
 	Pair             string       `boil:"pair" json:"pair" toml:"pair" yaml:"pair"`
 	ExitTime         null.Time    `boil:"exit_time" json:"exit_time,omitempty" toml:"exit_time" yaml:"exit_time,omitempty"`
 	TakeProfitPrice  null.Float32 `boil:"take_profit_price" json:"take_profit_price,omitempty" toml:"take_profit_price" yaml:"take_profit_price,omitempty"`
 	ProfitLossPoints null.Float32 `boil:"profit_loss_points" json:"profit_loss_points,omitempty" toml:"profit_loss_points" yaml:"profit_loss_points,omitempty"`
-	ExitPrice        null.Float32 `boil:"exit_price" json:"exit_price,omitempty" toml:"exit_price" yaml:"exit_price,omitempty"`
+	ExitPrice        null.Float64 `boil:"exit_price" json:"exit_price,omitempty" toml:"exit_price" yaml:"exit_price,omitempty"`
 	CreatedAt        time.Time    `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt        time.Time    `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
@@ -114,65 +114,36 @@ var LiveTradeTableColumns = struct {
 
 // Generated where
 
-type whereHelperfloat32 struct{ field string }
-
-func (w whereHelperfloat32) EQ(x float32) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.EQ, x) }
-func (w whereHelperfloat32) NEQ(x float32) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.NEQ, x)
-}
-func (w whereHelperfloat32) LT(x float32) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LT, x) }
-func (w whereHelperfloat32) LTE(x float32) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LTE, x)
-}
-func (w whereHelperfloat32) GT(x float32) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GT, x) }
-func (w whereHelperfloat32) GTE(x float32) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GTE, x)
-}
-func (w whereHelperfloat32) IN(slice []float32) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
-}
-func (w whereHelperfloat32) NIN(slice []float32) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
-}
-
 var LiveTradeWhere = struct {
 	ID               whereHelperint
 	Side             whereHelperstring
 	EntryOrderID     whereHelperstring
-	EntryPrice       whereHelperfloat32
+	EntryPrice       whereHelperfloat64
 	EntryTime        whereHelpertime_Time
-	StopLossPrice    whereHelperfloat32
+	StopLossPrice    whereHelperfloat64
 	StrategyID       whereHelperstring
 	Status           whereHelperstring
 	Pair             whereHelperstring
 	ExitTime         whereHelpernull_Time
 	TakeProfitPrice  whereHelpernull_Float32
 	ProfitLossPoints whereHelpernull_Float32
-	ExitPrice        whereHelpernull_Float32
+	ExitPrice        whereHelpernull_Float64
 	CreatedAt        whereHelpertime_Time
 	UpdatedAt        whereHelpertime_Time
 }{
 	ID:               whereHelperint{field: "\"live_trade\".\"id\""},
 	Side:             whereHelperstring{field: "\"live_trade\".\"side\""},
 	EntryOrderID:     whereHelperstring{field: "\"live_trade\".\"entry_order_id\""},
-	EntryPrice:       whereHelperfloat32{field: "\"live_trade\".\"entry_price\""},
+	EntryPrice:       whereHelperfloat64{field: "\"live_trade\".\"entry_price\""},
 	EntryTime:        whereHelpertime_Time{field: "\"live_trade\".\"entry_time\""},
-	StopLossPrice:    whereHelperfloat32{field: "\"live_trade\".\"stop_loss_price\""},
+	StopLossPrice:    whereHelperfloat64{field: "\"live_trade\".\"stop_loss_price\""},
 	StrategyID:       whereHelperstring{field: "\"live_trade\".\"strategy_id\""},
 	Status:           whereHelperstring{field: "\"live_trade\".\"status\""},
 	Pair:             whereHelperstring{field: "\"live_trade\".\"pair\""},
 	ExitTime:         whereHelpernull_Time{field: "\"live_trade\".\"exit_time\""},
 	TakeProfitPrice:  whereHelpernull_Float32{field: "\"live_trade\".\"take_profit_price\""},
 	ProfitLossPoints: whereHelpernull_Float32{field: "\"live_trade\".\"profit_loss_points\""},
-	ExitPrice:        whereHelpernull_Float32{field: "\"live_trade\".\"exit_price\""},
+	ExitPrice:        whereHelpernull_Float64{field: "\"live_trade\".\"exit_price\""},
 	CreatedAt:        whereHelpertime_Time{field: "\"live_trade\".\"created_at\""},
 	UpdatedAt:        whereHelpertime_Time{field: "\"live_trade\".\"updated_at\""},
 }

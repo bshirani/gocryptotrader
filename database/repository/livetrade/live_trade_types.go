@@ -18,7 +18,7 @@ var (
 
 // Item generic candle holder for modelPSQL
 type Details struct {
-	ID               int64
+	ID               int
 	Side             order.Side
 	Name             string
 	StrategyID       string
