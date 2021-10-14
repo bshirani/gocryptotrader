@@ -2,6 +2,7 @@ package trend
 
 import (
 	"fmt"
+	"os"
 
 	"gocryptotrader/common"
 	"gocryptotrader/data"
@@ -78,14 +79,20 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	// 	fmt.Println("trend.go trade", trade, s.GetID())
 	// }
 
+	currentTime := d.Latest().GetTime()
 	orders := p.GetOpenOrdersForStrategy(s.GetID())
 	trade := p.GetTradeForStrategy(s.GetID())
 	if trade == nil && len(orders) == 0 {
 		fmt.Println(s.GetID(), "has no open orders and can trade")
 		es.SetDecision(signal.Enter)
 	} else {
-		secondsInTrade := trade.EntryTime.Sub(d.Latest().GetTime()).Seconds()
-		if secondsInTrade > 30 {
+		secondsInTrade := currentTime.Sub(trade.EntryTime).Seconds()
+		if secondsInTrade < -60 {
+			fmt.Println("ERROR negative seconds in trade", currentTime, trade.EntryTime)
+			reason := fmt.Sprintf("negative %f seconds in trade", secondsInTrade)
+			es.AppendReason(reason)
+			os.Exit(2)
+		} else if secondsInTrade > 30 {
 			es.SetDecision(signal.Exit)
 			reason := fmt.Sprintf("%f seconds in trade", secondsInTrade)
 			es.AppendReason(reason)

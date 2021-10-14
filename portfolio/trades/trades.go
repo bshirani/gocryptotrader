@@ -1,10 +1,12 @@
 package trades
 
 import (
-	"github.com/shopspring/decimal"
+	"fmt"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/signal"
 	"gocryptotrader/exchange/order"
+
+	"github.com/shopspring/decimal"
 )
 
 // Create makes a Trade struct to track total values of strategy holdings over the course of a backtesting run
@@ -12,6 +14,8 @@ func Create(ev signal.Event) (Trade, error) {
 	if ev == nil {
 		return Trade{}, eventtypes.ErrNilEvent
 	}
+
+	fmt.Println("CREATING TRADEiiiiiiiiii")
 
 	return Trade{
 		Offset:     ev.GetOffset(),

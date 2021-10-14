@@ -56,28 +56,36 @@ func Closed() (out []Details, err error) {
 }
 
 func ByStatus(status order.Status) (out []Details, err error) {
-	// boil.DebugMode = true
+	boil.DebugMode = true
 	if database.DB.SQL == nil {
 		return out, database.ErrDatabaseSupportDisabled
 	}
 
-	whereQM := qm.Where(fmt.Sprintf("status IN ('%s')", status))
-	ret, errS := modelSQLite.LiveTrades(whereQM).All(context.Background(), database.DB.SQL)
-	ret.ReloadAll(context.Background(), database.DB.SQL)
+	// whereQM := qm.Where(fmt.Sprintf("status IN ('%s')", status))
+	ret, errS := modelSQLite.LiveTrades().All(context.Background(), database.DB.SQL)
+	// ret.ReloadAll(context.Background(), database.DB.SQL)
 	layout2 := time.RFC3339
 
 	for _, x := range ret {
-		fmt.Println("parsing entry time", x.EntryTime, x.CreatedAt, x.UpdatedAt)
+		fmt.Printf("ByStatus EntryTime %v, %d ep: %v en:%s up:%s cr:%s\n",
+			x,
+			x.ID,
+			x.EntryPrice,
+			x.EntryTime,
+			x.UpdatedAt,
+			x.CreatedAt)
 		// IntervalStartTime: results[i].IntervalStartDate.UTC().Format(time.RFC3339),
-		// fmt.Println("parsing entry time", x.EntryTime, entryTime)
+		// entryTime, _ := time.Parse(layout2, x.EntryTime)
+		updatedAt, _ := time.Parse(layout2, x.UpdatedAt)
+		createdAt, _ := time.Parse(layout2, x.CreatedAt)
 		entryTime, _ := time.Parse(layout2, x.EntryTime)
+		// exitTime, _ := time.Parse(layout2, x.ExitTime)
+
 		if entryTime.IsZero() {
 			fmt.Println("ERROR entryTime is zero")
 			os.Exit(2)
 		}
-		// exitTime, _ := time.Parse(layout2, x.ExitTime)
-		updatedAt, _ := time.Parse(layout2, x.UpdatedAt)
-		createdAt, _ := time.Parse(layout2, x.CreatedAt)
+
 		out = append(out, Details{
 			EntryPrice: decimal.NewFromFloat(x.EntryPrice),
 			EntryTime:  entryTime,
@@ -124,6 +132,7 @@ func Insert(in Details) (id int64, err error) {
 
 	err = tx.Commit()
 	if err != nil {
+		fmt.Println("error committing insert", err)
 		return 0, err
 	}
 
@@ -141,7 +150,6 @@ func Update(in *Details) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	fmt.Println("updating trade status", in.Status, in.ID)
 	id, err := updateSQLite(ctx, tx, []Details{*in})
 
 	if err != nil {
@@ -154,8 +162,15 @@ func Update(in *Details) (int64, error) {
 
 	err = tx.Commit()
 	if err != nil {
+		fmt.Println("error committing update", err)
 		return 0, err
 	}
+	record, err := modelSQLite.LiveTrades().One(context.Background(), database.DB.SQL)
+	if err != nil {
+		fmt.Println("error retrieving update", err)
+		return 0, err
+	}
+	fmt.Println("after update record", record.EntryTime, record.EntryPrice, record.UpdatedAt)
 
 	return id, nil
 }
@@ -165,12 +180,11 @@ func insertSQLite(ctx context.Context, tx *sql.Tx, in Details) (id int64, err er
 	entryPrice, _ := in.EntryPrice.Float64()
 	exitPrice, _ := in.ExitPrice.Float64()
 	stopLossPrice, _ := in.StopLossPrice.Float64()
-	fmt.Println("inserting sqlite trade", in.EntryTime)
 
 	var tempInsert = modelSQLite.LiveTrade{
 		EntryPrice:    entryPrice,
 		CreatedAt:     time.Now().UTC().Format(time.RFC3339),
-		EntryTime:     in.EntryTime.String(),
+		EntryTime:     in.EntryTime.UTC().Format(time.RFC3339),
 		ExitTime:      null.String{String: in.ExitTime.String()},
 		ExitPrice:     null.Float64{Float64: exitPrice},
 		StopLossPrice: stopLossPrice,
@@ -203,9 +217,10 @@ func updateSQLite(ctx context.Context, tx *sql.Tx, in []Details) (id int64, err 
 
 		if in[x].EntryTime.IsZero() {
 			fmt.Println("entrytimezero")
+			log.Errorln(log.DatabaseMgr, "entry time zero")
 			os.Exit(2)
 		} else {
-			fmt.Println("saving trade", in[x].EntryTime)
+			fmt.Println("update  entrytime", in[x].EntryTime)
 		}
 		var tempInsert = modelSQLite.LiveTrade{
 			ID:            in[x].ID,

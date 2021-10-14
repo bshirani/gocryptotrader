@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -8,6 +9,8 @@ import (
 
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
+	"gocryptotrader/database"
+	"gocryptotrader/database/models/sqlite3"
 	"gocryptotrader/database/repository/liveorder"
 	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/eventtypes"
@@ -83,12 +86,18 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, sh SizeHandler, r risk
 	// load existing positions from database
 	// only in live mode do we do this
 	// should handle in trademanager
+	fmt.Println("here")
+
+	ret, _ := sqlite3.LiveTrades().All(context.Background(), database.DB.SQL)
+	fmt.Println("ret", ret[0].EntryTime)
+
 	activeTrades, _ := livetrade.Active()
 	for _, t := range activeTrades {
 		p.store.openTrade[t.StrategyID] = &t
 		pos := p.store.positions[t.StrategyID]
 		pos.Active = true
 	}
+	fmt.Println("here2")
 
 	activeOrders, _ := liveorder.Active()
 	for _, t := range activeOrders {
@@ -327,7 +336,6 @@ func (p *Portfolio) closeTrade(f fill.Event, t *livetrade.Details) {
 				os.Exit(2)
 			}
 		}
-
 	} else {
 		fmt.Println("TRYING TO CLOSE  ALREADY CLOSED TRADE. TRADE IS NOT OPEN")
 		os.Exit(1)

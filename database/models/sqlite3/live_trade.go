@@ -78,7 +78,6 @@ var LiveTradeColumns = struct {
 }
 
 // Generated where
-
 var LiveTradeWhere = struct {
 	ID               whereHelperint64
 	Side             whereHelperstring
