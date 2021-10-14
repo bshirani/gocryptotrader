@@ -21,24 +21,24 @@ var (
 	_ = queries.Equal
 )
 
-func testAuditEvents(t *testing.T) {
+func testGooseDBVersions(t *testing.T) {
 	t.Parallel()
 
-	query := AuditEvents()
+	query := GooseDBVersions()
 
 	if query.Query == nil {
 		t.Error("expected a query, got nothing")
 	}
 }
 
-func testAuditEventsDelete(t *testing.T) {
+func testGooseDBVersionsDelete(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &AuditEvent{}
-	if err = randomize.Struct(seed, o, auditEventDBTypes, true, auditEventColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize AuditEvent struct: %s", err)
+	o := &GooseDBVersion{}
+	if err = randomize.Struct(seed, o, gooseDBVersionDBTypes, true, gooseDBVersionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize GooseDBVersion struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -54,7 +54,7 @@ func testAuditEventsDelete(t *testing.T) {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := AuditEvents().Count(ctx, tx)
+	count, err := GooseDBVersions().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -64,14 +64,14 @@ func testAuditEventsDelete(t *testing.T) {
 	}
 }
 
-func testAuditEventsQueryDeleteAll(t *testing.T) {
+func testGooseDBVersionsQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &AuditEvent{}
-	if err = randomize.Struct(seed, o, auditEventDBTypes, true, auditEventColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize AuditEvent struct: %s", err)
+	o := &GooseDBVersion{}
+	if err = randomize.Struct(seed, o, gooseDBVersionDBTypes, true, gooseDBVersionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize GooseDBVersion struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -81,13 +81,13 @@ func testAuditEventsQueryDeleteAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	if rowsAff, err := AuditEvents().DeleteAll(ctx, tx); err != nil {
+	if rowsAff, err := GooseDBVersions().DeleteAll(ctx, tx); err != nil {
 		t.Error(err)
 	} else if rowsAff != 1 {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := AuditEvents().Count(ctx, tx)
+	count, err := GooseDBVersions().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -97,14 +97,14 @@ func testAuditEventsQueryDeleteAll(t *testing.T) {
 	}
 }
 
-func testAuditEventsSliceDeleteAll(t *testing.T) {
+func testGooseDBVersionsSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &AuditEvent{}
-	if err = randomize.Struct(seed, o, auditEventDBTypes, true, auditEventColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize AuditEvent struct: %s", err)
+	o := &GooseDBVersion{}
+	if err = randomize.Struct(seed, o, gooseDBVersionDBTypes, true, gooseDBVersionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize GooseDBVersion struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -114,7 +114,7 @@ func testAuditEventsSliceDeleteAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice := AuditEventSlice{o}
+	slice := GooseDBVersionSlice{o}
 
 	if rowsAff, err := slice.DeleteAll(ctx, tx); err != nil {
 		t.Error(err)
@@ -122,7 +122,7 @@ func testAuditEventsSliceDeleteAll(t *testing.T) {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := AuditEvents().Count(ctx, tx)
+	count, err := GooseDBVersions().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -132,14 +132,14 @@ func testAuditEventsSliceDeleteAll(t *testing.T) {
 	}
 }
 
-func testAuditEventsExists(t *testing.T) {
+func testGooseDBVersionsExists(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &AuditEvent{}
-	if err = randomize.Struct(seed, o, auditEventDBTypes, true, auditEventColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize AuditEvent struct: %s", err)
+	o := &GooseDBVersion{}
+	if err = randomize.Struct(seed, o, gooseDBVersionDBTypes, true, gooseDBVersionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize GooseDBVersion struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -149,23 +149,23 @@ func testAuditEventsExists(t *testing.T) {
 		t.Error(err)
 	}
 
-	e, err := AuditEventExists(ctx, tx, o.ID)
+	e, err := GooseDBVersionExists(ctx, tx, o.ID)
 	if err != nil {
-		t.Errorf("Unable to check if AuditEvent exists: %s", err)
+		t.Errorf("Unable to check if GooseDBVersion exists: %s", err)
 	}
 	if !e {
-		t.Errorf("Expected AuditEventExists to return true, but got false.")
+		t.Errorf("Expected GooseDBVersionExists to return true, but got false.")
 	}
 }
 
-func testAuditEventsFind(t *testing.T) {
+func testGooseDBVersionsFind(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &AuditEvent{}
-	if err = randomize.Struct(seed, o, auditEventDBTypes, true, auditEventColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize AuditEvent struct: %s", err)
+	o := &GooseDBVersion{}
+	if err = randomize.Struct(seed, o, gooseDBVersionDBTypes, true, gooseDBVersionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize GooseDBVersion struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -175,24 +175,24 @@ func testAuditEventsFind(t *testing.T) {
 		t.Error(err)
 	}
 
-	auditEventFound, err := FindAuditEvent(ctx, tx, o.ID)
+	gooseDBVersionFound, err := FindGooseDBVersion(ctx, tx, o.ID)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if auditEventFound == nil {
+	if gooseDBVersionFound == nil {
 		t.Error("want a record, got nil")
 	}
 }
 
-func testAuditEventsBind(t *testing.T) {
+func testGooseDBVersionsBind(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &AuditEvent{}
-	if err = randomize.Struct(seed, o, auditEventDBTypes, true, auditEventColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize AuditEvent struct: %s", err)
+	o := &GooseDBVersion{}
+	if err = randomize.Struct(seed, o, gooseDBVersionDBTypes, true, gooseDBVersionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize GooseDBVersion struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -202,19 +202,19 @@ func testAuditEventsBind(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err = AuditEvents().Bind(ctx, tx, o); err != nil {
+	if err = GooseDBVersions().Bind(ctx, tx, o); err != nil {
 		t.Error(err)
 	}
 }
 
-func testAuditEventsOne(t *testing.T) {
+func testGooseDBVersionsOne(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &AuditEvent{}
-	if err = randomize.Struct(seed, o, auditEventDBTypes, true, auditEventColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize AuditEvent struct: %s", err)
+	o := &GooseDBVersion{}
+	if err = randomize.Struct(seed, o, gooseDBVersionDBTypes, true, gooseDBVersionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize GooseDBVersion struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -224,38 +224,38 @@ func testAuditEventsOne(t *testing.T) {
 		t.Error(err)
 	}
 
-	if x, err := AuditEvents().One(ctx, tx); err != nil {
+	if x, err := GooseDBVersions().One(ctx, tx); err != nil {
 		t.Error(err)
 	} else if x == nil {
 		t.Error("expected to get a non nil record")
 	}
 }
 
-func testAuditEventsAll(t *testing.T) {
+func testGooseDBVersionsAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	auditEventOne := &AuditEvent{}
-	auditEventTwo := &AuditEvent{}
-	if err = randomize.Struct(seed, auditEventOne, auditEventDBTypes, false, auditEventColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize AuditEvent struct: %s", err)
+	gooseDBVersionOne := &GooseDBVersion{}
+	gooseDBVersionTwo := &GooseDBVersion{}
+	if err = randomize.Struct(seed, gooseDBVersionOne, gooseDBVersionDBTypes, false, gooseDBVersionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize GooseDBVersion struct: %s", err)
 	}
-	if err = randomize.Struct(seed, auditEventTwo, auditEventDBTypes, false, auditEventColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize AuditEvent struct: %s", err)
+	if err = randomize.Struct(seed, gooseDBVersionTwo, gooseDBVersionDBTypes, false, gooseDBVersionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize GooseDBVersion struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = auditEventOne.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = gooseDBVersionOne.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
-	if err = auditEventTwo.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = gooseDBVersionTwo.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
 
-	slice, err := AuditEvents().All(ctx, tx)
+	slice, err := GooseDBVersions().All(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -265,31 +265,31 @@ func testAuditEventsAll(t *testing.T) {
 	}
 }
 
-func testAuditEventsCount(t *testing.T) {
+func testGooseDBVersionsCount(t *testing.T) {
 	t.Parallel()
 
 	var err error
 	seed := randomize.NewSeed()
-	auditEventOne := &AuditEvent{}
-	auditEventTwo := &AuditEvent{}
-	if err = randomize.Struct(seed, auditEventOne, auditEventDBTypes, false, auditEventColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize AuditEvent struct: %s", err)
+	gooseDBVersionOne := &GooseDBVersion{}
+	gooseDBVersionTwo := &GooseDBVersion{}
+	if err = randomize.Struct(seed, gooseDBVersionOne, gooseDBVersionDBTypes, false, gooseDBVersionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize GooseDBVersion struct: %s", err)
 	}
-	if err = randomize.Struct(seed, auditEventTwo, auditEventDBTypes, false, auditEventColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize AuditEvent struct: %s", err)
+	if err = randomize.Struct(seed, gooseDBVersionTwo, gooseDBVersionDBTypes, false, gooseDBVersionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize GooseDBVersion struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = auditEventOne.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = gooseDBVersionOne.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
-	if err = auditEventTwo.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = gooseDBVersionTwo.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
 
-	count, err := AuditEvents().Count(ctx, tx)
+	count, err := GooseDBVersions().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -299,155 +299,155 @@ func testAuditEventsCount(t *testing.T) {
 	}
 }
 
-func auditEventBeforeInsertHook(ctx context.Context, e boil.ContextExecutor, o *AuditEvent) error {
-	*o = AuditEvent{}
+func gooseDBVersionBeforeInsertHook(ctx context.Context, e boil.ContextExecutor, o *GooseDBVersion) error {
+	*o = GooseDBVersion{}
 	return nil
 }
 
-func auditEventAfterInsertHook(ctx context.Context, e boil.ContextExecutor, o *AuditEvent) error {
-	*o = AuditEvent{}
+func gooseDBVersionAfterInsertHook(ctx context.Context, e boil.ContextExecutor, o *GooseDBVersion) error {
+	*o = GooseDBVersion{}
 	return nil
 }
 
-func auditEventAfterSelectHook(ctx context.Context, e boil.ContextExecutor, o *AuditEvent) error {
-	*o = AuditEvent{}
+func gooseDBVersionAfterSelectHook(ctx context.Context, e boil.ContextExecutor, o *GooseDBVersion) error {
+	*o = GooseDBVersion{}
 	return nil
 }
 
-func auditEventBeforeUpdateHook(ctx context.Context, e boil.ContextExecutor, o *AuditEvent) error {
-	*o = AuditEvent{}
+func gooseDBVersionBeforeUpdateHook(ctx context.Context, e boil.ContextExecutor, o *GooseDBVersion) error {
+	*o = GooseDBVersion{}
 	return nil
 }
 
-func auditEventAfterUpdateHook(ctx context.Context, e boil.ContextExecutor, o *AuditEvent) error {
-	*o = AuditEvent{}
+func gooseDBVersionAfterUpdateHook(ctx context.Context, e boil.ContextExecutor, o *GooseDBVersion) error {
+	*o = GooseDBVersion{}
 	return nil
 }
 
-func auditEventBeforeDeleteHook(ctx context.Context, e boil.ContextExecutor, o *AuditEvent) error {
-	*o = AuditEvent{}
+func gooseDBVersionBeforeDeleteHook(ctx context.Context, e boil.ContextExecutor, o *GooseDBVersion) error {
+	*o = GooseDBVersion{}
 	return nil
 }
 
-func auditEventAfterDeleteHook(ctx context.Context, e boil.ContextExecutor, o *AuditEvent) error {
-	*o = AuditEvent{}
+func gooseDBVersionAfterDeleteHook(ctx context.Context, e boil.ContextExecutor, o *GooseDBVersion) error {
+	*o = GooseDBVersion{}
 	return nil
 }
 
-func auditEventBeforeUpsertHook(ctx context.Context, e boil.ContextExecutor, o *AuditEvent) error {
-	*o = AuditEvent{}
+func gooseDBVersionBeforeUpsertHook(ctx context.Context, e boil.ContextExecutor, o *GooseDBVersion) error {
+	*o = GooseDBVersion{}
 	return nil
 }
 
-func auditEventAfterUpsertHook(ctx context.Context, e boil.ContextExecutor, o *AuditEvent) error {
-	*o = AuditEvent{}
+func gooseDBVersionAfterUpsertHook(ctx context.Context, e boil.ContextExecutor, o *GooseDBVersion) error {
+	*o = GooseDBVersion{}
 	return nil
 }
 
-func testAuditEventsHooks(t *testing.T) {
+func testGooseDBVersionsHooks(t *testing.T) {
 	t.Parallel()
 
 	var err error
 
 	ctx := context.Background()
-	empty := &AuditEvent{}
-	o := &AuditEvent{}
+	empty := &GooseDBVersion{}
+	o := &GooseDBVersion{}
 
 	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, o, auditEventDBTypes, false); err != nil {
-		t.Errorf("Unable to randomize AuditEvent object: %s", err)
+	if err = randomize.Struct(seed, o, gooseDBVersionDBTypes, false); err != nil {
+		t.Errorf("Unable to randomize GooseDBVersion object: %s", err)
 	}
 
-	AddAuditEventHook(boil.BeforeInsertHook, auditEventBeforeInsertHook)
+	AddGooseDBVersionHook(boil.BeforeInsertHook, gooseDBVersionBeforeInsertHook)
 	if err = o.doBeforeInsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeInsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeInsertHook function to empty object, but got: %#v", o)
 	}
-	auditEventBeforeInsertHooks = []AuditEventHook{}
+	gooseDBVersionBeforeInsertHooks = []GooseDBVersionHook{}
 
-	AddAuditEventHook(boil.AfterInsertHook, auditEventAfterInsertHook)
+	AddGooseDBVersionHook(boil.AfterInsertHook, gooseDBVersionAfterInsertHook)
 	if err = o.doAfterInsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterInsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterInsertHook function to empty object, but got: %#v", o)
 	}
-	auditEventAfterInsertHooks = []AuditEventHook{}
+	gooseDBVersionAfterInsertHooks = []GooseDBVersionHook{}
 
-	AddAuditEventHook(boil.AfterSelectHook, auditEventAfterSelectHook)
+	AddGooseDBVersionHook(boil.AfterSelectHook, gooseDBVersionAfterSelectHook)
 	if err = o.doAfterSelectHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterSelectHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterSelectHook function to empty object, but got: %#v", o)
 	}
-	auditEventAfterSelectHooks = []AuditEventHook{}
+	gooseDBVersionAfterSelectHooks = []GooseDBVersionHook{}
 
-	AddAuditEventHook(boil.BeforeUpdateHook, auditEventBeforeUpdateHook)
+	AddGooseDBVersionHook(boil.BeforeUpdateHook, gooseDBVersionBeforeUpdateHook)
 	if err = o.doBeforeUpdateHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeUpdateHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeUpdateHook function to empty object, but got: %#v", o)
 	}
-	auditEventBeforeUpdateHooks = []AuditEventHook{}
+	gooseDBVersionBeforeUpdateHooks = []GooseDBVersionHook{}
 
-	AddAuditEventHook(boil.AfterUpdateHook, auditEventAfterUpdateHook)
+	AddGooseDBVersionHook(boil.AfterUpdateHook, gooseDBVersionAfterUpdateHook)
 	if err = o.doAfterUpdateHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterUpdateHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterUpdateHook function to empty object, but got: %#v", o)
 	}
-	auditEventAfterUpdateHooks = []AuditEventHook{}
+	gooseDBVersionAfterUpdateHooks = []GooseDBVersionHook{}
 
-	AddAuditEventHook(boil.BeforeDeleteHook, auditEventBeforeDeleteHook)
+	AddGooseDBVersionHook(boil.BeforeDeleteHook, gooseDBVersionBeforeDeleteHook)
 	if err = o.doBeforeDeleteHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeDeleteHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeDeleteHook function to empty object, but got: %#v", o)
 	}
-	auditEventBeforeDeleteHooks = []AuditEventHook{}
+	gooseDBVersionBeforeDeleteHooks = []GooseDBVersionHook{}
 
-	AddAuditEventHook(boil.AfterDeleteHook, auditEventAfterDeleteHook)
+	AddGooseDBVersionHook(boil.AfterDeleteHook, gooseDBVersionAfterDeleteHook)
 	if err = o.doAfterDeleteHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterDeleteHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterDeleteHook function to empty object, but got: %#v", o)
 	}
-	auditEventAfterDeleteHooks = []AuditEventHook{}
+	gooseDBVersionAfterDeleteHooks = []GooseDBVersionHook{}
 
-	AddAuditEventHook(boil.BeforeUpsertHook, auditEventBeforeUpsertHook)
+	AddGooseDBVersionHook(boil.BeforeUpsertHook, gooseDBVersionBeforeUpsertHook)
 	if err = o.doBeforeUpsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doBeforeUpsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected BeforeUpsertHook function to empty object, but got: %#v", o)
 	}
-	auditEventBeforeUpsertHooks = []AuditEventHook{}
+	gooseDBVersionBeforeUpsertHooks = []GooseDBVersionHook{}
 
-	AddAuditEventHook(boil.AfterUpsertHook, auditEventAfterUpsertHook)
+	AddGooseDBVersionHook(boil.AfterUpsertHook, gooseDBVersionAfterUpsertHook)
 	if err = o.doAfterUpsertHooks(ctx, nil); err != nil {
 		t.Errorf("Unable to execute doAfterUpsertHooks: %s", err)
 	}
 	if !reflect.DeepEqual(o, empty) {
 		t.Errorf("Expected AfterUpsertHook function to empty object, but got: %#v", o)
 	}
-	auditEventAfterUpsertHooks = []AuditEventHook{}
+	gooseDBVersionAfterUpsertHooks = []GooseDBVersionHook{}
 }
 
-func testAuditEventsInsert(t *testing.T) {
+func testGooseDBVersionsInsert(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &AuditEvent{}
-	if err = randomize.Struct(seed, o, auditEventDBTypes, true, auditEventColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize AuditEvent struct: %s", err)
+	o := &GooseDBVersion{}
+	if err = randomize.Struct(seed, o, gooseDBVersionDBTypes, true, gooseDBVersionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize GooseDBVersion struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -457,7 +457,7 @@ func testAuditEventsInsert(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := AuditEvents().Count(ctx, tx)
+	count, err := GooseDBVersions().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -467,24 +467,24 @@ func testAuditEventsInsert(t *testing.T) {
 	}
 }
 
-func testAuditEventsInsertWhitelist(t *testing.T) {
+func testGooseDBVersionsInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &AuditEvent{}
-	if err = randomize.Struct(seed, o, auditEventDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize AuditEvent struct: %s", err)
+	o := &GooseDBVersion{}
+	if err = randomize.Struct(seed, o, gooseDBVersionDBTypes, true); err != nil {
+		t.Errorf("Unable to randomize GooseDBVersion struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = o.Insert(ctx, tx, boil.Whitelist(auditEventColumnsWithoutDefault...)); err != nil {
+	if err = o.Insert(ctx, tx, boil.Whitelist(gooseDBVersionColumnsWithoutDefault...)); err != nil {
 		t.Error(err)
 	}
 
-	count, err := AuditEvents().Count(ctx, tx)
+	count, err := GooseDBVersions().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -494,14 +494,14 @@ func testAuditEventsInsertWhitelist(t *testing.T) {
 	}
 }
 
-func testAuditEventsReload(t *testing.T) {
+func testGooseDBVersionsReload(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &AuditEvent{}
-	if err = randomize.Struct(seed, o, auditEventDBTypes, true, auditEventColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize AuditEvent struct: %s", err)
+	o := &GooseDBVersion{}
+	if err = randomize.Struct(seed, o, gooseDBVersionDBTypes, true, gooseDBVersionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize GooseDBVersion struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -516,14 +516,14 @@ func testAuditEventsReload(t *testing.T) {
 	}
 }
 
-func testAuditEventsReloadAll(t *testing.T) {
+func testGooseDBVersionsReloadAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &AuditEvent{}
-	if err = randomize.Struct(seed, o, auditEventDBTypes, true, auditEventColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize AuditEvent struct: %s", err)
+	o := &GooseDBVersion{}
+	if err = randomize.Struct(seed, o, gooseDBVersionDBTypes, true, gooseDBVersionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize GooseDBVersion struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -533,21 +533,21 @@ func testAuditEventsReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice := AuditEventSlice{o}
+	slice := GooseDBVersionSlice{o}
 
 	if err = slice.ReloadAll(ctx, tx); err != nil {
 		t.Error(err)
 	}
 }
 
-func testAuditEventsSelect(t *testing.T) {
+func testGooseDBVersionsSelect(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &AuditEvent{}
-	if err = randomize.Struct(seed, o, auditEventDBTypes, true, auditEventColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize AuditEvent struct: %s", err)
+	o := &GooseDBVersion{}
+	if err = randomize.Struct(seed, o, gooseDBVersionDBTypes, true, gooseDBVersionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize GooseDBVersion struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -557,7 +557,7 @@ func testAuditEventsSelect(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice, err := AuditEvents().All(ctx, tx)
+	slice, err := GooseDBVersions().All(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -568,25 +568,25 @@ func testAuditEventsSelect(t *testing.T) {
 }
 
 var (
-	auditEventDBTypes = map[string]string{`ID`: `bigint`, `Type`: `character varying`, `Identifier`: `character varying`, `Message`: `text`, `CreatedAt`: `timestamp without time zone`}
-	_                 = bytes.MinRead
+	gooseDBVersionDBTypes = map[string]string{`ID`: `integer`, `VersionID`: `bigint`, `IsApplied`: `boolean`, `Tstamp`: `timestamp without time zone`}
+	_                     = bytes.MinRead
 )
 
-func testAuditEventsUpdate(t *testing.T) {
+func testGooseDBVersionsUpdate(t *testing.T) {
 	t.Parallel()
 
-	if 0 == len(auditEventPrimaryKeyColumns) {
+	if 0 == len(gooseDBVersionPrimaryKeyColumns) {
 		t.Skip("Skipping table with no primary key columns")
 	}
-	if len(auditEventAllColumns) == len(auditEventPrimaryKeyColumns) {
+	if len(gooseDBVersionAllColumns) == len(gooseDBVersionPrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &AuditEvent{}
-	if err = randomize.Struct(seed, o, auditEventDBTypes, true, auditEventColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize AuditEvent struct: %s", err)
+	o := &GooseDBVersion{}
+	if err = randomize.Struct(seed, o, gooseDBVersionDBTypes, true, gooseDBVersionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize GooseDBVersion struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -596,7 +596,7 @@ func testAuditEventsUpdate(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := AuditEvents().Count(ctx, tx)
+	count, err := GooseDBVersions().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -605,8 +605,8 @@ func testAuditEventsUpdate(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, o, auditEventDBTypes, true, auditEventPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize AuditEvent struct: %s", err)
+	if err = randomize.Struct(seed, o, gooseDBVersionDBTypes, true, gooseDBVersionPrimaryKeyColumns...); err != nil {
+		t.Errorf("Unable to randomize GooseDBVersion struct: %s", err)
 	}
 
 	if rowsAff, err := o.Update(ctx, tx, boil.Infer()); err != nil {
@@ -616,18 +616,18 @@ func testAuditEventsUpdate(t *testing.T) {
 	}
 }
 
-func testAuditEventsSliceUpdateAll(t *testing.T) {
+func testGooseDBVersionsSliceUpdateAll(t *testing.T) {
 	t.Parallel()
 
-	if len(auditEventAllColumns) == len(auditEventPrimaryKeyColumns) {
+	if len(gooseDBVersionAllColumns) == len(gooseDBVersionPrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &AuditEvent{}
-	if err = randomize.Struct(seed, o, auditEventDBTypes, true, auditEventColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize AuditEvent struct: %s", err)
+	o := &GooseDBVersion{}
+	if err = randomize.Struct(seed, o, gooseDBVersionDBTypes, true, gooseDBVersionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize GooseDBVersion struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -637,7 +637,7 @@ func testAuditEventsSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := AuditEvents().Count(ctx, tx)
+	count, err := GooseDBVersions().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -646,18 +646,18 @@ func testAuditEventsSliceUpdateAll(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, o, auditEventDBTypes, true, auditEventPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize AuditEvent struct: %s", err)
+	if err = randomize.Struct(seed, o, gooseDBVersionDBTypes, true, gooseDBVersionPrimaryKeyColumns...); err != nil {
+		t.Errorf("Unable to randomize GooseDBVersion struct: %s", err)
 	}
 
 	// Remove Primary keys and unique columns from what we plan to update
 	var fields []string
-	if strmangle.StringSliceMatch(auditEventAllColumns, auditEventPrimaryKeyColumns) {
-		fields = auditEventAllColumns
+	if strmangle.StringSliceMatch(gooseDBVersionAllColumns, gooseDBVersionPrimaryKeyColumns) {
+		fields = gooseDBVersionAllColumns
 	} else {
 		fields = strmangle.SetComplement(
-			auditEventAllColumns,
-			auditEventPrimaryKeyColumns,
+			gooseDBVersionAllColumns,
+			gooseDBVersionPrimaryKeyColumns,
 		)
 	}
 
@@ -675,7 +675,7 @@ func testAuditEventsSliceUpdateAll(t *testing.T) {
 		}
 	}
 
-	slice := AuditEventSlice{o}
+	slice := GooseDBVersionSlice{o}
 	if rowsAff, err := slice.UpdateAll(ctx, tx, updateMap); err != nil {
 		t.Error(err)
 	} else if rowsAff != 1 {
@@ -683,29 +683,29 @@ func testAuditEventsSliceUpdateAll(t *testing.T) {
 	}
 }
 
-func testAuditEventsUpsert(t *testing.T) {
+func testGooseDBVersionsUpsert(t *testing.T) {
 	t.Parallel()
 
-	if len(auditEventAllColumns) == len(auditEventPrimaryKeyColumns) {
+	if len(gooseDBVersionAllColumns) == len(gooseDBVersionPrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
 	seed := randomize.NewSeed()
 	var err error
 	// Attempt the INSERT side of an UPSERT
-	o := AuditEvent{}
-	if err = randomize.Struct(seed, &o, auditEventDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize AuditEvent struct: %s", err)
+	o := GooseDBVersion{}
+	if err = randomize.Struct(seed, &o, gooseDBVersionDBTypes, true); err != nil {
+		t.Errorf("Unable to randomize GooseDBVersion struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
 	if err = o.Upsert(ctx, tx, false, nil, boil.Infer(), boil.Infer()); err != nil {
-		t.Errorf("Unable to upsert AuditEvent: %s", err)
+		t.Errorf("Unable to upsert GooseDBVersion: %s", err)
 	}
 
-	count, err := AuditEvents().Count(ctx, tx)
+	count, err := GooseDBVersions().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -714,15 +714,15 @@ func testAuditEventsUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
-	if err = randomize.Struct(seed, &o, auditEventDBTypes, false, auditEventPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize AuditEvent struct: %s", err)
+	if err = randomize.Struct(seed, &o, gooseDBVersionDBTypes, false, gooseDBVersionPrimaryKeyColumns...); err != nil {
+		t.Errorf("Unable to randomize GooseDBVersion struct: %s", err)
 	}
 
 	if err = o.Upsert(ctx, tx, true, nil, boil.Infer(), boil.Infer()); err != nil {
-		t.Errorf("Unable to upsert AuditEvent: %s", err)
+		t.Errorf("Unable to upsert GooseDBVersion: %s", err)
 	}
 
-	count, err = AuditEvents().Count(ctx, tx)
+	count, err = GooseDBVersions().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}

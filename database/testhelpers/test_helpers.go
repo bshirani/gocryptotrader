@@ -13,7 +13,7 @@ import (
 	"gocryptotrader/database/repository"
 	"gocryptotrader/log"
 	"github.com/pressly/goose"
-	"github.com/volatiletech/sqlboiler/boil"
+	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
 var (

@@ -10,8 +10,8 @@ import (
 	modelSQLite "gocryptotrader/database/models/sqlite3"
 	"gocryptotrader/database/repository"
 	"gocryptotrader/log"
-	"github.com/volatiletech/sqlboiler/boil"
-	"github.com/volatiletech/null"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/null/v8"
 )
 
 // Event inserts a new script event into database with execution details (script name time status hash of script)

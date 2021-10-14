@@ -11,7 +11,7 @@ import (
 	"gocryptotrader/database"
 	"gocryptotrader/database/drivers"
 	"gocryptotrader/database/testhelpers"
-	"github.com/volatiletech/null"
+	"github.com/volatiletech/null/v8"
 )
 
 var (

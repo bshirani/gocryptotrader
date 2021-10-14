@@ -18,7 +18,7 @@ import (
 	"gocryptotrader/gctscript/modules/loader"
 	"gocryptotrader/gctscript/wrappers/validator"
 	"gocryptotrader/log"
-	"github.com/volatiletech/null"
+	"github.com/volatiletech/null/v8"
 )
 
 // NewVM attempts to create a new Virtual Machine firstly from pool

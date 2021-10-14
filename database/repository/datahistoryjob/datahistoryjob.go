@@ -13,9 +13,9 @@ import (
 	"gocryptotrader/database/repository/datahistoryjobresult"
 	"gocryptotrader/log"
 
-	"github.com/volatiletech/sqlboiler/boil"
-	"github.com/volatiletech/sqlboiler/queries/qm"
-	"github.com/volatiletech/null"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+	"github.com/volatiletech/null/v8"
 )
 
 // Setup returns a DBService

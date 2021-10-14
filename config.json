@@ -6,13 +6,13 @@
  "database": {
   "enabled": true,
   "verbose": true,
-  "driver": "sqlite",
+  "driver": "postgres",
   "connectionDetails": {
-   "host": "localhost",
-   "port": 0,
-   "username": "",
+   "host": "127.0.0.1",
+   "port": 5432,
+   "username": "bijan",
    "password": "",
-   "database": "XBTUSD.db",
+   "database": "gct-dev",
    "sslmode": ""
   }
  },

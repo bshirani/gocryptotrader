@@ -8,15 +8,16 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gofrs/uuid"
 	"gocryptotrader/common/cache"
 	"gocryptotrader/database"
 	modelPSQL "gocryptotrader/database/models/postgres"
 	modelSQLite "gocryptotrader/database/models/sqlite3"
 	"gocryptotrader/database/repository"
 	"gocryptotrader/log"
-	"github.com/volatiletech/sqlboiler/boil"
-	"github.com/volatiletech/sqlboiler/queries/qm"
+
+	"github.com/gofrs/uuid"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
 // One returns one exchange by Name

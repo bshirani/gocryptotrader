@@ -8,8 +8,8 @@ import (
 	modelSQLite "gocryptotrader/database/models/sqlite3"
 	"gocryptotrader/log"
 
-	"github.com/volatiletech/sqlboiler/boil"
-	"github.com/volatiletech/sqlboiler/queries/qm"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
 func Count() int64 {

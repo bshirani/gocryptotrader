@@ -11,7 +11,7 @@ import (
 	"math/rand"
 	"regexp"
 
-	"github.com/volatiletech/sqlboiler/boil"
+	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
 var dbNameRand *rand.Rand

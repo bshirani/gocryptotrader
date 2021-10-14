@@ -28,13 +28,13 @@
    "config-override": {
     "enabled": true,
     "verbose": false,
-    "driver": "sqlite",
+    "driver": "psql",
     "connectionDetails": {
      "host": "localhost",
      "port": 0,
-     "username": "",
+     "username": "bijan",
      "password": "",
-     "database": "XBTUSD.db",
+     "database": "gct-dev",
      "sslmode": ""
     }
    }
