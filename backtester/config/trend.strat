@@ -28,10 +28,10 @@
    "config-override": {
     "enabled": true,
     "verbose": false,
-    "driver": "psql",
+    "driver": "postgresql",
     "connectionDetails": {
      "host": "localhost",
-     "port": 0,
+     "port": 5432,
      "username": "bijan",
      "password": "",
      "database": "gct-dev",

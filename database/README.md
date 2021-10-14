@@ -20,11 +20,6 @@ go get -u github.com/volatiletech/sqlboiler
 go get -u github.com/volatiletech/sqlboiler/drivers/sqlboiler-psql
 ```
 
-[SQLite Driver](https://github.com/volatiletech/sqlboiler-sqlite3)
-```shell script
-go get -u github.com/volatiletech/sqlboiler-sqlite3
-```
-
 ##### Configuration
 
 The database configuration struct is currently:
@@ -80,7 +75,7 @@ dbmigrate -command status
 ```sh
 dbmigrate -command "create" -args "model"
 ```
-_This will create a folder in the ./database/migration folder that contains postgres.sql and sqlite.sql files_
+_This will create a folder in the ./database/migration folder that contains postgres.sql files_
  + Run dbmigrate command with -command up
 ```shell script
 dbmigrate -command "up"
@@ -88,8 +83,7 @@ dbmigrate -command "up"
 
 dbmigrate provides a -migrationdir flag override to tell it what path to look in for migrations
 
-###### Note: its highly recommended to backup any data before running migrations against a production database especially if you are running SQLite due to alter table limitations
-
+###### Note: its highly recommended to backup any data before running migrations against a production database
 
 ##### Adding a new model
 Model's are generated using [SQLBoiler](https://github.com/volatiletech/sqlboiler)

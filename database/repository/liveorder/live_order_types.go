@@ -16,7 +16,7 @@ var (
 
 type Status string
 
-// Item generic candle holder for modelPSQL & modelSQLite
+// Item generic candle holder for modelPSQL
 type Details struct {
 	ID         int64
 	Side       order.Side

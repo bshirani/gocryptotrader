@@ -134,13 +134,18 @@ order event is processed by trade manager
 trade manager receive on submit callback
 
 
-
-
-
-
-
-
-
-
 the order manager has its own store
 we could either recreate the data or just reference the existing store for order information
+
+we have live trading
+we have backtesting
+we have factor engine
+we have multiple symbols
+we have multiple strategies
+we have the same code for live and backtest
+
+we have a database
+we have live trades and orders
+we have strategies able to decide by time, profit, factors
+
+

@@ -118,9 +118,13 @@ func (tm *TradeManager) Run() error {
 	tm.setOrderManagerCallbacks()
 	log.Debugf(log.TradeManager, "TradeManager Running. Warmup: %v\n", tm.Warmup)
 	if !tm.Bot.Config.LiveMode {
-		tm.loadDatas()
+		fmt.Println("loading datas...................")
+		err := tm.loadDatas()
+		if err != nil {
+			log.Errorf(log.TradeManager, "error loading datas", err)
+			return nil
+		}
 	}
-
 dataLoadingIssue:
 	for ev := tm.EventQueue.NextEvent(); ; ev = tm.EventQueue.NextEvent() {
 		if ev == nil {
@@ -131,6 +135,7 @@ dataLoadingIssue:
 					for currencyPair, dataHandler := range assetMap {
 						d := dataHandler.Next()
 						if d == nil {
+							fmt.Println("no data found")
 							if !tm.hasHandledEvent {
 								log.Errorf(log.TradeManager, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
 							}
