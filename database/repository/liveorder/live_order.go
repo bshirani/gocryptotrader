@@ -47,7 +47,7 @@ func Active() (out []Details, err error) {
 		return out, database.ErrDatabaseSupportDisabled
 	}
 
-	whereQM := qm.Where("status IN ('PENDING', 'ACTIVE')")
+	whereQM := qm.Where("status IN ('OPEN')")
 	ret, errS := modelSQLite.LiveOrders(whereQM).All(context.Background(), database.DB.SQL)
 
 	for _, x := range ret {

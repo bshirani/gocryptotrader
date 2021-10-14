@@ -100,6 +100,8 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, sh SizeHandler, r risk
 		log.Infoln(log.TradeManager, "(live mode) Loaded Orders", len(activeOrders))
 	}
 
+	// go p.heartBeat()
+
 	return p, nil
 }
 
@@ -146,7 +148,10 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 			fmt.Println("trade is not sell or buy")
 			os.Exit(2)
 		}
-		p.printTradeDetails(trade)
+
+		if p.bot.Config.LiveMode {
+			p.printTradeDetails(trade)
+		}
 	}
 
 	id, _ := uuid.NewV4()
@@ -181,6 +186,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 
 	switch ev.GetDecision() {
 	case signal.Enter:
+		lo.Side = gctorder.Buy
 		if !p.bot.Settings.EnableDryRun {
 			liveorder.Insert(lo)
 		}
@@ -270,13 +276,16 @@ func (p *Portfolio) GetOrderFromStore(orderid string) *gctorder.Detail {
 func (p *Portfolio) createTrade(ev fill.Event, order *liveorder.Details) {
 	// fmt.Println("found order", foundOrd.ID)
 	foundOrd := p.GetOrderFromStore(ev.GetOrderID())
+	stopLossPrice := decimal.NewFromFloat(foundOrd.Price).Sub(decimal.NewFromFloat(20))
 
 	lt := livetrade.Details{
-		Status:       gctorder.Open,
-		StrategyID:   ev.GetStrategyID(),
-		EntryOrderID: foundOrd.ID,
-		EntryPrice:   decimal.NewFromFloat(foundOrd.Price),
-		Side:         foundOrd.Side,
+		Status:        gctorder.Open,
+		StrategyID:    ev.GetStrategyID(),
+		EntryOrderID:  foundOrd.ID,
+		EntryPrice:    decimal.NewFromFloat(foundOrd.Price),
+		StopLossPrice: stopLossPrice,
+		Side:          foundOrd.Side,
+		Pair:          foundOrd.Pair,
 	}
 
 	if lt.EntryPrice.IsZero() {
@@ -285,7 +294,11 @@ func (p *Portfolio) createTrade(ev fill.Event, order *liveorder.Details) {
 	}
 
 	if !p.bot.Settings.EnableDryRun {
-		livetrade.Insert(lt)
+		err := livetrade.Insert(lt)
+		if err != nil {
+			fmt.Println("error inserting trade", err)
+			os.Exit(2)
+		}
 	}
 
 	p.store.openTrade[ev.GetStrategyID()] = &lt
@@ -931,6 +944,12 @@ func verifyOrderWithinLimits(f *fill.Fill, limitReducedAmount decimal.Decimal, c
 }
 
 func (p *Portfolio) printTradeDetails(t *livetrade.Details) {
-	fmt.Println("trade profit", t.ProfitLossPoints)
+	log.Infoln(log.TradeManager, "trade profit", t.ProfitLossPoints)
 	return
+}
+
+func (p *Portfolio) heartBeat() {
+	for range time.Tick(time.Second * 15) {
+		log.Info(log.TradeManager, "portfolio heartbeat")
+	}
 }

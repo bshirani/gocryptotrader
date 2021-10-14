@@ -266,8 +266,8 @@ func (tm *TradeManager) RunLive() error {
 		t2 := time.Date(lc.Year(), lc.Month(), lc.Day(), lc.Hour(), lc.Minute(), 0, 0, t.Location())
 
 		if t2 != t1 {
-			fmt.Println("sync time is off. History Catchup Failed. Exiting.", t1, t2)
-			os.Exit(1)
+			fmt.Println("sync time is off. History Catchup Failed.", t1, t2)
+			// os.Exit(1)
 		}
 
 		if len(retCandle.Candles) == 0 {

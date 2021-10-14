@@ -51,7 +51,7 @@ func Active() (out []Details, err error) {
 		return out, database.ErrDatabaseSupportDisabled
 	}
 
-	whereQM := qm.Where("status IN ('PENDING', 'ACTIVE')")
+	whereQM := qm.Where("status IN ('OPEN')")
 	ret, errS := modelSQLite.LiveTrades(whereQM).All(context.Background(), database.DB.SQL)
 
 	for _, x := range ret {
@@ -60,6 +60,7 @@ func Active() (out []Details, err error) {
 			ID:         x.ID,
 			StrategyID: x.StrategyID,
 			Status:     order.Status(x.Status),
+			Side:       order.Side(x.Side),
 		})
 	}
 	if errS != nil {
@@ -103,17 +104,21 @@ func Insert(in Details) error {
 }
 
 func insertSQLite(ctx context.Context, tx *sql.Tx, in []Details) (err error) {
-	boil.DebugMode = true
+	// boil.DebugMode = true
 	for x := range in {
 		entryPrice, _ := in[x].EntryPrice.Float64()
+		exitPrice, _ := in[x].ExitPrice.Float64()
+		stopLossPrice, _ := in[x].StopLossPrice.Float64()
+
 		var tempInsert = modelSQLite.LiveTrade{
 			EntryPrice:    entryPrice,
-			ExitPrice:     null.Float64{Float64: in[x].ExitPrice},
-			StopLossPrice: in[x].StopLossPrice,
+			ExitPrice:     null.Float64{Float64: exitPrice},
+			StopLossPrice: stopLossPrice,
 			Status:        fmt.Sprintf("%s", in[x].Status),
 			StrategyID:    in[x].StrategyID,
-			Pair:          string(in[x].Pair),
+			Pair:          in[x].Pair.String(),
 			EntryOrderID:  in[x].EntryOrderID,
+			Side:          in[x].Side.String(),
 		}
 
 		err = tempInsert.Insert(ctx, tx, boil.Infer())

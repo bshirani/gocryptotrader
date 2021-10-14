@@ -2,6 +2,7 @@ package livetrade
 
 import (
 	"errors"
+	"gocryptotrader/currency"
 	"gocryptotrader/exchange/order"
 
 	"github.com/shopspring/decimal"
@@ -19,12 +20,12 @@ type Details struct {
 	ID               int64
 	Side             order.Side
 	Name             string
-	EntryPrice       decimal.Decimal
-	ExitPrice        float64
-	StopLossPrice    float64
-	Status           order.Status
 	StrategyID       string
-	Pair             string
 	EntryOrderID     string
+	EntryPrice       decimal.Decimal
+	ExitPrice        decimal.Decimal
+	StopLossPrice    decimal.Decimal
+	Status           order.Status
+	Pair             currency.Pair
 	ProfitLossPoints decimal.Decimal
 }

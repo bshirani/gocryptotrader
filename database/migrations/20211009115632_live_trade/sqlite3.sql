@@ -4,10 +4,13 @@ CREATE TABLE live_trade (
     side text not null,
     entry_order_id text NOT NULL,
     entry_price REAL NOT NULL,
+    entry_time timestamp NOT NULL,
     stop_loss_price REAL NOT NULL,
     strategy_id TEXT NOT NULL,
     status TEXT NOT NULL,
     pair text NOT NULL,
+
+    exit_time timestamp ,
     take_profit_price REAL,
     profit_loss_points REAL,
     exit_price REAL
