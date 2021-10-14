@@ -136,7 +136,22 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		return nil, errStrategyIDUnset
 	}
 
+	trade := p.GetTradeForStrategy(ev.GetStrategyID())
+	if trade != nil {
+		if trade.Direction == gctorder.Buy {
+			trade.ProfitLoss = -1
+		} else if trade.Direction == gctorder.Sell {
+			trade.ProfitLoss = 100
+		} else {
+			fmt.Println("trade is not sell or buy")
+			os.Exit(2)
+		}
+		fmt.Println("trade for ", ev.GetStrategyID(), trade.ProfitLoss)
+	}
+
 	id, _ := uuid.NewV4()
+
+	ev.SetDirection(gctorder.Buy) // FIXME
 
 	o := &order.Order{
 		Base: event.Base{
@@ -157,14 +172,13 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 
 	switch ev.GetDecision() {
 	case signal.Enter:
-		ev.SetDirection(gctorder.Buy) // FIXME
-
 		lo := liveorder.Details{
 			Status:     gctorder.New,
 			OrderType:  gctorder.Market,
 			Exchange:   ev.GetExchange(),
 			InternalID: id.String(),
 			StrategyID: ev.GetStrategyID(),
+			Direction:  ev.GetDirection(),
 		}
 
 		if !p.bot.Settings.EnableDryRun {
@@ -174,17 +188,19 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		p.store.openOrders[ev.GetStrategyID()] = append(p.store.openOrders[ev.GetStrategyID()], &lo)
 
 	case signal.Exit:
+		ev.SetDirection(gctorder.Sell) // FIXME
+
 		lo := liveorder.Details{
 			Status:     gctorder.New,
 			OrderType:  gctorder.Market,
 			Exchange:   ev.GetExchange(),
 			InternalID: id.String(),
 			StrategyID: ev.GetStrategyID(),
+			Direction:  ev.GetDirection(),
 		}
 
 		// get strategy direction here
 		// find strategy by id
-		ev.SetDirection(gctorder.Sell) // FIXME
 		p.store.openOrders[ev.GetStrategyID()] = append(p.store.openOrders[ev.GetStrategyID()], &lo)
 
 	case signal.DoNothing:
@@ -242,17 +258,40 @@ func (p *Portfolio) updatePosition(pos *positions.Position, amount decimal.Decim
 	pos.Amount = decimal.NewFromFloat(100.0)
 }
 
+func (p *Portfolio) GetOrderFromStore(orderid string) *gctorder.Detail {
+	var foundOrd *gctorder.Detail
+	ords, _ := p.bot.OrderManager.GetOrdersSnapshot("")
+	for _, ord := range ords {
+		if ord.ID != orderid {
+			continue
+		}
+		foundOrd = &ord
+	}
+	if foundOrd.ID == "" {
+		fmt.Println("ERROR order has no ID")
+	}
+
+	if foundOrd.Price == 0 {
+		fmt.Println("ERROR order has no price ")
+	}
+
+	return foundOrd
+}
+
 func (p *Portfolio) createTrade(ev fill.Event, order *liveorder.Details) {
-	closePrice, _ := ev.GetClosePrice().Float64()
+	// fmt.Println("found order", foundOrd.ID)
+	foundOrd := p.GetOrderFromStore(ev.GetOrderID())
+
 	lt := livetrade.Details{
 		Status:       gctorder.Open,
 		StrategyID:   ev.GetStrategyID(),
-		EntryOrderID: ev.GetOrderID(),
-		EntryPrice:   closePrice,
+		EntryOrderID: foundOrd.ID,
+		EntryPrice:   foundOrd.Price,
+		Direction:    ev.GetDirection(),
 	}
 
 	if lt.EntryPrice == 0 {
-		fmt.Println("1111 no entry price")
+		fmt.Println("1111")
 		os.Exit(2)
 	}
 

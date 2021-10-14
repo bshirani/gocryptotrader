@@ -24,6 +24,7 @@ import (
 // LiveTrade is an object representing the database table.
 type LiveTrade struct {
 	ID              int64        `boil:"id" json:"id" toml:"id" yaml:"id"`
+	Direction       string       `boil:"direction" json:"direction" toml:"direction" yaml:"direction"`
 	EntryOrderID    string       `boil:"entry_order_id" json:"entry_order_id" toml:"entry_order_id" yaml:"entry_order_id"`
 	EntryPrice      float64      `boil:"entry_price" json:"entry_price" toml:"entry_price" yaml:"entry_price"`
 	StopLossPrice   float64      `boil:"stop_loss_price" json:"stop_loss_price" toml:"stop_loss_price" yaml:"stop_loss_price"`
@@ -39,6 +40,7 @@ type LiveTrade struct {
 
 var LiveTradeColumns = struct {
 	ID              string
+	Direction       string
 	EntryOrderID    string
 	EntryPrice      string
 	StopLossPrice   string
@@ -49,6 +51,7 @@ var LiveTradeColumns = struct {
 	ExitPrice       string
 }{
 	ID:              "id",
+	Direction:       "direction",
 	EntryOrderID:    "entry_order_id",
 	EntryPrice:      "entry_price",
 	StopLossPrice:   "stop_loss_price",
@@ -63,6 +66,7 @@ var LiveTradeColumns = struct {
 
 var LiveTradeWhere = struct {
 	ID              whereHelperint64
+	Direction       whereHelperstring
 	EntryOrderID    whereHelperstring
 	EntryPrice      whereHelperfloat64
 	StopLossPrice   whereHelperfloat64
@@ -73,6 +77,7 @@ var LiveTradeWhere = struct {
 	ExitPrice       whereHelpernull_Float64
 }{
 	ID:              whereHelperint64{field: "\"live_trade\".\"id\""},
+	Direction:       whereHelperstring{field: "\"live_trade\".\"direction\""},
 	EntryOrderID:    whereHelperstring{field: "\"live_trade\".\"entry_order_id\""},
 	EntryPrice:      whereHelperfloat64{field: "\"live_trade\".\"entry_price\""},
 	StopLossPrice:   whereHelperfloat64{field: "\"live_trade\".\"stop_loss_price\""},
@@ -100,9 +105,9 @@ func (*liveTradeR) NewStruct() *liveTradeR {
 type liveTradeL struct{}
 
 var (
-	liveTradeAllColumns            = []string{"id", "entry_order_id", "entry_price", "stop_loss_price", "strategy_id", "status", "pair", "take_profit_price", "exit_price"}
+	liveTradeAllColumns            = []string{"id", "direction", "entry_order_id", "entry_price", "stop_loss_price", "strategy_id", "status", "pair", "take_profit_price", "exit_price"}
 	liveTradeColumnsWithoutDefault = []string{}
-	liveTradeColumnsWithDefault    = []string{"id", "entry_order_id", "entry_price", "stop_loss_price", "strategy_id", "status", "pair", "take_profit_price", "exit_price"}
+	liveTradeColumnsWithDefault    = []string{"id", "direction", "entry_order_id", "entry_price", "stop_loss_price", "strategy_id", "status", "pair", "take_profit_price", "exit_price"}
 	liveTradePrimaryKeyColumns     = []string{"id"}
 )
 

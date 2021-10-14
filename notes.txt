@@ -142,6 +142,5 @@ trade manager receive on submit callback
 
 
 
-
-
-
+the order manager has its own store
+we could either recreate the data or just reference the existing store for order information

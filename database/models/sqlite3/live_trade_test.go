@@ -568,7 +568,7 @@ func testLiveTradesSelect(t *testing.T) {
 }
 
 var (
-	liveTradeDBTypes = map[string]string{`ID`: `INTEGER`, `EntryOrderID`: `TEXT`, `EntryPrice`: `REAL`, `StopLossPrice`: `REAL`, `StrategyID`: `TEXT`, `Status`: `TEXT`, `Pair`: `TEXT`, `TakeProfitPrice`: `REAL`, `ExitPrice`: `REAL`}
+	liveTradeDBTypes = map[string]string{`ID`: `INTEGER`, `Direction`: `TEXT`, `EntryOrderID`: `TEXT`, `EntryPrice`: `REAL`, `StopLossPrice`: `REAL`, `StrategyID`: `TEXT`, `Status`: `TEXT`, `Pair`: `TEXT`, `TakeProfitPrice`: `REAL`, `ExitPrice`: `REAL`}
 	_                = bytes.MinRead
 )
 
