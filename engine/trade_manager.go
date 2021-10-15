@@ -183,14 +183,14 @@ func (tm *TradeManager) runLive() error {
 }
 
 func (tm *TradeManager) loadDataEvents() error {
-	for exchangeName, exchangeMap := range tm.Datas.GetAllData() {
-		for assetItem, assetMap := range exchangeMap {
-			for currencyPair, dataHandler := range assetMap {
+	for _, exchangeMap := range tm.Datas.GetAllData() {
+		for _, assetMap := range exchangeMap {
+			for _, dataHandler := range assetMap {
 				d := dataHandler.Next()
 				if d == nil {
-					if !tm.hasHandledEvent {
-						log.Errorf(log.TradeManager, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
-					}
+					// if !tm.hasHandledEvent {
+					// 	log.Errorf(log.TradeManager, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
+					// }
 					return nil
 				}
 				tm.EventQueue.AppendEvent(d)
@@ -384,38 +384,22 @@ func (tm *TradeManager) Stop() error {
 func (tm *TradeManager) loadDatas() error {
 	cfg := &tm.cfg
 
-	// exchangeName := strings.ToLower(exch.GetName())
 	tm.Datas.Setup()
-	// klineData, err := tm.loadData(cfg, exch, pair, a)
-	// if err != nil {
-	// 	return resp, err
-	// }
-	// tm.Datas.SetDataForCurrency(exchangeName, a, pair, klineData)
 
 	// LOAD DATA FOR EVERY PAIR
-	for i := range cfg.CurrencySettings {
+	for _, cs := range tm.CurrencySettings {
+		// exchangeName := strings.ToLower(exch.GetName())
+		// klineData, err := tm.loadData(cfg, exch, pair, a)
 		exch, pair, a, err := tm.loadExchangePairAssetBase(
-			cfg.CurrencySettings[i].ExchangeName,
-			cfg.CurrencySettings[i].Base,
-			cfg.CurrencySettings[i].Quote,
-			cfg.CurrencySettings[i].Asset)
-		// fmt.Println("set data for currency", exch, a, pair)
-		if err != nil {
-			log.Errorln(log.TradeManager, "error loading pair1", err)
-			os.Exit(2)
-			return err
-		}
-
-		exchangeName := strings.ToLower(exch.GetName())
+			cs.ExchangeName,
+			cs.CurrencyPair.Base.String(),
+			cs.CurrencyPair.Quote.String(),
+			cs.AssetType.String())
 		klineData, err := tm.loadData(cfg, exch, pair, a)
 		if err != nil {
-			log.Errorln(log.TradeManager, "error loading pair2", err)
-			os.Exit(2)
 			return err
 		}
-		// then we set the tm.Datas for that currency with the resulting kline data that we update)
-		tm.Datas.SetDataForCurrency(exchangeName, a, pair, klineData)
-
+		tm.Datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, klineData)
 	}
 	return nil
 }
@@ -429,111 +413,24 @@ func (b *TradeManager) IsRunning() bool {
 }
 
 func (tm *TradeManager) setupExchangeSettings(cfg *config.Config) error {
-	for i := range cfg.CurrencySettings {
-		exch, pair, a, err := tm.loadExchangePairAssetBase(
-			cfg.CurrencySettings[i].ExchangeName,
-			cfg.CurrencySettings[i].Base,
-			cfg.CurrencySettings[i].Quote,
-			cfg.CurrencySettings[i].Asset)
-		log.Debugln(log.TradeManager, "setting exchange settings...", pair, a)
-		if err != nil {
-			return err
-		}
+	for _, e := range tm.Bot.Config.GetEnabledExchanges() {
+		enabledPairs, _ := tm.Bot.Config.GetEnabledPairs(e, asset.Spot)
+		for _, pair := range enabledPairs {
+			// fmt.Println("enabledpairs", e, pair)
+			_, pair, a, err := tm.loadExchangePairAssetBase(e, pair.Base.String(), pair.Quote.String(), "spot")
 
-		var makerFee, takerFee decimal.Decimal
-		if cfg.CurrencySettings[i].MakerFee.GreaterThan(decimal.Zero) {
-			makerFee = cfg.CurrencySettings[i].MakerFee
-		}
-		if cfg.CurrencySettings[i].TakerFee.GreaterThan(decimal.Zero) {
-			takerFee = cfg.CurrencySettings[i].TakerFee
-		}
-		if makerFee.IsZero() || takerFee.IsZero() {
-			var apiMakerFee, apiTakerFee decimal.Decimal
-			apiMakerFee, apiTakerFee = getFees(context.TODO(), exch, pair)
-			if makerFee.IsZero() {
-				makerFee = apiMakerFee
+			// log.Debugln(log.TradeManager, "setting exchange settings...", pair, a)
+			if err != nil {
+				return err
 			}
-			if takerFee.IsZero() {
-				takerFee = apiTakerFee
-			}
-		}
 
-		if cfg.CurrencySettings[i].MaximumSlippagePercent.LessThan(decimal.Zero) {
-			log.Warnf(log.TradeManager, "invalid maximum slippage percent '%v'. Slippage percent is defined as a number, eg '100.00', defaulting to '%v'",
-				cfg.CurrencySettings[i].MaximumSlippagePercent,
-				slippage.DefaultMaximumSlippagePercent)
-			cfg.CurrencySettings[i].MaximumSlippagePercent = slippage.DefaultMaximumSlippagePercent
+			tm.CurrencySettings = append(tm.CurrencySettings, ExchangeAssetPairSettings{
+				ExchangeName: e,
+				CurrencyPair: pair,
+				AssetType:    a,
+			})
 		}
-		if cfg.CurrencySettings[i].MaximumSlippagePercent.IsZero() {
-			cfg.CurrencySettings[i].MaximumSlippagePercent = slippage.DefaultMaximumSlippagePercent
-		}
-		if cfg.CurrencySettings[i].MinimumSlippagePercent.LessThan(decimal.Zero) {
-			log.Warnf(log.TradeManager, "invalid minimum slippage percent '%v'. Slippage percent is defined as a number, eg '80.00', defaulting to '%v'",
-				cfg.CurrencySettings[i].MinimumSlippagePercent,
-				slippage.DefaultMinimumSlippagePercent)
-			cfg.CurrencySettings[i].MinimumSlippagePercent = slippage.DefaultMinimumSlippagePercent
-		}
-		if cfg.CurrencySettings[i].MinimumSlippagePercent.IsZero() {
-			cfg.CurrencySettings[i].MinimumSlippagePercent = slippage.DefaultMinimumSlippagePercent
-		}
-		if cfg.CurrencySettings[i].MaximumSlippagePercent.LessThan(cfg.CurrencySettings[i].MinimumSlippagePercent) {
-			cfg.CurrencySettings[i].MaximumSlippagePercent = slippage.DefaultMaximumSlippagePercent
-		}
-
-		realOrders := false
-		if cfg.DataSettings.LiveData != nil {
-			realOrders = cfg.DataSettings.LiveData.RealOrders
-		}
-
-		buyRule := config.MinMax{
-			MinimumSize:  cfg.CurrencySettings[i].BuySide.MinimumSize,
-			MaximumSize:  cfg.CurrencySettings[i].BuySide.MaximumSize,
-			MaximumTotal: cfg.CurrencySettings[i].BuySide.MaximumTotal,
-		}
-		sellRule := config.MinMax{
-			MinimumSize:  cfg.CurrencySettings[i].SellSide.MinimumSize,
-			MaximumSize:  cfg.CurrencySettings[i].SellSide.MaximumSize,
-			MaximumTotal: cfg.CurrencySettings[i].SellSide.MaximumTotal,
-		}
-
-		limits, err := exch.GetOrderExecutionLimits(a, pair)
-		if err != nil && !errors.Is(err, gctorder.ErrExchangeLimitNotLoaded) {
-			return err
-		}
-
-		if limits != nil {
-			if !cfg.CurrencySettings[i].CanUseExchangeLimits {
-				log.Warnf(log.TradeManager, "exchange %s order execution limits supported but disabled for %s %s, live results may differ",
-					cfg.CurrencySettings[i].ExchangeName,
-					pair,
-					a)
-				cfg.CurrencySettings[i].ShowExchangeOrderLimitWarning = true
-			}
-		}
-
-		tm.CurrencySettings = append(tm.CurrencySettings, ExchangeAssetPairSettings{
-			ExchangeName:        cfg.CurrencySettings[i].ExchangeName,
-			MinimumSlippageRate: cfg.CurrencySettings[i].MinimumSlippagePercent,
-			MaximumSlippageRate: cfg.CurrencySettings[i].MaximumSlippagePercent,
-			CurrencyPair:        pair,
-			AssetType:           a,
-			ExchangeFee:         takerFee,
-			MakerFee:            takerFee,
-			TakerFee:            makerFee,
-			UseRealOrders:       realOrders,
-			BuySide:             buyRule,
-			SellSide:            sellRule,
-			Leverage: config.Leverage{
-				CanUseLeverage:                 cfg.CurrencySettings[i].Leverage.CanUseLeverage,
-				MaximumLeverageRate:            cfg.CurrencySettings[i].Leverage.MaximumLeverageRate,
-				MaximumOrdersWithLeverageRatio: cfg.CurrencySettings[i].Leverage.MaximumOrdersWithLeverageRatio,
-			},
-			Limits:                  limits,
-			SkipCandleVolumeFitting: cfg.CurrencySettings[i].SkipCandleVolumeFitting,
-			CanUseExchangeLimits:    cfg.CurrencySettings[i].CanUseExchangeLimits,
-		})
 	}
-
 	return nil
 }
 
@@ -573,6 +470,11 @@ func (tm *TradeManager) loadExchangePairAssetBase(exch, base, quote, ass string)
 // setup order manager, exchange manager, database manager
 func (tm *TradeManager) setupBot(cfg *config.Config) error {
 	var err error
+
+	err = tm.setupExchangeSettings(cfg)
+	if err != nil {
+		return err
+	}
 	// this already run in engine.newfromsettings
 	// tm.Bot.ExchangeManager = SetupExchangeManager()
 
@@ -636,72 +538,21 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 	portfolioRisk := &risk.Risk{
 		CurrencySettings: make(map[string]map[asset.Item]map[currency.Pair]*risk.CurrencySettings),
 	}
-	for i := range cfg.CurrencySettings {
-		if portfolioRisk.CurrencySettings[cfg.CurrencySettings[i].ExchangeName] == nil {
-			portfolioRisk.CurrencySettings[cfg.CurrencySettings[i].ExchangeName] = make(map[asset.Item]map[currency.Pair]*risk.CurrencySettings)
-		}
-		var a asset.Item
-		a, err = asset.New(cfg.CurrencySettings[i].Asset)
-		if err != nil {
-			return fmt.Errorf(
-				"%w for %v %v %v. Err %v",
-				errInvalidConfigAsset,
-				cfg.CurrencySettings[i].ExchangeName,
-				cfg.CurrencySettings[i].Asset,
-				cfg.CurrencySettings[i].Base+cfg.CurrencySettings[i].Quote,
-				err)
-		}
-		if portfolioRisk.CurrencySettings[cfg.CurrencySettings[i].ExchangeName][a] == nil {
-			portfolioRisk.CurrencySettings[cfg.CurrencySettings[i].ExchangeName][a] = make(map[currency.Pair]*risk.CurrencySettings)
-		}
-		var curr currency.Pair
-		var b, q currency.Code
-		b = currency.NewCode(cfg.CurrencySettings[i].Base)
-		q = currency.NewCode(cfg.CurrencySettings[i].Quote)
-		curr = currency.NewPair(b, q)
-		var exch exchange.IBotExchange
-		exch, err = tm.Bot.ExchangeManager.GetExchangeByName(cfg.CurrencySettings[i].ExchangeName)
-		if err != nil {
-			return err
-		}
-		exchBase := exch.GetBase()
-		var requestFormat currency.PairFormat
-		requestFormat, err = exchBase.GetPairFormat(a, true)
-		if err != nil {
-			return fmt.Errorf("could not format currency %v, %w", curr, err)
-		}
-		curr = curr.Format(requestFormat.Delimiter, requestFormat.Uppercase)
-		err = exchBase.CurrencyPairs.EnablePair(a, curr)
-		if err != nil && !errors.Is(err, currency.ErrPairAlreadyEnabled) {
-			return fmt.Errorf(
-				"could not enable currency %v %v %v. Err %w",
-				cfg.CurrencySettings[i].ExchangeName,
-				cfg.CurrencySettings[i].Asset,
-				cfg.CurrencySettings[i].Base+cfg.CurrencySettings[i].Quote,
-				err)
-		}
-		portfolioRisk.CurrencySettings[cfg.CurrencySettings[i].ExchangeName][a][curr] = &risk.CurrencySettings{
-			MaximumOrdersWithLeverageRatio: cfg.CurrencySettings[i].Leverage.MaximumOrdersWithLeverageRatio,
-			MaxLeverageRate:                cfg.CurrencySettings[i].Leverage.MaximumLeverageRate,
-			MaximumHoldingRatio:            cfg.CurrencySettings[i].MaximumHoldingsRatio,
-		}
-		if cfg.CurrencySettings[i].MakerFee.GreaterThan(cfg.CurrencySettings[i].TakerFee) {
-			log.Warnf(log.TradeManager, "maker fee '%v' should not exceed taker fee '%v'. Please review config",
-				cfg.CurrencySettings[i].MakerFee,
-				cfg.CurrencySettings[i].TakerFee)
-		}
-	}
+
+	// for i := range cfg.Stratey
 
 	var slit []strategies.Handler
 	var s strategies.Handler
 
 	count := 0
 	for _, strat := range cfg.StrategiesSettings {
-		// fmt.Println("strat", strat, strat.Name)
 		// for _, dir := range []gctorder.Side{gctorder.Buy, gctorder.Sell} {
-		for _, c := range cfg.CurrencySettings {
-			_, pair, _, _ := tm.loadExchangePairAssetBase(c.ExchangeName, c.Base, c.Quote, c.Asset)
+		for _, c := range tm.CurrencySettings {
+			// fmt.Println("c", c)
+			// _, pair, _, _ := tm.loadExchangePairAssetBase(c.ExchangeName, c.Base, c.Quote, c.Asset)
 			s, _ = strategies.LoadStrategyByName(strat.Name)
+
+			// tm.SetExchangeAssetCurrencySettings(exch, a, cp , c *ExchangeAssetPairSettings) {
 			count += 1
 
 			// fmt.Println("type of s", reflect.New(reflect.TypeOf(s)))
@@ -710,10 +561,10 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 			// strategy = reflect.New(reflect.ValueOf(s).Elem().Type()).Interface().(strategy.Handler)
 			// fmt.Println("loaded", strategy)
 
-			id := fmt.Sprintf("%d_%s_%s_%v", count, s.Name(), string(gctorder.Buy), pair.String())
+			id := fmt.Sprintf("%d_%s_%s_%v", count, s.Name(), string(gctorder.Buy), c.CurrencyPair)
 			s.SetID(id)
 			s.SetNumID(count)
-			s.SetPair(pair)
+			s.SetPair(c.CurrencyPair)
 			s.SetDirection(gctorder.Buy)
 
 			// validate strategy
@@ -731,7 +582,7 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 	// if tm.verbose {
 	log.Infof(log.TradeManager, "Running %d strategies\n", len(tm.Strategies))
 	log.Infof(log.TradeManager, "Running %d currencies\n", len(tm.CurrencySettings))
-	log.Infof(log.TradeManager, "Running %d exchanges\n", len(tm.CurrencySettings))
+	// log.Infof(log.TradeManager, "Running %d exchanges\n", len(tm.CurrencySettings))
 	// }
 
 	// setup portfolio with strategies
@@ -752,11 +603,6 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 	}
 	tm.Statistic = stats
 
-	err = tm.setupExchangeSettings(cfg)
-	if err != nil {
-		return err
-	}
-
 	// load from configuration into datastructure
 	// currencysettings returns the data from the config, exchangeassetpairsettings
 	// tm.Exchange = &e
@@ -765,6 +611,7 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 		var lookup *PortfolioSettings
 		lookup, err = p.SetupCurrencySettingsMap(tm.CurrencySettings[i].ExchangeName, tm.CurrencySettings[i].AssetType, tm.CurrencySettings[i].CurrencyPair)
 		if err != nil {
+			fmt.Println("ERROR SETTING UP PORTFOLIO", err)
 			return err
 		}
 		lookup.Fee = tm.CurrencySettings[i].TakerFee
@@ -775,24 +622,30 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 			Snapshots: []compliance.Snapshot{},
 		}
 		// this needs to be per currency
-		log.Debugf(log.TradeManager, "Initialize Factor Engine for %v\n", tm.CurrencySettings[i].CurrencyPair)
+		// log.Debugf(log.TradeManager, "Initialize Factor Engine for %v\n", tm.CurrencySettings[i].CurrencyPair)
 	}
+
+	log.Infoln(log.TradeManager, "Loaded", len(tm.CurrencySettings), "currencies")
+
 	tm.Portfolio = p
 	allCS, _ := tm.GetAllCurrencySettings()
 	// tm.FactorEngines = make(map[currency.Pair]*FactorEngine)
 	tm.FactorEngines = make(map[string]map[asset.Item]map[currency.Pair]*FactorEngine)
 	for _, x := range allCS {
-		fmt.Println("setup factor engine", x)
 		fe, _ := SetupFactorEngine(x.CurrencyPair)
+		ex := strings.ToLower(x.ExchangeName)
 
-		if tm.FactorEngines[x.ExchangeName] == nil {
-			tm.FactorEngines[x.ExchangeName] = make(map[asset.Item]map[currency.Pair]*FactorEngine)
+		if tm.FactorEngines[ex] == nil {
+			// fmt.Println("setup exchanges factors engine", ex)
+			tm.FactorEngines[ex] = make(map[asset.Item]map[currency.Pair]*FactorEngine)
 		}
-		if tm.FactorEngines[x.ExchangeName][x.AssetType] == nil {
-			tm.FactorEngines[x.ExchangeName][x.AssetType] = make(map[currency.Pair]*FactorEngine)
+		if tm.FactorEngines[ex][x.AssetType] == nil {
+			// fmt.Println("setup exchanges's asset's factor engines", ex, "spot")
+			tm.FactorEngines[ex][x.AssetType] = make(map[currency.Pair]*FactorEngine)
 		}
 
-		tm.FactorEngines[x.ExchangeName][x.AssetType][x.CurrencyPair] = fe
+		// fmt.Println("setup factor engine for pair", ex, x.CurrencyPair)
+		tm.FactorEngines[ex][x.AssetType][x.CurrencyPair] = fe
 	}
 
 	// cfg.PrintSetting()
@@ -959,25 +812,31 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 	// if tm.Bot.Config.LiveMode {
 	// 	fmt.Println("factor on bar update", ev.Pair(), d.Latest().GetTime(), len(tm.FactorEngines[ev.Pair()].Minute().Close))
 	// }
+	// exfe := tm.FactorEngines[ev.GetExchange()]
+	// exassetfe := tm.FactorEngines[ev.GetExchange()][ev.GetAssetType()]
+	// fmt.Println(len(tm.FactorEngines))
+	// for i := range exassetfe {
+	// 	fmt.Printf("%s..", i)
+	// }
+	// fmt.Println(ev.GetExchange(), len(exfe), len(exassetfe), ev.Pair(), fe)
 	fe := tm.FactorEngines[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
 	fe.OnBar(d)
 
 	// HANDLE warmup MODE
 	// in warmup mode, we do not query the strategies
 	if !tm.Warmup {
-		var s signal.Event
-
 		tm.Bot.OrderManager.Update()
 
-		for _, strategy := range tm.Strategies {
-			if strategy.GetPair() == ev.Pair() {
-				if tm.Bot.Config.LiveMode {
-					fmt.Println("Updating strategy", strategy.GetID(), d.Latest().GetTime())
-				}
-				s, err = strategy.OnData(d, tm.Portfolio, fe)
-				tm.EventQueue.AppendEvent(s)
-			}
-		}
+		// var s signal.Event
+		// for _, strategy := range tm.Strategies {
+		// 	if strategy.GetPair() == ev.Pair() {
+		// 		if tm.Bot.Config.LiveMode {
+		// 			fmt.Println("Updating strategy", strategy.GetID(), d.Latest().GetTime())
+		// 		}
+		// 		s, err = strategy.OnData(d, tm.Portfolio, fe)
+		// 		tm.EventQueue.AppendEvent(s)
+		// 	}
+		// }
 	}
 
 	if err != nil {
@@ -1224,8 +1083,15 @@ func (tm *TradeManager) configureLiveDataAPI(resp *kline.DataFromKline, cfg *con
 
 func (tm *TradeManager) heartBeat() {
 	for range time.Tick(time.Second * 15) {
-		tm.Portfolio.PrintPortfolioDetails()
+		// tm.Portfolio.PrintPortfolioDetails()
+
+		tm.PrintTradingDetails()
 	}
+}
+
+func (tm *TradeManager) PrintTradingDetails() {
+	// fmt.Println("strategies running", len(tm.Strategies))
+	log.Infoln(log.TradeManager, "strategies running", len(tm.Strategies))
 }
 
 // updateStatsForDataEvent makes various systems aware of price movements from

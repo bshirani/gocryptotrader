@@ -7,7 +7,9 @@
  "strategies-settings": [
  { "name": "trend" }
  ],
- "strategy-exchange-settings": [
+ "strategy-currency-settings": [
+     { "exchange-name" :"kraken", "pairs": ["XBT_USD", "XRP_XBT"]},
+     { "exchange-name" :"gateio", "pairs": ["UNI_ETH", "UNI_USDT"]}
  ],
  "currency-settings": [
   {
@@ -51,7 +53,7 @@
    "config-override": {
     "enabled": true,
     "verbose": false,
-    "driver": "postgresql",
+    "driver": "postgres",
     "connectionDetails": {
      "host": "localhost",
      "port": 5432,

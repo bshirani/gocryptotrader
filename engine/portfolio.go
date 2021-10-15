@@ -71,6 +71,8 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, sh SizeHandler, r risk
 	p.riskFreeRate = riskFreeRate
 	p.strategies = st
 
+	fmt.Println("loaded strategies", len(st))
+
 	// set initial opentrade/positions
 	for _, s := range p.strategies {
 		p.store.positions[s.GetID()] = &positions.Position{}
@@ -83,6 +85,7 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, sh SizeHandler, r risk
 	activeTrades, _ := livetrade.Active()
 	for _, t := range activeTrades {
 		p.store.openTrade[t.StrategyID] = &t
+		fmt.Println("id", t.StrategyID)
 		pos := p.store.positions[t.StrategyID]
 		pos.Active = true
 	}
@@ -93,8 +96,8 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, sh SizeHandler, r risk
 	}
 
 	if !p.bot.Settings.EnableDryRun {
-		log.Infoln(log.TradeManager, "(live mode) Loaded Trades", len(activeTrades))
-		log.Infoln(log.TradeManager, "(live mode) Loaded Orders", len(activeOrders))
+		log.Infoln(log.TradeManager, "Loaded Trades", len(activeTrades))
+		log.Infoln(log.TradeManager, "Loaded Orders", len(activeOrders))
 	}
 
 	return p, nil
@@ -120,6 +123,7 @@ func (p *Portfolio) OnCancel(cancel cancel.Event) {
 // if successful, it will pass on an order.Order to be used by the exchange event handler to place an order based on
 // the portfolio manager's recommendations
 func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*order.Order, error) {
+	fmt.Println("PORTFOLIO ON SIGNAL")
 	if ev == nil || cs == nil {
 		return nil, eventtypes.ErrNilArguments
 	}
@@ -706,6 +710,7 @@ func (p *Portfolio) ViewHoldingAtTimePeriod(ev eventtypes.EventHandler) (*holdin
 
 // SetupCurrencySettingsMap ensures a map is created and no panics happen
 func (p *Portfolio) SetupCurrencySettingsMap(exch string, a asset.Item, cp currency.Pair) (*PortfolioSettings, error) {
+	fmt.Println("setup currency settings map")
 	if exch == "" {
 		return nil, errExchangeUnset
 	}
@@ -728,6 +733,7 @@ func (p *Portfolio) SetupCurrencySettingsMap(exch string, a asset.Item, cp curre
 		p.exchangeAssetPairSettings[exch][a][cp] = &PortfolioSettings{}
 	}
 
+	fmt.Println("done setup currency settings map", exch, a, cp)
 	return p.exchangeAssetPairSettings[exch][a][cp], nil
 }
 

@@ -621,6 +621,7 @@ func (bot *Engine) Start() error {
 				}
 			}
 		}
+
 		if bot.TradeManager == nil {
 			bot.TradeManager, err = NewTradeManager(bot)
 			if err != nil {

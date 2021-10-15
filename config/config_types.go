@@ -93,16 +93,17 @@ type Config struct {
 	LiveMode bool
 	DryRun   bool
 
-	Nickname                 string             `json:"nickname"`
-	Goal                     string             `json:"goal"`
-	StrategySettings         StrategySettings   `json:"strategy-settings"`
-	StrategiesSettings       []StrategySettings `json:"strategies-settings"`
-	CurrencySettings         []CurrencySettings `json:"currency-settings"`
-	DataSettings             DataSettings       `json:"data-settings"`
-	PortfolioSettings        PortfolioSettings  `json:"portfolio-settings"`
-	StatisticSettings        StatisticSettings  `json:"statistic-settings"`
-	TradeManager             TradeManagerConfig `json:"trade-manager"`
-	GoCryptoTraderConfigPath string             `json:"gocryptotrader-config-path"`
+	Nickname                 string                     `json:"nickname"`
+	Goal                     string                     `json:"goal"`
+	StrategySettings         StrategySettings           `json:"strategy-settings"`
+	StrategiesSettings       []StrategySettings         `json:"strategies-settings"`
+	CurrencySettings         []CurrencySettings         `json:"currency-settings"`
+	StrategyCurrencySettings []StrategyCurrencySettings `json:"strategy-currency-settings"`
+	DataSettings             DataSettings               `json:"data-settings"`
+	PortfolioSettings        PortfolioSettings          `json:"portfolio-settings"`
+	StatisticSettings        StatisticSettings          `json:"statistic-settings"`
+	TradeManager             TradeManagerConfig         `json:"trade-manager"`
+	GoCryptoTraderConfigPath string                     `json:"gocryptotrader-config-path"`
 
 	Name                 string                    `json:"name"`
 	DataDirectory        string                    `json:"dataDirectory"`
@@ -470,6 +471,12 @@ type CurrencySettings struct {
 	CanUseExchangeLimits          bool `json:"use-exchange-order-limits"`
 	SkipCandleVolumeFitting       bool `json:"skip-candle-volume-fitting"`
 	ShowExchangeOrderLimitWarning bool `json:"-"`
+}
+
+type StrategyCurrencySettings struct {
+	ExchangeName string   `json:"exchange-name"`
+	Asset        string   `json:"asset"`
+	Pairs        []string `json:"pairs"`
 }
 
 // APIData defines all fields to configure API based data

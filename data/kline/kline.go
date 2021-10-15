@@ -92,7 +92,7 @@ func (d *DataFromKline) AppendResults(ki *gctkline.Item) {
 			d.RangeHolder.Ranges[i].Intervals[j].HasData = true
 		}
 	}
-	log.Debugf(log.TradeManager, "%s appending %v candle intervals: %v", d.Item.Pair, len(gctCandles), candleTimes)
+	// log.Debugf(log.TradeManager, "%s appending %v candle intervals: %v", d.Item.Pair, len(gctCandles), candleTimes)
 	d.AppendStream(klineData...)
 	d.SortStream()
 }
