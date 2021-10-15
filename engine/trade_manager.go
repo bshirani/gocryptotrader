@@ -724,7 +724,7 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 	// if tm.verbose {
 	log.Infof(log.TradeManager, "Running %d strategies\n", len(tm.Strategies))
 	log.Infof(log.TradeManager, "Running %d currencies\n", len(tm.CurrencySettings))
-	// log.Infof(log.TradeManager, "Running %d exchanges\n", len(tm.CurrencySettings))
+	log.Infof(log.TradeManager, "Running %d exchanges\n", len(tm.CurrencySettings))
 	// }
 
 	// setup portfolio with strategies
