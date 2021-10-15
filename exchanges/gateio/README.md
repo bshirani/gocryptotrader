@@ -1,8 +1,3 @@
-# GoCryptoTrader package Gateio
-
-
-This gateio package is part of the GoCryptoTrader codebase.
-
 ## GateIO Exchange
 
 ### Current Features
