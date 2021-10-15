@@ -55,12 +55,7 @@ func (db *DBService) Upsert(jobs ...*DataHistoryJobResult) error {
 		}
 	}()
 
-	switch db.driver {
-	case database.DBPostgreSQL:
-		err = upsertPostgres(ctx, tx, jobs...)
-	default:
-		return database.ErrNoDatabaseProvided
-	}
+	err = upsertPostgres(ctx, tx, jobs...)
 	if err != nil {
 		return err
 	}
@@ -72,12 +67,7 @@ func (db *DBService) Upsert(jobs ...*DataHistoryJobResult) error {
 func (db *DBService) GetByJobID(jobID string) ([]DataHistoryJobResult, error) {
 	var err error
 	var job []DataHistoryJobResult
-	switch db.driver {
-	case database.DBPostgreSQL:
-		job, err = db.getByJobIDPostgres(jobID)
-	default:
-		return nil, database.ErrNoDatabaseProvided
-	}
+	job, err = db.getByJobIDPostgres(jobID)
 	if err != nil {
 		return nil, err
 	}
@@ -88,12 +78,7 @@ func (db *DBService) GetByJobID(jobID string) ([]DataHistoryJobResult, error) {
 func (db *DBService) GetJobResultsBetween(jobID string, startDate, endDate time.Time) ([]DataHistoryJobResult, error) {
 	var err error
 	var jobs []DataHistoryJobResult
-	switch db.driver {
-	case database.DBPostgreSQL:
-		jobs, err = db.getJobResultsBetweenPostgres(jobID, startDate, endDate)
-	default:
-		return nil, database.ErrNoDatabaseProvided
-	}
+	jobs, err = db.getJobResultsBetweenPostgres(jobID, startDate, endDate)
 	if err != nil {
 		return nil, err
 	}

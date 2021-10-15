@@ -7,6 +7,7 @@ import (
 	"gocryptotrader/currency"
 	"gocryptotrader/data"
 	"gocryptotrader/eventtypes"
+	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/order"
 	gctorder "gocryptotrader/exchange/order"
 	"gocryptotrader/portfolio/report"
@@ -42,7 +43,7 @@ type TradeManager struct {
 	EventQueue         EventHolder
 	Reports            report.Handler
 	Warmup             bool
-	FactorEngines      map[currency.Pair]*FactorEngine
+	FactorEngines      map[string]map[asset.Item]map[currency.Pair]*FactorEngine
 	DataHistoryManager *DataHistoryManager
 	hasHandledEvent    bool
 	shutdown           chan struct{}

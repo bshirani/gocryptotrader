@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/csv"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -140,6 +141,7 @@ func UUIDByName(exchange string) (uuid.UUID, error) {
 		if err != sql.ErrNoRows {
 			return uuid.UUID{}, err
 		}
+		fmt.Println("uuiiuid")
 		return uuid.UUID{}, ErrNoExchangeFound
 	}
 

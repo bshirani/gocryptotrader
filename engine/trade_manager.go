@@ -135,7 +135,7 @@ dataLoadingIssue:
 					for currencyPair, dataHandler := range assetMap {
 						d := dataHandler.Next()
 						if d == nil {
-							fmt.Println("no data found")
+							fmt.Println("no data found for", currencyPair)
 							if !tm.hasHandledEvent {
 								log.Errorf(log.TradeManager, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
 							}
@@ -222,9 +222,31 @@ func (tm *TradeManager) RunLive() error {
 	tm.setOrderManagerCallbacks()
 	go tm.heartBeat()
 
+	// tm.warmup()
+
 	//
+	// load datas, now setup
+	//
+	// log.Debugln(log.TradeManager, "Load datas...")
+	tm.loadDatas()
+	// throw error if not live
+	if !atomic.CompareAndSwapInt32(&tm.started, 0, 1) {
+		return fmt.Errorf("backtester %w", ErrSubSystemAlreadyStarted)
+	}
+
+	// start trade manager
+	log.Debugf(log.TradeManager, "TradeManager  %s", MsgSubSystemStarting)
+	tm.shutdown = make(chan struct{})
+
+	log.Debugln(log.TradeManager, "Running Live")
+	go tm.runLive()
+	return nil
+}
+
+func (tm *TradeManager) warmup() error {
+
 	// run the catchup process
-	//
+
 	if tm.verbose {
 		log.Infoln(log.TradeManager, "Running catchup processes")
 	}
@@ -233,8 +255,14 @@ func (tm *TradeManager) RunLive() error {
 		log.Infoln(log.TradeManager, "history catchup failed")
 		os.Exit(1)
 	}
-	tm.Bot.dataHistoryManager.RunJobs()
-	tm.Bot.dataHistoryManager.Stop()
+	err = tm.Bot.dataHistoryManager.RunJobs()
+	if err != nil {
+		return err
+	}
+	err = tm.Bot.dataHistoryManager.Stop()
+	if err != nil {
+		return err
+	}
 
 	// get latest bars for warmup
 	cs, err := tm.GetAllCurrencySettings()
@@ -249,7 +277,8 @@ func (tm *TradeManager) RunLive() error {
 			pair.CurrencyPair.Base.String(), pair.CurrencyPair.Quote.String(),
 			int64(60), string(pair.AssetType), start, end)
 
-		dbData, _ := database.LoadData(
+		fmt.Println("loading data for", pair.ExchangeName, pair.CurrencyPair)
+		dbData, err := database.LoadData(
 			start,
 			end,
 			time.Minute,
@@ -258,6 +287,9 @@ func (tm *TradeManager) RunLive() error {
 			pair.CurrencyPair,
 			pair.AssetType)
 
+		if err != nil {
+			fmt.Println("error loading db data", err)
+		}
 		dbData.Load()
 
 		dbData.Item.RemoveDuplicates()
@@ -294,35 +326,23 @@ func (tm *TradeManager) RunLive() error {
 		}
 	}
 
-	//
 	// precache the factor engines
-	//
-	// log.Debugln(log.TradeManager, "Warming up factor engines...")
+	log.Debugln(log.TradeManager, "Warming up factor engines...")
+
 	tm.Run()
 
 	//
 	// validate factor engines are cached
 	//
-	for _, fe := range tm.FactorEngines {
-		log.Debugf(log.TradeManager, "fe %v %v", fe.Pair, fe.Minute().LastDate())
+	for _, ex := range tm.FactorEngines {
+		for _, a := range ex {
+			for _, fe := range a {
+				log.Debugf(log.TradeManager, "fe %v %v", fe.Pair, fe.Minute().LastDate())
+			}
+		}
+
 	}
 
-	//
-	// load datas, now setup
-	//
-	// log.Debugln(log.TradeManager, "Load datas...")
-	tm.loadDatas()
-	// throw error if not live
-	if !atomic.CompareAndSwapInt32(&tm.started, 0, 1) {
-		return fmt.Errorf("backtester %w", ErrSubSystemAlreadyStarted)
-	}
-
-	// start trade manager
-	log.Debugf(log.TradeManager, "TradeManager  %s", MsgSubSystemStarting)
-	tm.shutdown = make(chan struct{})
-
-	log.Debugln(log.TradeManager, "Running Live")
-	go tm.runLive()
 	return nil
 }
 
@@ -364,7 +384,7 @@ func (tm *TradeManager) loadDatas() error {
 	cfg := &tm.cfg
 
 	// exchangeName := strings.ToLower(exch.GetName())
-	// tm.Datas.Setup()
+	tm.Datas.Setup()
 	// klineData, err := tm.loadData(cfg, exch, pair, a)
 	// if err != nil {
 	// 	return resp, err
@@ -402,13 +422,13 @@ func (b *TradeManager) IsRunning() bool {
 }
 
 func (tm *TradeManager) setupExchangeSettings(cfg *config.Config) error {
-	log.Debugln(log.TradeManager, "setting exchange settings...")
 	for i := range cfg.CurrencySettings {
 		exch, pair, a, err := tm.loadExchangePairAssetBase(
 			cfg.CurrencySettings[i].ExchangeName,
 			cfg.CurrencySettings[i].Base,
 			cfg.CurrencySettings[i].Quote,
 			cfg.CurrencySettings[i].Asset)
+		log.Debugln(log.TradeManager, "setting exchange settings...", pair, a)
 		if err != nil {
 			return err
 		}
@@ -703,6 +723,8 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 
 	// if tm.verbose {
 	log.Infof(log.TradeManager, "Running %d strategies\n", len(tm.Strategies))
+	log.Infof(log.TradeManager, "Running %d currencies\n", len(tm.CurrencySettings))
+	// log.Infof(log.TradeManager, "Running %d exchanges\n", len(tm.CurrencySettings))
 	// }
 
 	// setup portfolio with strategies
@@ -732,7 +754,6 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 	// currencysettings returns the data from the config, exchangeassetpairsettings
 	// tm.Exchange = &e
 
-	tm.FactorEngines = make(map[currency.Pair]*FactorEngine)
 	for i := range tm.CurrencySettings {
 		var lookup *PortfolioSettings
 		lookup, err = p.SetupCurrencySettingsMap(tm.CurrencySettings[i].ExchangeName, tm.CurrencySettings[i].AssetType, tm.CurrencySettings[i].CurrencyPair)
@@ -748,10 +769,24 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 		}
 		// this needs to be per currency
 		log.Debugf(log.TradeManager, "Initialize Factor Engine for %v\n", tm.CurrencySettings[i].CurrencyPair)
-		fe, _ := SetupFactorEngine(tm.CurrencySettings[i].CurrencyPair)
-		tm.FactorEngines[tm.CurrencySettings[i].CurrencyPair] = fe
 	}
 	tm.Portfolio = p
+	allCS, _ := tm.GetAllCurrencySettings()
+	// tm.FactorEngines = make(map[currency.Pair]*FactorEngine)
+	tm.FactorEngines = make(map[string]map[asset.Item]map[currency.Pair]*FactorEngine)
+	for _, x := range allCS {
+		fmt.Println("setup factor engine", x)
+		fe, _ := SetupFactorEngine(x.CurrencyPair)
+
+		if tm.FactorEngines[x.ExchangeName] == nil {
+			tm.FactorEngines[x.ExchangeName] = make(map[asset.Item]map[currency.Pair]*FactorEngine)
+		}
+		if tm.FactorEngines[x.ExchangeName][x.AssetType] == nil {
+			tm.FactorEngines[x.ExchangeName][x.AssetType] = make(map[currency.Pair]*FactorEngine)
+		}
+
+		tm.FactorEngines[x.ExchangeName][x.AssetType][x.CurrencyPair] = fe
+	}
 
 	// cfg.PrintSetting()
 	return nil
@@ -918,7 +953,8 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 	// if tm.Bot.Config.LiveMode {
 	// 	fmt.Println("factor on bar update", ev.Pair(), d.Latest().GetTime(), len(tm.FactorEngines[ev.Pair()].Minute().Close))
 	// }
-	tm.FactorEngines[ev.Pair()].OnBar(d)
+	fe := tm.FactorEngines[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
+	fe.OnBar(d)
 
 	// HANDLE warmup MODE
 	// in warmup mode, we do not query the strategies
@@ -932,7 +968,7 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 				// if tm.Bot.Config.LiveMode {
 				// 	fmt.Println("Updating strategy", strategy.GetID(), d.Latest().GetTime())
 				// }
-				s, err = strategy.OnData(d, tm.Portfolio, tm.FactorEngines[ev.Pair()])
+				s, err = strategy.OnData(d, tm.Portfolio, fe)
 				tm.EventQueue.AppendEvent(s)
 			}
 		}

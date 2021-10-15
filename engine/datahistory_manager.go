@@ -111,7 +111,7 @@ func (m *DataHistoryManager) Catchup(pairSettings []ExchangeAssetPairSettings, e
 			DecimalPlaceComparison: 3,
 		}
 
-		// log.Debugf(log.DataHistory, "Creating history job for ")
+		log.Debugf(log.DataHistory, "Creating history job for ", p.CurrencyPair)
 		err = m.UpsertJob(&job, true)
 		if err != nil {
 			log.Errorln(log.DataHistory, "data history error: ", err)
@@ -758,6 +758,7 @@ func (m *DataHistoryManager) processCandleData(job *DataHistoryJob, exch exchang
 		startRange,
 		endRange,
 		job.Interval)
+	// fmt.Println("process candle data for", job.Pair, startRange, endRange)
 	if err != nil {
 		r.Result += "could not get candles: " + err.Error() + ". "
 		r.Status = dataHistoryStatusFailed

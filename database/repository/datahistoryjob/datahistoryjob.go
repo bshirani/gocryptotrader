@@ -53,12 +53,7 @@ func (db *DBService) Upsert(jobs ...*DataHistoryJob) error {
 		}
 	}()
 
-	switch db.driver {
-	case database.DBPostgreSQL:
-		err = upsertPostgres(ctx, tx, jobs...)
-	default:
-		return database.ErrNoDatabaseProvided
-	}
+	err = upsertPostgres(ctx, tx, jobs...)
 	if err != nil {
 		return err
 	}
@@ -69,73 +64,55 @@ func (db *DBService) Upsert(jobs ...*DataHistoryJob) error {
 // GetByNickName returns a job by its nickname
 func (db *DBService) GetByNickName(nickname string) (*DataHistoryJob, error) {
 	// boil.DebugMode = true
-	switch db.driver {
-	case database.DBPostgreSQL:
-		return db.getByNicknamePostgres(nickname)
-	default:
-		return nil, database.ErrNoDatabaseProvided
-	}
+	return db.getByNicknamePostgres(nickname)
 }
 
 // GetByID returns a job by its id
 func (db *DBService) GetByID(id string) (*DataHistoryJob, error) {
-	switch db.driver {
-	case database.DBPostgreSQL:
-		return db.getByIDPostgres(id)
-	default:
-		return nil, database.ErrNoDatabaseProvided
-	}
+	return db.getByIDPostgres(id)
 }
 
 // GetJobsBetween will return all jobs between two dates
 func (db *DBService) GetJobsBetween(startDate, endDate time.Time) ([]DataHistoryJob, error) {
-	switch db.driver {
-	case database.DBPostgreSQL:
-		return db.getJobsBetweenPostgres(startDate, endDate)
-	default:
-		return nil, database.ErrNoDatabaseProvided
-	}
+	return db.getJobsBetweenPostgres(startDate, endDate)
 }
 
 // GetAllIncompleteJobsAndResults returns all jobs that have the status "active"
 func (db *DBService) GetAllIncompleteJobsAndResults() ([]DataHistoryJob, error) {
-	switch db.driver {
-	case database.DBPostgreSQL:
-		return db.getAllIncompleteJobsAndResultsPostgres()
-	default:
-		return nil, database.ErrNoDatabaseProvided
+	query := postgres.Datahistoryjobs(
+		qm.Load(postgres.DatahistoryjobRels.JobDatahistoryjobresults),
+		qm.Where("status = ?", 0))
+	results, err := query.All(context.Background(), db.sql)
+	if err != nil {
+		return nil, err
 	}
+
+	var jobs []DataHistoryJob
+	for i := range results {
+		job, err := db.createPostgresDataHistoryJobResponse(results[i])
+		if err != nil {
+			return nil, err
+		}
+		jobs = append(jobs, *job)
+	}
+
+	return jobs, nil
 }
 
 // GetJobAndAllResults returns a job and joins all job results
 func (db *DBService) GetJobAndAllResults(nickname string) (*DataHistoryJob, error) {
-	switch db.driver {
-	case database.DBPostgreSQL:
-		return db.getJobAndAllResultsPostgres(nickname)
-	default:
-		return nil, database.ErrNoDatabaseProvided
-	}
+	return db.getJobAndAllResultsPostgres(nickname)
 }
 
 // GetRelatedUpcomingJobs will return related jobs
 func (db *DBService) GetRelatedUpcomingJobs(nickname string) ([]*DataHistoryJob, error) {
-	switch db.driver {
-	case database.DBPostgreSQL:
-		return db.getRelatedUpcomingJobsPostgres(nickname)
-	default:
-		return nil, database.ErrNoDatabaseProvided
-	}
+	return db.getRelatedUpcomingJobsPostgres(nickname)
 }
 
 // GetPrerequisiteJob will return the job that must complete before the
 // referenced job
 func (db *DBService) GetPrerequisiteJob(nickname string) (*DataHistoryJob, error) {
-	switch db.driver {
-	case database.DBPostgreSQL:
-		return db.getPrerequisiteJobPostgres(nickname)
-	default:
-		return nil, database.ErrNoDatabaseProvided
-	}
+	return db.getPrerequisiteJobPostgres(nickname)
 }
 
 // SetRelationshipByID removes a relationship in the event of a changed
@@ -158,12 +135,7 @@ func (db *DBService) SetRelationshipByID(prerequisiteJobID, followingJobID strin
 		}
 	}()
 
-	switch db.driver {
-	case database.DBPostgreSQL:
-		err = setRelationshipByIDPostgres(ctx, tx, prerequisiteJobID, followingJobID, status)
-	default:
-		return database.ErrNoDatabaseProvided
-	}
+	err = setRelationshipByIDPostgres(ctx, tx, prerequisiteJobID, followingJobID, status)
 	if err != nil {
 		return err
 	}
@@ -191,12 +163,7 @@ func (db *DBService) SetRelationshipByNickname(prerequisiteNickname, followingNi
 		}
 	}()
 
-	switch db.driver {
-	case database.DBPostgreSQL:
-		err = setRelationshipByNicknamePostgres(ctx, tx, prerequisiteNickname, followingNickname, status)
-	default:
-		return database.ErrNoDatabaseProvided
-	}
+	err = setRelationshipByNicknamePostgres(ctx, tx, prerequisiteNickname, followingNickname, status)
 	if err != nil {
 		return err
 	}
@@ -302,27 +269,6 @@ func (db *DBService) getJobAndAllResultsPostgres(nickname string) (*DataHistoryJ
 	}
 
 	return db.createPostgresDataHistoryJobResponse(result)
-}
-
-func (db *DBService) getAllIncompleteJobsAndResultsPostgres() ([]DataHistoryJob, error) {
-	query := postgres.Datahistoryjobs(
-		qm.Load(postgres.DatahistoryjobRels.JobDatahistoryjobresults),
-		qm.Where("status = ?", 0))
-	results, err := query.All(context.Background(), db.sql)
-	if err != nil {
-		return nil, err
-	}
-
-	var jobs []DataHistoryJob
-	for i := range results {
-		job, err := db.createPostgresDataHistoryJobResponse(results[i])
-		if err != nil {
-			return nil, err
-		}
-		jobs = append(jobs, *job)
-	}
-
-	return jobs, nil
 }
 
 func (db *DBService) getRelatedUpcomingJobsPostgres(nickname string) ([]*DataHistoryJob, error) {

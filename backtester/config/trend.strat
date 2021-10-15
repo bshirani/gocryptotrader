@@ -23,10 +23,10 @@
    "initial-quote-funds": "1000"
   },
   {
-   "exchange-name": "kraken",
+   "exchange-name": "gateio",
    "asset": "spot",
-   "base": "XRP",
-   "quote": "XBT",
+   "base": "UNI",
+   "quote": "USDT",
    "initial-quote-funds": "1000"
   }
  ],
