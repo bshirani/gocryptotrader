@@ -222,6 +222,7 @@ func (tm *TradeManager) RunLive() error {
 	tm.setOrderManagerCallbacks()
 	go tm.heartBeat()
 
+	tm.Warmup = false
 	// tm.warmup()
 
 	//
@@ -398,17 +399,23 @@ func (tm *TradeManager) loadDatas() error {
 			cfg.CurrencySettings[i].Base,
 			cfg.CurrencySettings[i].Quote,
 			cfg.CurrencySettings[i].Asset)
+		// fmt.Println("set data for currency", exch, a, pair)
 		if err != nil {
+			log.Errorln(log.TradeManager, "error loading pair1", err)
+			os.Exit(2)
 			return err
 		}
 
 		exchangeName := strings.ToLower(exch.GetName())
 		klineData, err := tm.loadData(cfg, exch, pair, a)
 		if err != nil {
+			log.Errorln(log.TradeManager, "error loading pair2", err)
+			os.Exit(2)
 			return err
 		}
 		// then we set the tm.Datas for that currency with the resulting kline data that we update)
 		tm.Datas.SetDataForCurrency(exchangeName, a, pair, klineData)
+
 	}
 	return nil
 }
@@ -920,7 +927,6 @@ func (tm *TradeManager) loadData(cfg *config.Config, exch exchange.IBotExchange,
 // handle event will process events and add further events to the queue if they
 // are required
 func (tm *TradeManager) handleEvent(ev eventtypes.EventHandler) error {
-	// fmt.Println("handle event", reflect.TypeOf(ev))
 	switch eType := ev.(type) {
 	case eventtypes.DataEventHandler:
 		return tm.processSingleDataEvent(eType)
@@ -965,9 +971,9 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 
 		for _, strategy := range tm.Strategies {
 			if strategy.GetPair() == ev.Pair() {
-				// if tm.Bot.Config.LiveMode {
-				// 	fmt.Println("Updating strategy", strategy.GetID(), d.Latest().GetTime())
-				// }
+				if tm.Bot.Config.LiveMode {
+					fmt.Println("Updating strategy", strategy.GetID(), d.Latest().GetTime())
+				}
 				s, err = strategy.OnData(d, tm.Portfolio, fe)
 				tm.EventQueue.AppendEvent(s)
 			}

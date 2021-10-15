@@ -7,6 +7,8 @@
  "strategies-settings": [
  { "name": "trend" }
  ],
+ "strategy-exchange-settings": [
+ ],
  "currency-settings": [
   {
    "exchange-name": "kraken",
@@ -27,6 +29,13 @@
    "asset": "spot",
    "base": "UNI",
    "quote": "USDT",
+   "initial-quote-funds": "1000"
+  },
+  {
+   "exchange-name": "gateio",
+   "asset": "spot",
+   "base": "UNI",
+   "quote": "ETH",
    "initial-quote-funds": "1000"
   }
  ],
