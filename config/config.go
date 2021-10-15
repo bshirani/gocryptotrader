@@ -1559,23 +1559,23 @@ func (c *Config) ReadConfigFromFile(configPath string, dryrun bool) error {
 		return nil
 	}
 
-	// if c.EncryptConfig == fileEncryptionPrompt {
-	// 	confirm, err := promptForConfigEncryption()
-	// 	if err != nil {
-	// 		log.Errorf(log.ConfigMgr, "The encryption prompt failed, ignoring for now, next time we will prompt again. Error: %s\n", err)
-	// 		return nil
-	// 	}
-	// 	if confirm {
-	// 		c.EncryptConfig = fileEncryptionEnabled
-	// 		return c.SaveConfigToFile(defaultPath)
-	// 	}
-	//
-	// 	c.EncryptConfig = fileEncryptionDisabled
-	// 	err = c.SaveConfigToFile(defaultPath)
-	// 	if err != nil {
-	// 		log.Errorf(log.ConfigMgr, "Cannot save config. Error: %s\n", err)
-	// 	}
-	// }
+	if c.EncryptConfig == fileEncryptionPrompt {
+		confirm, err := promptForConfigEncryption()
+		if err != nil {
+			log.Errorf(log.ConfigMgr, "The encryption prompt failed, ignoring for now, next time we will prompt again. Error: %s\n", err)
+			return nil
+		}
+		if confirm {
+			c.EncryptConfig = fileEncryptionEnabled
+			return c.SaveConfigToFile(defaultPath)
+		}
+
+		c.EncryptConfig = fileEncryptionDisabled
+		err = c.SaveConfigToFile(defaultPath)
+		if err != nil {
+			log.Errorf(log.ConfigMgr, "Cannot save config. Error: %s\n", err)
+		}
+	}
 	return nil
 }
 
@@ -1640,6 +1640,7 @@ func readEncryptedConf(reader io.Reader, key []byte) (*Config, error) {
 // SaveConfigToFile saves your configuration to your desired path as a JSON object.
 // The function encrypts the data and prompts for encryption key, if necessary
 func (c *Config) SaveConfigToFile(configPath string) error {
+	fmt.Println("SAVING CONFIG")
 	defaultPath, _, err := GetFilePath(configPath)
 	if err != nil {
 		return err
@@ -1777,12 +1778,12 @@ func (c *Config) UpdateConfig(configPath string, newCfg *Config, dryrun bool) er
 	c.Webserver = newCfg.Webserver
 	c.Exchanges = newCfg.Exchanges
 
-	if !dryrun {
-		err = c.SaveConfigToFile(configPath)
-		if err != nil {
-			return err
-		}
+	// if !dryrun {
+	err = c.SaveConfigToFile(configPath)
+	if err != nil {
+		return err
 	}
+	// }
 
 	return c.LoadConfig(configPath, dryrun)
 }

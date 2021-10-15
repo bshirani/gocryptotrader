@@ -13,14 +13,15 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/gorilla/mux"
-	"github.com/gorilla/websocket"
 	"gocryptotrader/common"
 	"gocryptotrader/common/crypto"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/log"
+
+	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 )
 
 // setupAPIServerManager checks and creates an api server manager
@@ -204,7 +205,7 @@ func (m *apiServerManager) restSaveAllSettings(w http.ResponseWriter, r *http.Re
 	}
 	// Save change the settings
 	cfg := config.GetConfig()
-	err = cfg.UpdateConfig(m.gctConfigPath, &responseData.Data, false)
+	err = cfg.UpdateConfig(m.gctConfigPath, &responseData.Data, true)
 	if err != nil {
 		handleError(r.Method, err)
 	}
@@ -720,7 +721,7 @@ func wsSaveConfig(client *websocketClient, data interface{}) error {
 	}
 
 	cfg := config.GetConfig()
-	err = cfg.UpdateConfig(client.configPath, &respCfg, false)
+	err = cfg.UpdateConfig(client.configPath, &respCfg, true)
 	if err != nil {
 		wsResp.Error = err.Error()
 		sendErr := client.SendWebsocketMessage(wsResp)
