@@ -850,7 +850,7 @@ func (m *syncManager) PrintOrderbookSummary(result *orderbook.Base, protocol str
 		askValueResult = strconv.FormatFloat(asksValue, 'f', -1, 64)
 	}
 
-	log.Infof(log.OrderBook, book,
+	log.Debugf(log.OrderBook, book,
 		result.Exchange,
 		protocol,
 		m.FormatCurrency(result.Pair),
