@@ -196,6 +196,7 @@ func (m *apiServerManager) restGetAllSettings(w http.ResponseWriter, r *http.Req
 // restSaveAllSettings saves all current settings from request body as a JSON
 // document then reloads state and returns the settings
 func (m *apiServerManager) restSaveAllSettings(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("REST SAVE ALL SETTINGS")
 	// Get the data from the request
 	decoder := json.NewDecoder(r.Body)
 	var responseData config.Post

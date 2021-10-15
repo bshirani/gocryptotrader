@@ -1764,6 +1764,7 @@ func (c *Config) LoadConfig(configPath string, dryrun bool) error {
 
 // UpdateConfig updates the config with a supplied config file
 func (c *Config) UpdateConfig(configPath string, newCfg *Config, dryrun bool) error {
+	fmt.Println("UPDATE CONFIG")
 	err := newCfg.CheckConfig()
 	if err != nil {
 		return err
