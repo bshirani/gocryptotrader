@@ -220,66 +220,6 @@ func (c *Config) CheckCommunicationsConfig() {
 		}
 	}
 
-	if c.Communications.SMSGlobalConfig.Name == "" {
-		if c.SMS != nil {
-			if c.SMS.Contacts != nil {
-				c.Communications.SMSGlobalConfig = base.SMSGlobalConfig{
-					Name:     "SMSGlobal",
-					Enabled:  c.SMS.Enabled,
-					Verbose:  c.SMS.Verbose,
-					Username: c.SMS.Username,
-					Password: c.SMS.Password,
-					Contacts: c.SMS.Contacts,
-				}
-				// flush old SMS config
-				c.SMS = nil
-			} else {
-				c.Communications.SMSGlobalConfig = base.SMSGlobalConfig{
-					Name:     "SMSGlobal",
-					From:     c.Name,
-					Username: "main",
-					Password: "test",
-
-					Contacts: []base.SMSContact{
-						{
-							Name:    "bob",
-							Number:  "1234",
-							Enabled: false,
-						},
-					},
-				}
-			}
-		} else {
-			c.Communications.SMSGlobalConfig = base.SMSGlobalConfig{
-				Name:     "SMSGlobal",
-				Username: "main",
-				Password: "test",
-
-				Contacts: []base.SMSContact{
-					{
-						Name:    "bob",
-						Number:  "1234",
-						Enabled: false,
-					},
-				},
-			}
-		}
-	} else {
-		if c.Communications.SMSGlobalConfig.From == "" {
-			c.Communications.SMSGlobalConfig.From = c.Name
-		}
-
-		if len(c.Communications.SMSGlobalConfig.From) > 11 {
-			log.Warnf(log.ConfigMgr, "SMSGlobal config supplied from name exceeds 11 characters, trimming.\n")
-			c.Communications.SMSGlobalConfig.From = c.Communications.SMSGlobalConfig.From[:11]
-		}
-
-		if c.SMS != nil {
-			// flush old SMS config
-			c.SMS = nil
-		}
-	}
-
 	if c.Communications.SMTPConfig.Name == "" {
 		c.Communications.SMTPConfig = base.SMTPConfig{
 			Name:            "SMTP",
@@ -1640,7 +1580,6 @@ func readEncryptedConf(reader io.Reader, key []byte) (*Config, error) {
 // SaveConfigToFile saves your configuration to your desired path as a JSON object.
 // The function encrypts the data and prompts for encryption key, if necessary
 func (c *Config) SaveConfigToFile(configPath string) error {
-	fmt.Println("SAVING CONFIG")
 	defaultPath, _, err := GetFilePath(configPath)
 	if err != nil {
 		return err
@@ -1764,7 +1703,6 @@ func (c *Config) LoadConfig(configPath string, dryrun bool) error {
 
 // UpdateConfig updates the config with a supplied config file
 func (c *Config) UpdateConfig(configPath string, newCfg *Config, dryrun bool) error {
-	fmt.Println("UPDATE CONFIG")
 	err := newCfg.CheckConfig()
 	if err != nil {
 		return err

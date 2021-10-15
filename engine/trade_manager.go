@@ -39,7 +39,6 @@ import (
 	"gocryptotrader/portfolio/statistics"
 	"gocryptotrader/portfolio/statistics/currencystatistics"
 	"gocryptotrader/portfolio/strategies"
-	"gocryptotrader/portfolio/strategies/base"
 
 	"gocryptotrader/portfolio/compliance"
 
@@ -53,6 +52,7 @@ func NewTradeManager(bot *Engine) (*TradeManager, error) {
 	configPath := filepath.Join(wd, "backtester", "config", "trend.strat")
 	btcfg, err := config.ReadConfigFromFile(configPath)
 	if err != nil {
+		fmt.Println("error", err, configPath)
 		return nil, err
 	}
 	return NewTradeManagerFromConfig(btcfg, "xx", "xx", bot)
@@ -84,10 +84,6 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 		shutdown: make(chan struct{}),
 	}
 
-	// initialize the data structure to hold the klines for each pair
-	tm.Datas = &data.HandlerPerCurrency{}
-	tm.Datas.Setup()
-
 	tm.cfg = *cfg
 	tm.verbose = false
 	tm.Warmup = bot.Config.LiveMode
@@ -102,6 +98,10 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	tm.Bot = bot
 
 	err := tm.setupBot(cfg)
+
+	// initialize the data structure to hold the klines for each pair
+	tm.Datas = &data.HandlerPerCurrency{}
+	tm.Datas.Setup()
 	return tm, err
 }
 
@@ -274,9 +274,6 @@ func (tm *TradeManager) warmup() error {
 	for _, pair := range cs {
 		start := time.Now().Add(time.Minute * -10)
 		end := time.Now()
-		retCandle, _ := candle.Series(pair.ExchangeName,
-			pair.CurrencyPair.Base.String(), pair.CurrencyPair.Quote.String(),
-			int64(60), string(pair.AssetType), start, end)
 
 		fmt.Println("loading data for", pair.ExchangeName, pair.CurrencyPair)
 		dbData, err := database.LoadData(
@@ -311,6 +308,9 @@ func (tm *TradeManager) warmup() error {
 		//
 		// validate the history is populated with current data
 		//
+		retCandle, _ := candle.Series(pair.ExchangeName,
+			pair.CurrencyPair.Base.String(), pair.CurrencyPair.Quote.String(),
+			int64(60), string(pair.AssetType), start, end)
 		lc := retCandle.Candles[len(retCandle.Candles)-1].Timestamp
 		t := time.Now()
 		t1 := time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location())
@@ -473,6 +473,7 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 
 	err = tm.setupExchangeSettings(cfg)
 	if err != nil {
+		fmt.Println("error setting up exchange settings", cfg, err)
 		return err
 	}
 	// this already run in engine.newfromsettings
@@ -801,10 +802,11 @@ func (tm *TradeManager) handleEvent(ev eventtypes.EventHandler) error {
 }
 
 func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) error {
-	err := tm.updateStatsForDataEvent(ev)
-	if err != nil {
-		return err
-	}
+	// this is where we update the portfolio
+	// err := tm.updateStatsForDataEvent(ev)
+	// if err != nil {
+	// 	return err
+	// }
 
 	d := tm.Datas.GetDataForCurrency(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 
@@ -839,18 +841,18 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 		// }
 	}
 
-	if err != nil {
-		if errors.Is(err, base.ErrTooMuchBadData) {
-			// too much bad data is a severe error and backtesting must cease
-			return err
-		}
-		log.Error(log.TradeManager, err)
-		return nil
-	}
-	err = tm.Statistic.SetEventForOffset(ev)
-	if err != nil {
-		log.Error(log.TradeManager, err)
-	}
+	// if err != nil {
+	// 	if errors.Is(err, base.ErrTooMuchBadData) {
+	// 		// too much bad data is a severe error and backtesting must cease
+	// 		return err
+	// 	}
+	// 	log.Error(log.TradeManager, err)
+	// 	return nil
+	// }
+	// err = tm.Statistic.SetEventForOffset(ev)
+	// if err != nil {
+	// 	log.Error(log.TradeManager, err)
+	// }
 
 	return nil
 }
@@ -1082,7 +1084,7 @@ func (tm *TradeManager) configureLiveDataAPI(resp *kline.DataFromKline, cfg *con
 }
 
 func (tm *TradeManager) heartBeat() {
-	for range time.Tick(time.Second * 15) {
+	for range time.Tick(time.Second * 5) {
 		// tm.Portfolio.PrintPortfolioDetails()
 
 		tm.PrintTradingDetails()
@@ -1092,6 +1094,23 @@ func (tm *TradeManager) heartBeat() {
 func (tm *TradeManager) PrintTradingDetails() {
 	// fmt.Println("strategies running", len(tm.Strategies))
 	log.Infoln(log.TradeManager, "strategies running", len(tm.Strategies))
+
+	for _, cs := range tm.CurrencySettings {
+		// fmt.Println("currency", cs)
+		retCandle, _ := candle.Series(cs.ExchangeName,
+			cs.CurrencyPair.Base.String(), cs.CurrencyPair.Quote.String(),
+			60, cs.AssetType.String(), time.Now().Add(time.Minute*-5), time.Now())
+		var lastCandle candle.Candle
+		if len(retCandle.Candles) > 0 {
+			lastCandle = retCandle.Candles[len(retCandle.Candles)-1]
+		}
+		secondsAgo := int(time.Now().Sub(lastCandle.Timestamp).Seconds())
+		if secondsAgo > 60 {
+			log.Debugln(log.TradeManager, cs.CurrencyPair, "last updated", secondsAgo, "seconds ago")
+		} else {
+			log.Debugln(log.TradeManager, cs.CurrencyPair, "last updated", secondsAgo, "seconds ago")
+		}
+	}
 }
 
 // updateStatsForDataEvent makes various systems aware of price movements from

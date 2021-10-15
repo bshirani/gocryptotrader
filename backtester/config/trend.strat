@@ -8,19 +8,19 @@
  { "name": "trend" }
  ],
  "strategy-currency-settings": [
-     { "exchange-name" :"kraken", "pairs": ["XBT_USD", "XRP_XBT"]},
+     { "exchange-name" :"Kraken", "pairs": ["XBT_USD", "XRP_XBT"]},
      { "exchange-name" :"gateio", "pairs": ["UNI_ETH", "UNI_USDT"]}
  ],
  "currency-settings": [
   {
-   "exchange-name": "kraken",
+   "exchange-name": "Kraken",
    "asset": "spot",
    "base": "XBT",
    "quote": "USD",
    "initial-quote-funds": "1000"
   },
   {
-   "exchange-name": "kraken",
+   "exchange-name": "Kraken",
    "asset": "spot",
    "base": "XRP",
    "quote": "XBT",

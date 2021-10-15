@@ -152,6 +152,7 @@ func validateSettings(b *Engine, s *Settings, flagSet map[string]bool) {
 	b.Settings = *s
 
 	b.Settings.EnableDataHistoryManager = (flagSet["datahistorymanager"] && b.Settings.EnableDatabaseManager) || b.Config.DataHistoryManager.Enabled
+	b.Settings.EnableTradeManager = (flagSet["tradmanager"] && b.Settings.EnableTradeManager) || b.Config.TradeManager.Enabled
 
 	b.Settings.EnableCurrencyStateManager = (flagSet["currencystatemanager"] &&
 		b.Settings.EnableCurrencyStateManager) ||
@@ -243,21 +244,21 @@ func PrintSettings(s *Settings) {
 	gctlog.Infoln(gctlog.Global)
 	gctlog.Infof(gctlog.Global, "ENGINE SETTINGS")
 	gctlog.Infof(gctlog.Global, "- CORE SETTINGS:")
+	gctlog.Infof(gctlog.Global, "\t Enable trading: %v", s.EnableTradeManager)
 	gctlog.Infof(gctlog.Global, "\t live mode: %v", s.EnableLiveMode)
 	gctlog.Infof(gctlog.Global, "\t dry run mode: %v", s.EnableDryRun)
 	gctlog.Infof(gctlog.Global, "\t comms relayer: %v", s.EnableCommsRelayer)
+	gctlog.Infof(gctlog.Global, "\t Enable gPRC: %v", s.EnableGRPC)
 	gctlog.Infof(gctlog.Global, "\t event manager: %v", s.EnableEventManager)
 	gctlog.Infof(gctlog.Global, "\t Verbose mode: %v", s.Verbose)
-	gctlog.Infof(gctlog.Global, "\t Enable coinmarketcap analaysis: %v", s.EnableCoinmarketcapAnalysis)
+	// gctlog.Infof(gctlog.Global, "\t Enable coinmarketcap analaysis: %v", s.EnableCoinmarketcapAnalysis)
 	// gctlog.Infof(gctlog.Global, "\t TM Verbose: %v", s.TradeManager.Verbose)
 	// gctlog.Infof(gctlog.Global, "\t Enable Database manager: %v", s.EnableDatabaseManager)
 	// gctlog.Infof(gctlog.Global, "\t Enable all exchanges: %v", s.EnableAllExchanges)
 	// gctlog.Infof(gctlog.Global, "\t Enable all pairs: %v", s.EnableAllPairs)
 	// gctlog.Infof(gctlog.Global, "\t Enable portfolio manager: %v", s.EnablePortfolioManager)
-	// gctlog.Infof(gctlog.Global, "\t Enable data history manager: %v", s.EnableDataHistoryManager)
 	// gctlog.Infof(gctlog.Global, "\t Enable currency state manager: %v", s.EnableCurrencyStateManager)
 	// gctlog.Infof(gctlog.Global, "\t Portfolio manager sleep delay: %v\n", s.PortfolioManagerDelay)
-	// gctlog.Infof(gctlog.Global, "\t Enable gPRC: %v", s.EnableGRPC)
 	// gctlog.Infof(gctlog.Global, "\t Enable gRPC Proxy: %v", s.EnableGRPCProxy)
 	// gctlog.Infof(gctlog.Global, "\t Enable websocket RPC: %v", s.EnableWebsocketRPC)
 	// gctlog.Infof(gctlog.Global, "\t Event manager sleep delay: %v", s.EventManagerDelay)
@@ -621,7 +622,9 @@ func (bot *Engine) Start() error {
 				}
 			}
 		}
+	}
 
+	if bot.Settings.EnableTradeManager {
 		if bot.TradeManager == nil {
 			bot.TradeManager, err = NewTradeManager(bot)
 			if err != nil {
@@ -657,11 +660,11 @@ func (bot *Engine) Stop() {
 			gctlog.Errorf(gctlog.Global, "GCTScript manager unable to stop. Error: %v", err)
 		}
 	}
-	// if bot.OrderManager.IsRunning() {
-	// 	if err := bot.OrderManager.Stop(); err != nil {
-	// 		gctlog.Errorf(gctlog.Global, "Order manager unable to stop. Error: %v", err)
-	// 	}
-	// }
+	if bot.OrderManager.IsRunning() {
+		if err := bot.OrderManager.Stop(); err != nil {
+			gctlog.Errorf(gctlog.Global, "Order manager unable to stop. Error: %v", err)
+		}
+	}
 	// if bot.FakeOrderManager.IsRunning() {
 	// 	if err := bot.FakeOrderManager.Stop(); err != nil {
 	// 		gctlog.Errorf(gctlog.Global, "Fake Order manager unable to stop. Error: %v", err)

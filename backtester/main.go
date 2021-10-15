@@ -34,18 +34,16 @@ func main() {
 	flag.BoolVar(&darkReport, "darkreport", false, "sets the initial rerport to use a dark theme")
 	flag.Parse()
 
-	var tm *engine.TradeManager
+	if printLogo {
+		fmt.Print(common.ASCIILogo)
+	}
+
 	var cfg *config.Config
 	cfg, err = config.ReadConfigFromFile(configPath)
 	if err != nil {
 		fmt.Printf("Could not read config. Error: %v. Path: %s\n", err, configPath)
 		os.Exit(1)
 	}
-
-	if printLogo {
-		fmt.Print(common.ASCIILogo)
-	}
-
 	path := gctconfig.DefaultFilePath()
 	if cfg.GoCryptoTraderConfigPath != "" {
 		fmt.Println("using custom config", path)
@@ -72,12 +70,14 @@ func main() {
 		os.Exit(-1)
 	}
 
+	var tm *engine.TradeManager
+
 	err = cfg.Validate()
 	if err != nil {
 		fmt.Printf("Could not read config. Error: %v.\n", err)
 		os.Exit(1)
 	}
-	tm, err = engine.NewTradeManagerFromConfig(cfg, templatePath, reportOutput, bot)
+	tm, err = engine.NewTradeManager(bot)
 	if err != nil {
 		fmt.Printf("Could not setup trade manager from config. Error: %v.\n", err)
 		os.Exit(1)
