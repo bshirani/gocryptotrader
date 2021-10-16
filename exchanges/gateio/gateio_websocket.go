@@ -458,6 +458,7 @@ func (g *Gateio) GenerateDefaultSubscriptions() ([]stream.ChannelSubscription, e
 	// "trades.subscribe",
 	// "depth.subscribe",
 	var channels = []string{"ticker.subscribe", "kline.subscribe"}
+	// var channels = []string{"kline.subscribe"}
 	var subscriptions []stream.ChannelSubscription
 	enabledCurrencies, err := g.GetEnabledPairs(asset.Spot)
 	if err != nil {
@@ -470,7 +471,7 @@ func (g *Gateio) GenerateDefaultSubscriptions() ([]stream.ChannelSubscription, e
 				params["limit"] = 30
 				params["interval"] = "0.1"
 			} else if strings.EqualFold(channels[i], "kline.subscribe") {
-				params["interval"] = 1800
+				params["interval"] = 60
 			}
 
 			fpair, err := g.FormatExchangeCurrency(enabledCurrencies[j],

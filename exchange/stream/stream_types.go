@@ -4,10 +4,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/websocket"
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/order"
+
+	"github.com/gorilla/websocket"
 )
 
 // Connection defines a streaming services connection

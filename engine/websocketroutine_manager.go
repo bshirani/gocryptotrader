@@ -188,13 +188,21 @@ func (m *websocketRoutineManager) WebsocketDataHandler(exchName string, data int
 		}
 		m.syncer.PrintTickerSummary(d, "websocket", err)
 	case stream.KlineData:
-		if m.verbose {
-			log.Infof(log.WebsocketMgr, "%s websocket %s %s kline updated %+v",
-				exchName,
-				m.FormatCurrency(d.Pair),
+		if m.syncer.IsRunning() {
+			err := m.syncer.Update(exchName,
+				d.Pair,
 				d.AssetType,
-				d)
+				SyncItemKline,
+				nil)
+			if err != nil {
+				return err
+			}
 		}
+		log.Infof(log.WebsocketMgr, "%s websocket %s %s kline updated %+v",
+			exchName,
+			m.FormatCurrency(d.Pair),
+			d.AssetType,
+			d)
 	case *orderbook.Base:
 		if m.syncer.IsRunning() {
 			err := m.syncer.Update(exchName,

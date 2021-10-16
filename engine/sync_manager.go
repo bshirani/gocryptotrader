@@ -24,6 +24,7 @@ const (
 	SyncItemTicker = iota
 	SyncItemOrderbook
 	SyncItemTrade
+	SyncItemKline
 	SyncManagerName = "exchange_syncer"
 )
 
@@ -35,7 +36,7 @@ var (
 	// DefaultSyncerTimeoutREST the default time to switch from REST to websocket protocols without a response
 	DefaultSyncerTimeoutREST = time.Second * 15
 	// DefaultSyncerTimeoutWebsocket the default time to switch from websocket to REST protocols without a response
-	DefaultSyncerTimeoutWebsocket = time.Second * 15
+	DefaultSyncerTimeoutWebsocket = time.Second * 65
 	errNoSyncItemsEnabled         = errors.New("no sync items enabled")
 	errUnknownSyncItem            = errors.New("unknown sync item")
 	errSyncPairNotFound           = errors.New("exchange currency pair syncer not found")
@@ -43,7 +44,7 @@ var (
 
 // setupSyncManager starts a new CurrencyPairSyncer
 func setupSyncManager(c *Config, exchangeManager iExchangeManager, remoteConfig *config.RemoteControlConfig, websocketRoutineManagerEnabled bool) (*syncManager, error) {
-	if !c.SyncOrderbook && !c.SyncTicker && !c.SyncTrades {
+	if !c.SyncOrderbook && !c.SyncTicker && !c.SyncTrades && !c.SyncKlines {
 		return nil, errNoSyncItemsEnabled
 	}
 	if exchangeManager == nil {
@@ -76,12 +77,12 @@ func setupSyncManager(c *Config, exchangeManager iExchangeManager, remoteConfig 
 	s.tickerBatchLastRequested = make(map[string]time.Time)
 
 	log.Debugf(log.SyncMgr,
-		"Exchange currency pair syncer config: continuous: %v ticker: %v"+
+		"Exchange currency pair syncer config: kline: %v, continuous: %v ticker: %v"+
 			" orderbook: %v trades: %v workers: %v verbose: %v timeout REST: %v"+
 			" timeout Websocket: %v",
-		s.config.SyncContinuously, s.config.SyncTicker, s.config.SyncOrderbook,
-		s.config.SyncTrades, s.config.NumWorkers, s.config.Verbose, s.config.SyncTimeoutREST,
-		s.config.SyncTimeoutWebsocket)
+		s.config.SyncKlines, s.config.SyncContinuously, s.config.SyncTicker,
+		s.config.SyncOrderbook, s.config.SyncTrades, s.config.NumWorkers,
+		s.config.Verbose, s.config.SyncTimeoutREST, s.config.SyncTimeoutWebsocket)
 	s.inService.Add(1)
 	return s, nil
 }
@@ -234,7 +235,7 @@ func (m *syncManager) heartBeat() {
 		case <-m.shutdown:
 			return
 		case <-tick.C:
-			fmt.Println("update tickers")
+			log.Infoln(log.SyncMgr, "===============TICKERS===============")
 
 			exchanges, err := m.exchangeManager.GetExchanges()
 			for _, ex := range exchanges {
@@ -250,12 +251,13 @@ func (m *syncManager) heartBeat() {
 					// ticker := m.currencyPairs[x].Ticker
 					secondsAgo := int(t1.Sub(tick.LastUpdated).Seconds())
 					if secondsAgo > 10 {
-						log.Warnln(log.SyncMgr, ex.GetName(), cp.Pair, tick.Last, secondsAgo)
+						log.Warnln(log.SyncMgr, cp.Pair, tick.Last, secondsAgo)
 					} else {
-						log.Infoln(log.SyncMgr, ex.GetName(), cp.Pair, tick.Last, secondsAgo)
+						log.Infoln(log.SyncMgr, cp.Pair, tick.Last, secondsAgo)
 					}
 				}
 			}
+			log.Infof(log.SyncMgr, "\n\n")
 
 		}
 	}
@@ -427,6 +429,10 @@ func (m *syncManager) Update(exchangeName string, p currency.Pair, a asset.Item,
 		if !m.config.SyncTrades {
 			return nil
 		}
+	case SyncItemKline:
+		if !m.config.SyncKlines {
+			return nil
+		}
 	default:
 		return fmt.Errorf("%v %w", syncType, errUnknownSyncItem)
 	}
@@ -492,6 +498,24 @@ func (m *syncManager) Update(exchangeName string, p currency.Pair, a asset.Item,
 						createdCounter)
 					m.initSyncWG.Done()
 				}
+			case SyncItemKline:
+				fmt.Println("received kline item")
+				// origHadData := m.currencyPairs[x].Trade.HaveData
+				// m.currencyPairs[x].Trade.LastUpdated = time.Now()
+				// if err != nil {
+				// 	m.currencyPairs[x].Trade.NumErrors++
+				// }
+				// m.currencyPairs[x].Trade.HaveData = true
+				// m.currencyPairs[x].Trade.IsProcessing = false
+				// if atomic.LoadInt32(&m.initSyncCompleted) != 1 && !origHadData {
+				// 	removedCounter++
+				// 	log.Debugf(log.SyncMgr, "%s trade sync complete %v [%d/%d].",
+				// 		exchangeName,
+				// 		m.FormatCurrency(p).String(),
+				// 		removedCounter,
+				// 		createdCounter)
+				// 	m.initSyncWG.Done()
+				// }
 			}
 		}
 	}

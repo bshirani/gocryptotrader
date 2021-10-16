@@ -17,7 +17,6 @@ import (
 	"gocryptotrader/data"
 	"gocryptotrader/data/kline"
 	"gocryptotrader/data/kline/database"
-	"gocryptotrader/data/kline/live"
 	gctdatabase "gocryptotrader/database"
 	"gocryptotrader/database/repository/candle"
 	"gocryptotrader/eventtypes"
@@ -94,19 +93,38 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	}
 	tm.Reports = reports
 	tm.Bot = bot
+	var err error
+	if bot.OrderManager == nil {
+		bot.FakeOrderManager, err = SetupFakeOrderManager(
+			bot,
+			bot.ExchangeManager,
+			bot.CommunicationsManager,
+			&bot.ServicesWG,
+			bot.Settings.Verbose)
+		if err != nil {
+			log.Errorf(log.Global, "Fake Order manager unable to setup: %s", err)
+		} else {
+			err = bot.FakeOrderManager.Start()
+			bot.OrderManager = bot.FakeOrderManager
 
-	err := tm.setupBot(cfg)
+			if err != nil {
+				log.Errorf(log.Global, "Fake Order manager unable to start: %s", err)
+			}
+		}
+	}
+	tm.OrderManager = bot.OrderManager
+	fmt.Println("order manage ris running?", tm.OrderManager.IsRunning())
+
+	err = tm.setupBot(cfg)
 
 	// initialize the data structure to hold the klines for each pair
-	tm.Datas = &data.HandlerPerCurrency{}
-	tm.Datas.Setup()
 	return tm, err
 }
 
 func (tm *TradeManager) setOrderManagerCallbacks() {
 	// tm.Bot.OrderManager.SetOnSubmit(tm.onSubmit)
-	tm.Bot.OrderManager.SetOnFill(tm.onFill)
-	tm.Bot.OrderManager.SetOnCancel(tm.onCancel)
+	tm.OrderManager.SetOnFill(tm.onFill)
+	tm.OrderManager.SetOnCancel(tm.onCancel)
 }
 
 // BACKTEST FUNCTIONALITY
@@ -115,14 +133,6 @@ func (tm *TradeManager) setOrderManagerCallbacks() {
 func (tm *TradeManager) Run() error {
 	tm.setOrderManagerCallbacks()
 	log.Debugf(log.TradeManager, "TradeManager Running. Warmup: %v\n", tm.Warmup)
-	if !tm.Bot.Config.LiveMode {
-		fmt.Println("loading datas...................")
-		err := tm.loadDatas()
-		if err != nil {
-			log.Errorf(log.TradeManager, "error loading datas", err)
-			return nil
-		}
-	}
 dataLoadingIssue:
 	for ev := tm.EventQueue.NextEvent(); ; ev = tm.EventQueue.NextEvent() {
 		if ev == nil {
@@ -160,44 +170,6 @@ dataLoadingIssue:
 	return nil
 }
 
-func (tm *TradeManager) runLive() error {
-	processEventTicker := time.NewTicker(time.Second)
-	for {
-		select {
-		case <-tm.shutdown:
-			return nil
-		case <-processEventTicker.C:
-			err := tm.loadDataEvents()
-			if err != nil {
-				log.Errorln(log.TradeManager, "error loading data events", err)
-			}
-			err = tm.processEvents()
-			if err != nil {
-				log.Errorln(log.TradeManager, "procesing events", err)
-			}
-		}
-	}
-	return nil
-}
-
-func (tm *TradeManager) loadDataEvents() error {
-	for _, exchangeMap := range tm.Datas.GetAllData() {
-		for _, assetMap := range exchangeMap {
-			for _, dataHandler := range assetMap {
-				d := dataHandler.Next()
-				if d == nil {
-					// if !tm.hasHandledEvent {
-					// 	log.Errorf(log.TradeManager, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
-					// }
-					return nil
-				}
-				tm.EventQueue.AppendEvent(d)
-			}
-		}
-	}
-	return nil
-}
-
 func (tm *TradeManager) processEvents() error {
 	for ev := tm.EventQueue.NextEvent(); ; ev = tm.EventQueue.NextEvent() {
 		if ev != nil {
@@ -216,17 +188,12 @@ func (tm *TradeManager) processEvents() error {
 }
 
 // LIVE FUNCTIONALITY
-func (tm *TradeManager) RunLive() error {
+func (tm *TradeManager) Start() error {
 	tm.setOrderManagerCallbacks()
 
 	tm.Warmup = false
 	// tm.warmup()
 
-	//
-	// load datas, now setup
-	//
-	// log.Debugln(log.TradeManager, "Load datas...")
-	tm.loadDatas()
 	// throw error if not live
 	if !atomic.CompareAndSwapInt32(&tm.started, 0, 1) {
 		return fmt.Errorf("backtester %w", ErrSubSystemAlreadyStarted)
@@ -236,11 +203,49 @@ func (tm *TradeManager) RunLive() error {
 	log.Debugf(log.TradeManager, "TradeManager  %s", MsgSubSystemStarting)
 	tm.shutdown = make(chan struct{})
 
-	tm.wg.Add(1)
-	go tm.heartBeat()
+	// go tm.heartBeat()
+
+	// create data subscriptions
 
 	log.Debugln(log.TradeManager, "Running Live")
 	go tm.runLive()
+	return nil
+}
+
+func (tm *TradeManager) runLive() error {
+	processEventTicker := time.NewTicker(time.Second)
+	for {
+		select {
+		case <-tm.shutdown:
+			return nil
+		case <-processEventTicker.C:
+			for _, exchangeMap := range tm.Datas.GetAllData() {
+				for _, assetMap := range exchangeMap {
+					for _, dataHandler := range assetMap {
+						d := dataHandler.Next()
+						if d == nil {
+							// if !tm.hasHandledEvent {
+							// 	log.Errorf(log.TradeManager, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
+							// }
+							return nil
+						}
+						tm.EventQueue.AppendEvent(d)
+					}
+				}
+			}
+			// if err != nil {
+			// 	log.Errorln(log.TradeManager, "error loading data events", err)
+			// }
+			err := tm.processEvents()
+			if err != nil {
+				log.Errorln(log.TradeManager, "procesing events", err)
+			}
+		}
+	}
+	return nil
+}
+
+func (tm *TradeManager) loadDataEvents() error {
 	return nil
 }
 
@@ -376,7 +381,7 @@ func (tm *TradeManager) Stop() error {
 	return nil
 }
 
-func (tm *TradeManager) loadDatas() error {
+func (tm *TradeManager) loadOfflineDatas() error {
 	cfg := &tm.cfg
 
 	tm.Datas.Setup()
@@ -384,13 +389,13 @@ func (tm *TradeManager) loadDatas() error {
 	// LOAD DATA FOR EVERY PAIR
 	for _, cs := range tm.CurrencySettings {
 		// exchangeName := strings.ToLower(exch.GetName())
-		// klineData, err := tm.loadData(cfg, exch, pair, a)
+		// klineData, err := tm.loadOfflineData(cfg, exch, pair, a)
 		exch, pair, a, err := tm.loadExchangePairAssetBase(
 			cs.ExchangeName,
 			cs.CurrencyPair.Base.String(),
 			cs.CurrencyPair.Quote.String(),
 			cs.AssetType.String())
-		klineData, err := tm.loadData(cfg, exch, pair, a)
+		klineData, err := tm.loadOfflineData(cfg, exch, pair, a)
 		if err != nil {
 			return err
 		}
@@ -465,6 +470,9 @@ func (tm *TradeManager) loadExchangePairAssetBase(exch, base, quote, ass string)
 // setup order manager, exchange manager, database manager
 func (tm *TradeManager) setupBot(cfg *config.Config) error {
 	var err error
+
+	tm.Datas = &data.HandlerPerCurrency{}
+	tm.Datas.Setup()
 
 	// this already run in engine.newfromsettings
 	// tm.Bot.ExchangeManager = SetupExchangeManager()
@@ -630,6 +638,13 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 	}
 
 	// cfg.PrintSetting()
+
+	err = tm.loadOfflineDatas()
+	if err != nil {
+		log.Errorf(log.TradeManager, "error loading datas", err)
+		return nil
+	}
+
 	return nil
 }
 
@@ -661,9 +676,9 @@ func getFees(ctx context.Context, exch exchange.IBotExchange, fPair currency.Pai
 	return decimal.NewFromFloat(fMakerFee), decimal.NewFromFloat(fTakerFee)
 }
 
-// loadData will create kline data from the sources defined in start config files. It can exist from databases, csv or API endpoints
+// loadOfflineData will create kline data from the sources defined in start config files. It can exist from databases, csv or API endpoints
 // it can also be generated from trade data which will be converted into kline data
-func (tm *TradeManager) loadData(cfg *config.Config, exch exchange.IBotExchange, fPair currency.Pair, a asset.Item) (*kline.DataFromKline, error) {
+func (tm *TradeManager) loadOfflineData(cfg *config.Config, exch exchange.IBotExchange, fPair currency.Pair, a asset.Item) (*kline.DataFromKline, error) {
 	if exch == nil {
 		return nil, ErrExchangeNotFound
 	}
@@ -675,64 +690,38 @@ func (tm *TradeManager) loadData(cfg *config.Config, exch exchange.IBotExchange,
 	}
 
 	resp := &kline.DataFromKline{}
-	switch {
-	case tm.Warmup || !tm.Bot.Config.LiveMode:
-		// log.Infof(log.TradeManager, "loading db data for %v %v %v...\n", exch.GetName(), a, fPair)
-		if cfg.DataSettings.DatabaseData.InclusiveEndDate {
-			cfg.DataSettings.DatabaseData.EndDate = cfg.DataSettings.DatabaseData.EndDate.Add(cfg.DataSettings.Interval)
-		}
-		if cfg.DataSettings.DatabaseData.ConfigOverride != nil {
-			tm.Bot.Config.Database = *cfg.DataSettings.DatabaseData.ConfigOverride
-			gctdatabase.DB.DataPath = filepath.Join(gctcommon.GetDefaultDataDir(runtime.GOOS), "database")
-			err = gctdatabase.DB.SetConfig(cfg.DataSettings.DatabaseData.ConfigOverride)
-			if err != nil {
-				return nil, err
-			}
-		}
-		resp, err = loadDatabaseData(cfg, exch.GetName(), fPair, a, dataType)
-		if err != nil {
-			return nil, fmt.Errorf("unable to retrieve data from GoCryptoTrader database. Error: %v. Please ensure the database is setup correctly and has data before use", err)
-		}
-
-		resp.Item.RemoveDuplicates()
-		resp.Item.SortCandlesByTimestamp(false)
-		resp.RangeHolder, err = gctkline.CalculateCandleDateRanges(
-			cfg.DataSettings.DatabaseData.StartDate,
-			cfg.DataSettings.DatabaseData.EndDate,
-			gctkline.Interval(cfg.DataSettings.Interval),
-			0,
-		)
+	// log.Infof(log.TradeManager, "loading db data for %v %v %v...\n", exch.GetName(), a, fPair)
+	if cfg.DataSettings.DatabaseData.InclusiveEndDate {
+		cfg.DataSettings.DatabaseData.EndDate = cfg.DataSettings.DatabaseData.EndDate.Add(cfg.DataSettings.Interval)
+	}
+	if cfg.DataSettings.DatabaseData.ConfigOverride != nil {
+		tm.Bot.Config.Database = *cfg.DataSettings.DatabaseData.ConfigOverride
+		gctdatabase.DB.DataPath = filepath.Join(gctcommon.GetDefaultDataDir(runtime.GOOS), "database")
+		err = gctdatabase.DB.SetConfig(cfg.DataSettings.DatabaseData.ConfigOverride)
 		if err != nil {
 			return nil, err
 		}
-		resp.RangeHolder.SetHasDataFromCandles(resp.Item.Candles)
-		summary := resp.RangeHolder.DataSummary(false)
-		if len(summary) > 0 {
-			log.Warnf(log.TradeManager, "%v", summary)
-		}
-	case tm.Bot.Config.LiveMode && !tm.Warmup:
-		log.Debugf(log.TradeManager, "loading live data for %v %v %v...\n", exch.GetName(), a, fPair)
+	}
+	resp, err = loadDatabaseData(cfg, exch.GetName(), fPair, a, dataType)
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve data from GoCryptoTrader database. Error: %v. Please ensure the database is setup correctly and has data before use", err)
+	}
 
-		// if len(cfg.CurrencySettings) > 1 {
-		// 	err := errors.New("live data simulation only supports one currency")
-		// 	// os.Exit(2)
-		// 	log.Errorln(log.TradeManager, err)
-		// 	return nil, err
-		// }
-
-		err = configureLiveDataAPI(cfg, b)
-		if err != nil {
-			log.Errorf(log.TradeManager, "%v. Error configuring live data feed", err)
-			return nil, err
-		}
-		go tm.loadLiveDataLoop(
-			resp,
-			cfg,
-			exch,
-			fPair,
-			a,
-			dataType)
-		return resp, nil
+	resp.Item.RemoveDuplicates()
+	resp.Item.SortCandlesByTimestamp(false)
+	resp.RangeHolder, err = gctkline.CalculateCandleDateRanges(
+		cfg.DataSettings.DatabaseData.StartDate,
+		cfg.DataSettings.DatabaseData.EndDate,
+		gctkline.Interval(cfg.DataSettings.Interval),
+		0,
+	)
+	if err != nil {
+		return nil, err
+	}
+	resp.RangeHolder.SetHasDataFromCandles(resp.Item.Candles)
+	summary := resp.RangeHolder.DataSummary(false)
+	if len(summary) > 0 {
+		log.Warnf(log.TradeManager, "%v", summary)
 	}
 	if resp == nil {
 		return nil, fmt.Errorf("processing error, response returned nil")
@@ -989,82 +978,9 @@ func (tm *TradeManager) processOrderEvent(o order.Event) {
 	tm.EventQueue.AppendEvent(submitEvent)
 }
 
-// ---------------------------
-// DATA LOADING
-// ---------------------------
-func (tm *TradeManager) loadLiveDataLoop(resp *kline.DataFromKline, cfg *config.Config, exch exchange.IBotExchange, fPair currency.Pair, a asset.Item, dataType int64) {
-	startDate := time.Now().Add(-cfg.DataSettings.Interval * 2)
-	dates, err := gctkline.CalculateCandleDateRanges(
-		startDate,
-		startDate.AddDate(1, 0, 0),
-		gctkline.Interval(cfg.DataSettings.Interval),
-		0)
-	if err != nil {
-		log.Errorf(log.TradeManager, "%v. Please check your GoCryptoTrader configuration", err)
-		return
-	}
-	candles, err := live.LoadData(context.TODO(),
-		exch,
-		dataType,
-		cfg.DataSettings.Interval,
-		fPair,
-		a)
-	if err != nil {
-		log.Errorf(log.TradeManager, "%v. Please check your GoCryptoTrader configuration", err)
-		return
-	}
-	dates.SetHasDataFromCandles(candles.Candles)
-	resp.RangeHolder = dates
-	resp.Item = *candles
-
-	loadNewDataTimer := time.NewTimer(time.Second * 5)
-	for {
-		select {
-		case <-tm.shutdown:
-			return
-		case <-loadNewDataTimer.C:
-			// log.Debugf(log.TradeManager, "fetching data for %v %v %v %v", exch.GetName(), a, fPair, cfg.DataSettings.Interval)
-			loadNewDataTimer.Reset(time.Second * 15)
-			err = tm.configureLiveDataAPI(resp, cfg, exch, fPair, a, dataType)
-			if err != nil {
-				log.Error(log.TradeManager, err)
-				return
-			}
-		}
-	}
-}
-
-func (tm *TradeManager) configureLiveDataAPI(resp *kline.DataFromKline, cfg *config.Config, exch exchange.IBotExchange, fPair currency.Pair, a asset.Item, dataType int64) error {
-	if resp == nil {
-		return errNilData
-	}
-	if cfg == nil {
-		return errNilConfig
-	}
-	if exch == nil {
-		return errNilExchange
-	}
-	// this call updates the associated kline in stored in tm.Datas
-	candles, err := live.LoadData(context.TODO(),
-		exch,
-		dataType,
-		cfg.DataSettings.Interval,
-		fPair,
-		a)
-	if err != nil {
-		return err
-	}
-	if len(candles.Candles) == 0 {
-		return nil
-	}
-	resp.AppendResults(candles)
-	tm.Reports.UpdateItem(&resp.Item)
-	// log.Debug(log.TradeManager, "sleeping for 30 seconds before checking for new candle data")
-	return nil
-}
-
 func (tm *TradeManager) heartBeat() {
-	tick := time.NewTicker(time.Second)
+	tm.wg.Add(1)
+	tick := time.NewTicker(time.Second * 5)
 	defer func() {
 		tick.Stop()
 		tm.wg.Done()
@@ -1074,14 +990,32 @@ func (tm *TradeManager) heartBeat() {
 		case <-tm.shutdown:
 			return
 		case <-tick.C:
-			tm.PrintTradingDetails()
+			exchanges, err := tm.Bot.ExchangeManager.GetExchanges()
+			for _, ex := range exchanges {
+				if err != nil {
+					log.Infoln(log.TradeManager, "error getting tick", err)
+				}
+
+				for _, cp := range tm.CurrencySettings {
+					tick, _ := ex.FetchTicker(context.Background(), cp.CurrencyPair, asset.Spot)
+					t1 := time.Now()
+					// ticker := m.currencyPairs[x].Ticker
+					secondsAgo := int(t1.Sub(tick.LastUpdated).Seconds())
+					if secondsAgo > 10 {
+						log.Warnln(log.TradeManager, cp.CurrencyPair, tick.Last, secondsAgo)
+					} else {
+						log.Infoln(log.TradeManager, cp.CurrencyPair, tick.Last, secondsAgo)
+					}
+				}
+			}
+			// tm.PrintTradingDetails()
 		}
 	}
 }
 
 func (tm *TradeManager) PrintTradingDetails() {
 	// fmt.Println("strategies running", len(tm.Strategies))
-	log.Infoln(log.TradeManager, "strategies running", len(tm.Strategies))
+	log.Infoln(log.TradeManager, len(tm.Strategies), "strategies running")
 
 	for _, cs := range tm.CurrencySettings {
 		// fmt.Println("currency", cs)
@@ -1094,10 +1028,11 @@ func (tm *TradeManager) PrintTradingDetails() {
 		}
 		secondsAgo := int(time.Now().Sub(lastCandle.Timestamp).Seconds())
 		if secondsAgo > 60 {
-			log.Debugln(log.TradeManager, cs.CurrencyPair, "last updated", secondsAgo, "seconds ago")
-		} else {
-			log.Debugln(log.TradeManager, cs.CurrencyPair, "last updated", secondsAgo, "seconds ago")
+			log.Infoln(log.TradeManager, cs.CurrencyPair, "last updated", secondsAgo, "seconds ago")
 		}
+		// else {
+		// 	log.Debugln(log.TradeManager, cs.CurrencyPair, "last updated", secondsAgo, "seconds ago")
+		// }
 	}
 }
 
@@ -1116,38 +1051,6 @@ func (tm *TradeManager) updateStatsForDataEvent(ev eventtypes.DataEventHandler) 
 	err = tm.Portfolio.UpdateHoldings(ev)
 	if err != nil {
 		log.Error(log.TradeManager, err)
-	}
-	return nil
-}
-
-func configureLiveDataAPI(cfg *config.Config, base *exchange.Base) error {
-	if cfg == nil || base == nil || cfg.DataSettings.LiveData == nil {
-		return eventtypes.ErrNilArguments
-	}
-	if cfg.DataSettings.Interval <= 0 {
-		return errIntervalUnset
-	}
-
-	if cfg.DataSettings.LiveData.APIKeyOverride != "" {
-		base.API.Credentials.Key = cfg.DataSettings.LiveData.APIKeyOverride
-	}
-	if cfg.DataSettings.LiveData.APISecretOverride != "" {
-		base.API.Credentials.Secret = cfg.DataSettings.LiveData.APISecretOverride
-	}
-	if cfg.DataSettings.LiveData.APIClientIDOverride != "" {
-		base.API.Credentials.ClientID = cfg.DataSettings.LiveData.APIClientIDOverride
-	}
-	if cfg.DataSettings.LiveData.API2FAOverride != "" {
-		base.API.Credentials.PEMKey = cfg.DataSettings.LiveData.API2FAOverride
-	}
-	if cfg.DataSettings.LiveData.APISubAccountOverride != "" {
-		base.API.Credentials.Subaccount = cfg.DataSettings.LiveData.APISubAccountOverride
-	}
-	validated := base.ValidateAPICredentials()
-	base.API.AuthenticatedSupport = validated
-	if !validated && cfg.DataSettings.LiveData.RealOrders {
-		log.Warn(log.TradeManager, "invalid API credentials set, real orders set to false")
-		cfg.DataSettings.LiveData.RealOrders = false
 	}
 	return nil
 }

@@ -45,6 +45,7 @@ type Settings struct {
 	// Exchange syncer settings
 	EnableTickerSyncing    bool
 	EnableOrderbookSyncing bool
+	EnableKlineSyncing     bool
 	EnableTradeSyncing     bool
 	SyncWorkers            int
 	SyncContinuously       bool

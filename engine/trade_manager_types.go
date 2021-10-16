@@ -45,6 +45,7 @@ type TradeManager struct {
 	Statistic          statistics.Handler
 	EventQueue         EventHolder
 	Reports            report.Handler
+	OrderManager       OrderManagerHandler
 	Warmup             bool
 	FactorEngines      map[string]map[asset.Item]map[currency.Pair]*FactorEngine
 	DataHistoryManager *DataHistoryManager

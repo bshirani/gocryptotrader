@@ -154,7 +154,7 @@ func validateSettings(b *Engine, s *Settings, flagSet map[string]bool) {
 	b.Settings = *s
 
 	b.Settings.EnableDataHistoryManager = (flagSet["datahistorymanager"] && b.Settings.EnableDatabaseManager) || b.Config.DataHistoryManager.Enabled
-	b.Settings.EnableTradeManager = (flagSet["tradmanager"] && b.Settings.EnableTradeManager) || b.Config.TradeManager.Enabled
+	b.Settings.EnableTradeManager = (flagSet["trademanager"] && b.Settings.EnableTradeManager) || b.Config.TradeManager.Enabled
 
 	b.Settings.EnableCurrencyStateManager = (flagSet["currencystatemanager"] &&
 		b.Settings.EnableCurrencyStateManager) ||
@@ -260,9 +260,10 @@ func PrintSettings(s *Settings) {
 	gctlog.Infof(gctlog.Global, "- EXCHANGE SYNCER SETTINGS:\n")
 	gctlog.Infof(gctlog.Global, "\t Enable exchange sync manager: %v", s.EnableExchangeSyncManager)
 	gctlog.Infof(gctlog.Global, "\t Exchange Websocket sync timeout: %v\n", s.SyncTimeoutWebsocket)
+	gctlog.Infof(gctlog.Global, "\t Enable kline syncing: %v\n", s.EnableKlineSyncing)
+	gctlog.Infof(gctlog.Global, "\t Enable ticker syncing: %v\n", s.EnableTickerSyncing)
 	// gctlog.Infof(gctlog.Global, "\t Enable orderbook syncing: %v\n", s.EnableOrderbookSyncing)
 	// gctlog.Infof(gctlog.Global, "\t Enable trade syncing: %v\n", s.EnableTradeSyncing)
-	gctlog.Infof(gctlog.Global, "\t Enable ticker syncing: %v\n", s.EnableTickerSyncing)
 	// gctlog.Infof(gctlog.Global, "\t Enable coinmarketcap analaysis: %v", s.EnableCoinmarketcapAnalysis)
 	// gctlog.Infof(gctlog.Global, "\t TM Verbose: %v", s.TradeManager.Verbose)
 	// gctlog.Infof(gctlog.Global, "\t Enable Database manager: %v", s.EnableDatabaseManager)
@@ -537,6 +538,7 @@ func (bot *Engine) Start() error {
 		exchangeSyncCfg := &Config{
 			SyncTicker:           bot.Settings.EnableTickerSyncing,
 			SyncOrderbook:        bot.Settings.EnableOrderbookSyncing,
+			SyncKlines:           bot.Settings.EnableKlineSyncing,
 			SyncTrades:           bot.Settings.EnableTradeSyncing,
 			SyncContinuously:     bot.Settings.SyncContinuously,
 			NumWorkers:           bot.Settings.SyncWorkers,
@@ -637,7 +639,7 @@ func (bot *Engine) Start() error {
 				fmt.Printf("Could not setup trade manager from config. Error: %v.\n", err)
 				os.Exit(1)
 			} else {
-				bot.TradeManager.RunLive()
+				bot.TradeManager.Start()
 			}
 		}
 	}

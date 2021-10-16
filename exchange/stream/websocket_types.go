@@ -4,9 +4,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gorilla/websocket"
 	"gocryptotrader/exchange/protocol"
 	"gocryptotrader/exchange/stream/buffer"
+
+	"github.com/gorilla/websocket"
 )
 
 // Websocket functionality list and state consts

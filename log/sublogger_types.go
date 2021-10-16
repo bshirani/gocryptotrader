@@ -19,7 +19,6 @@ var (
 	FakeOrderMgr     *SubLogger
 	PortfolioMgr     *SubLogger
 	SyncMgr          *SubLogger
-	CandleSyncMgr    *SubLogger
 	TimeMgr          *SubLogger
 	WebsocketMgr     *SubLogger
 	EventMgr         *SubLogger

@@ -34,6 +34,7 @@ type currencyPairSyncAgent struct {
 type Config struct {
 	SyncTicker           bool
 	SyncOrderbook        bool
+	SyncKlines           bool
 	SyncTrades           bool
 	SyncContinuously     bool
 	SyncTimeoutREST      time.Duration

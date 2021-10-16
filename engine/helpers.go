@@ -189,6 +189,7 @@ func (bot *Engine) SetSubsystem(subSystemName string, enable bool) error {
 				exchangeSyncCfg := &Config{
 					SyncTicker:           bot.Settings.EnableTickerSyncing,
 					SyncOrderbook:        bot.Settings.EnableOrderbookSyncing,
+					SyncKlines:           bot.Settings.EnableKlineSyncing,
 					SyncTrades:           bot.Settings.EnableTradeSyncing,
 					SyncContinuously:     bot.Settings.SyncContinuously,
 					NumWorkers:           bot.Settings.SyncWorkers,
@@ -250,7 +251,7 @@ func (bot *Engine) SetSubsystem(subSystemName string, enable bool) error {
 					fmt.Printf("Could not setup trade manager from config. Error: %v.\n", err)
 					return err
 				}
-				return bot.TradeManager.RunLive()
+				return bot.TradeManager.Start()
 			}
 		}
 		return bot.TradeManager.Stop()
