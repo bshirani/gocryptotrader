@@ -30,5 +30,3 @@ if err != nil {
 	// Handle error
 }
 ```
-
-

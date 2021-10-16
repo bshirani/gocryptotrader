@@ -113,6 +113,7 @@ func (g *Gateio) wsReadData() {
 		}
 		err := g.wsHandleData(resp.Raw)
 		if err != nil {
+			fmt.Println("!!!!!!!!!!!!!!!!!!!!gateio ws error", err)
 			g.Websocket.DataHandler <- err
 		}
 	}
@@ -173,6 +174,7 @@ func (g *Gateio) wsHandleData(respRaw []byte) error {
 
 	case strings.Contains(result.Method, "trades"):
 		if !g.IsSaveTradeDataEnabled() {
+			fmt.Println("ERROR: save trade data not enabled for gateio")
 			return nil
 		}
 		var tradeData []WebsocketTrade
@@ -212,6 +214,7 @@ func (g *Gateio) wsHandleData(respRaw []byte) error {
 				TID:          strconv.FormatInt(tradeData[i].ID, 10),
 			})
 		}
+
 		return trade.AddTradesToBuffer(g.Name, trades...)
 	case strings.Contains(result.Method, "balance.update"):
 		var balance wsBalanceSubscription
@@ -453,7 +456,10 @@ func (g *Gateio) GenerateAuthenticatedSubscriptions() ([]stream.ChannelSubscript
 
 // GenerateDefaultSubscriptions returns default subscriptions
 func (g *Gateio) GenerateDefaultSubscriptions() ([]stream.ChannelSubscription, error) {
-	var channels = []string{"ticker.subscribe"}
+	var channels = []string{"ticker.subscribe",
+		"trades.subscribe",
+		"depth.subscribe",
+		"kline.subscribe"}
 	var subscriptions []stream.ChannelSubscription
 	enabledCurrencies, err := g.GetEnabledPairs(asset.Spot)
 	if err != nil {

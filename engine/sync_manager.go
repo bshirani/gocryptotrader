@@ -346,12 +346,12 @@ func (m *syncManager) add(c *currencyPairSyncAgent) {
 	}
 
 	if m.config.SyncTrades {
-		if m.config.Verbose {
-			log.Debugf(log.SyncMgr,
-				"%s: Added trade sync item %v: using websocket: %v using REST: %v",
-				c.Exchange, m.FormatCurrency(c.Pair).String(), c.Trade.IsUsingWebsocket,
-				c.Trade.IsUsingREST)
-		}
+		// if m.config.Verbose {
+		log.Debugf(log.SyncMgr,
+			"%s: Added trade sync item %v: using websocket: %v using REST: %v",
+			c.Exchange, m.FormatCurrency(c.Pair).String(), c.Trade.IsUsingWebsocket,
+			c.Trade.IsUsingREST)
+		// }
 		if atomic.LoadInt32(&m.initSyncCompleted) != 1 {
 			m.initSyncWG.Add(1)
 			createdCounter++

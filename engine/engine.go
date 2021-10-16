@@ -205,8 +205,8 @@ func validateSettings(b *Engine, s *Settings, flagSet map[string]bool) {
 			trade.BufferProcessorIntervalTime = b.Settings.TradeBufferProcessingInterval
 		} else {
 			b.Settings.TradeBufferProcessingInterval = trade.DefaultProcessorIntervalTime
-			// gctlog.Warnf(gctlog.Global, "-tradeprocessinginterval must be >= to 1 second, using default value of %v",
-			// 	trade.DefaultProcessorIntervalTime)
+			gctlog.Warnf(gctlog.Global, "-tradeprocessinginterval must be >= to 1 second, using default value of %v",
+				trade.DefaultProcessorIntervalTime)
 		}
 	}
 
@@ -262,8 +262,8 @@ func PrintSettings(s *Settings) {
 	gctlog.Infof(gctlog.Global, "\t Exchange Websocket sync timeout: %v\n", s.SyncTimeoutWebsocket)
 	gctlog.Infof(gctlog.Global, "\t Enable kline syncing: %v\n", s.EnableKlineSyncing)
 	gctlog.Infof(gctlog.Global, "\t Enable ticker syncing: %v\n", s.EnableTickerSyncing)
+	gctlog.Infof(gctlog.Global, "\t Enable trade syncing: %v\n", s.EnableTradeSyncing)
 	// gctlog.Infof(gctlog.Global, "\t Enable orderbook syncing: %v\n", s.EnableOrderbookSyncing)
-	// gctlog.Infof(gctlog.Global, "\t Enable trade syncing: %v\n", s.EnableTradeSyncing)
 	// gctlog.Infof(gctlog.Global, "\t Enable coinmarketcap analaysis: %v", s.EnableCoinmarketcapAnalysis)
 	// gctlog.Infof(gctlog.Global, "\t TM Verbose: %v", s.TradeManager.Verbose)
 	// gctlog.Infof(gctlog.Global, "\t Enable Database manager: %v", s.EnableDatabaseManager)

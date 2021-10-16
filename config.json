@@ -320,7 +320,7 @@
     "enabled": {
      "autoPairUpdates": true,
      "websocketAPI": true,
-     "saveTradeData": false
+     "saveTradeData": true
     }
    },
    "bankAccounts": [
@@ -415,7 +415,7 @@
     "enabled": {
      "autoPairUpdates": true,
      "websocketAPI": false,
-     "saveTradeData": false
+     "saveTradeData": true
     }
    },
    "bankAccounts": [

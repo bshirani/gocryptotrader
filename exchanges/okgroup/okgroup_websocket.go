@@ -11,7 +11,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gorilla/websocket"
 	"gocryptotrader/common/crypto"
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange"
@@ -23,6 +22,8 @@ import (
 	"gocryptotrader/exchange/ticker"
 	"gocryptotrader/exchange/trade"
 	"gocryptotrader/log"
+
+	"github.com/gorilla/websocket"
 )
 
 // List of all websocket channels to subscribe to

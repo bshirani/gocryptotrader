@@ -109,6 +109,7 @@ func (m *eventManager) executeEvent(i int) {
 // Add adds an event to the Events chain and returns an index/eventID
 // and an error
 func (m *eventManager) Add(exchange, item string, condition EventConditionParams, p currency.Pair, a asset.Item, action string) (int64, error) {
+	fmt.Println("added event", item)
 	if m == nil {
 		return 0, fmt.Errorf("event manager %w", ErrNilSubsystem)
 	}

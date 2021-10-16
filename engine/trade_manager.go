@@ -30,6 +30,7 @@ import (
 	"gocryptotrader/exchange/asset"
 	gctkline "gocryptotrader/exchange/kline"
 	gctorder "gocryptotrader/exchange/order"
+	"gocryptotrader/exchange/ticker"
 	"gocryptotrader/log"
 	gctlog "gocryptotrader/log"
 	"gocryptotrader/portfolio/report"
@@ -113,7 +114,6 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 		}
 	}
 	tm.OrderManager = bot.OrderManager
-	fmt.Println("order manage ris running?", tm.OrderManager.IsRunning())
 
 	err = tm.setupBot(cfg)
 
@@ -203,7 +203,7 @@ func (tm *TradeManager) Start() error {
 	log.Debugf(log.TradeManager, "TradeManager  %s", MsgSubSystemStarting)
 	tm.shutdown = make(chan struct{})
 
-	// go tm.heartBeat()
+	go tm.heartBeat()
 
 	// create data subscriptions
 
@@ -512,11 +512,8 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 				gctlog.Errorf(gctlog.Global, "Database manager unable to start: %v", err)
 			}
 		}
-	} else {
-		fmt.Println("LIVE")
 	}
 
-	fmt.Println(1111111111)
 	err = tm.setupExchangeSettings(cfg)
 	if err != nil {
 		fmt.Println("error setting up exchange settings", cfg, err)
@@ -979,38 +976,91 @@ func (tm *TradeManager) processOrderEvent(o order.Event) {
 }
 
 func (tm *TradeManager) heartBeat() {
-	tm.wg.Add(1)
-	tick := time.NewTicker(time.Second * 5)
-	defer func() {
-		tick.Stop()
-		tm.wg.Done()
-	}()
+	time.Sleep(time.Second * 10)
+	fmt.Println("........................HEARTBEAT")
+	exchanges, _ := tm.Bot.ExchangeManager.GetExchanges()
+	ex := exchanges[0]
+	fmt.Println("subscribing to ", tm.CurrencySettings[0])
+	pipe, err := ticker.SubscribeTicker(ex.GetName(), tm.CurrencySettings[0].CurrencyPair, asset.Spot)
+	if err != nil {
+		fmt.Println(".........error subscribing to ticker", err)
+		// wait and retry
+	}
+
+	// defer func() {
+	// }()
+
 	for {
 		select {
 		case <-tm.shutdown:
-			return
-		case <-tick.C:
-			exchanges, err := tm.Bot.ExchangeManager.GetExchanges()
-			for _, ex := range exchanges {
-				if err != nil {
-					log.Infoln(log.TradeManager, "error getting tick", err)
-				}
-
-				for _, cp := range tm.CurrencySettings {
-					tick, _ := ex.FetchTicker(context.Background(), cp.CurrencyPair, asset.Spot)
-					t1 := time.Now()
-					// ticker := m.currencyPairs[x].Ticker
-					secondsAgo := int(t1.Sub(tick.LastUpdated).Seconds())
-					if secondsAgo > 10 {
-						log.Warnln(log.TradeManager, cp.CurrencyPair, tick.Last, secondsAgo)
-					} else {
-						log.Infoln(log.TradeManager, cp.CurrencyPair, tick.Last, secondsAgo)
-					}
-				}
+			pipeErr := pipe.Release()
+			if pipeErr != nil {
+				log.Error(log.DispatchMgr, pipeErr)
 			}
-			// tm.PrintTradingDetails()
+			return
+		case data, ok := <-pipe.C:
+			if !ok {
+				fmt.Println("error dispatch system")
+				return
+			}
+			t := (*data.(*interface{})).(ticker.Price)
+			fmt.Println("received data", t)
 		}
+		// err := stream.Send(&gctrpc.TickerResponse{
+		// 	Pair: &gctrpc.CurrencyPair{
+		// 		Base:      t.Pair.Base.String(),
+		// 		Quote:     t.Pair.Quote.String(),
+		// 		Delimiter: t.Pair.Delimiter},
+		// 	LastUpdated: s.unixTimestamp(t.LastUpdated),
+		// 	Last:        t.Last,
+		// 	High:        t.High,
+		// 	Low:         t.Low,
+		// 	Bid:         t.Bid,
+		// 	Ask:         t.Ask,
+		// 	Volume:      t.Volume,
+		// 	PriceAth:    t.PriceATH,
+		// })
+		// if err != nil {
+		// 	return err
+		// }
 	}
+	fmt.Println("finished")
+	// if err != nil {
+	// 	return err
+	// }
+
+	// tm.wg.Add(1)
+	// tick := time.NewTicker(time.Second * 5)
+	// defer func() {
+	// 	tick.Stop()
+	// 	tm.wg.Done()
+	// }()
+	// for {
+	// 	select {
+	// 	case <-tm.shutdown:
+	// 		return
+	// 	case <-tick.C:
+	// 		exchanges, err := tm.Bot.ExchangeManager.GetExchanges()
+	// 		for _, ex := range exchanges {
+	// 			if err != nil {
+	// 				log.Infoln(log.TradeManager, "error getting tick", err)
+	// 			}
+	//
+	// 			for _, cp := range tm.CurrencySettings {
+	// 				tick, _ := ex.FetchTicker(context.Background(), cp.CurrencyPair, asset.Spot)
+	// 				t1 := time.Now()
+	// 				// ticker := m.currencyPairs[x].Ticker
+	// 				secondsAgo := int(t1.Sub(tick.LastUpdated).Seconds())
+	// 				if secondsAgo > 10 {
+	// 					log.Warnln(log.TradeManager, cp.CurrencyPair, tick.Last, secondsAgo)
+	// 				} else {
+	// 					log.Infoln(log.TradeManager, cp.CurrencyPair, tick.Last, secondsAgo)
+	// 				}
+	// 			}
+	// 		}
+	// 		// tm.PrintTradingDetails()
+	// 	}
+	// }
 }
 
 func (tm *TradeManager) PrintTradingDetails() {

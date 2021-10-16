@@ -99,7 +99,6 @@ func (p *Processor) Run(wg *sync.WaitGroup) {
 	ticker := time.NewTicker(p.bufferProcessorInterval)
 	p.mutex.Unlock()
 	for {
-		fmt.Println("here")
 		<-ticker.C
 		p.mutex.Lock()
 		bufferCopy := append(p.buffer[:0:0], p.buffer...)
