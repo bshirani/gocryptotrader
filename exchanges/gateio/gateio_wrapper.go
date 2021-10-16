@@ -272,6 +272,7 @@ func (g *Gateio) UpdateTickers(ctx context.Context, a asset.Item) error {
 func (g *Gateio) UpdateTicker(ctx context.Context, p currency.Pair, a asset.Item) (*ticker.Price, error) {
 	err := g.UpdateTickers(ctx, a)
 	if err != nil {
+		fmt.Println("error updating ticker", err)
 		return nil, err
 	}
 	return ticker.GetTicker(g.Name, p, a)

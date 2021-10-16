@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -53,7 +52,6 @@ func (g *Gateio) WsConnect() error {
 		} else {
 			var authsubs []stream.ChannelSubscription
 			authsubs, err = g.GenerateAuthenticatedSubscriptions()
-			os.Exit(123)
 			if err != nil {
 				g.Websocket.DataHandler <- err
 				g.Websocket.SetCanUseAuthenticatedEndpoints(false)
@@ -455,10 +453,7 @@ func (g *Gateio) GenerateAuthenticatedSubscriptions() ([]stream.ChannelSubscript
 
 // GenerateDefaultSubscriptions returns default subscriptions
 func (g *Gateio) GenerateDefaultSubscriptions() ([]stream.ChannelSubscription, error) {
-	// "trades.subscribe",
-	// "depth.subscribe",
-	var channels = []string{"ticker.subscribe", "kline.subscribe"}
-	// var channels = []string{"kline.subscribe"}
+	var channels = []string{"ticker.subscribe"}
 	var subscriptions []stream.ChannelSubscription
 	enabledCurrencies, err := g.GetEnabledPairs(asset.Spot)
 	if err != nil {

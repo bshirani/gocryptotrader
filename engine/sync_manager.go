@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -220,7 +219,7 @@ func (m *syncManager) Start() error {
 		go m.worker()
 	}
 	m.initSyncWG.Done()
-	go m.heartBeat()
+	// go m.heartBeat()
 	return nil
 }
 
@@ -235,29 +234,35 @@ func (m *syncManager) heartBeat() {
 		case <-m.shutdown:
 			return
 		case <-tick.C:
-			log.Infoln(log.SyncMgr, "===============TICKERS===============")
 
-			exchanges, err := m.exchangeManager.GetExchanges()
-			for _, ex := range exchanges {
+			if m.config.Verbose {
+				log.Infoln(log.SyncMgr, "===============TICKERS===============")
 
-				if err != nil {
-					log.Infoln(log.SyncMgr, "error getting tick", err)
-				}
+				exchanges, err := m.exchangeManager.GetExchanges()
+				for _, ex := range exchanges {
 
-				// tickerValString := tick.PriceToString()
-				for _, cp := range m.currencyPairs {
-					tick, _ := ex.FetchTicker(context.Background(), cp.Pair, asset.Spot)
-					t1 := time.Now()
-					// ticker := m.currencyPairs[x].Ticker
-					secondsAgo := int(t1.Sub(tick.LastUpdated).Seconds())
-					if secondsAgo > 10 {
-						log.Warnln(log.SyncMgr, cp.Pair, tick.Last, secondsAgo)
-					} else {
-						log.Infoln(log.SyncMgr, cp.Pair, tick.Last, secondsAgo)
+					if err != nil {
+						log.Infoln(log.SyncMgr, "error getting tick", err)
+					}
+
+					// tickerValString := tick.PriceToString()
+					for _, cp := range m.currencyPairs {
+						tick, err := ex.FetchTicker(context.Background(), cp.Pair, asset.Spot)
+						if err != nil {
+							fmt.Println("error fetching ticker", err)
+						}
+						t1 := time.Now()
+						// ticker := m.currencyPairs[x].Ticker
+						secondsAgo := int(t1.Sub(tick.LastUpdated).Seconds())
+						if secondsAgo > 10 {
+							log.Warnln(log.SyncMgr, cp.Pair, tick.Last, secondsAgo)
+						} else {
+							log.Infoln(log.SyncMgr, cp.Pair, tick.Last, secondsAgo)
+						}
 					}
 				}
+				log.Infof(log.SyncMgr, "\n\n")
 			}
-			log.Infof(log.SyncMgr, "\n\n")
 
 		}
 	}
@@ -328,8 +333,6 @@ func (m *syncManager) add(c *currencyPairSyncAgent) {
 	}
 
 	if m.config.SyncOrderbook {
-		fmt.Println("syncing orderbook")
-		os.Exit(123)
 		if m.config.Verbose {
 			log.Debugf(log.SyncMgr,
 				"%s: Added orderbook sync item %v: using websocket: %v using REST: %v",
@@ -343,8 +346,6 @@ func (m *syncManager) add(c *currencyPairSyncAgent) {
 	}
 
 	if m.config.SyncTrades {
-		fmt.Println("syncing trades")
-		os.Exit(123)
 		if m.config.Verbose {
 			log.Debugf(log.SyncMgr,
 				"%s: Added trade sync item %v: using websocket: %v using REST: %v",
@@ -499,23 +500,7 @@ func (m *syncManager) Update(exchangeName string, p currency.Pair, a asset.Item,
 					m.initSyncWG.Done()
 				}
 			case SyncItemKline:
-				fmt.Println("received kline item")
-				// origHadData := m.currencyPairs[x].Trade.HaveData
-				// m.currencyPairs[x].Trade.LastUpdated = time.Now()
-				// if err != nil {
-				// 	m.currencyPairs[x].Trade.NumErrors++
-				// }
-				// m.currencyPairs[x].Trade.HaveData = true
-				// m.currencyPairs[x].Trade.IsProcessing = false
-				// if atomic.LoadInt32(&m.initSyncCompleted) != 1 && !origHadData {
-				// 	removedCounter++
-				// 	log.Debugf(log.SyncMgr, "%s trade sync complete %v [%d/%d].",
-				// 		exchangeName,
-				// 		m.FormatCurrency(p).String(),
-				// 		removedCounter,
-				// 		createdCounter)
-				// 	m.initSyncWG.Done()
-				// }
+				continue
 			}
 		}
 	}
@@ -819,50 +804,41 @@ func (m *syncManager) PrintTickerSummary(result *ticker.Price, protocol string, 
 	// ignoring error as not all tickers have volume populated and error is not actionable
 	_ = stats.Add(result.ExchangeName, result.Pair, result.AssetType, result.Last, result.Volume)
 
-	// if result.Pair.Quote.IsFiatCurrency() &&
-	// 	result.Pair.Quote != m.fiatDisplayCurrency &&
-	// 	!m.fiatDisplayCurrency.IsEmpty() {
-	// 	origCurrency := result.Pair.Quote.Upper()
-	// 	log.Infof(log.Ticker, "%s %s %s %s: TICKER: Last %s Ask %s Bid %s High %s Low %s Volume %.8f",
-	// 		result.ExchangeName,
-	// 		protocol,
-	// 		m.FormatCurrency(result.Pair),
-	// 		strings.ToUpper(result.AssetType.String()),
-	// 		printConvertCurrencyFormat(origCurrency, result.Last, m.fiatDisplayCurrency),
-	// 		printConvertCurrencyFormat(origCurrency, result.Ask, m.fiatDisplayCurrency),
-	// 		printConvertCurrencyFormat(origCurrency, result.Bid, m.fiatDisplayCurrency),
-	// 		printConvertCurrencyFormat(origCurrency, result.High, m.fiatDisplayCurrency),
-	// 		printConvertCurrencyFormat(origCurrency, result.Low, m.fiatDisplayCurrency),
-	// 		result.Volume)
-	// } else {
-	// 	if result.Pair.Quote.IsFiatCurrency() &&
-	// 		result.Pair.Quote == m.fiatDisplayCurrency &&
-	// 		!m.fiatDisplayCurrency.IsEmpty() {
-	// 		log.Infof(log.Ticker, "%s %s %s %s: TICKER: Last %s Ask %s Bid %s High %s Low %s Volume %.8f",
-	// 			result.ExchangeName,
-	// 			protocol,
-	// 			m.FormatCurrency(result.Pair),
-	// 			strings.ToUpper(result.AssetType.String()),
-	// 			printCurrencyFormat(result.Last, m.fiatDisplayCurrency),
-	// 			printCurrencyFormat(result.Ask, m.fiatDisplayCurrency),
-	// 			printCurrencyFormat(result.Bid, m.fiatDisplayCurrency),
-	// 			printCurrencyFormat(result.High, m.fiatDisplayCurrency),
-	// 			printCurrencyFormat(result.Low, m.fiatDisplayCurrency),
-	// 			result.Volume)
-	// 	} else {
-	// 		log.Infof(log.Ticker, "%s %s %s %s: TICKER: Last %.8f Ask %.8f Bid %.8f High %.8f Low %.8f Volume %.8f",
-	// 			result.ExchangeName,
-	// 			protocol,
-	// 			m.FormatCurrency(result.Pair),
-	// 			strings.ToUpper(result.AssetType.String()),
-	// 			result.Last,
-	// 			result.Ask,
-	// 			result.Bid,
-	// 			result.High,
-	// 			result.Low,
-	// 			result.Volume)
-	// 	}
-	// }
+	if m.config.Verbose {
+		if result.Pair.Quote.IsFiatCurrency() &&
+			result.Pair.Quote != m.fiatDisplayCurrency &&
+			!m.fiatDisplayCurrency.IsEmpty() {
+			origCurrency := result.Pair.Quote.Upper()
+			log.Infof(log.Ticker, "%s %s: Last %s High %s Low %s Volume %.8f",
+				result.ExchangeName,
+				m.FormatCurrency(result.Pair),
+				printConvertCurrencyFormat(origCurrency, result.Last, m.fiatDisplayCurrency),
+				printConvertCurrencyFormat(origCurrency, result.High, m.fiatDisplayCurrency),
+				printConvertCurrencyFormat(origCurrency, result.Low, m.fiatDisplayCurrency),
+				result.Volume)
+		} else {
+			if result.Pair.Quote.IsFiatCurrency() &&
+				result.Pair.Quote == m.fiatDisplayCurrency &&
+				!m.fiatDisplayCurrency.IsEmpty() {
+				log.Infof(log.Ticker, "%s %s: Last %s High %s Low %s Volume %.8f",
+					result.ExchangeName,
+					m.FormatCurrency(result.Pair),
+					printCurrencyFormat(result.Last, m.fiatDisplayCurrency),
+					printCurrencyFormat(result.High, m.fiatDisplayCurrency),
+					printCurrencyFormat(result.Low, m.fiatDisplayCurrency),
+					result.Volume)
+			} else {
+				log.Infof(log.Ticker, "%s %s: Last %.8f High %.8f Low %.8f Volume %.8f",
+					result.ExchangeName,
+					m.FormatCurrency(result.Pair),
+					result.Last,
+					result.High,
+					result.Low,
+					result.Volume)
+			}
+		}
+	}
+
 }
 
 // FormatCurrency is a method that formats and returns a currency pair
