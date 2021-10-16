@@ -14,6 +14,7 @@ import (
 	"gocryptotrader/core"
 	"gocryptotrader/gctrpc/auth"
 	"gocryptotrader/signaler"
+
 	"github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"

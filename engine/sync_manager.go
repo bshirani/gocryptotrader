@@ -31,7 +31,7 @@ var (
 	createdCounter = 0
 	removedCounter = 0
 	// DefaultSyncerWorkers limits the number of sync workers
-	DefaultSyncerWorkers = 15
+	DefaultSyncerWorkers = 1
 	// DefaultSyncerTimeoutREST the default time to switch from REST to websocket protocols without a response
 	DefaultSyncerTimeoutREST = time.Second * 15
 	// DefaultSyncerTimeoutWebsocket the default time to switch from websocket to REST protocols without a response
@@ -160,7 +160,6 @@ func (m *syncManager) Start() error {
 					continue
 				}
 
-				fmt.Println("add sync agent", exchangeName, enabledPairs[i])
 				c := &currencyPairSyncAgent{
 					AssetType: assetTypes[y],
 					Exchange:  exchangeName,
@@ -343,6 +342,7 @@ func (m *syncManager) setProcessing(exchangeName string, p currency.Pair, a asse
 			m.currencyPairs[x].AssetType == a {
 			switch syncType {
 			case SyncItemTicker:
+				fmt.Println("ticker processing", x)
 				m.currencyPairs[x].Ticker.IsProcessing = processing
 			case SyncItemOrderbook:
 				m.currencyPairs[x].Orderbook.IsProcessing = processing
@@ -463,6 +463,7 @@ func (m *syncManager) worker() {
 			log.Errorf(log.SyncMgr, "Sync manager cannot get exchanges: %v", err)
 		}
 		for x := range exchanges {
+			time.Sleep(time.Millisecond * 500)
 			exchangeName := exchanges[x].GetName()
 			supportsREST := exchanges[x].SupportsREST()
 			supportsRESTTickerBatching := exchanges[x].SupportsRESTTickerBatchUpdates()
@@ -536,6 +537,7 @@ func (m *syncManager) worker() {
 							continue
 						}
 					}
+
 					if switchedToRest && usingWebsocket {
 						log.Warnf(log.SyncMgr,
 							"%s %s: Websocket re-enabled, switching from rest to websocket",

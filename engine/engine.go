@@ -574,17 +574,17 @@ func (bot *Engine) Start() error {
 		}
 	}
 
-	// if bot.Settings.EnableWebsocketRoutine {
-	// 	bot.websocketRoutineManager, err = setupWebsocketRoutineManager(bot.ExchangeManager, bot.OrderManager, bot.currencyPairSyncer, &bot.Config.Currency, bot.Settings.Verbose)
-	// 	if err != nil {
-	// 		gctlog.Errorf(gctlog.Global, "Unable to initialise websocket routine manager. Err: %s", err)
-	// 	} else {
-	// 		err = bot.websocketRoutineManager.Start()
-	// 		if err != nil {
-	// 			gctlog.Errorf(gctlog.Global, "failed to start websocket routine manager. Err: %s", err)
-	// 		}
-	// 	}
-	// }
+	if bot.Settings.EnableWebsocketRoutine {
+		bot.websocketRoutineManager, err = setupWebsocketRoutineManager(bot.ExchangeManager, bot.OrderManager, bot.currencyPairSyncer, &bot.Config.Currency, bot.Settings.Verbose)
+		if err != nil {
+			gctlog.Errorf(gctlog.Global, "Unable to initialise websocket routine manager. Err: %s", err)
+		} else {
+			err = bot.websocketRoutineManager.Start()
+			if err != nil {
+				gctlog.Errorf(gctlog.Global, "failed to start websocket routine manager. Err: %s", err)
+			}
+		}
+	}
 
 	if bot.Settings.EnableGCTScriptManager {
 		bot.gctScriptManager, err = gctscript.NewManager(&bot.Config.GCTScript)
