@@ -45,10 +45,17 @@ var (
 
 // GetSubsystemsStatus returns the status of various subsystems
 func (bot *Engine) GetSubsystemsStatus() map[string]bool {
+	var orderManagerRunning bool
+	if bot.OrderManager == nil {
+		orderManagerRunning = false
+	} else {
+		orderManagerRunning = bot.OrderManager.IsRunning()
+	}
+
 	return map[string]bool{
 		CommunicationsManagerName:     bot.CommunicationsManager.IsRunning(),
 		ConnectionManagerName:         bot.connectionManager.IsRunning(),
-		OrderManagerName:              bot.OrderManager.IsRunning(),
+		OrderManagerName:              orderManagerRunning,
 		PortfolioManagerName:          bot.portfolioManager.IsRunning(),
 		NTPManagerName:                bot.ntpManager.IsRunning(),
 		DatabaseConnectionManagerName: bot.DatabaseManager.IsRunning(),
