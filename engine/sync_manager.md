@@ -1,6 +1,3 @@
-# GoCryptoTrader package Sync manager
-
-## Current Features for Sync manager
 + The currency pair syncer subsystem is used to keep all trades, tickers and orderbooks up to date for all enabled exchange asset currency pairs
 + It can sync data via a websocket connection or REST and will switch between them if there has been no updates
 + In order to modify the behaviour of the currency pair syncer subsystem, you can change runtime parameters as detailed below:

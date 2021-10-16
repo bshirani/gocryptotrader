@@ -63,8 +63,8 @@ func main() {
 
 	// Exchange syncer settings
 	flag.BoolVar(&settings.EnableTickerSyncing, "tickersync", true, "enables ticker syncing for all enabled exchanges")
-	flag.BoolVar(&settings.EnableOrderbookSyncing, "orderbooksync", true, "enables orderbook syncing for all enabled exchanges")
-	flag.BoolVar(&settings.EnableTradeSyncing, "tradesync", true, "enables trade syncing for all enabled exchanges")
+	flag.BoolVar(&settings.EnableOrderbookSyncing, "orderbooksync", false, "enables orderbook syncing for all enabled exchanges")
+	flag.BoolVar(&settings.EnableTradeSyncing, "tradesync", false, "enables trade syncing for all enabled exchanges")
 	flag.IntVar(&settings.SyncWorkers, "syncworkers", engine.DefaultSyncerWorkers, "the amount of workers (goroutines) to use for syncing exchange data")
 	flag.BoolVar(&settings.SyncContinuously, "synccontinuously", true, "whether to sync exchange data continuously (ticker, orderbook and trade history info")
 	flag.DurationVar(&settings.SyncTimeoutREST, "synctimeoutrest", engine.DefaultSyncerTimeoutREST,
@@ -82,7 +82,7 @@ func main() {
 	// Exchange tuning settings
 	flag.BoolVar(&settings.EnableExchangeAutoPairUpdates, "exchangeautopairupdates", false, "enables automatic available currency pair updates for supported exchanges")
 	flag.BoolVar(&settings.DisableExchangeAutoPairUpdates, "exchangedisableautopairupdates", false, "disables exchange auto pair updates")
-	flag.BoolVar(&settings.EnableExchangeWebsocketSupport, "exchangewebsocketsupport", false, "enables Websocket support for exchanges")
+	flag.BoolVar(&settings.EnableExchangeWebsocketSupport, "exchangewebsocketsupport", true, "enables Websocket support for exchanges")
 	flag.BoolVar(&settings.EnableExchangeRESTSupport, "exchangerestsupport", true, "enables REST support for exchanges")
 	flag.BoolVar(&settings.EnableExchangeVerbose, "exchangeverbose", false, "increases exchange logging verbosity")
 	flag.BoolVar(&settings.ExchangePurgeCredentials, "exchangepurgecredentials", false, "purges the stored exchange API credentials")

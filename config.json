@@ -254,7 +254,7 @@
    "listenAddress": ""
   },
   "websocketRPC": {
-   "enabled": false,
+   "enabled": true,
    "listenAddress": "",
    "connectionLimit": 0,
    "maxAuthFailures": 0,

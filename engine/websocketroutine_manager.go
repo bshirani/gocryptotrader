@@ -206,7 +206,7 @@ func (m *websocketRoutineManager) WebsocketDataHandler(exchName string, data int
 				return err
 			}
 		}
-		// m.syncer.PrintOrderbookSummary(d, "websocket", nil)
+		m.syncer.PrintOrderbookSummary(d, "websocket", nil)
 	case *order.Detail:
 		m.printOrderSummary(d)
 		if !m.orderManager.Exists(d) {

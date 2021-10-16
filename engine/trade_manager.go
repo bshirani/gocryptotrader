@@ -219,9 +219,6 @@ func (tm *TradeManager) processEvents() error {
 func (tm *TradeManager) RunLive() error {
 	tm.setOrderManagerCallbacks()
 
-	tm.wg.Add(1)
-	go tm.heartBeat()
-
 	tm.Warmup = false
 	// tm.warmup()
 
@@ -238,6 +235,9 @@ func (tm *TradeManager) RunLive() error {
 	// start trade manager
 	log.Debugf(log.TradeManager, "TradeManager  %s", MsgSubSystemStarting)
 	tm.shutdown = make(chan struct{})
+
+	tm.wg.Add(1)
+	go tm.heartBeat()
 
 	log.Debugln(log.TradeManager, "Running Live")
 	go tm.runLive()
