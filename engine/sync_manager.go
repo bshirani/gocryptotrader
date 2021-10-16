@@ -35,7 +35,7 @@ var (
 	// DefaultSyncerTimeoutREST the default time to switch from REST to websocket protocols without a response
 	DefaultSyncerTimeoutREST = time.Second * 15
 	// DefaultSyncerTimeoutWebsocket the default time to switch from websocket to REST protocols without a response
-	DefaultSyncerTimeoutWebsocket = time.Second * 65
+	DefaultSyncerTimeoutWebsocket = time.Second * 120
 	errNoSyncItemsEnabled         = errors.New("no sync items enabled")
 	errUnknownSyncItem            = errors.New("unknown sync item")
 	errSyncPairNotFound           = errors.New("exchange currency pair syncer not found")
@@ -456,11 +456,13 @@ func (m *syncManager) Update(exchangeName string, p currency.Pair, a asset.Item,
 				m.currencyPairs[x].Ticker.IsProcessing = false
 				if atomic.LoadInt32(&m.initSyncCompleted) != 1 && !origHadData {
 					removedCounter++
-					log.Debugf(log.SyncMgr, "%s ticker sync complete %v [%d/%d].",
-						exchangeName,
-						m.FormatCurrency(p).String(),
-						removedCounter,
-						createdCounter)
+					if m.config.Verbose {
+						log.Debugf(log.SyncMgr, "%s ticker sync complete %v [%d/%d].",
+							exchangeName,
+							m.FormatCurrency(p).String(),
+							removedCounter,
+							createdCounter)
+					}
 					m.initSyncWG.Done()
 				}
 

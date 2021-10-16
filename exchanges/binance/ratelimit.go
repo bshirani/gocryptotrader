@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"gocryptotrader/exchange/request"
+
 	"golang.org/x/time/rate"
 )
 

@@ -981,7 +981,7 @@ func (tm *TradeManager) heartBeat() {
 	exchanges, _ := tm.Bot.ExchangeManager.GetExchanges()
 	ex := exchanges[0]
 	fmt.Println("subscribing to ", tm.CurrencySettings[0])
-	pipe, err := ticker.SubscribeTicker(ex.GetName(), tm.CurrencySettings[0].CurrencyPair, asset.Spot)
+	pipe, err := ticker.SubscribeToExchangeTickers(ex.GetName())
 	if err != nil {
 		fmt.Println(".........error subscribing to ticker", err)
 		// wait and retry
@@ -1004,7 +1004,7 @@ func (tm *TradeManager) heartBeat() {
 				return
 			}
 			t := (*data.(*interface{})).(ticker.Price)
-			fmt.Println("received data", t)
+			fmt.Println(t.Pair.String(), t.High, t.Low)
 		}
 		// err := stream.Send(&gctrpc.TickerResponse{
 		// 	Pair: &gctrpc.CurrencyPair{
