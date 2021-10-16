@@ -60,6 +60,7 @@ func (bot *Engine) GetSubsystemsStatus() map[string]bool {
 		dispatch.Name:                 dispatch.IsRunning(),
 		dataHistoryManagerName:        bot.dataHistoryManager.IsRunning(),
 		CurrencyStateManagementName:   bot.currencyStateManager.IsRunning(),
+		tradeManagerName:              bot.TradeManager.IsRunning(),
 	}
 }
 
@@ -174,7 +175,6 @@ func (bot *Engine) SetSubsystem(subSystemName string, enable bool) error {
 			}
 			return bot.DatabaseManager.Start(&bot.ServicesWG)
 		}
-		fmt.Println("12313")
 		return bot.DatabaseManager.Stop()
 	case SyncManagerName:
 		if enable {
@@ -235,6 +235,18 @@ func (bot *Engine) SetSubsystem(subSystemName string, enable bool) error {
 			return bot.dataHistoryManager.Start()
 		}
 		return bot.dataHistoryManager.Stop()
+	case tradeManagerName:
+		if enable {
+			if bot.TradeManager == nil {
+				bot.TradeManager, err = NewTradeManager(bot)
+				if err != nil {
+					fmt.Printf("Could not setup trade manager from config. Error: %v.\n", err)
+					return err
+				}
+				return bot.TradeManager.RunLive()
+			}
+		}
+		return bot.TradeManager.Stop()
 	case vm.Name:
 		if enable {
 			if bot.gctScriptManager == nil {

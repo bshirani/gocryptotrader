@@ -40,8 +40,6 @@ import (
 	"gocryptotrader/portfolio/statistics/currencystatistics"
 	"gocryptotrader/portfolio/strategies"
 
-	"gocryptotrader/portfolio/compliance"
-
 	"github.com/shopspring/decimal"
 )
 
@@ -52,7 +50,7 @@ func NewTradeManager(bot *Engine) (*TradeManager, error) {
 	configPath := filepath.Join(wd, "backtester", "config", "trend.strat")
 	btcfg, err := config.ReadConfigFromFile(configPath)
 	if err != nil {
-		fmt.Println("error", err, configPath)
+		fmt.Println("error", err)
 		return nil, err
 	}
 	return NewTradeManagerFromConfig(btcfg, "xx", "xx", bot)
@@ -220,6 +218,8 @@ func (tm *TradeManager) processEvents() error {
 // LIVE FUNCTIONALITY
 func (tm *TradeManager) RunLive() error {
 	tm.setOrderManagerCallbacks()
+
+	tm.wg.Add(1)
 	go tm.heartBeat()
 
 	tm.Warmup = false
@@ -349,35 +349,30 @@ func (tm *TradeManager) warmup() error {
 
 // Stop shuts down the live data loop
 func (tm *TradeManager) Stop() error {
-	log.Debugln(log.TradeManager, "Backtester Shutting Down...")
+	if tm == nil {
+		return ErrNilSubsystem
+	}
+	if !atomic.CompareAndSwapInt32(&tm.started, 1, 0) {
+		return ErrSubSystemNotStarted
+	}
 
-	// if g == nil {
-	// 	return fmt.Errorf("%s %w", caseName, ErrNilSubsystem)
-	// }
-	// if atomic.LoadInt32(&g.started) == 0 {
-	// 	return fmt.Errorf("%s not running", caseName)
-	// }
-	// defer func() {
-	// 	atomic.CompareAndSwapInt32(&g.started, 1, 0)
-	// }()
-	//
-	// err := g.ShutdownAll()
-	// if err != nil {
-	// 	return err
-	// }
+	log.Debugln(log.TradeManager, "Backtester Stopping...")
 
 	if tm.Bot.OrderManager.IsRunning() {
 		tm.Bot.OrderManager.Stop()
 	}
-	if tm.Bot.DatabaseManager.IsRunning() {
-		tm.Bot.DatabaseManager.Stop()
-	}
+	// if tm.Bot.DatabaseManager.IsRunning() {
+	// 	tm.Bot.DatabaseManager.Stop()
+	// }
 
 	for _, s := range tm.Strategies {
 		s.Stop()
 	}
 
 	close(tm.shutdown)
+	tm.Bot.TradeManager = nil
+	tm.wg.Wait()
+	log.Debugln(log.TradeManager, "Backtester Stopped.")
 	return nil
 }
 
@@ -471,11 +466,6 @@ func (tm *TradeManager) loadExchangePairAssetBase(exch, base, quote, ass string)
 func (tm *TradeManager) setupBot(cfg *config.Config) error {
 	var err error
 
-	err = tm.setupExchangeSettings(cfg)
-	if err != nil {
-		fmt.Println("error setting up exchange settings", cfg, err)
-		return err
-	}
 	// this already run in engine.newfromsettings
 	// tm.Bot.ExchangeManager = SetupExchangeManager()
 
@@ -514,7 +504,15 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 				gctlog.Errorf(gctlog.Global, "Database manager unable to start: %v", err)
 			}
 		}
+	} else {
+		fmt.Println("LIVE")
+	}
 
+	fmt.Println(1111111111)
+	err = tm.setupExchangeSettings(cfg)
+	if err != nil {
+		fmt.Println("error setting up exchange settings", cfg, err)
+		return err
 	}
 
 	if err != nil {
@@ -607,24 +605,6 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 	// load from configuration into datastructure
 	// currencysettings returns the data from the config, exchangeassetpairsettings
 	// tm.Exchange = &e
-
-	for i := range tm.CurrencySettings {
-		var lookup *PortfolioSettings
-		lookup, err = p.SetupCurrencySettingsMap(tm.CurrencySettings[i].ExchangeName, tm.CurrencySettings[i].AssetType, tm.CurrencySettings[i].CurrencyPair)
-		if err != nil {
-			fmt.Println("ERROR SETTING UP PORTFOLIO", err)
-			return err
-		}
-		lookup.Fee = tm.CurrencySettings[i].TakerFee
-		lookup.Leverage = tm.CurrencySettings[i].Leverage
-		lookup.BuySideSizing = tm.CurrencySettings[i].BuySide
-		lookup.SellSideSizing = tm.CurrencySettings[i].SellSide
-		lookup.ComplianceManager = compliance.Manager{
-			Snapshots: []compliance.Snapshot{},
-		}
-		// this needs to be per currency
-		// log.Debugf(log.TradeManager, "Initialize Factor Engine for %v\n", tm.CurrencySettings[i].CurrencyPair)
-	}
 
 	log.Infoln(log.TradeManager, "Loaded", len(tm.CurrencySettings), "currencies")
 
@@ -1084,10 +1064,18 @@ func (tm *TradeManager) configureLiveDataAPI(resp *kline.DataFromKline, cfg *con
 }
 
 func (tm *TradeManager) heartBeat() {
-	for range time.Tick(time.Second * 5) {
-		// tm.Portfolio.PrintPortfolioDetails()
-
-		tm.PrintTradingDetails()
+	tick := time.NewTicker(time.Second)
+	defer func() {
+		tick.Stop()
+		tm.wg.Done()
+	}()
+	for {
+		select {
+		case <-tm.shutdown:
+			return
+		case <-tick.C:
+			tm.PrintTradingDetails()
+		}
 	}
 }
 

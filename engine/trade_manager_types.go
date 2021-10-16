@@ -13,8 +13,11 @@ import (
 	"gocryptotrader/portfolio/report"
 	"gocryptotrader/portfolio/statistics"
 	"gocryptotrader/portfolio/strategies"
+	"sync"
 	"time"
 )
+
+const tradeManagerName = "trade_manager"
 
 var (
 	errInvalidConfigAsset     = errors.New("invalid asset in config")
@@ -50,6 +53,7 @@ type TradeManager struct {
 	cfg                config.Config
 	started            int32
 	verbose            bool
+	wg                 sync.WaitGroup
 }
 
 // Holder contains the event queue for backtester processing

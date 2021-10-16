@@ -64,11 +64,13 @@ func main() {
 		EnableDryRun:                  dryrun,
 		EnableAllPairs:                false,
 		EnableExchangeHTTPRateLimiter: true,
+		EnableLiveMode:                false,
 	}, flags)
 	if err != nil {
 		fmt.Printf("Could not load backtester. Error: %v.\n", err)
 		os.Exit(-1)
 	}
+	bot.Config.LiveMode = false
 
 	var tm *engine.TradeManager
 
@@ -77,7 +79,7 @@ func main() {
 		fmt.Printf("Could not read config. Error: %v.\n", err)
 		os.Exit(1)
 	}
-	tm, err = engine.NewTradeManager(bot)
+	tm, err = engine.NewTradeManagerFromConfig(cfg, templatePath, reportOutput, bot)
 	if err != nil {
 		fmt.Printf("Could not setup trade manager from config. Error: %v.\n", err)
 		os.Exit(1)

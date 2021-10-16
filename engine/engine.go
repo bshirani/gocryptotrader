@@ -112,6 +112,8 @@ func NewFromSettings(settings *Settings, flagSet map[string]bool) (*Engine, erro
 	}
 
 	b.ExchangeManager = SetupExchangeManager()
+	// exchanges, _ := b.ExchangeManager.GetExchanges()
+	// fmt.Println("exchange manager", b.ExchangeManager, exchanges)
 
 	validateSettings(&b, settings, flagSet)
 
@@ -439,6 +441,9 @@ func (bot *Engine) Start() error {
 
 	if bot.Settings.EnableGRPC {
 		go StartRPCServer(bot)
+	} else {
+		fmt.Println("not enabled")
+		os.Exit(2)
 	}
 
 	if bot.Settings.EnablePortfolioManager {

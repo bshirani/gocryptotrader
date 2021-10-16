@@ -33,6 +33,25 @@ import (
 
 // Setup creates a portfolio manager instance and sets private fields
 func SetupPortfolio(st []strategies.Handler, bot *Engine, sh SizeHandler, r risk.Handler, riskFreeRate decimal.Decimal) (*Portfolio, error) {
+
+	//moved from trademanager
+	// for i := range tm.CurrencySettings {
+	// 	var lookup *PortfolioSettings
+	// 	lookup, err = p.SetupCurrencySettingsMap(tm.CurrencySettings[i].ExchangeName, tm.CurrencySettings[i].AssetType, tm.CurrencySettings[i].CurrencyPair)
+	// 	if err != nil {
+	// 		fmt.Println("ERROR SETTING UP PORTFOLIO", err)
+	// 		return err
+	// 	}
+	// 	lookup.Fee = tm.CurrencySettings[i].TakerFee
+	// 	lookup.Leverage = tm.CurrencySettings[i].Leverage
+	// 	lookup.BuySideSizing = tm.CurrencySettings[i].BuySide
+	// 	lookup.SellSideSizing = tm.CurrencySettings[i].SellSide
+	// 	lookup.ComplianceManager = compliance.Manager{
+	// 		Snapshots: []compliance.Snapshot{},
+	// 	}
+	// 	// this needs to be per currency
+	// 	// log.Debugf(log.TradeManager, "Initialize Factor Engine for %v\n", tm.CurrencySettings[i].CurrencyPair)
+	// }
 	// log.Infof(log.TradeManager, "Setting up Portfolio")
 	if sh == nil {
 		return nil, errSizeManagerUnset
@@ -710,7 +729,6 @@ func (p *Portfolio) ViewHoldingAtTimePeriod(ev eventtypes.EventHandler) (*holdin
 
 // SetupCurrencySettingsMap ensures a map is created and no panics happen
 func (p *Portfolio) SetupCurrencySettingsMap(exch string, a asset.Item, cp currency.Pair) (*PortfolioSettings, error) {
-	fmt.Println("setup currency settings map")
 	if exch == "" {
 		return nil, errExchangeUnset
 	}

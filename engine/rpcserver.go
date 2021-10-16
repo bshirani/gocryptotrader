@@ -224,8 +224,10 @@ func (s *RPCServer) GetSubsystems(_ context.Context, _ *gctrpc.GetSubsystemsRequ
 
 // EnableSubsystem enables a engine subsytem
 func (s *RPCServer) EnableSubsystem(_ context.Context, r *gctrpc.GenericSubsystemRequest) (*gctrpc.GenericResponse, error) {
+	fmt.Println("Run enable sub")
 	err := s.SetSubsystem(r.Subsystem, true)
 	if err != nil {
+		fmt.Println("error", err)
 		return nil, err
 	}
 	return &gctrpc.GenericResponse{Status: MsgStatusSuccess,
