@@ -41,7 +41,7 @@ import (
 // vars related to exchange functions
 var (
 	ErrNoExchangesLoaded     = errors.New("no exchanges have been loaded")
-	ErrExchangeNotFound      = errors.New("exchange not found")
+	ErrExchangeNotFound      = errors.New("engine.exchange not found")
 	ErrExchangeAlreadyLoaded = errors.New("exchange already loaded")
 	ErrExchangeFailedToLoad  = errors.New("exchange failed to load")
 	errExchangeNameIsEmpty   = errors.New("exchange name is empty")

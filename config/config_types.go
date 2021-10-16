@@ -69,7 +69,7 @@ const (
 var (
 	Cfg                                 Config
 	m                                   sync.Mutex
-	ErrExchangeNotFound                 = errors.New("exchange not found")
+	ErrExchangeNotFound                 = errors.New("config.exchange not found")
 	errBadDate                          = errors.New("start date >= end date, please check your config")
 	errNoCurrencySettings               = errors.New("no currency settings set in the config")
 	errBadInitialFunds                  = errors.New("initial funds set with invalid data, please check your config")
