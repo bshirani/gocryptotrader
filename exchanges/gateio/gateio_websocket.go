@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -52,6 +53,7 @@ func (g *Gateio) WsConnect() error {
 		} else {
 			var authsubs []stream.ChannelSubscription
 			authsubs, err = g.GenerateAuthenticatedSubscriptions()
+			os.Exit(123)
 			if err != nil {
 				g.Websocket.DataHandler <- err
 				g.Websocket.SetCanUseAuthenticatedEndpoints(false)

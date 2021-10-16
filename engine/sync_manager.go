@@ -240,7 +240,7 @@ func (m *syncManager) heartBeat() {
 			for _, ex := range exchanges {
 
 				if err != nil {
-					fmt.Println("error getting tick", err)
+					log.Infoln(log.SyncMgr, "error getting tick", err)
 				}
 
 				// tickerValString := tick.PriceToString()
@@ -248,7 +248,7 @@ func (m *syncManager) heartBeat() {
 					tick, _ := ex.FetchTicker(context.Background(), cp.Pair, asset.Spot)
 					// t1 := time.Now()
 					// ticker := m.currencyPairs[x].Ticker
-					fmt.Println(ex.GetName(), cp.Pair, tick.Last)
+					log.Infoln(log.SyncMgr, ex.GetName(), cp.Pair, tick.Last)
 				}
 			}
 
