@@ -27,7 +27,6 @@ type Settings struct {
 	EnableGRPCProxy             bool
 	EnableWebsocketRPC          bool
 	EnableCommsRelayer          bool
-	EnableCandleSyncManager     bool
 	EnableExchangeSyncManager   bool
 	EnableDepositAddressManager bool
 	EnableEventManager          bool

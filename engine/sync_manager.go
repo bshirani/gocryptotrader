@@ -160,6 +160,7 @@ func (m *syncManager) Start() error {
 					continue
 				}
 
+				fmt.Println("add sync agent", exchangeName, enabledPairs[i])
 				c := &currencyPairSyncAgent{
 					AssetType: assetTypes[y],
 					Exchange:  exchangeName,
