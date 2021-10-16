@@ -268,7 +268,7 @@
  "exchanges": [
   {
    "name": "GateIO",
-   "enabled": false,
+   "enabled": true,
    "verbose": false,
    "httpTimeout": 15000000000,
    "websocketResponseCheckTimeout": 30000000,

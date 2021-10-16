@@ -149,6 +149,7 @@ func init() {
 	OrderMgr = registerNewSubLogger("ORDER")
 	PortfolioMgr = registerNewSubLogger("PORTFOLIO")
 	SyncMgr = registerNewSubLogger("SYNC")
+	CandleSyncMgr = registerNewSubLogger("CANDLESYNC")
 	TimeMgr = registerNewSubLogger("TIMEKEEPER")
 	GCTScriptMgr = registerNewSubLogger("GCTSCRIPT")
 	WebsocketMgr = registerNewSubLogger("WEBSOCKET")

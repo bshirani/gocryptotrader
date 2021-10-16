@@ -34,6 +34,7 @@ type Engine struct {
 	CommunicationsManager   *CommunicationManager
 	connectionManager       *connectionManager
 	currencyPairSyncer      *syncManager
+	candleSyncer            *candleSyncManager
 	DatabaseManager         *DatabaseConnectionManager
 	DepositAddressManager   *DepositAddressManager
 	eventManager            *eventManager
@@ -531,6 +532,34 @@ func (bot *Engine) Start() error {
 		}
 	}
 	// }
+	if bot.Settings.EnableCandleSyncManager {
+		exchangeSyncCfg := &Config{
+			SyncTicker:           bot.Settings.EnableTickerSyncing,
+			SyncOrderbook:        bot.Settings.EnableOrderbookSyncing,
+			SyncTrades:           bot.Settings.EnableTradeSyncing,
+			SyncContinuously:     bot.Settings.SyncContinuously,
+			NumWorkers:           bot.Settings.SyncWorkers,
+			Verbose:              bot.Settings.Verbose,
+			SyncTimeoutREST:      bot.Settings.SyncTimeoutREST,
+			SyncTimeoutWebsocket: bot.Settings.SyncTimeoutWebsocket,
+		}
+
+		bot.candleSyncer, err = setupCandleSyncManager(
+			exchangeSyncCfg,
+			bot.ExchangeManager,
+			&bot.Config.RemoteControl,
+			bot.Settings.EnableWebsocketRoutine)
+		if err != nil {
+			gctlog.Errorf(gctlog.Global, "Unable to initialise exchange currency pair syncer. Err: %s", err)
+		} else {
+			go func() {
+				err = bot.candleSyncer.Start()
+				if err != nil {
+					gctlog.Errorf(gctlog.Global, "failed to start exchange currency pair manager. Err: %s", err)
+				}
+			}()
+		}
+	}
 
 	if bot.Settings.EnableExchangeSyncManager {
 		exchangeSyncCfg := &Config{

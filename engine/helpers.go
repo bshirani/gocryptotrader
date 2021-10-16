@@ -53,6 +53,7 @@ func (bot *Engine) GetSubsystemsStatus() map[string]bool {
 		NTPManagerName:                bot.ntpManager.IsRunning(),
 		DatabaseConnectionManagerName: bot.DatabaseManager.IsRunning(),
 		SyncManagerName:               bot.Settings.EnableExchangeSyncManager,
+		CandleSyncManagerName:         bot.Settings.EnableCandleSyncManager,
 		grpcName:                      bot.Settings.EnableGRPC,
 		grpcProxyName:                 bot.Settings.EnableGRPCProxy,
 		vm.Name:                       bot.gctScriptManager.IsRunning(),
@@ -176,6 +177,31 @@ func (bot *Engine) SetSubsystem(subSystemName string, enable bool) error {
 			return bot.DatabaseManager.Start(&bot.ServicesWG)
 		}
 		return bot.DatabaseManager.Stop()
+	case CandleSyncManagerName:
+		if enable {
+			if bot.candleSyncer == nil {
+				exchangeSyncCfg := &Config{
+					SyncTicker:           bot.Settings.EnableTickerSyncing,
+					SyncOrderbook:        bot.Settings.EnableOrderbookSyncing,
+					SyncTrades:           bot.Settings.EnableTradeSyncing,
+					SyncContinuously:     bot.Settings.SyncContinuously,
+					NumWorkers:           bot.Settings.SyncWorkers,
+					Verbose:              bot.Settings.Verbose,
+					SyncTimeoutREST:      bot.Settings.SyncTimeoutREST,
+					SyncTimeoutWebsocket: bot.Settings.SyncTimeoutWebsocket,
+				}
+				bot.currencyPairSyncer, err = setupSyncManager(
+					exchangeSyncCfg,
+					bot.ExchangeManager,
+					&bot.Config.RemoteControl,
+					bot.Settings.EnableWebsocketRoutine)
+				if err != nil {
+					return err
+				}
+			}
+			return bot.candleSyncer.Start()
+		}
+		return bot.candleSyncer.Stop()
 	case SyncManagerName:
 		if enable {
 			if bot.currencyPairSyncer == nil {
