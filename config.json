@@ -104,6 +104,10 @@
   "enabled": false,
   "delay": 60000000000
  },
+ "watcher": {
+  "enabled": null,
+  "delay": 0
+ },
  "profiler": {
   "enabled": false,
   "mutex_profile_fraction": 0

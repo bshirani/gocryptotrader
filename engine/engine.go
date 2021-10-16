@@ -48,6 +48,7 @@ type Engine struct {
 	WithdrawManager         *WithdrawManager
 	dataHistoryManager      *DataHistoryManager
 	currencyStateManager    *CurrencyStateManager
+	watcher                 *Watcher
 	Settings                Settings
 	uptime                  time.Time
 	ServicesWG              sync.WaitGroup
@@ -160,6 +161,11 @@ func validateSettings(b *Engine, s *Settings, flagSet map[string]bool) {
 		b.Settings.EnableCurrencyStateManager) ||
 		b.Config.CurrencyStateManager.Enabled != nil &&
 			*b.Config.CurrencyStateManager.Enabled
+
+	b.Settings.EnableWatcher = (flagSet["currencystatemanager"] &&
+		b.Settings.EnableWatcher) ||
+		b.Config.Watcher.Enabled != nil &&
+			*b.Config.Watcher.Enabled
 
 	b.Settings.EnableGCTScriptManager = b.Settings.EnableGCTScriptManager &&
 		(flagSet["gctscriptmanager"] || b.Config.GCTScript.Enabled)
@@ -618,6 +624,26 @@ func (bot *Engine) Start() error {
 		}
 	}
 
+	if bot.Settings.EnableWatcher {
+		bot.watcher, err = SetupWatcher(
+			bot.Config.Watcher.Delay,
+			bot.ExchangeManager)
+		if err != nil {
+			gctlog.Errorf(gctlog.Global,
+				"%s unable to setup: %s",
+				WatcherName,
+				err)
+		} else {
+			err = bot.watcher.Start()
+			if err != nil {
+				gctlog.Errorf(gctlog.Global,
+					"%s unable to start: %s",
+					WatcherName,
+					err)
+			}
+		}
+	}
+
 	if bot.Settings.EnableDataHistoryManager {
 		if bot.dataHistoryManager == nil {
 			bot.dataHistoryManager, err = SetupDataHistoryManager(bot.ExchangeManager, bot.DatabaseManager, &bot.Config.DataHistoryManager)
@@ -757,6 +783,13 @@ func (bot *Engine) Stop() {
 		bot.Settings.EnableExchangeRateHost {
 		if err := currency.ShutdownStorageUpdater(); err != nil {
 			gctlog.Errorf(gctlog.Global, "ExchangeSettings storage system. Error: %v", err)
+		}
+	}
+	if bot.watcher.IsRunning() {
+		if err := bot.watcher.Stop(); err != nil {
+			gctlog.Errorf(gctlog.Global,
+				"watcher unable to stop. Error: %v",
+				err)
 		}
 	}
 

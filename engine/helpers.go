@@ -266,6 +266,19 @@ func (bot *Engine) SetSubsystem(subSystemName string, enable bool) error {
 			return bot.gctScriptManager.Start(&bot.ServicesWG)
 		}
 		return bot.gctScriptManager.Stop()
+	case strings.ToLower(WatcherName):
+		if enable {
+			if bot.watcher == nil {
+				bot.watcher, err = SetupWatcher(
+					bot.Config.Watcher.Delay,
+					bot.ExchangeManager)
+				if err != nil {
+					return err
+				}
+			}
+			return bot.currencyStateManager.Start()
+		}
+		return bot.currencyStateManager.Stop()
 	case strings.ToLower(CurrencyStateManagementName):
 		if enable {
 			if bot.currencyStateManager == nil {

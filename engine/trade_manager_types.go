@@ -46,6 +46,7 @@ type TradeManager struct {
 	EventQueue         EventHolder
 	Reports            report.Handler
 	OrderManager       OrderManagerHandler
+	syncManager        *syncManager
 	Warmup             bool
 	FactorEngines      map[string]map[asset.Item]map[currency.Pair]*FactorEngine
 	DataHistoryManager *DataHistoryManager

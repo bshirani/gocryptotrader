@@ -114,6 +114,7 @@ type Config struct {
 	ConnectionMonitor    ConnectionMonitorConfig   `json:"connectionMonitor"`
 	DataHistoryManager   DataHistoryManager        `json:"dataHistoryManager"`
 	CurrencyStateManager CurrencyStateManager      `json:"currencyStateManager"`
+	Watcher              Watcher                   `json:"watcher"`
 	Profiler             Profiler                  `json:"profiler"`
 	NTPClient            NTPClientConfig           `json:"ntpclient"`
 	GCTScript            gctscript.Config          `json:"gctscript"`
@@ -153,6 +154,11 @@ type DataHistoryManager struct {
 // CurrencyStateManager defines a set of configuration options for the currency
 // state manager
 type CurrencyStateManager struct {
+	Enabled *bool         `json:"enabled"`
+	Delay   time.Duration `json:"delay"`
+}
+
+type Watcher struct {
 	Enabled *bool         `json:"enabled"`
 	Delay   time.Duration `json:"delay"`
 }

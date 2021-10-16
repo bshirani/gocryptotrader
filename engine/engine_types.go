@@ -39,6 +39,7 @@ type Settings struct {
 	EnableNTPClient             bool
 	EnableWebsocketRoutine      bool
 	EnableCurrencyStateManager  bool
+	EnableWatcher               bool
 	EventManagerDelay           time.Duration
 	Verbose                     bool
 

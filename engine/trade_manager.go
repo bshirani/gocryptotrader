@@ -114,6 +114,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 		}
 	}
 	tm.OrderManager = bot.OrderManager
+	tm.syncManager = bot.currencyPairSyncer
 
 	err = tm.setupBot(cfg)
 
