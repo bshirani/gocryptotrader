@@ -254,6 +254,11 @@ func PrintSettings(s *Settings) {
 	gctlog.Infof(gctlog.Global, "\t Enable gPRC: %v", s.EnableGRPC)
 	gctlog.Infof(gctlog.Global, "\t event manager: %v", s.EnableEventManager)
 	gctlog.Infof(gctlog.Global, "\t Verbose mode: %v", s.Verbose)
+	gctlog.Infof(gctlog.Global, "\t Enable exchange sync manager: %v", s.EnableExchangeSyncManager)
+	gctlog.Infof(gctlog.Global, "\t Enable order manager: %v", s.EnableOrderManager)
+	gctlog.Infof(gctlog.Global, "\t Enable trade syncing: %v\n", s.EnableTradeSyncing)
+	gctlog.Infof(gctlog.Global, "\t Enable ticker syncing: %v\n", s.EnableTickerSyncing)
+	gctlog.Infof(gctlog.Global, "\t Enable data history manager: %v", s.EnableDataHistoryManager)
 	// gctlog.Infof(gctlog.Global, "\t Enable coinmarketcap analaysis: %v", s.EnableCoinmarketcapAnalysis)
 	// gctlog.Infof(gctlog.Global, "\t TM Verbose: %v", s.TradeManager.Verbose)
 	// gctlog.Infof(gctlog.Global, "\t Enable Database manager: %v", s.EnableDatabaseManager)
@@ -265,8 +270,6 @@ func PrintSettings(s *Settings) {
 	// gctlog.Infof(gctlog.Global, "\t Enable gRPC Proxy: %v", s.EnableGRPCProxy)
 	// gctlog.Infof(gctlog.Global, "\t Enable websocket RPC: %v", s.EnableWebsocketRPC)
 	// gctlog.Infof(gctlog.Global, "\t Event manager sleep delay: %v", s.EventManagerDelay)
-	// gctlog.Infof(gctlog.Global, "\t Enable order manager: %v", s.EnableOrderManager)
-	// gctlog.Infof(gctlog.Global, "\t Enable exchange sync manager: %v", s.EnableExchangeSyncManager)
 	// gctlog.Infof(gctlog.Global, "\t Enable deposit address manager: %v\n", s.EnableDepositAddressManager)
 	// gctlog.Infof(gctlog.Global, "\t Enable websocket routine: %v\n", s.EnableWebsocketRoutine)
 	// gctlog.Infof(gctlog.Global, "\t Enable NTP client: %v", s.EnableNTPClient)
@@ -276,9 +279,7 @@ func PrintSettings(s *Settings) {
 	// gctlog.Infof(gctlog.Global, "- EXCHANGE SYNCER SETTINGS:\n")
 	// gctlog.Infof(gctlog.Global, "\t Exchange sync continuously: %v\n", s.SyncContinuously)
 	// gctlog.Infof(gctlog.Global, "\t Exchange sync workers: %v\n", s.SyncWorkers)
-	// gctlog.Infof(gctlog.Global, "\t Enable ticker syncing: %v\n", s.EnableTickerSyncing)
 	// gctlog.Infof(gctlog.Global, "\t Enable orderbook syncing: %v\n", s.EnableOrderbookSyncing)
-	// gctlog.Infof(gctlog.Global, "\t Enable trade syncing: %v\n", s.EnableTradeSyncing)
 	// gctlog.Infof(gctlog.Global, "\t Exchange REST sync timeout: %v\n", s.SyncTimeoutREST)
 	// gctlog.Infof(gctlog.Global, "\t Exchange Websocket sync timeout: %v\n", s.SyncTimeoutWebsocket)
 	// gctlog.Infof(gctlog.Global, "- FOREX SETTINGS:")
@@ -499,38 +500,38 @@ func (bot *Engine) Start() error {
 		}()
 	}
 
+	if bot.Settings.EnableOrderManager {
+		bot.OrderManager, err = SetupOrderManager(
+			bot.ExchangeManager,
+			bot.CommunicationsManager,
+			&bot.ServicesWG,
+			bot.Settings.Verbose)
+		if err != nil {
+			gctlog.Errorf(gctlog.Global, "Order manager unable to setup: %s", err)
+		} else {
+			err = bot.OrderManager.Start()
+			if err != nil {
+				gctlog.Errorf(gctlog.Global, "Order manager unable to start: %s", err)
+			}
+		}
+	}
+
 	// if bot.Settings.EnableOrderManager {
-	// 	bot.OrderManager, err = SetupOrderManager(
+	// 	bot.FakeOrderManager, err = SetupFakeOrderManager(
+	// 		bot,
 	// 		bot.ExchangeManager,
 	// 		bot.CommunicationsManager,
 	// 		&bot.ServicesWG,
 	// 		bot.Settings.Verbose)
 	// 	if err != nil {
-	// 		gctlog.Errorf(gctlog.Global, "Order manager unable to setup: %s", err)
+	// 		gctlog.Errorf(gctlog.Global, "Fake Order manager unable to setup: %s", err)
 	// 	} else {
-	// 		err = bot.OrderManager.Start()
+	// 		err = bot.FakeOrderManager.Start()
+	// 		bot.OrderManager = bot.FakeOrderManager
 	// 		if err != nil {
-	// 			gctlog.Errorf(gctlog.Global, "Order manager unable to start: %s", err)
+	// 			gctlog.Errorf(gctlog.Global, "Fake Order manager unable to start: %s", err)
 	// 		}
 	// 	}
-	// }
-
-	// if bot.Settings.EnableOrderManager {
-	bot.FakeOrderManager, err = SetupFakeOrderManager(
-		bot,
-		bot.ExchangeManager,
-		bot.CommunicationsManager,
-		&bot.ServicesWG,
-		bot.Settings.Verbose)
-	if err != nil {
-		gctlog.Errorf(gctlog.Global, "Fake Order manager unable to setup: %s", err)
-	} else {
-		err = bot.FakeOrderManager.Start()
-		bot.OrderManager = bot.FakeOrderManager
-		if err != nil {
-			gctlog.Errorf(gctlog.Global, "Fake Order manager unable to start: %s", err)
-		}
-	}
 	// }
 
 	if bot.Settings.EnableExchangeSyncManager {

@@ -9,12 +9,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gofrs/uuid"
 	"gocryptotrader/currency"
 	"gocryptotrader/database/repository/candle"
 	"gocryptotrader/database/repository/exchange"
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/log"
+
+	"github.com/gofrs/uuid"
 )
 
 // LoadFromDatabase returns Item from database seeded data

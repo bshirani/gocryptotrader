@@ -148,3 +148,23 @@ we have a database
 we have live trades and orders
 we have strategies able to decide by time, profit, factors
 
+
+a websocket routine manager is running as its own subsystem
+WRM started
+creates a shutdown channel
+creates a websocket routine
+for each exchange, run concurrently:
+- obtain websocket connection
+- connect to websocket connection
+log error if there is one
+create a websocket data receiver in a go routine
+flush the channels of the websocket // why?
+the websocket data receiver runs a for/select loop listening for shutdown or a websocket routine
+when it receives a routine, it calls the websocket data handler
+it logs an error if there is one
+websocket data handler can handle different types of messages
+
+data wise, we can receive:
+ticker.Price
+stream.KlineData
+

@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gorilla/websocket"
 	"gocryptotrader/common"
 	"gocryptotrader/common/convert"
 	"gocryptotrader/common/crypto"
@@ -22,6 +21,8 @@ import (
 	"gocryptotrader/exchange/stream/buffer"
 	"gocryptotrader/exchange/ticker"
 	"gocryptotrader/exchange/trade"
+
+	"github.com/gorilla/websocket"
 )
 
 const (

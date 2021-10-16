@@ -37,7 +37,7 @@ func main() {
 	flag.BoolVar(&settings.EnableCommsRelayer, "enablecommsrelayer", false, "enables available communications relayer")
 	flag.BoolVar(&settings.EnableConnectivityMonitor, "connectivitymonitor", false, "enables the connectivity monitor")
 	flag.BoolVar(&settings.EnableCurrencyStateManager, "currencystatemanager", true, "enables the currency state manager")
-	flag.BoolVar(&settings.EnableDataHistoryManager, "datahistorymanager", true, "enables the data history manager")
+	flag.BoolVar(&settings.EnableDataHistoryManager, "datahistorymanager", false, "enables the data history manager")
 	flag.BoolVar(&settings.EnableDatabaseManager, "databasemanager", true, "enables database manager")
 	flag.BoolVar(&settings.EnableDepositAddressManager, "depositaddressmanager", false, "enables the deposit address manager")
 	flag.BoolVar(&settings.EnableDispatcher, "dispatch", true, "enables the dispatch system")
@@ -49,7 +49,7 @@ func main() {
 	flag.BoolVar(&settings.EnableGRPCProxy, "grpcproxy", false, "enables the grpc proxy server")
 	flag.BoolVar(&settings.EnableLiveMode, "livemode", true, "enables live mode")
 	flag.BoolVar(&settings.EnableNTPClient, "ntpclient", true, "enables the NTP client to check system clock drift")
-	flag.BoolVar(&settings.EnableOrderManager, "ordermanager", true, "enables the order manager")
+	flag.BoolVar(&settings.EnableOrderManager, "ordermanager", false, "enables the order manager")
 	flag.BoolVar(&settings.EnablePortfolioManager, "portfoliomanager", false, "enables the portfolio manager")
 	flag.BoolVar(&settings.EnableTradeManager, "trademanager", false, "enables trading manager")
 	flag.BoolVar(&settings.EnableWebsocketRPC, "websocketrpc", true, "enables the websocket RPC server")
@@ -64,7 +64,7 @@ func main() {
 	// Exchange syncer settings
 	flag.BoolVar(&settings.EnableTickerSyncing, "tickersync", true, "enables ticker syncing for all enabled exchanges")
 	flag.BoolVar(&settings.EnableOrderbookSyncing, "orderbooksync", true, "enables orderbook syncing for all enabled exchanges")
-	flag.BoolVar(&settings.EnableTradeSyncing, "tradesync", false, "enables trade syncing for all enabled exchanges")
+	flag.BoolVar(&settings.EnableTradeSyncing, "tradesync", true, "enables trade syncing for all enabled exchanges")
 	flag.IntVar(&settings.SyncWorkers, "syncworkers", engine.DefaultSyncerWorkers, "the amount of workers (goroutines) to use for syncing exchange data")
 	flag.BoolVar(&settings.SyncContinuously, "synccontinuously", true, "whether to sync exchange data continuously (ticker, orderbook and trade history info")
 	flag.DurationVar(&settings.SyncTimeoutREST, "synctimeoutrest", engine.DefaultSyncerTimeoutREST,

@@ -342,7 +342,6 @@ func (m *syncManager) setProcessing(exchangeName string, p currency.Pair, a asse
 			m.currencyPairs[x].AssetType == a {
 			switch syncType {
 			case SyncItemTicker:
-				fmt.Println("ticker processing", x)
 				m.currencyPairs[x].Ticker.IsProcessing = processing
 			case SyncItemOrderbook:
 				m.currencyPairs[x].Orderbook.IsProcessing = processing
@@ -747,50 +746,50 @@ func (m *syncManager) PrintTickerSummary(result *ticker.Price, protocol string, 
 	// ignoring error as not all tickers have volume populated and error is not actionable
 	_ = stats.Add(result.ExchangeName, result.Pair, result.AssetType, result.Last, result.Volume)
 
-	if result.Pair.Quote.IsFiatCurrency() &&
-		result.Pair.Quote != m.fiatDisplayCurrency &&
-		!m.fiatDisplayCurrency.IsEmpty() {
-		origCurrency := result.Pair.Quote.Upper()
-		log.Infof(log.Ticker, "%s %s %s %s: TICKER: Last %s Ask %s Bid %s High %s Low %s Volume %.8f",
-			result.ExchangeName,
-			protocol,
-			m.FormatCurrency(result.Pair),
-			strings.ToUpper(result.AssetType.String()),
-			printConvertCurrencyFormat(origCurrency, result.Last, m.fiatDisplayCurrency),
-			printConvertCurrencyFormat(origCurrency, result.Ask, m.fiatDisplayCurrency),
-			printConvertCurrencyFormat(origCurrency, result.Bid, m.fiatDisplayCurrency),
-			printConvertCurrencyFormat(origCurrency, result.High, m.fiatDisplayCurrency),
-			printConvertCurrencyFormat(origCurrency, result.Low, m.fiatDisplayCurrency),
-			result.Volume)
-	} else {
-		if result.Pair.Quote.IsFiatCurrency() &&
-			result.Pair.Quote == m.fiatDisplayCurrency &&
-			!m.fiatDisplayCurrency.IsEmpty() {
-			log.Infof(log.Ticker, "%s %s %s %s: TICKER: Last %s Ask %s Bid %s High %s Low %s Volume %.8f",
-				result.ExchangeName,
-				protocol,
-				m.FormatCurrency(result.Pair),
-				strings.ToUpper(result.AssetType.String()),
-				printCurrencyFormat(result.Last, m.fiatDisplayCurrency),
-				printCurrencyFormat(result.Ask, m.fiatDisplayCurrency),
-				printCurrencyFormat(result.Bid, m.fiatDisplayCurrency),
-				printCurrencyFormat(result.High, m.fiatDisplayCurrency),
-				printCurrencyFormat(result.Low, m.fiatDisplayCurrency),
-				result.Volume)
-		} else {
-			log.Infof(log.Ticker, "%s %s %s %s: TICKER: Last %.8f Ask %.8f Bid %.8f High %.8f Low %.8f Volume %.8f",
-				result.ExchangeName,
-				protocol,
-				m.FormatCurrency(result.Pair),
-				strings.ToUpper(result.AssetType.String()),
-				result.Last,
-				result.Ask,
-				result.Bid,
-				result.High,
-				result.Low,
-				result.Volume)
-		}
-	}
+	// if result.Pair.Quote.IsFiatCurrency() &&
+	// 	result.Pair.Quote != m.fiatDisplayCurrency &&
+	// 	!m.fiatDisplayCurrency.IsEmpty() {
+	// 	origCurrency := result.Pair.Quote.Upper()
+	// 	log.Infof(log.Ticker, "%s %s %s %s: TICKER: Last %s Ask %s Bid %s High %s Low %s Volume %.8f",
+	// 		result.ExchangeName,
+	// 		protocol,
+	// 		m.FormatCurrency(result.Pair),
+	// 		strings.ToUpper(result.AssetType.String()),
+	// 		printConvertCurrencyFormat(origCurrency, result.Last, m.fiatDisplayCurrency),
+	// 		printConvertCurrencyFormat(origCurrency, result.Ask, m.fiatDisplayCurrency),
+	// 		printConvertCurrencyFormat(origCurrency, result.Bid, m.fiatDisplayCurrency),
+	// 		printConvertCurrencyFormat(origCurrency, result.High, m.fiatDisplayCurrency),
+	// 		printConvertCurrencyFormat(origCurrency, result.Low, m.fiatDisplayCurrency),
+	// 		result.Volume)
+	// } else {
+	// 	if result.Pair.Quote.IsFiatCurrency() &&
+	// 		result.Pair.Quote == m.fiatDisplayCurrency &&
+	// 		!m.fiatDisplayCurrency.IsEmpty() {
+	// 		log.Infof(log.Ticker, "%s %s %s %s: TICKER: Last %s Ask %s Bid %s High %s Low %s Volume %.8f",
+	// 			result.ExchangeName,
+	// 			protocol,
+	// 			m.FormatCurrency(result.Pair),
+	// 			strings.ToUpper(result.AssetType.String()),
+	// 			printCurrencyFormat(result.Last, m.fiatDisplayCurrency),
+	// 			printCurrencyFormat(result.Ask, m.fiatDisplayCurrency),
+	// 			printCurrencyFormat(result.Bid, m.fiatDisplayCurrency),
+	// 			printCurrencyFormat(result.High, m.fiatDisplayCurrency),
+	// 			printCurrencyFormat(result.Low, m.fiatDisplayCurrency),
+	// 			result.Volume)
+	// 	} else {
+	// 		log.Infof(log.Ticker, "%s %s %s %s: TICKER: Last %.8f Ask %.8f Bid %.8f High %.8f Low %.8f Volume %.8f",
+	// 			result.ExchangeName,
+	// 			protocol,
+	// 			m.FormatCurrency(result.Pair),
+	// 			strings.ToUpper(result.AssetType.String()),
+	// 			result.Last,
+	// 			result.Ask,
+	// 			result.Bid,
+	// 			result.High,
+	// 			result.Low,
+	// 			result.Volume)
+	// 	}
+	// }
 }
 
 // FormatCurrency is a method that formats and returns a currency pair

@@ -380,12 +380,14 @@ func (m *DataHistoryManager) runJob(job *DataHistoryJob) error {
 	dbJob := m.convertJobToDBModel(job)
 	err = m.jobDB.Upsert(dbJob)
 	if err != nil {
+		fmt.Println("123error", err)
 		return fmt.Errorf("job %s failed to update database: %w", job.Nickname, err)
 	}
 
 	dbJobResults := m.convertJobResultToDBResult(job.Results)
 	err = m.jobResultDB.Upsert(dbJobResults...)
 	if err != nil {
+		fmt.Println("11123error", err)
 		return fmt.Errorf("job %s failed to insert job results to database: %w", job.Nickname, err)
 	}
 	return nil
