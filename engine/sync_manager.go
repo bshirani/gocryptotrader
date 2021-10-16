@@ -246,9 +246,14 @@ func (m *syncManager) heartBeat() {
 				// tickerValString := tick.PriceToString()
 				for _, cp := range m.currencyPairs {
 					tick, _ := ex.FetchTicker(context.Background(), cp.Pair, asset.Spot)
-					// t1 := time.Now()
+					t1 := time.Now()
 					// ticker := m.currencyPairs[x].Ticker
-					log.Infoln(log.SyncMgr, ex.GetName(), cp.Pair, tick.Last)
+					secondsAgo := int(t1.Sub(tick.LastUpdated).Seconds())
+					if secondsAgo > 10 {
+						log.Warnln(log.SyncMgr, ex.GetName(), cp.Pair, tick.Last, secondsAgo)
+					} else {
+						log.Infoln(log.SyncMgr, ex.GetName(), cp.Pair, tick.Last, secondsAgo)
+					}
 				}
 			}
 

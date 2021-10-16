@@ -455,10 +455,9 @@ func (g *Gateio) GenerateAuthenticatedSubscriptions() ([]stream.ChannelSubscript
 
 // GenerateDefaultSubscriptions returns default subscriptions
 func (g *Gateio) GenerateDefaultSubscriptions() ([]stream.ChannelSubscription, error) {
-	var channels = []string{"ticker.subscribe",
-		"trades.subscribe",
-		"depth.subscribe",
-		"kline.subscribe"}
+	// "trades.subscribe",
+	// "depth.subscribe",
+	var channels = []string{"ticker.subscribe", "kline.subscribe"}
 	var subscriptions []stream.ChannelSubscription
 	enabledCurrencies, err := g.GetEnabledPairs(asset.Spot)
 	if err != nil {
