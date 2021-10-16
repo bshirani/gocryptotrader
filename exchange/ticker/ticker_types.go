@@ -4,10 +4,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gofrs/uuid"
 	"gocryptotrader/currency"
 	"gocryptotrader/dispatch"
 	"gocryptotrader/exchange/asset"
+
+	"github.com/gofrs/uuid"
 )
 
 // const values for the ticker package

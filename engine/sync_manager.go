@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -234,11 +235,23 @@ func (m *syncManager) heartBeat() {
 			return
 		case <-tick.C:
 			fmt.Println("update tickers")
-			for x := range m.currencyPairs {
-				t1 := time.Now()
-				tick := m.currencyPairs[x].Ticker
-				fmt.Println(m.currencyPairs[x].Pair, t1.Sub(tick.LastUpdated).Seconds())
+
+			exchanges, err := m.exchangeManager.GetExchanges()
+			for _, ex := range exchanges {
+
+				if err != nil {
+					fmt.Println("error getting tick", err)
+				}
+
+				// tickerValString := tick.PriceToString()
+				for _, cp := range m.currencyPairs {
+					tick, _ := ex.FetchTicker(context.Background(), cp.Pair, asset.Spot)
+					// t1 := time.Now()
+					// ticker := m.currencyPairs[x].Ticker
+					fmt.Println(ex.GetName(), cp.Pair, tick.Last)
+				}
 			}
+
 		}
 	}
 
@@ -308,6 +321,8 @@ func (m *syncManager) add(c *currencyPairSyncAgent) {
 	}
 
 	if m.config.SyncOrderbook {
+		fmt.Println("syncing orderbook")
+		os.Exit(123)
 		if m.config.Verbose {
 			log.Debugf(log.SyncMgr,
 				"%s: Added orderbook sync item %v: using websocket: %v using REST: %v",
@@ -321,6 +336,8 @@ func (m *syncManager) add(c *currencyPairSyncAgent) {
 	}
 
 	if m.config.SyncTrades {
+		fmt.Println("syncing trades")
+		os.Exit(123)
 		if m.config.Verbose {
 			log.Debugf(log.SyncMgr,
 				"%s: Added trade sync item %v: using websocket: %v using REST: %v",

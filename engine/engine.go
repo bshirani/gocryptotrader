@@ -666,9 +666,11 @@ func (bot *Engine) Stop() {
 			gctlog.Errorf(gctlog.Global, "GCTScript manager unable to stop. Error: %v", err)
 		}
 	}
-	if bot.OrderManager.IsRunning() {
-		if err := bot.OrderManager.Stop(); err != nil {
-			gctlog.Errorf(gctlog.Global, "Order manager unable to stop. Error: %v", err)
+	if bot.OrderManager != nil {
+		if bot.OrderManager.IsRunning() {
+			if err := bot.OrderManager.Stop(); err != nil {
+				gctlog.Errorf(gctlog.Global, "Order manager unable to stop. Error: %v", err)
+			}
 		}
 	}
 	// if bot.FakeOrderManager.IsRunning() {

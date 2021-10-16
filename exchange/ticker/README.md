@@ -1,12 +1,9 @@
 ## Current Features for ticker
 
-+ This services the exchanges package by ticker functions.
-
-+ This package facilitates ticker generation.
++ ticker generation.
++ Gets a loaded ticker by exchange, asset type and currency pair.
 + Attaches methods to an ticker
 	- Returns a string of a value
-
-+ Gets a loaded ticker by exchange, asset type and currency pair.
 
 + This package is primarily used in conjunction with but not limited to the
 exchange interface system set by exchange wrapper orderbook functions in
