@@ -214,7 +214,6 @@ func (g *Gateio) GetSpotKline(ctx context.Context, arg KlinesRequestParams) (kli
 		arg.GroupSec,
 		arg.HourSize)
 
-	fmt.Println("up", urlPath)
 	var rawKlines map[string]interface{}
 	err := g.SendHTTPRequest(ctx, exchange.RestSpotSupplementary, urlPath, &rawKlines)
 	if err != nil {
@@ -332,7 +331,6 @@ func (g *Gateio) SendHTTPRequest(ctx context.Context, ep exchange.URL, path stri
 		return err
 	}
 
-	fmt.Println("request", ep, path)
 	item := &request.Item{
 		Method:        http.MethodGet,
 		Path:          endpoint + path,

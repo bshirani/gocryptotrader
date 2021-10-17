@@ -1387,7 +1387,7 @@
    ]
   },
   {
-   "name": "GateIO",
+   "name": "gateio",
    "enabled": true,
    "verbose": false,
    "httpTimeout": 15000000000,

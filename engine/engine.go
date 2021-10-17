@@ -626,6 +626,16 @@ func (bot *Engine) Start() error {
 		}
 	}
 
+	err = bot.setupExchangeSettings()
+	if err != nil {
+		fmt.Println("error setting up exchange settings", bot.Config, err)
+		return err
+	}
+	if len(bot.CurrencySettings) < 1 {
+		fmt.Println("no currencie settings, exiting")
+		os.Exit(2)
+	}
+
 	if bot.Settings.EnableDataHistoryManager {
 		if bot.dataHistoryManager == nil {
 			bot.dataHistoryManager, err = SetupDataHistoryManager(bot, bot.ExchangeManager, bot.DatabaseManager, &bot.Config.DataHistoryManager)
@@ -650,10 +660,13 @@ func (bot *Engine) Start() error {
 				bot.TradeManager.Start()
 			}
 		}
+
+		// handles data
 		if bot.Settings.EnableWatcher {
 			bot.watcher, err = SetupWatcher(
 				bot.Config.Watcher.Delay,
-				bot)
+				bot,
+				bot.TradeManager)
 			if err != nil {
 				gctlog.Errorf(gctlog.Global,
 					"%s unable to setup: %s",
@@ -675,6 +688,11 @@ func (bot *Engine) Start() error {
 	// can move this to trade manager setup
 	// end check
 	gctlog.Debugf(gctlog.Global, "Bot '%s' started.\n", bot.Config.Name)
+
+	if bot.dataHistoryManager.IsRunning() {
+		os.Exit(123)
+		bot.dataHistoryManager.Catchup()
+	}
 
 	return nil
 }
@@ -1008,7 +1026,7 @@ func (bot *Engine) WaitForInitialCurrencySync() error {
 	return bot.currencyPairSyncer.WaitForInitialSync()
 }
 
-func (bot *Engine) setupExchangeSettings(cfg *config.Config) error {
+func (bot *Engine) setupExchangeSettings() error {
 	for _, e := range bot.Config.GetEnabledExchanges() {
 		enabledPairs, _ := bot.Config.GetEnabledPairs(e, asset.Spot)
 		for _, pair := range enabledPairs {

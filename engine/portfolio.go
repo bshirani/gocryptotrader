@@ -9,6 +9,7 @@ import (
 
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
+	"gocryptotrader/database/repository/candle"
 	"gocryptotrader/database/repository/liveorder"
 	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/eventtypes"
@@ -21,6 +22,7 @@ import (
 	"gocryptotrader/exchange"
 	"gocryptotrader/exchange/asset"
 	gctorder "gocryptotrader/exchange/order"
+	"gocryptotrader/exchange/ticker"
 	"gocryptotrader/log"
 	"gocryptotrader/portfolio/compliance"
 	"gocryptotrader/portfolio/holdings"
@@ -35,34 +37,53 @@ import (
 )
 
 // Setup creates a portfolio manager instance and sets private fields
-func SetupPortfolio(st []strategies.Handler, bot *Engine, sh SizeHandler, r risk.Handler, riskFreeRate decimal.Decimal) (*Portfolio, error) {
+func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*Portfolio, error) {
+	buyRule := config.MinMax{
+		MinimumSize:  cfg.PortfolioSettings.BuySide.MinimumSize,
+		MaximumSize:  cfg.PortfolioSettings.BuySide.MaximumSize,
+		MaximumTotal: cfg.PortfolioSettings.BuySide.MaximumTotal,
+	}
+	sellRule := config.MinMax{
+		MinimumSize:  cfg.PortfolioSettings.SellSide.MinimumSize,
+		MaximumSize:  cfg.PortfolioSettings.SellSide.MaximumSize,
+		MaximumTotal: cfg.PortfolioSettings.SellSide.MaximumTotal,
+	}
+	sizeManager := &Size{
+		BuySide:  buyRule,
+		SellSide: sellRule,
+	}
+
+	portfolioRisk := &risk.Risk{
+		CurrencySettings: make(map[string]map[asset.Item]map[currency.Pair]*risk.CurrencySettings),
+	}
 
 	//moved from trademanager
-	// for i := range tm.CurrencySettings {
+	// for i := range p.CurrencySettings {
 	// 	var lookup *PortfolioSettings
-	// 	lookup, err = p.SetupCurrencySettingsMap(tm.CurrencySettings[i].ExchangeName, tm.CurrencySettings[i].AssetType, tm.CurrencySettings[i].CurrencyPair)
+	// 	lookup, err = p.SetupCurrencySettingsMap(p.CurrencySettings[i].ExchangeName, p.CurrencySettings[i].AssetType, p.CurrencySettings[i].CurrencyPair)
 	// 	if err != nil {
 	// 		fmt.Println("ERROR SETTING UP PORTFOLIO", err)
 	// 		return err
 	// 	}
-	// 	lookup.Fee = tm.CurrencySettings[i].TakerFee
-	// 	lookup.Leverage = tm.CurrencySettings[i].Leverage
-	// 	lookup.BuySideSizing = tm.CurrencySettings[i].BuySide
-	// 	lookup.SellSideSizing = tm.CurrencySettings[i].SellSide
+	// 	lookup.Fee = p.CurrencySettings[i].TakerFee
+	// 	lookup.Leverage = p.CurrencySettings[i].Leverage
+	// 	lookup.BuySideSizing = p.CurrencySettings[i].BuySide
+	// 	lookup.SellSideSizing = p.CurrencySettings[i].SellSide
 	// 	lookup.ComplianceManager = compliance.Manager{
 	// 		Snapshots: []compliance.Snapshot{},
 	// 	}
 	// 	// this needs to be per currency
-	// 	// log.Debugf(log.TradeManager, "Initialize Factor Engine for %v\n", tm.CurrencySettings[i].CurrencyPair)
+	// 	// log.Debugf(log.TradeManager, "Initialize Factor Engine for %v\n", p.CurrencySettings[i].CurrencyPair)
 	// }
 	// log.Infof(log.TradeManager, "Setting up Portfolio")
-	if sh == nil {
+	if sizeManager == nil {
 		return nil, errSizeManagerUnset
 	}
+	riskFreeRate := cfg.StatisticSettings.RiskFreeRate
 	if riskFreeRate.IsNegative() {
 		return nil, errNegativeRiskFreeRate
 	}
-	if r == nil {
+	if portfolioRisk == nil {
 		return nil, errRiskManagerUnset
 	}
 	p := &Portfolio{}
@@ -88,15 +109,15 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, sh SizeHandler, r risk
 
 	p.orderManager = bot.OrderManager
 	p.bot = bot
-	p.sizeManager = sh
-	p.riskManager = r
+	p.sizeManager = sizeManager
+	p.riskManager = portfolioRisk
 	p.riskFreeRate = riskFreeRate
-	p.strategies = st
+	p.Strategies = st
 
 	fmt.Println("loaded strategies", len(st))
 
 	// set initial opentrade/positions
-	for _, s := range p.strategies {
+	for _, s := range p.Strategies {
 		p.store.positions[s.GetID()] = &positions.Position{}
 		p.store.closedTrades[s.GetID()] = make([]*livetrade.Details, 0)
 		p.store.openOrders[s.GetID()] = make([]*liveorder.Details, 0)
@@ -145,7 +166,7 @@ func (p *Portfolio) OnCancel(cancel cancel.Event) {
 // if successful, it will pass on an order.Order to be used by the exchange event handler to place an order based on
 // the portfolio manager's recommendations
 func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*order.Order, error) {
-	fmt.Println("PORTFOLIO ON SIGNAL")
+	fmt.Println("PORTFOLIO ON SIGNAL", ev.GetTime())
 	if ev == nil || cs == nil {
 		return nil, eventtypes.ErrNilArguments
 	}
@@ -242,7 +263,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 			ev.Pair())
 	}
 
-	// sdir := p.strategies[0].Direction()
+	// sdir := p.Strategies[0].Direction()
 
 	// if pos.Active {
 	// if (sdir == gctorder.Buy && ev.GetDirection() == gctorder.Buy) || (sdir == gctorder.Sell && ev.GetDirection() == gctorder.Sell) {
@@ -478,7 +499,7 @@ func (p *Portfolio) OnFill(f fill.Event) {
 }
 
 // func (p *Portfolio) GetStrategy(id string) *base.Strategy {
-// 	for _, s := range p.strategies {
+// 	for _, s := range p.Strategies {
 // 		if s.GetID() == id {
 // 			return s
 // 		}
@@ -589,7 +610,7 @@ func (p *Portfolio) UpdateTrades(ev eventtypes.DataEventHandler) {
 }
 
 // func (p *Portfolio) GetStrategies() []strategies.Handler {
-// 	return p.strategies
+// 	return p.Strategies
 // }
 
 func (p *Portfolio) GetPositionForStrategy(sid string) *positions.Position {
@@ -641,7 +662,7 @@ func (p *Portfolio) UpdatePositions(ev eventtypes.DataEventHandler) {
 		fmt.Println(i, p)
 	}
 
-	// pos := p.GetPositionForStrategy(p.strategies[0].ID())
+	// pos := p.GetPositionForStrategy(p.Strategies[0].ID())
 	// fmt.Println("position:", pos.Amount)
 	// pos.Amount = decimal.NewFromFloat(123.0)
 	// pos.Active = false
@@ -1127,4 +1148,115 @@ func reduceAmountToFitPortfolioLimit(adjustedPrice, amount, sizedPortfolioTotal 
 	// 	}
 	// }
 	return amount
+}
+
+func (p *Portfolio) heartBeat() {
+	time.Sleep(time.Second * 10)
+	fmt.Println("........................HEARTBEAT")
+	exchanges, _ := p.bot.ExchangeManager.GetExchanges()
+	ex := exchanges[0]
+	fmt.Println("subscribing to ", p.bot.CurrencySettings[0])
+	pipe, err := ticker.SubscribeToExchangeTickers(ex.GetName())
+	if err != nil {
+		fmt.Println(".........error subscribing to ticker", err)
+		// wait and retry
+	}
+
+	// defer func() {
+	// }()
+
+	for {
+		select {
+		case <-p.shutdown:
+			pipeErr := pipe.Release()
+			if pipeErr != nil {
+				log.Error(log.DispatchMgr, pipeErr)
+			}
+			return
+		case data, ok := <-pipe.C:
+			if !ok {
+				fmt.Println("error dispatch system")
+				return
+			}
+			t := (*data.(*interface{})).(ticker.Price)
+			fmt.Println(t.Pair.String(), t.High, t.Low)
+		}
+		// err := stream.Send(&gctrpc.TickerResponse{
+		// 	Pair: &gctrpc.CurrencyPair{
+		// 		Base:      t.Pair.Base.String(),
+		// 		Quote:     t.Pair.Quote.String(),
+		// 		Delimiter: t.Pair.Delimiter},
+		// 	LastUpdated: s.unixTimestamp(t.LastUpdated),
+		// 	Last:        t.Last,
+		// 	High:        t.High,
+		// 	Low:         t.Low,
+		// 	Bid:         t.Bid,
+		// 	Ask:         t.Ask,
+		// 	Volume:      t.Volume,
+		// 	PriceAth:    t.PriceATH,
+		// })
+		// if err != nil {
+		// 	return err
+		// }
+	}
+	fmt.Println("finished")
+	// if err != nil {
+	// 	return err
+	// }
+
+	// p.wg.Add(1)
+	// tick := time.NewTicker(time.Second * 5)
+	// defer func() {
+	// 	tick.Stop()
+	// 	p.wg.Done()
+	// }()
+	// for {
+	// 	select {
+	// 	case <-p.shutdown:
+	// 		return
+	// 	case <-tick.C:
+	// 		exchanges, err := p.bot.ExchangeManager.GetExchanges()
+	// 		for _, ex := range exchanges {
+	// 			if err != nil {
+	// 				log.Infoln(log.TradeManager, "error getting tick", err)
+	// 			}
+	//
+	// 			for _, cp := range p.bot.CurrencySettings {
+	// 				tick, _ := ex.FetchTicker(context.Background(), cp.CurrencyPair, asset.Spot)
+	// 				t1 := time.Now()
+	// 				// ticker := m.currencyPairs[x].Ticker
+	// 				secondsAgo := int(t1.Sub(tick.LastUpdated).Seconds())
+	// 				if secondsAgo > 10 {
+	// 					log.Warnln(log.TradeManager, cp.CurrencyPair, tick.Last, secondsAgo)
+	// 				} else {
+	// 					log.Infoln(log.TradeManager, cp.CurrencyPair, tick.Last, secondsAgo)
+	// 				}
+	// 			}
+	// 		}
+	// 		// p.PrintTradingDetails()
+	// 	}
+	// }
+}
+
+func (p *Portfolio) PrintTradingDetails() {
+	// fmt.Println("strategies running", len(p.Strategies))
+	log.Infoln(log.TradeManager, len(p.Strategies), "strategies running")
+
+	for _, cs := range p.bot.CurrencySettings {
+		// fmt.Println("currency", cs)
+		retCandle, _ := candle.Series(cs.ExchangeName,
+			cs.CurrencyPair.Base.String(), cs.CurrencyPair.Quote.String(),
+			60, cs.AssetType.String(), time.Now().Add(time.Minute*-5), time.Now())
+		var lastCandle candle.Candle
+		if len(retCandle.Candles) > 0 {
+			lastCandle = retCandle.Candles[len(retCandle.Candles)-1]
+		}
+		secondsAgo := int(time.Now().Sub(lastCandle.Timestamp).Seconds())
+		if secondsAgo > 60 {
+			log.Infoln(log.TradeManager, cs.CurrencyPair, "last updated", secondsAgo, "seconds ago")
+		}
+		// else {
+		// 	log.Debugln(log.TradeManager, cs.CurrencyPair, "last updated", secondsAgo, "seconds ago")
+		// }
+	}
 }

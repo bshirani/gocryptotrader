@@ -25,6 +25,9 @@ import (
 // Series returns candle data
 func Series(exchangeName, base, quote string, interval int64, asset string, start, end time.Time) (out Item, err error) {
 	// boil.DebugMode = true
+	defer func() {
+		boil.DebugMode = false
+	}()
 	if exchangeName == "" || base == "" || quote == "" || asset == "" || interval <= 0 {
 		return out, errInvalidInput
 	}

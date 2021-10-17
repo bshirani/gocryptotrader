@@ -108,7 +108,6 @@ func (p *Processor) Run(wg *sync.WaitGroup) {
 			ticker.Stop()
 			return
 		}
-		fmt.Println("save trades to db")
 		err := SaveTradesToDatabase(bufferCopy...)
 
 		if err != nil {

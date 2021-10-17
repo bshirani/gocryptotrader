@@ -53,6 +53,7 @@ func main() {
 	flag.BoolVar(&settings.EnableOrderManager, "ordermanager", false, "enables the order manager")
 	flag.BoolVar(&settings.EnablePortfolioManager, "portfoliomanager", false, "enables the portfolio manager")
 	flag.BoolVar(&settings.EnableTradeManager, "trademanager", false, "enables trading manager")
+	flag.BoolVar(&settings.EnableTrading, "trading", false, "enables trading")
 	flag.BoolVar(&settings.EnableWebsocketRPC, "websocketrpc", true, "enables the websocket RPC server")
 	flag.BoolVar(&settings.EnableWebsocketRoutine, "websocketroutine", true, "enables the websocket routine for all loaded exchanges")
 	flag.BoolVar(&settings.Verbose, "verbose", false, "increases logging verbosity for GoCryptoTrader")

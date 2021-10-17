@@ -55,7 +55,7 @@ func (g *Gateio) GetDefaultConfig() (*config.ExchangeConfig, error) {
 
 // SetDefaults sets default values for the exchange
 func (g *Gateio) SetDefaults() {
-	g.Name = "GateIO"
+	g.Name = "gateio"
 	g.Enabled = true
 	g.Verbose = true
 	g.API.CredentialsValidator.RequiresKey = true
@@ -907,6 +907,10 @@ func (g *Gateio) GetHistoricCandles(ctx context.Context, pair currency.Pair, a a
 
 	klineData.SortCandlesByTimestamp(false)
 	klineData.RemoveOutsideRange(start, end)
+
+	// store in database
+	kline.StoreInDatabase(&klineData, false)
+
 	return klineData, nil
 }
 

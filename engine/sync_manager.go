@@ -12,6 +12,7 @@ import (
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/kline"
 	"gocryptotrader/exchange/orderbook"
 	"gocryptotrader/exchange/stats"
 	"gocryptotrader/exchange/ticker"
@@ -746,9 +747,9 @@ func (m *syncManager) worker() {
 
 								// download the recent trades
 								// tr, err := exchanges[x].GetHistoricTrades(context.TODO(), c.Pair, c.AssetType, time.Now(), time.Now())
-								// tr, err := exchanges[x].GetHistoricCandles(context.TODO(), c.Pair, c.AssetType, time.Now().Add(time.Hour*-1), time.Now(), kline.OneMin)
+								tr, err := exchanges[x].GetHistoricCandles(context.TODO(), c.Pair, c.AssetType, time.Now().Add(time.Hour*-1), time.Now(), kline.OneMin)
 
-								// fmt.Println(tr.Candles[len(tr.Candles)-1].Time)
+								fmt.Println("now last candle", tr.Candles[len(tr.Candles)-1].Time)
 								// save candles to database
 
 								// if err != nil {
@@ -1016,3 +1017,62 @@ func relayWebsocketEvent(result interface{}, event, assetType, exchangeName stri
 			event, err)
 	}
 }
+
+// // loadOfflineData will create kline data from the sources defined in start config files. It can exist from databases, csv or API endpoints
+// // it can also be generated from trade data which will be converted into kline data
+// func (tm *TradeManager) loadOfflineData(cfg *config.Config, exch exchange.IBotExchange, fPair currency.Pair, a asset.Item) (*kline.DataFromKline, error) {
+// 	if exch == nil {
+// 		return nil, ErrExchangeNotFound
+// 	}
+// 	b := exch.GetBase()
+//
+// 	// dataType := 1 // trades
+// 	// dataType, err := eventtypes.DataTypeToInt(cfg.DataSettings.DataType)
+// 	// if err != nil {
+// 	// 	return nil, err
+// 	// }
+//
+// 	resp := &kline.DataFromKline{}
+// 	// log.Infof(log.TradeManager, "loading db data for %v %v %v...\n", exch.GetName(), a, fPair)
+// 	resp, err := loadDatabaseData(cfg, exch.GetName(), fPair, a, 1)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("unable to retrieve data from GoCryptoTrader database. Error: %v. Please ensure the database is setup correctly and has data before use", err)
+// 	}
+//
+// 	resp.Item.RemoveDuplicates()
+// 	resp.Item.SortCandlesByTimestamp(false)
+// 	resp.RangeHolder, err = gctkline.CalculateCandleDateRanges(
+// 		time.Now(),
+// 		time.Now().Add(-1*time.Minute),
+// 		gctkline.Interval(cfg.DataSettings.Interval),
+// 		0,
+// 	)
+// 	if err != nil {
+// 		fmt.Println("error", err)
+// 		return nil, err
+// 	}
+//
+// 	resp.RangeHolder.SetHasDataFromCandles(resp.Item.Candles)
+// 	summary := resp.RangeHolder.DataSummary(false)
+// 	if len(summary) > 0 {
+// 		log.Warnf(log.TradeManager, "%v", summary)
+// 	}
+// 	if resp == nil {
+// 		return nil, fmt.Errorf("processing error, response returned nil")
+// 	}
+//
+// 	_ = b.ValidateKline(fPair, a, resp.Item.Interval)
+// 	// if err != nil {
+// 	// 	if dataType != eventtypes.DataTrade || !strings.EqualFold(err.Error(), "interval not supported") {
+// 	// 		return nil, err
+// 	// 	}
+// 	// }
+//
+// 	err = resp.Load()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	tm.Reports.AddKlineItem(&resp.Item)
+// 	return resp, nil
+// }
+//

@@ -58,6 +58,7 @@ func SetupDataHistoryManager(bot *Engine, em iExchangeManager, dcm iDatabaseConn
 	}
 
 	return &DataHistoryManager{
+		bot:                        bot,
 		exchangeManager:            em,
 		databaseConnectionInstance: db,
 		shutdown:                   make(chan struct{}),
@@ -133,7 +134,6 @@ func (m *DataHistoryManager) Start() error {
 		return ErrSubSystemAlreadyStarted
 	}
 	m.shutdown = make(chan struct{})
-	m.Catchup()
 	m.run()
 	log.Debugf(log.DataHistory, "Data history manager %v", MsgSubSystemStarted)
 

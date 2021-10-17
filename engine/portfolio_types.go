@@ -58,17 +58,18 @@ type portfolioStore struct {
 // Portfolio stores all holdings and rules to assess orders, allowing the portfolio manager to
 // modify, accept or reject strategy signals
 type Portfolio struct {
-	verbose                   bool
-	riskFreeRate              decimal.Decimal
-	orderManager              OrderManagerHandler
-	sizeManager               SizeHandler
-	riskManager               risk.Handler
-	factorEngine              *FactorEngine
+	Strategies                []strategies.Handler
 	bot                       *Engine
-	strategies                []strategies.Handler
-	store                     portfolioStore
-	lastUpdate                time.Time
 	exchangeAssetPairSettings map[string]map[asset.Item]map[currency.Pair]*PortfolioSettings
+	factorEngine              *FactorEngine
+	lastUpdate                time.Time
+	orderManager              OrderManagerHandler
+	riskFreeRate              decimal.Decimal
+	riskManager               risk.Handler
+	shutdown                  chan struct{}
+	sizeManager               SizeHandler
+	store                     portfolioStore
+	verbose                   bool
 }
 
 // Settings holds all important information for the portfolio manager

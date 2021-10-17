@@ -15,32 +15,33 @@ type Settings struct {
 	CheckParamInteraction bool
 
 	// Core Settings
-	EnableLogging               bool
-	EnableDryRun                bool
 	EnableAllExchanges          bool
 	EnableAllPairs              bool
 	EnableCoinmarketcapAnalysis bool
-	EnablePortfolioManager      bool
+	EnableCommsRelayer          bool
+	EnableConnectivityMonitor   bool
+	EnableCurrencyStateManager  bool
 	EnableDataHistoryManager    bool
-	PortfolioManagerDelay       time.Duration
+	EnableDatabaseManager       bool
+	EnableDepositAddressManager bool
+	EnableDryRun                bool
+	EnableEventManager          bool
+	EnableExchangeSyncManager   bool
+	EnableGCTScriptManager      bool
 	EnableGRPC                  bool
 	EnableGRPCProxy             bool
-	EnableWebsocketRPC          bool
-	EnableCommsRelayer          bool
-	EnableExchangeSyncManager   bool
-	EnableDepositAddressManager bool
-	EnableEventManager          bool
-	EnableOrderManager          bool
-	EnableConnectivityMonitor   bool
-	EnableDatabaseManager       bool
-	EnableTradeManager          bool
 	EnableLiveMode              bool
-	EnableGCTScriptManager      bool
+	EnableLogging               bool
 	EnableNTPClient             bool
-	EnableWebsocketRoutine      bool
-	EnableCurrencyStateManager  bool
+	EnableOrderManager          bool
+	EnablePortfolioManager      bool
+	EnableTradeManager          bool
+	EnableTrading               bool
 	EnableWatcher               bool
+	EnableWebsocketRPC          bool
+	EnableWebsocketRoutine      bool
 	EventManagerDelay           time.Duration
+	PortfolioManagerDelay       time.Duration
 	Verbose                     bool
 
 	// Exchange syncer settings

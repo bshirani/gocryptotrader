@@ -36,7 +36,7 @@ var (
 
 // TradeManager is the main holder of all strategy functionality
 type TradeManager struct {
-	Bot                *Engine
+	bot                *Engine
 	DataHistoryManager *DataHistoryManager
 	Datas              data.Holder
 	EventQueue         EventHolder

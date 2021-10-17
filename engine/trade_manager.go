@@ -1,5 +1,6 @@
 package engine
 
+// . "github.com/volatiletech/sqlboiler/v4/queries/qm"
 import (
 	"context"
 	"errors"
@@ -15,8 +16,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	. "github.com/volatiletech/sqlboiler/v4/queries/qm"
-
 	gctdatabase "gocryptotrader/database"
 	"gocryptotrader/database/repository/candle"
 	"gocryptotrader/eventtypes"
@@ -26,19 +25,15 @@ import (
 	"gocryptotrader/eventtypes/order"
 	"gocryptotrader/eventtypes/signal"
 	"gocryptotrader/eventtypes/submit"
-	"gocryptotrader/exchange"
 	"gocryptotrader/exchange/asset"
 
 	gctkline "gocryptotrader/exchange/kline"
 
 	gctorder "gocryptotrader/exchange/order"
-	"gocryptotrader/exchange/ticker"
-	"gocryptotrader/exchange/trade"
 	"gocryptotrader/log"
 
 	gctlog "gocryptotrader/log"
 	"gocryptotrader/portfolio/report"
-	"gocryptotrader/portfolio/risk"
 	"gocryptotrader/portfolio/statistics"
 	"gocryptotrader/portfolio/statistics/currencystatistics"
 	"gocryptotrader/portfolio/strategies"
@@ -66,7 +61,7 @@ func (tm *TradeManager) Reset() {
 	tm.Statistic.Reset()
 	// tm.Exchange.Reset()
 	// reset live trades here
-	// tm.Bot = nil
+	// tm.bot = nil
 	// tm.FactorEngine = nil
 }
 
@@ -94,7 +89,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 		OutputPath:   output,
 	}
 	tm.Reports = reports
-	tm.Bot = bot
+	tm.bot = bot
 	var err error
 	if bot.OrderManager == nil {
 		bot.FakeOrderManager, err = SetupFakeOrderManager(
@@ -130,7 +125,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 }
 
 func (tm *TradeManager) setOrderManagerCallbacks() {
-	// tm.Bot.OrderManager.SetOnSubmit(tm.onSubmit)
+	// tm.bot.OrderManager.SetOnSubmit(tm.onSubmit)
 	tm.OrderManager.SetOnFill(tm.onFill)
 	tm.OrderManager.SetOnCancel(tm.onCancel)
 }
@@ -198,7 +193,7 @@ func (tm *TradeManager) processEvents() error {
 // LIVE FUNCTIONALITY
 func (tm *TradeManager) Start() error {
 	fmt.Println("waiting for cs")
-	tm.Bot.WaitForInitialCurrencySync()
+	tm.bot.WaitForInitialCurrencySync()
 	fmt.Println("finished initial sync")
 	tm.setOrderManagerCallbacks()
 
@@ -208,18 +203,18 @@ func (tm *TradeManager) Start() error {
 	// tm.Warmup = false
 	// tm.warmup()
 	// tm.wg.Add(1)
-	if tm.verbose {
-		log.Infoln(log.TradeManager, "Running catchup processes")
-	}
-	_, err := tm.Bot.dataHistoryManager.Catchup()
-	if err != nil {
-		log.Infoln(log.TradeManager, "history catchup failed")
-		os.Exit(1)
-	}
-	err = tm.Bot.dataHistoryManager.RunJobs()
-	if err != nil {
-		return err
-	}
+	// if tm.verbose {
+	// 	log.Infoln(log.TradeManager, "Running catchup processes")
+	// }
+	// _, err := tm.bot.dataHistoryManager.Catchup()
+	// if err != nil {
+	// 	log.Infoln(log.TradeManager, "history catchup failed")
+	// 	os.Exit(1)
+	// }
+	// err = tm.bot.dataHistoryManager.RunJobs()
+	// if err != nil {
+	// 	return err
+	// }
 	// tm.wg.Wait()
 	// 	tm.wg.Done()
 
@@ -242,85 +237,12 @@ func (tm *TradeManager) Start() error {
 }
 
 func (tm *TradeManager) runLive() error {
-	lup := make(map[ExchangeAssetPairSettings]time.Time)
 	processEventTicker := time.NewTicker(time.Second)
 	for {
 		select {
 		case <-tm.shutdown:
 			return nil
 		case <-processEventTicker.C:
-			// thisMinute := time.Now()
-			t := time.Now()
-			thisMinute := time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location())
-
-			for _, cs := range tm.Bot.CurrencySettings {
-				t1 := lup[cs]
-
-				if t1 == thisMinute { //skip if alrady updated this minute
-					continue
-				} else {
-					lup[cs] = thisMinute
-					exch, _, asset, err := tm.loadExchangePairAssetBase(
-						cs.ExchangeName,
-						cs.CurrencyPair.Base.String(),
-						cs.CurrencyPair.Quote.String(),
-						cs.AssetType.String())
-
-					if exch == nil {
-						fmt.Println("no exchange found")
-					}
-
-					trades, err := trade.GetTradesInRange(
-						cs.ExchangeName,
-						cs.AssetType.String(),
-						cs.CurrencyPair.Base.String(),
-						cs.CurrencyPair.Quote.String(),
-						time.Now().Add(-time.Minute),
-						time.Now())
-
-					if err != nil {
-						fmt.Println("unable to retrieve data from GoCryptoTrader database. Error: %v. Please ensure the database is setup correctly and has data before use", err)
-						continue
-					}
-
-					if len(trades) > 0 {
-						resp := &kline.DataFromKline{}
-						resp.Item = gctkline.Item{
-							Exchange: cs.ExchangeName,
-							Pair:     cs.CurrencyPair,
-							Interval: gctkline.OneMin,
-							Asset:    asset,
-						}
-						trades[0].CurrencyPair = cs.CurrencyPair
-						trades[0].Exchange = cs.ExchangeName
-						klineItem, err := trade.ConvertTradesToCandles(
-							gctkline.Interval(gctkline.OneMin),
-							trades...)
-						if err != nil {
-							log.Errorf(log.Watcher, "could not convert database trade data for %v %v %v, %v", cs.ExchangeName, cs.AssetType, cs.CurrencyPair, err)
-						}
-
-						// resp.Item.Candles = append(resp.Item.Candles, klineItem)
-						if len(klineItem.Candles) > 0 {
-							klineItem.SortCandlesByTimestamp(true)
-							resp.Item = klineItem
-							resp.Load()
-							tm.Datas.SetDataForCurrency(strings.ToLower(cs.ExchangeName), cs.AssetType, cs.CurrencyPair, resp)
-
-						}
-
-						// c.queue.AppendEvent(signals[i])
-					}
-					if err != nil {
-						fmt.Println("error", err)
-						continue
-					}
-
-					// for ev := tm.EventQueue.NextEvent(); ; ev = tm.EventQueue.NextEvent() {
-					// 	tm.EventQueue.AppendEvent(d)
-					// }
-				}
-			}
 			for _, exchangeMap := range tm.Datas.GetAllData() { // for each exchange
 				for _, assetMap := range exchangeMap { // asset
 					for _, dataHandler := range assetMap { // coin
@@ -346,13 +268,13 @@ func (tm *TradeManager) warmup() error {
 
 	// run the catchup process
 
-	// err = tm.Bot.dataHistoryManager.Stop()
+	// err = tm.bot.dataHistoryManager.Stop()
 	// if err != nil {
 	// 	return err
 	// }
 
 	// get latest bars for warmup
-	cs, err := tm.GetAllCurrencySettings()
+	cs, err := tm.bot.GetAllCurrencySettings()
 	if err != nil {
 		return err
 	}
@@ -443,11 +365,11 @@ func (tm *TradeManager) Stop() error {
 	}
 
 	log.Debugln(log.TradeManager, "Backtester Stopping...")
-	if tm.Bot.OrderManager.IsRunning() {
-		tm.Bot.OrderManager.Stop()
+	if tm.bot.OrderManager.IsRunning() {
+		tm.bot.OrderManager.Stop()
 	}
-	// if tm.Bot.DatabaseManager.IsRunning() {
-	// 	tm.Bot.DatabaseManager.Stop()
+	// if tm.bot.DatabaseManager.IsRunning() {
+	// 	tm.bot.DatabaseManager.Stop()
 	// }
 
 	for _, s := range tm.Strategies {
@@ -455,20 +377,20 @@ func (tm *TradeManager) Stop() error {
 	}
 
 	close(tm.shutdown)
-	tm.Bot.TradeManager = nil
+	tm.bot.TradeManager = nil
 	tm.wg.Wait()
 	log.Debugln(log.TradeManager, "Backtester Stopped.")
 	return nil
 }
 
 // func (tm *TradeManager) loadOfflineDatas() error {
-// 	fmt.Println("ok", len(tm.CurrencySettings))
+// 	fmt.Println("ok", len(tm.bot.CurrencySettings))
 // 	// cfg := &tm.cfg
 //
 // 	tm.Datas.Setup()
 //
 // 	// LOAD DATA FOR EVERY PAIR
-// 	for _, cs := range tm.CurrencySettings {
+// 	for _, cs := range tm.bot.CurrencySettings {
 // 		// exchangeName := strings.ToLower(exch.GetName())
 // 		// klineData, err := tm.loadOfflineData(cfg, exch, pair, a)
 //
@@ -494,173 +416,33 @@ func (b *TradeManager) IsRunning() bool {
 // setupBot sets up a basic bot to retrieve exchange data
 // as well as process orders
 // setup order manager, exchange manager, database manager
-func (tm *TradeManager) setupBot(cfg *config.Config) error {
+func (tm *TradeManager) setupBot(strategyConfig *config.Config) error {
 	var err error
 
 	tm.Datas = &data.HandlerPerCurrency{}
 	tm.Datas.Setup()
 
 	// this already run in engine.newfromsettings
-	// tm.Bot.ExchangeManager = SetupExchangeManager()
+	// tm.bot.ExchangeManager = SetupExchangeManager()
 
-	if !tm.Bot.Config.LiveMode {
-		for i := range cfg.CurrencySettings {
-			err = tm.Bot.LoadExchange(cfg.CurrencySettings[i].ExchangeName, nil)
-			if err != nil && !errors.Is(err, ErrExchangeAlreadyLoaded) {
-				return err
-			}
-		}
-
-		// start fake order manager here since we don't start engine in live mode
-		tm.Bot.FakeOrderManager, err = SetupFakeOrderManager(
-			tm.Bot,
-			tm.Bot.ExchangeManager,
-			tm.Bot.CommunicationsManager,
-			&tm.Bot.ServicesWG,
-			tm.Bot.Settings.Verbose,
-		)
-		if err != nil {
-			gctlog.Errorf(gctlog.Global, "Fake Order manager unable to setup: %s", err)
-		} else {
-			err = tm.Bot.FakeOrderManager.Start()
-			if err != nil {
-				gctlog.Errorf(gctlog.Global, "Fake Order manager unable to start: %s", err)
-			}
-			tm.Bot.OrderManager = tm.Bot.FakeOrderManager
-		}
-
-		tm.Bot.DatabaseManager, err = SetupDatabaseConnectionManager(gctdatabase.DB.GetConfig())
-		if err != nil {
-			return err
-		} else {
-			err = tm.Bot.DatabaseManager.Start(&tm.Bot.ServicesWG)
-			if err != nil {
-				gctlog.Errorf(gctlog.Global, "Database manager unable to start: %v", err)
-			}
-		}
-	}
-
-	err = tm.setupExchangeSettings(cfg)
-	if err != nil {
-		fmt.Println("error setting up exchange settings", cfg, err)
-		return err
+	if !tm.bot.Config.LiveMode {
+		tm.startOfflineServices()
 	}
 
 	if err != nil {
+		fmt.Println("failed to setup bot", err)
+		// set to not running
 		return err
 	}
 
-	buyRule := config.MinMax{
-		MinimumSize:  cfg.PortfolioSettings.BuySide.MinimumSize,
-		MaximumSize:  cfg.PortfolioSettings.BuySide.MaximumSize,
-		MaximumTotal: cfg.PortfolioSettings.BuySide.MaximumTotal,
+	if tm.bot.Settings.EnableTrading {
+		fmt.Println("enable trading")
+		tm.initializePortfolio(strategyConfig)
 	}
-	sellRule := config.MinMax{
-		MinimumSize:  cfg.PortfolioSettings.SellSide.MinimumSize,
-		MaximumSize:  cfg.PortfolioSettings.SellSide.MaximumSize,
-		MaximumTotal: cfg.PortfolioSettings.SellSide.MaximumTotal,
-	}
-	sizeManager := &Size{
-		BuySide:  buyRule,
-		SellSide: sellRule,
-	}
-
-	portfolioRisk := &risk.Risk{
-		CurrencySettings: make(map[string]map[asset.Item]map[currency.Pair]*risk.CurrencySettings),
-	}
-
-	// for i := range cfg.Stratey
-
-	var slit []strategies.Handler
-	var s strategies.Handler
-
-	count := 0
-	for _, strat := range cfg.StrategiesSettings {
-		// for _, dir := range []gctorder.Side{gctorder.Buy, gctorder.Sell} {
-		for _, c := range tm.CurrencySettings {
-			// fmt.Println("c", c)
-			// _, pair, _, _ := tm.loadExchangePairAssetBase(c.ExchangeName, c.Base, c.Quote, c.Asset)
-			s, _ = strategies.LoadStrategyByName(strat.Name)
-
-			// tm.SetExchangeAssetCurrencySettings(exch, a, cp , c *ExchangeAssetPairSettings) {
-			count += 1
-
-			// fmt.Println("type of s", reflect.New(reflect.TypeOf(s)))
-			// fmt.Println("type", reflect.New(reflect.ValueOf(s).Elem().Type()).Interface())
-			// fmt.Println("valueof", reflect.New(reflect.ValueOf(s).Elem().Type()))
-			// strategy = reflect.New(reflect.ValueOf(s).Elem().Type()).Interface().(strategy.Handler)
-			// fmt.Println("loaded", strategy)
-
-			id := fmt.Sprintf("%d_%s_%s_%v", count, s.Name(), string(gctorder.Buy), c.CurrencyPair)
-			s.SetID(id)
-			s.SetNumID(count)
-			s.SetPair(c.CurrencyPair)
-			s.SetDirection(gctorder.Buy)
-
-			// validate strategy
-			if s.GetID() == "" {
-				fmt.Println("no strategy id")
-				os.Exit(2)
-			}
-			s.SetDefaults()
-			slit = append(slit, s)
-		}
-		// }
-	}
-	tm.Strategies = slit
-
-	// if tm.verbose {
-	log.Infof(log.TradeManager, "Running %d strategies\n", len(tm.Strategies))
-	log.Infof(log.TradeManager, "Running %d currencies\n", len(tm.CurrencySettings))
-	// log.Infof(log.TradeManager, "Running %d exchanges\n", len(tm.CurrencySettings))
-	// }
-
-	// setup portfolio with strategies
-	var p *Portfolio
-	p, err = SetupPortfolio(tm.Strategies, tm.Bot, sizeManager, portfolioRisk, cfg.StatisticSettings.RiskFreeRate)
-	p.SetVerbose(false)
-	if err != nil {
-		return err
-	}
-
-	stats := &statistics.Statistic{
-		StrategyName:                "ok",
-		StrategyNickname:            cfg.Nickname,
-		StrategyDescription:         "ok",
-		StrategyGoal:                cfg.Goal,
-		ExchangeAssetPairStatistics: make(map[string]map[asset.Item]map[currency.Pair]*currencystatistics.CurrencyStatistic),
-		RiskFreeRate:                cfg.StatisticSettings.RiskFreeRate,
-	}
-	tm.Statistic = stats
-
-	// load from configuration into datastructure
-	// currencysettings returns the data from the config, exchangeassetpairsettings
-	// tm.Exchange = &e
-
-	log.Infoln(log.TradeManager, "Loaded", len(tm.CurrencySettings), "currencies")
-
-	tm.Portfolio = p
 	// allCS, _ := tm.GetAllCurrencySettings()
 	// tm.FactorEngines = make(map[currency.Pair]*FactorEngine)
-	tm.FactorEngines = make(map[string]map[asset.Item]map[currency.Pair]*FactorEngine)
-	for _, x := range tm.CurrencySettings {
-		fe, _ := SetupFactorEngine(x.CurrencyPair)
-		ex := strings.ToLower(x.ExchangeName)
 
-		if tm.FactorEngines[ex] == nil {
-			// fmt.Println("setup exchanges factors engine", ex)
-			tm.FactorEngines[ex] = make(map[asset.Item]map[currency.Pair]*FactorEngine)
-		}
-		if tm.FactorEngines[ex][x.AssetType] == nil {
-			// fmt.Println("setup exchanges's asset's factor engines", ex, "spot")
-			tm.FactorEngines[ex][x.AssetType] = make(map[currency.Pair]*FactorEngine)
-		}
-
-		fmt.Println("setup factor engine for pair", ex, x.CurrencyPair)
-		tm.FactorEngines[ex][x.AssetType][x.CurrencyPair] = fe
-	}
-
-	// cfg.PrintSetting()
+	// strategyConfig.PrintSetting()
 
 	// err = tm.loadOfflineDatas()
 	// if err != nil {
@@ -669,64 +451,6 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 	// }
 
 	return nil
-}
-
-// loadOfflineData will create kline data from the sources defined in start config files. It can exist from databases, csv or API endpoints
-// it can also be generated from trade data which will be converted into kline data
-func (tm *TradeManager) loadOfflineData(cfg *config.Config, exch exchange.IBotExchange, fPair currency.Pair, a asset.Item) (*kline.DataFromKline, error) {
-	if exch == nil {
-		return nil, ErrExchangeNotFound
-	}
-	b := exch.GetBase()
-
-	// dataType := 1 // trades
-	// dataType, err := eventtypes.DataTypeToInt(cfg.DataSettings.DataType)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	resp := &kline.DataFromKline{}
-	// log.Infof(log.TradeManager, "loading db data for %v %v %v...\n", exch.GetName(), a, fPair)
-	resp, err := loadDatabaseData(cfg, exch.GetName(), fPair, a, 1)
-	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve data from GoCryptoTrader database. Error: %v. Please ensure the database is setup correctly and has data before use", err)
-	}
-
-	resp.Item.RemoveDuplicates()
-	resp.Item.SortCandlesByTimestamp(false)
-	resp.RangeHolder, err = gctkline.CalculateCandleDateRanges(
-		time.Now(),
-		time.Now().Add(-1*time.Minute),
-		gctkline.Interval(cfg.DataSettings.Interval),
-		0,
-	)
-	if err != nil {
-		fmt.Println("error", err)
-		return nil, err
-	}
-
-	resp.RangeHolder.SetHasDataFromCandles(resp.Item.Candles)
-	summary := resp.RangeHolder.DataSummary(false)
-	if len(summary) > 0 {
-		log.Warnf(log.TradeManager, "%v", summary)
-	}
-	if resp == nil {
-		return nil, fmt.Errorf("processing error, response returned nil")
-	}
-
-	_ = b.ValidateKline(fPair, a, resp.Item.Interval)
-	// if err != nil {
-	// 	if dataType != eventtypes.DataTrade || !strings.EqualFold(err.Error(), "interval not supported") {
-	// 		return nil, err
-	// 	}
-	// }
-
-	err = resp.Load()
-	if err != nil {
-		return nil, err
-	}
-	tm.Reports.AddKlineItem(&resp.Item)
-	return resp, nil
 }
 
 // -----------------------------------
@@ -764,55 +488,33 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 	// 	return err
 	// }
 
-	d := tm.Datas.GetDataForCurrency(strings.ToLower(ev.GetExchange()), ev.GetAssetType(), ev.Pair())
+	fmt.Println("data event", ev)
+	d := tm.Datas.GetDataForCurrency(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 	l := d.Latest()
 	fmt.Println(l.Pair(), l.GetTime(), l.OpenPrice(), l.HighPrice(), l.LowPrice(), l.ClosePrice())
 	if !tm.Warmup {
-		tm.Bot.OrderManager.Update()
+		tm.bot.OrderManager.Update()
 	}
 
-	// update factor engine
-	// if tm.Bot.Config.LiveMode {
-	// 	fmt.Println("factor on bar update", ev.Pair(), d.Latest().GetTime(), len(tm.FactorEngines[ev.Pair()].Minute().Close))
-	// }
-	// exfe := tm.FactorEngines[ev.GetExchange()]
-	// exassetfe := tm.FactorEngines[ev.GetExchange()][ev.GetAssetType()]
-	// fmt.Println(len(tm.FactorEngines))
-	// for i := range exassetfe {
-	// 	fmt.Printf("%s..", i)
-	// }
-	// fmt.Println(ev.GetExchange(), len(exfe), len(exassetfe), ev.Pair(), fe)
-	// fmt.Println("ookup", ev.GetExchange(), ev.GetAssetType(), ev.Pair())
-	// for i := range tm.FactorEngines {
-	// 	fmt.Println("exchange", i)
-	// 	for a := range tm.FactorEngines[i] {
-	// 		fmt.Println("asset", a)
-	// 		for p := range tm.FactorEngines[i][a] {
-	// 			fmt.Println("pair", p)
-	// 		}
-	// 	}
-	// }
-	// tm.FactorEngines[strings.ToLower(ev.GetExchange())][ev.GetAssetType()]
-	// fmt.Println(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
-	fe := tm.FactorEngines[strings.ToLower(ev.GetExchange())][ev.GetAssetType()][ev.Pair()]
+	fmt.Println(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
+	fe := tm.FactorEngines[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
 	fe.OnBar(d)
 
 	// HANDLE warmup MODE
 	// in warmup mode, we do not query the strategies
-
-	// for _, strategy := range tm.Strategies {
-	// 	if strategy.GetPair() == ev.Pair() {
-	// 		if tm.Bot.Config.LiveMode {
-	// 			fmt.Println("Updating strategy", strategy.GetID(), d.Latest().GetTime())
-	// 		}
-	// 		s, err := strategy.OnData(d, tm.Portfolio, fe)
-	// 		if err != nil {
-	// 			fmt.Println("error processing data event", err)
-	// 			return err
-	// 		}
-	// 		tm.EventQueue.AppendEvent(s)
-	// 	}
-	// }
+	for _, strategy := range tm.Strategies {
+		if strategy.GetPair() == ev.Pair() {
+			if tm.bot.Config.LiveMode {
+				fmt.Println("Updating strategy", strategy.GetID(), d.Latest().GetTime())
+			}
+			s, err := strategy.OnData(d, tm.Portfolio, fe)
+			if err != nil {
+				fmt.Println("error processing data event", err)
+				return err
+			}
+			tm.EventQueue.AppendEvent(s)
+		}
+	}
 
 	// if err != nil {
 	// 	if errors.Is(err, base.ErrTooMuchBadData) {
@@ -879,7 +581,7 @@ func (tm *TradeManager) processSimultaneousDataEvents() error {
 //
 // processSignalEvent receives an event from the strategy for processing under the portfolio
 func (tm *TradeManager) processSignalEvent(ev signal.Event) {
-	cs, err := tm.GetCurrencySettings(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
+	cs, err := tm.bot.GetCurrencySettings(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 	if err != nil {
 		log.Error(log.TradeManager, err)
 		return
@@ -965,7 +667,7 @@ func (tm *TradeManager) processOrderEvent(o order.Event) {
 	// }
 	d := tm.Datas.GetDataForCurrency(o.GetExchange(), o.GetAssetType(), o.Pair())
 	// this blocks and returns a submission event
-	submitEvent, err := tm.ExecuteOrder(o, d, tm.Bot.FakeOrderManager)
+	submitEvent, err := tm.ExecuteOrder(o, d, tm.bot.FakeOrderManager)
 
 	// call on submit here
 
@@ -980,117 +682,6 @@ func (tm *TradeManager) processOrderEvent(o order.Event) {
 	}
 
 	tm.EventQueue.AppendEvent(submitEvent)
-}
-
-func (tm *TradeManager) heartBeat() {
-	time.Sleep(time.Second * 10)
-	fmt.Println("........................HEARTBEAT")
-	exchanges, _ := tm.Bot.ExchangeManager.GetExchanges()
-	ex := exchanges[0]
-	fmt.Println("subscribing to ", tm.CurrencySettings[0])
-	pipe, err := ticker.SubscribeToExchangeTickers(ex.GetName())
-	if err != nil {
-		fmt.Println(".........error subscribing to ticker", err)
-		// wait and retry
-	}
-
-	// defer func() {
-	// }()
-
-	for {
-		select {
-		case <-tm.shutdown:
-			pipeErr := pipe.Release()
-			if pipeErr != nil {
-				log.Error(log.DispatchMgr, pipeErr)
-			}
-			return
-		case data, ok := <-pipe.C:
-			if !ok {
-				fmt.Println("error dispatch system")
-				return
-			}
-			t := (*data.(*interface{})).(ticker.Price)
-			fmt.Println(t.Pair.String(), t.High, t.Low)
-		}
-		// err := stream.Send(&gctrpc.TickerResponse{
-		// 	Pair: &gctrpc.CurrencyPair{
-		// 		Base:      t.Pair.Base.String(),
-		// 		Quote:     t.Pair.Quote.String(),
-		// 		Delimiter: t.Pair.Delimiter},
-		// 	LastUpdated: s.unixTimestamp(t.LastUpdated),
-		// 	Last:        t.Last,
-		// 	High:        t.High,
-		// 	Low:         t.Low,
-		// 	Bid:         t.Bid,
-		// 	Ask:         t.Ask,
-		// 	Volume:      t.Volume,
-		// 	PriceAth:    t.PriceATH,
-		// })
-		// if err != nil {
-		// 	return err
-		// }
-	}
-	fmt.Println("finished")
-	// if err != nil {
-	// 	return err
-	// }
-
-	// tm.wg.Add(1)
-	// tick := time.NewTicker(time.Second * 5)
-	// defer func() {
-	// 	tick.Stop()
-	// 	tm.wg.Done()
-	// }()
-	// for {
-	// 	select {
-	// 	case <-tm.shutdown:
-	// 		return
-	// 	case <-tick.C:
-	// 		exchanges, err := tm.Bot.ExchangeManager.GetExchanges()
-	// 		for _, ex := range exchanges {
-	// 			if err != nil {
-	// 				log.Infoln(log.TradeManager, "error getting tick", err)
-	// 			}
-	//
-	// 			for _, cp := range tm.CurrencySettings {
-	// 				tick, _ := ex.FetchTicker(context.Background(), cp.CurrencyPair, asset.Spot)
-	// 				t1 := time.Now()
-	// 				// ticker := m.currencyPairs[x].Ticker
-	// 				secondsAgo := int(t1.Sub(tick.LastUpdated).Seconds())
-	// 				if secondsAgo > 10 {
-	// 					log.Warnln(log.TradeManager, cp.CurrencyPair, tick.Last, secondsAgo)
-	// 				} else {
-	// 					log.Infoln(log.TradeManager, cp.CurrencyPair, tick.Last, secondsAgo)
-	// 				}
-	// 			}
-	// 		}
-	// 		// tm.PrintTradingDetails()
-	// 	}
-	// }
-}
-
-func (tm *TradeManager) PrintTradingDetails() {
-	// fmt.Println("strategies running", len(tm.Strategies))
-	log.Infoln(log.TradeManager, len(tm.Strategies), "strategies running")
-
-	for _, cs := range tm.CurrencySettings {
-		// fmt.Println("currency", cs)
-		retCandle, _ := candle.Series(cs.ExchangeName,
-			cs.CurrencyPair.Base.String(), cs.CurrencyPair.Quote.String(),
-			60, cs.AssetType.String(), time.Now().Add(time.Minute*-5), time.Now())
-		var lastCandle candle.Candle
-		if len(retCandle.Candles) > 0 {
-			lastCandle = retCandle.Candles[len(retCandle.Candles)-1]
-		}
-		secondsAgo := int(time.Now().Sub(lastCandle.Timestamp).Seconds())
-		if secondsAgo > 60 {
-			log.Infoln(log.TradeManager, cs.CurrencyPair, "last updated", secondsAgo, "seconds ago")
-		}
-		// else {
-		// 	log.Debugln(log.TradeManager, cs.CurrencyPair, "last updated", secondsAgo, "seconds ago")
-		// }
-	}
 }
 
 // updateStatsForDataEvent makes various systems aware of price movements from
@@ -1227,4 +818,142 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	}
 
 	return ev, nil
+}
+
+func (tm *TradeManager) startOfflineServices() error {
+	for i := range tm.bot.Config.CurrencySettings {
+		err := tm.bot.LoadExchange(tm.bot.Config.CurrencySettings[i].ExchangeName, nil)
+		if err != nil && !errors.Is(err, ErrExchangeAlreadyLoaded) {
+			return err
+		}
+	}
+
+	// start fake order manager here since we don't start engine in live mode
+	var err error
+	tm.bot.FakeOrderManager, err = SetupFakeOrderManager(
+		tm.bot,
+		tm.bot.ExchangeManager,
+		tm.bot.CommunicationsManager,
+		&tm.bot.ServicesWG,
+		tm.bot.Settings.Verbose,
+	)
+	if err != nil {
+		gctlog.Errorf(gctlog.Global, "Fake Order manager unable to setup: %s", err)
+	} else {
+		err = tm.bot.FakeOrderManager.Start()
+		if err != nil {
+			gctlog.Errorf(gctlog.Global, "Fake Order manager unable to start: %s", err)
+		}
+		tm.bot.OrderManager = tm.bot.FakeOrderManager
+	}
+
+	tm.bot.DatabaseManager, err = SetupDatabaseConnectionManager(gctdatabase.DB.GetConfig())
+	if err != nil {
+		return err
+	} else {
+		err = tm.bot.DatabaseManager.Start(&tm.bot.ServicesWG)
+		if err != nil {
+			gctlog.Errorf(gctlog.Global, "Database manager unable to start: %v", err)
+		}
+	}
+	return err
+}
+
+func (tm *TradeManager) initializeStrategies(cfg *config.Config) {
+	var slit []strategies.Handler
+	var s strategies.Handler
+	count := 0
+	for _, strat := range cfg.StrategiesSettings {
+		// for _, dir := range []gctorder.Side{gctorder.Buy, gctorder.Sell} {
+		for _, c := range tm.bot.CurrencySettings {
+			// fmt.Println("c", c)
+			// _, pair, _, _ := tm.loadExchangePairAssetBase(c.ExchangeName, c.Base, c.Quote, c.Asset)
+			s, _ = strategies.LoadStrategyByName(strat.Name)
+
+			// tm.SetExchangeAssetCurrencySettings(exch, a, cp , c *ExchangeAssetPairSettings) {
+			count += 1
+
+			// fmt.Println("type of s", reflect.New(reflect.TypeOf(s)))
+			// fmt.Println("type", reflect.New(reflect.ValueOf(s).Elem().Type()).Interface())
+			// fmt.Println("valueof", reflect.New(reflect.ValueOf(s).Elem().Type()))
+			// strategy = reflect.New(reflect.ValueOf(s).Elem().Type()).Interface().(strategy.Handler)
+			// fmt.Println("loaded", strategy)
+
+			id := fmt.Sprintf("%d_%s_%s_%v", count, s.Name(), string(gctorder.Buy), c.CurrencyPair)
+			s.SetID(id)
+			s.SetNumID(count)
+			s.SetPair(c.CurrencyPair)
+			s.SetDirection(gctorder.Buy)
+
+			// validate strategy
+			if s.GetID() == "" {
+				fmt.Println("no strategy id")
+				os.Exit(2)
+			}
+			s.SetDefaults()
+			slit = append(slit, s)
+		}
+		// }
+	}
+	tm.Strategies = slit
+}
+
+func (tm *TradeManager) initializePortfolio(strategyConfig *config.Config) error {
+	// for i := range strategyConfig.Stratey
+	tm.initializeStrategies(strategyConfig)
+	tm.initializeFactorEngines()
+
+	// if tm.verbose {
+	log.Infof(log.TradeManager, "Running %d strategies\n", len(tm.Strategies))
+	log.Infof(log.TradeManager, "Running %d currencies\n", len(tm.bot.CurrencySettings))
+	// log.Infof(log.TradeManager, "Running %d exchanges\n", len(tm.bot.CurrencySettings))
+	// }
+
+	// setup portfolio with strategies
+	var p *Portfolio
+	p, err := SetupPortfolio(tm.Strategies, tm.bot, strategyConfig)
+	p.SetVerbose(false)
+	if err != nil {
+		return err
+	}
+
+	stats := &statistics.Statistic{
+		StrategyName:                "ok",
+		StrategyNickname:            strategyConfig.Nickname,
+		StrategyDescription:         "ok",
+		StrategyGoal:                strategyConfig.Goal,
+		ExchangeAssetPairStatistics: make(map[string]map[asset.Item]map[currency.Pair]*currencystatistics.CurrencyStatistic),
+		RiskFreeRate:                strategyConfig.StatisticSettings.RiskFreeRate,
+	}
+	tm.Statistic = stats
+
+	// load from configuration into datastructure
+	// currencysettings returns the data from the config, exchangeassetpairsettings
+	// tm.Exchange = &e
+
+	log.Infoln(log.TradeManager, "Loaded", len(tm.bot.CurrencySettings), "currencies")
+
+	tm.Portfolio = p
+	return err
+}
+
+func (tm *TradeManager) initializeFactorEngines() error {
+	tm.FactorEngines = make(map[string]map[asset.Item]map[currency.Pair]*FactorEngine)
+	for _, x := range tm.bot.CurrencySettings {
+		fe, _ := SetupFactorEngine(x.CurrencyPair)
+		ex := x.ExchangeName
+
+		if tm.FactorEngines[ex] == nil {
+			// fmt.Println("setup exchanges factors engine", ex)
+			tm.FactorEngines[ex] = make(map[asset.Item]map[currency.Pair]*FactorEngine)
+		}
+		if tm.FactorEngines[ex][x.AssetType] == nil {
+			// fmt.Println("setup exchanges's asset's factor engines", ex, "spot")
+			tm.FactorEngines[ex][x.AssetType] = make(map[currency.Pair]*FactorEngine)
+		}
+
+		fmt.Println("setup factor engine for pair", ex, x.CurrencyPair)
+		tm.FactorEngines[ex][x.AssetType][x.CurrencyPair] = fe
+	}
+	return nil
 }

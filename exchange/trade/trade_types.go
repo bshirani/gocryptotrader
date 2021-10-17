@@ -5,15 +5,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gofrs/uuid"
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/order"
+
+	"github.com/gofrs/uuid"
 )
 
 // DefaultProcessorIntervalTime is the default timer
 // to process queued trades and save them to the database
-const DefaultProcessorIntervalTime = time.Second * 15
+const DefaultProcessorIntervalTime = time.Second * 7
 
 var (
 	processor Processor
