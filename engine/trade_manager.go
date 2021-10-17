@@ -197,8 +197,8 @@ func (tm *TradeManager) processEvents() error {
 func (tm *TradeManager) Start() error {
 	tm.setOrderManagerCallbacks()
 
-	tm.Warmup = false
-	tm.warmup()
+	// tm.Warmup = false
+	// tm.warmup()
 
 	// throw error if not live
 	if !atomic.CompareAndSwapInt32(&tm.started, 0, 1) {
@@ -226,9 +226,9 @@ func (tm *TradeManager) runLive() error {
 		case <-tm.shutdown:
 			return nil
 		case <-processEventTicker.C:
-			thisMinute := time.Now()
-			// t := time.Now()
-			// thisMinute := time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location())
+			// thisMinute := time.Now()
+			t := time.Now()
+			thisMinute := time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location())
 
 			for _, cs := range tm.CurrencySettings {
 				t1 := lup[cs]
@@ -236,6 +236,7 @@ func (tm *TradeManager) runLive() error {
 				if t1 == thisMinute { //skip if alrady updated this minute
 					continue
 				} else {
+					lup[cs] = thisMinute
 					exch, _, asset, err := tm.loadExchangePairAssetBase(
 						cs.ExchangeName,
 						cs.CurrencyPair.Base.String(),
@@ -278,24 +279,11 @@ func (tm *TradeManager) runLive() error {
 
 						// resp.Item.Candles = append(resp.Item.Candles, klineItem)
 						if len(klineItem.Candles) > 0 {
-							lup[cs] = thisMinute
 							klineItem.SortCandlesByTimestamp(true)
 							resp.Item = klineItem
 							resp.Load()
 							tm.Datas.SetDataForCurrency(strings.ToLower(cs.ExchangeName), cs.AssetType, cs.CurrencyPair, resp)
 
-							for _, exchangeMap := range tm.Datas.GetAllData() { // for each exchange
-								for _, assetMap := range exchangeMap { // asset
-									for _, dataHandler := range assetMap { // coin
-										d := dataHandler.Next()
-										if d == nil {
-											continue
-										}
-										fmt.Println("appending event", d)
-										tm.EventQueue.AppendEvent(d)
-									}
-								}
-							}
 						}
 
 						// c.queue.AppendEvent(signals[i])
@@ -308,6 +296,18 @@ func (tm *TradeManager) runLive() error {
 					// for ev := tm.EventQueue.NextEvent(); ; ev = tm.EventQueue.NextEvent() {
 					// 	tm.EventQueue.AppendEvent(d)
 					// }
+				}
+			}
+			for _, exchangeMap := range tm.Datas.GetAllData() { // for each exchange
+				for _, assetMap := range exchangeMap { // asset
+					for _, dataHandler := range assetMap { // coin
+						d := dataHandler.Next()
+						if d == nil {
+							continue
+						}
+						// fmt.Println("appending event", d)
+						tm.EventQueue.AppendEvent(d)
+					}
 				}
 			}
 			err := tm.processEvents()
@@ -806,6 +806,11 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 	// }
 
 	d := tm.Datas.GetDataForCurrency(strings.ToLower(ev.GetExchange()), ev.GetAssetType(), ev.Pair())
+	l := d.Latest()
+	fmt.Println(l.Pair(), l.GetTime(), l.OpenPrice(), l.HighPrice(), l.LowPrice(), l.ClosePrice())
+	if !tm.Warmup {
+		tm.Bot.OrderManager.Update()
+	}
 
 	// update factor engine
 	// if tm.Bot.Config.LiveMode {
@@ -828,30 +833,26 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 	// 		}
 	// 	}
 	// }
-	fmt.Println(tm.FactorEngines[strings.ToLower(ev.GetExchange())][ev.GetAssetType()][ev.Pair()], d)
 	// tm.FactorEngines[strings.ToLower(ev.GetExchange())][ev.GetAssetType()]
-	fe := tm.FactorEngines[strings.ToLower(ev.GetExchange())][ev.GetAssetType()][ev.Pair()]
-	fe.OnBar(d)
+	// fe := tm.FactorEngines[strings.ToLower(ev.GetExchange())][ev.GetAssetType()][ev.Pair()]
+	// fe.OnBar(d)
 
 	// HANDLE warmup MODE
 	// in warmup mode, we do not query the strategies
-	if !tm.Warmup {
-		tm.Bot.OrderManager.Update()
 
-		// for _, strategy := range tm.Strategies {
-		// 	if strategy.GetPair() == ev.Pair() {
-		// 		if tm.Bot.Config.LiveMode {
-		// 			fmt.Println("Updating strategy", strategy.GetID(), d.Latest().GetTime())
-		// 		}
-		// 		s, err := strategy.OnData(d, tm.Portfolio, fe)
-		// 		if err != nil {
-		// 			fmt.Println("error processing data event", err)
-		// 			return err
-		// 		}
-		// 		tm.EventQueue.AppendEvent(s)
-		// 	}
-		// }
-	}
+	// for _, strategy := range tm.Strategies {
+	// 	if strategy.GetPair() == ev.Pair() {
+	// 		if tm.Bot.Config.LiveMode {
+	// 			fmt.Println("Updating strategy", strategy.GetID(), d.Latest().GetTime())
+	// 		}
+	// 		s, err := strategy.OnData(d, tm.Portfolio, fe)
+	// 		if err != nil {
+	// 			fmt.Println("error processing data event", err)
+	// 			return err
+	// 		}
+	// 		tm.EventQueue.AppendEvent(s)
+	// 	}
+	// }
 
 	// if err != nil {
 	// 	if errors.Is(err, base.ErrTooMuchBadData) {

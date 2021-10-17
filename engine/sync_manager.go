@@ -107,6 +107,7 @@ func (m *syncManager) Start() error {
 	log.Debugln(log.SyncMgr, "Exchange CurrencyPairSyncer started.")
 	exchanges, err := m.exchangeManager.GetExchanges()
 	if err != nil {
+		fmt.Println("error start sync manager", err)
 		return err
 	}
 	for x := range exchanges {
