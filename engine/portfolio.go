@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -17,6 +18,7 @@ import (
 	"gocryptotrader/eventtypes/order"
 	"gocryptotrader/eventtypes/signal"
 	"gocryptotrader/eventtypes/submit"
+	"gocryptotrader/exchange"
 	"gocryptotrader/exchange/asset"
 	gctorder "gocryptotrader/exchange/order"
 	"gocryptotrader/log"
@@ -1015,4 +1017,32 @@ func (p *Portfolio) PrintPortfolioDetails() {
 
 func (p *Portfolio) Bot() *Engine {
 	return p.bot
+}
+
+// getFees will return an exchange's fee rate from GCT's wrapper function
+func getFees(ctx context.Context, exch exchange.IBotExchange, fPair currency.Pair) (makerFee, takerFee decimal.Decimal) {
+	fTakerFee, err := exch.GetFeeByType(ctx,
+		&exchange.FeeBuilder{FeeType: exchange.OfflineTradeFee,
+			Pair:          fPair,
+			IsMaker:       false,
+			PurchasePrice: 1,
+			Amount:        1,
+		})
+	if err != nil {
+		log.Errorf(log.TradeManager, "Could not retrieve taker fee for %v. %v", exch.GetName(), err)
+	}
+
+	fMakerFee, err := exch.GetFeeByType(ctx,
+		&exchange.FeeBuilder{
+			FeeType:       exchange.OfflineTradeFee,
+			Pair:          fPair,
+			IsMaker:       true,
+			PurchasePrice: 1,
+			Amount:        1,
+		})
+	if err != nil {
+		log.Errorf(log.TradeManager, "Could not retrieve maker fee for %v. %v", exch.GetName(), err)
+	}
+
+	return decimal.NewFromFloat(fMakerFee), decimal.NewFromFloat(fTakerFee)
 }

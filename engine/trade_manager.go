@@ -6,12 +6,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"sync/atomic"
 	"time"
 
-	gctcommon "gocryptotrader/common"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/data"
@@ -31,6 +29,7 @@ import (
 	gctkline "gocryptotrader/exchange/kline"
 	gctorder "gocryptotrader/exchange/order"
 	"gocryptotrader/exchange/ticker"
+	"gocryptotrader/exchange/trade"
 	"gocryptotrader/log"
 	gctlog "gocryptotrader/log"
 	"gocryptotrader/portfolio/report"
@@ -117,6 +116,12 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	tm.syncManager = bot.currencyPairSyncer
 
 	err = tm.setupBot(cfg)
+	if err != nil {
+		fmt.Println("error setting up bot")
+		os.Exit(123)
+	} else {
+		fmt.Println("bot setup complete")
+	}
 
 	// initialize the data structure to hold the klines for each pair
 	return tm, err
@@ -214,42 +219,97 @@ func (tm *TradeManager) Start() error {
 }
 
 func (tm *TradeManager) runLive() error {
-	lup := make(map[data.Handler]time.Time)
+	lup := make(map[ExchangeAssetPairSettings]time.Time)
 	processEventTicker := time.NewTicker(time.Second)
 	for {
 		select {
 		case <-tm.shutdown:
 			return nil
 		case <-processEventTicker.C:
-			t := time.Now()
-			thisMinute := time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location())
-			fmt.Println(" so lets go ")
+			thisMinute := time.Now()
+			// t := time.Now()
+			// thisMinute := time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location())
 
-			for _, exchangeMap := range tm.Datas.GetAllData() { // for each exchange
-				for _, assetMap := range exchangeMap { // asset
-					for _, dataHandler := range assetMap { // coin
-						t1 := lup[dataHandler]
+			for _, cs := range tm.CurrencySettings {
+				t1 := lup[cs]
 
-						if t1 == thisMinute { //skip if alrady updated this minute
-							fmt.Print("already updated")
-							continue
-						} else {
-							fmt.Print("handle update, request from db")
-							d := dataHandler.Next()
-							if d == nil {
-								// if !tm.hasHandledEvent {
-								// 	log.Errorf(log.TradeManager, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
-								// }
-								return nil
-							}
-							tm.EventQueue.AppendEvent(d)
-						}
+				if t1 == thisMinute { //skip if alrady updated this minute
+					continue
+				} else {
+					lup[cs] = thisMinute
+					exch, _, asset, err := tm.loadExchangePairAssetBase(
+						cs.ExchangeName,
+						cs.CurrencyPair.Base.String(),
+						cs.CurrencyPair.Quote.String(),
+						cs.AssetType.String())
+
+					if exch == nil {
+						fmt.Println("no exchange found")
 					}
+
+					trades, err := trade.GetTradesInRange(
+						cs.ExchangeName,
+						cs.AssetType.String(),
+						cs.CurrencyPair.Base.String(),
+						cs.CurrencyPair.Quote.String(),
+						time.Now().Add(-time.Minute),
+						time.Now())
+
+					if err != nil {
+						fmt.Println("unable to retrieve data from GoCryptoTrader database. Error: %v. Please ensure the database is setup correctly and has data before use", err)
+						continue
+					}
+
+					if len(trades) > 0 {
+						resp := &kline.DataFromKline{}
+						resp.Item = gctkline.Item{
+							Exchange: cs.ExchangeName,
+							Pair:     cs.CurrencyPair,
+							Interval: gctkline.OneMin,
+							Asset:    asset,
+						}
+						trades[0].CurrencyPair = cs.CurrencyPair
+						trades[0].Exchange = cs.ExchangeName
+						klineItem, err := trade.ConvertTradesToCandles(
+							gctkline.Interval(gctkline.OneMin),
+							trades...)
+						if err != nil {
+							log.Errorf(log.Watcher, "could not convert database trade data for %v %v %v, %v", cs.ExchangeName, cs.AssetType, cs.CurrencyPair, err)
+						}
+
+						klineItem.SortCandlesByTimestamp(true)
+						// resp.Item.Candles = append(resp.Item.Candles, klineItem)
+						resp.Item = klineItem
+
+						resp.Load()
+
+						tm.Datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, resp)
+
+						for _, exchangeMap := range tm.Datas.GetAllData() { // for each exchange
+							for _, assetMap := range exchangeMap { // asset
+								for _, dataHandler := range assetMap { // coin
+									d := dataHandler.Next()
+									if d == nil {
+										continue
+									}
+									fmt.Println("appending event", d)
+									tm.EventQueue.AppendEvent(d)
+								}
+							}
+						}
+
+						// c.queue.AppendEvent(signals[i])
+					}
+					if err != nil {
+						fmt.Println("error", err)
+						continue
+					}
+
+					// for ev := tm.EventQueue.NextEvent(); ; ev = tm.EventQueue.NextEvent() {
+					// 	tm.EventQueue.AppendEvent(d)
+					// }
 				}
 			}
-			// if err != nil {
-			// 	log.Errorln(log.TradeManager, "error loading data events", err)
-			// }
 			err := tm.processEvents()
 			if err != nil {
 				log.Errorln(log.TradeManager, "procesing events", err)
@@ -372,7 +432,6 @@ func (tm *TradeManager) Stop() error {
 	}
 
 	log.Debugln(log.TradeManager, "Backtester Stopping...")
-
 	if tm.Bot.OrderManager.IsRunning() {
 		tm.Bot.OrderManager.Stop()
 	}
@@ -391,29 +450,27 @@ func (tm *TradeManager) Stop() error {
 	return nil
 }
 
-func (tm *TradeManager) loadOfflineDatas() error {
-	cfg := &tm.cfg
-
-	tm.Datas.Setup()
-
-	// LOAD DATA FOR EVERY PAIR
-	for _, cs := range tm.CurrencySettings {
-		// exchangeName := strings.ToLower(exch.GetName())
-		// klineData, err := tm.loadOfflineData(cfg, exch, pair, a)
-		exch, pair, a, err := tm.loadExchangePairAssetBase(
-			cs.ExchangeName,
-			cs.CurrencyPair.Base.String(),
-			cs.CurrencyPair.Quote.String(),
-			cs.AssetType.String())
-		klineData, err := tm.loadOfflineData(cfg, exch, pair, a)
-		if err != nil {
-			return err
-		}
-		tm.Datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, klineData)
-	}
-	return nil
-}
-
+// func (tm *TradeManager) loadOfflineDatas() error {
+// 	fmt.Println("ok", len(tm.CurrencySettings))
+// 	// cfg := &tm.cfg
+//
+// 	tm.Datas.Setup()
+//
+// 	// LOAD DATA FOR EVERY PAIR
+// 	for _, cs := range tm.CurrencySettings {
+// 		// exchangeName := strings.ToLower(exch.GetName())
+// 		// klineData, err := tm.loadOfflineData(cfg, exch, pair, a)
+//
+// 		// err = resp.Load()
+// 		// if err != nil {
+// 		// 	fmt.Println("error", err)
+// 		// 	continue
+// 		// }
+// 		// tm.Datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, resp)
+// 	}
+// 	return nil
+// }
+//
 // IsRunning returns if gctscript manager subsystem is started
 func (b *TradeManager) IsRunning() bool {
 	if b == nil {
@@ -646,41 +703,13 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 
 	// cfg.PrintSetting()
 
-	err = tm.loadOfflineDatas()
-	if err != nil {
-		log.Errorf(log.TradeManager, "error loading datas", err)
-		return nil
-	}
+	// err = tm.loadOfflineDatas()
+	// if err != nil {
+	// 	log.Errorf(log.TradeManager, "error loading datas", err)
+	// 	return nil
+	// }
 
 	return nil
-}
-
-// getFees will return an exchange's fee rate from GCT's wrapper function
-func getFees(ctx context.Context, exch exchange.IBotExchange, fPair currency.Pair) (makerFee, takerFee decimal.Decimal) {
-	fTakerFee, err := exch.GetFeeByType(ctx,
-		&exchange.FeeBuilder{FeeType: exchange.OfflineTradeFee,
-			Pair:          fPair,
-			IsMaker:       false,
-			PurchasePrice: 1,
-			Amount:        1,
-		})
-	if err != nil {
-		log.Errorf(log.TradeManager, "Could not retrieve taker fee for %v. %v", exch.GetName(), err)
-	}
-
-	fMakerFee, err := exch.GetFeeByType(ctx,
-		&exchange.FeeBuilder{
-			FeeType:       exchange.OfflineTradeFee,
-			Pair:          fPair,
-			IsMaker:       true,
-			PurchasePrice: 1,
-			Amount:        1,
-		})
-	if err != nil {
-		log.Errorf(log.TradeManager, "Could not retrieve maker fee for %v. %v", exch.GetName(), err)
-	}
-
-	return decimal.NewFromFloat(fMakerFee), decimal.NewFromFloat(fTakerFee)
 }
 
 // loadOfflineData will create kline data from the sources defined in start config files. It can exist from databases, csv or API endpoints
@@ -699,17 +728,6 @@ func (tm *TradeManager) loadOfflineData(cfg *config.Config, exch exchange.IBotEx
 
 	resp := &kline.DataFromKline{}
 	// log.Infof(log.TradeManager, "loading db data for %v %v %v...\n", exch.GetName(), a, fPair)
-	if cfg.DataSettings.DatabaseData.InclusiveEndDate {
-		cfg.DataSettings.DatabaseData.EndDate = cfg.DataSettings.DatabaseData.EndDate.Add(cfg.DataSettings.Interval)
-	}
-	if cfg.DataSettings.DatabaseData.ConfigOverride != nil {
-		tm.Bot.Config.Database = *cfg.DataSettings.DatabaseData.ConfigOverride
-		gctdatabase.DB.DataPath = filepath.Join(gctcommon.GetDefaultDataDir(runtime.GOOS), "database")
-		err := gctdatabase.DB.SetConfig(cfg.DataSettings.DatabaseData.ConfigOverride)
-		if err != nil {
-			return nil, err
-		}
-	}
 	resp, err := loadDatabaseData(cfg, exch.GetName(), fPair, a, 1)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve data from GoCryptoTrader database. Error: %v. Please ensure the database is setup correctly and has data before use", err)
@@ -718,14 +736,16 @@ func (tm *TradeManager) loadOfflineData(cfg *config.Config, exch exchange.IBotEx
 	resp.Item.RemoveDuplicates()
 	resp.Item.SortCandlesByTimestamp(false)
 	resp.RangeHolder, err = gctkline.CalculateCandleDateRanges(
-		cfg.DataSettings.DatabaseData.StartDate,
-		cfg.DataSettings.DatabaseData.EndDate,
+		time.Now(),
+		time.Now().Add(-1*time.Minute),
 		gctkline.Interval(cfg.DataSettings.Interval),
 		0,
 	)
 	if err != nil {
+		fmt.Println("error", err)
 		return nil, err
 	}
+
 	resp.RangeHolder.SetHasDataFromCandles(resp.Item.Candles)
 	summary := resp.RangeHolder.DataSummary(false)
 	if len(summary) > 0 {
@@ -785,7 +805,7 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 	// 	return err
 	// }
 
-	d := tm.Datas.GetDataForCurrency(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
+	d := tm.Datas.GetDataForCurrency(strings.ToLower(ev.GetExchange()), ev.GetAssetType(), ev.Pair())
 
 	// update factor engine
 	// if tm.Bot.Config.LiveMode {
@@ -798,21 +818,36 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 	// 	fmt.Printf("%s..", i)
 	// }
 	// fmt.Println(ev.GetExchange(), len(exfe), len(exassetfe), ev.Pair(), fe)
-	fe := tm.FactorEngines[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
-	fe.OnBar(d)
+	// fmt.Println("ookup", ev.GetExchange(), ev.GetAssetType(), ev.Pair())
+	// for i := range tm.FactorEngines {
+	// 	fmt.Println("exchange", i)
+	// 	for a := range tm.FactorEngines[i] {
+	// 		fmt.Println("asset", a)
+	// 		for p := range tm.FactorEngines[i][a] {
+	// 			fmt.Println("pair", p)
+	// 		}
+	// 	}
+	// }
+	fmt.Println(tm.FactorEngines[strings.ToLower(ev.GetExchange())][ev.GetAssetType()][ev.Pair()], d)
+	// tm.FactorEngines[strings.ToLower(ev.GetExchange())][ev.GetAssetType()]
+	// fe := tm.FactorEngines[strings.ToLower(ev.GetExchange())][ev.GetAssetType()][ev.Pair()]
+	// fe.OnBar(d)
 
 	// HANDLE warmup MODE
 	// in warmup mode, we do not query the strategies
 	if !tm.Warmup {
 		tm.Bot.OrderManager.Update()
 
-		// var s signal.Event
 		// for _, strategy := range tm.Strategies {
 		// 	if strategy.GetPair() == ev.Pair() {
 		// 		if tm.Bot.Config.LiveMode {
 		// 			fmt.Println("Updating strategy", strategy.GetID(), d.Latest().GetTime())
 		// 		}
-		// 		s, err = strategy.OnData(d, tm.Portfolio, fe)
+		// 		s, err := strategy.OnData(d, tm.Portfolio, fe)
+		// 		if err != nil {
+		// 			fmt.Println("error processing data event", err)
+		// 			return err
+		// 		}
 		// 		tm.EventQueue.AppendEvent(s)
 		// 	}
 		// }
@@ -1125,8 +1160,8 @@ func loadDatabaseData(cfg *config.Config, name string, fPair currency.Pair, a as
 	}
 
 	return database.LoadData(
-		cfg.DataSettings.DatabaseData.StartDate,
-		cfg.DataSettings.DatabaseData.EndDate,
+		time.Now(),
+		time.Now().Add(-1*time.Minute),
 		cfg.DataSettings.Interval,
 		strings.ToLower(name),
 		dataType,

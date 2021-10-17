@@ -747,6 +747,18 @@ func (bot *Engine) Stop() {
 			gctlog.Errorf(gctlog.DataHistory, "data history manager unable to stop. Error: %v", err)
 		}
 	}
+	if bot.watcher.IsRunning() {
+		if err := bot.watcher.Stop(); err != nil {
+			gctlog.Errorf(gctlog.Global,
+				"watcher unable to stop. Error: %v",
+				err)
+		}
+	}
+	if bot.TradeManager.IsRunning() {
+		if err := bot.TradeManager.Stop(); err != nil {
+			gctlog.Errorf(gctlog.Global, "bt unable to stop. Error: %v", err)
+		}
+	}
 	if bot.DatabaseManager.IsRunning() {
 		if err := bot.DatabaseManager.Stop(); err != nil {
 			gctlog.Errorf(gctlog.Global, "Database manager unable to stop. Error: %v", err)
@@ -769,11 +781,6 @@ func (bot *Engine) Stop() {
 				err)
 		}
 	}
-	if bot.TradeManager.IsRunning() {
-		if err := bot.TradeManager.Stop(); err != nil {
-			gctlog.Errorf(gctlog.Global, "bt unable to stop. Error: %v", err)
-		}
-	}
 
 	if bot.Settings.EnableCoinmarketcapAnalysis ||
 		bot.Settings.EnableCurrencyConverter ||
@@ -783,13 +790,6 @@ func (bot *Engine) Stop() {
 		bot.Settings.EnableExchangeRateHost {
 		if err := currency.ShutdownStorageUpdater(); err != nil {
 			gctlog.Errorf(gctlog.Global, "ExchangeSettings storage system. Error: %v", err)
-		}
-	}
-	if bot.watcher.IsRunning() {
-		if err := bot.watcher.Stop(); err != nil {
-			gctlog.Errorf(gctlog.Global,
-				"watcher unable to stop. Error: %v",
-				err)
 		}
 	}
 
