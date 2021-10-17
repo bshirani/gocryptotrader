@@ -509,6 +509,24 @@ type wsOrderUpdate struct {
 }
 
 // TradeHistory contains trade history data
+type TradeHistory2 struct {
+	Elapsed string               `json:"elapsed"`
+	Result  bool                 `json:"result,string"`
+	Data    []TradeHistoryEntry2 `json:"data"`
+}
+
+// TradeHistoryEntry contains an individual trade
+type TradeHistoryEntry2 struct {
+	Amount    float64 `json:"amount"`
+	Date      string  `json:"date"`
+	Rate      float64 `json:"rate"`
+	Timestamp int64   `json:"timestamp"`
+	Total     float64 `json:"total"`
+	TradeID   int64   `json:"tradeID"`
+	Type      string  `json:"type"`
+}
+
+// TradeHistory contains trade history data
 type TradeHistory struct {
 	Elapsed string              `json:"elapsed"`
 	Result  bool                `json:"result,string"`

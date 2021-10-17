@@ -8,9 +8,11 @@ import (
 	"strings"
 	"time"
 
+	"gocryptotrader/currency"
 	"gocryptotrader/database"
 	"gocryptotrader/database/models/postgres"
 	"gocryptotrader/database/repository/exchange"
+	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/kline"
 	"gocryptotrader/log"
 
@@ -191,11 +193,11 @@ func GetInRange(exchangeName, assetType, base, quote string, startDate, endDate 
 	return td, nil
 }
 
-func GetLast(exchangeName string, assetType asset.Item, pair currency.Pair) (td []Data, err error) {
+func GetLast(exchangeName string, assetType asset.Item, pair currency.Pair) (td Data, err error) {
 	var exchangeUUID uuid.UUID
 	exchangeUUID, err = exchange.UUIDByName(exchangeName)
 	if err != nil {
-		return nil, err
+		return Data{}, err
 	}
 	wheres := map[string]interface{}{
 		"exchange_name_id": exchangeUUID,
@@ -209,29 +211,28 @@ func GetLast(exchangeName string, assetType asset.Item, pair currency.Pair) (td 
 		q = append(q, qm.Where(k+` = ?`, v))
 	}
 
+	q = append(q, qm.Limit(1))
+
 	query := postgres.Trades(q...)
 	var result []*postgres.Trade
 	result, err = query.All(context.Background(), database.DB.SQL)
 	if err != nil {
 		return td, err
 	}
-	for i := range result {
-		t := Data{
-			ID:        result[i].ID,
-			Timestamp: result[i].Timestamp,
-			Exchange:  strings.ToLower(exchangeName),
-			Base:      strings.ToUpper(result[i].Base),
-			Quote:     strings.ToUpper(result[i].Quote),
-			AssetType: strings.ToLower(result[i].Asset),
-			Price:     result[i].Price,
-			Amount:    result[i].Amount,
-		}
-		if result[i].Side.Valid {
-			t.Side = result[i].Side.String
-		}
-		td = append(td, t)
+	td = Data{
+		ID:        result[0].ID,
+		Timestamp: result[0].Timestamp,
+		Exchange:  strings.ToLower(exchangeName),
+		Base:      strings.ToUpper(result[0].Base),
+		Quote:     strings.ToUpper(result[0].Quote),
+		AssetType: strings.ToLower(result[0].Asset),
+		Price:     result[0].Price,
+		Amount:    result[0].Amount,
+		TID:       result[0].Tid.String,
 	}
-	return td, nil
+	if result[0].Side.Valid {
+		td.Side = result[0].Side.String
+	}
 	if err != nil {
 		return td, fmt.Errorf("trade.GetByExchangeInRange getInRangePostgres %w", err)
 	}
@@ -269,6 +270,7 @@ func getInRangePostgres(exchangeName, assetType, base, quote string, startDate, 
 			AssetType: strings.ToLower(result[i].Asset),
 			Price:     result[i].Price,
 			Amount:    result[i].Amount,
+			TID:       result[i].Tid.String,
 		}
 		if result[i].Side.Valid {
 			t.Side = result[i].Side.String

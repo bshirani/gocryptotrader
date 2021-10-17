@@ -14,6 +14,7 @@ import (
 	"gocryptotrader/common/convert"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
+	tradesql "gocryptotrader/database/repository/trade"
 	"gocryptotrader/exchange"
 	"gocryptotrader/exchange/account"
 	"gocryptotrader/exchange/asset"
@@ -482,8 +483,54 @@ func (g *Gateio) GetRecentTrades(ctx context.Context, p currency.Pair, assetType
 }
 
 // GetHistoricTrades returns historic trade data within the timeframe provided
-func (g *Gateio) GetHistoricTrades(_ context.Context, _ currency.Pair, _ asset.Item, _, _ time.Time) ([]trade.Data, error) {
-	return nil, common.ErrFunctionNotSupported
+func (g *Gateio) GetHistoricTrades(ctx context.Context, p currency.Pair, assetType asset.Item, _, _ time.Time) ([]trade.Data, error) {
+	var err error
+	p, err = g.FormatExchangeCurrency(p, assetType)
+	if err != nil {
+		return nil, err
+	}
+
+	lastTrade, err := tradesql.GetLast(g.Name, assetType, p)
+	fmt.Println("last trade id ", lastTrade.TID, lastTrade.Timestamp, err)
+
+	var tradeData TradeHistory2
+	tradeData, err = g.GetTradesSince(ctx, p.String(), lastTrade.TID)
+	if err != nil {
+		return nil, err
+	}
+	if len(tradeData.Data) > 0 {
+
+		fmt.Println("last trade id ", tradeData.Data[0].TradeID)
+	} else {
+		fmt.Println("no trades returned")
+	}
+
+	var resp []trade.Data
+	for i := range tradeData.Data {
+		var side order.Side
+		side, err = order.StringToOrderSide(tradeData.Data[i].Type)
+		if err != nil {
+			return nil, err
+		}
+		resp = append(resp, trade.Data{
+			Exchange:     g.Name,
+			TID:          strconv.FormatInt(tradeData.Data[i].TradeID, 10),
+			CurrencyPair: p,
+			AssetType:    assetType,
+			Side:         side,
+			Price:        tradeData.Data[i].Rate,
+			Amount:       tradeData.Data[i].Amount,
+			Timestamp:    time.Unix(tradeData.Data[i].Timestamp, 0),
+		})
+	}
+
+	err = g.AddTradesToBuffer(resp...)
+	if err != nil {
+		return nil, err
+	}
+
+	sort.Sort(trade.ByDate(resp))
+	return resp, nil
 }
 
 // SubmitOrder submits a new order

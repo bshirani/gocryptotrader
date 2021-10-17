@@ -133,6 +133,17 @@ func (g *Gateio) GetTrades(ctx context.Context, symbol string) (TradeHistory, er
 	return resp, nil
 }
 
+// GetTrades returns trades for symbols
+func (g *Gateio) GetTradesSince(ctx context.Context, symbol string, tid string) (TradeHistory2, error) {
+	urlPath := fmt.Sprintf("/%s/%s/%s/%s", gateioAPIVersion, gateioTrades, symbol, tid)
+	var resp TradeHistory2
+	err := g.SendHTTPRequest(ctx, exchange.RestSpotSupplementary, urlPath, &resp)
+	if err != nil {
+		return TradeHistory2{}, err
+	}
+	return resp, nil
+}
+
 // GetOrderbook returns the orderbook data for a suppled symbol
 func (g *Gateio) GetOrderbook(ctx context.Context, symbol string) (Orderbook, error) {
 	urlPath := fmt.Sprintf("/%s/%s/%s", gateioAPIVersion, gateioOrderbook, symbol)
@@ -319,6 +330,8 @@ func (g *Gateio) SendHTTPRequest(ctx context.Context, ep exchange.URL, path stri
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("request", ep, path)
 	item := &request.Item{
 		Method:        http.MethodGet,
 		Path:          endpoint + path,
