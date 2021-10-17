@@ -271,7 +271,7 @@ func (bot *Engine) SetSubsystem(subSystemName string, enable bool) error {
 			if bot.watcher == nil {
 				bot.watcher, err = SetupWatcher(
 					bot.Config.Watcher.Delay,
-					bot.ExchangeManager)
+					bot)
 				if err != nil {
 					return err
 				}

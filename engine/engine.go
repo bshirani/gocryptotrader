@@ -162,7 +162,7 @@ func validateSettings(b *Engine, s *Settings, flagSet map[string]bool) {
 		b.Config.CurrencyStateManager.Enabled != nil &&
 			*b.Config.CurrencyStateManager.Enabled
 
-	b.Settings.EnableWatcher = (flagSet["currencystatemanager"] &&
+	b.Settings.EnableWatcher = (flagSet["watcher"] &&
 		b.Settings.EnableWatcher) ||
 		b.Config.Watcher.Enabled != nil &&
 			*b.Config.Watcher.Enabled
@@ -252,27 +252,28 @@ func PrintSettings(s *Settings) {
 	gctlog.Infoln(gctlog.Global)
 	gctlog.Infof(gctlog.Global, "ENGINE SETTINGS")
 	gctlog.Infof(gctlog.Global, "- CORE SETTINGS:")
-	gctlog.Infof(gctlog.Global, "\t Enable trading: %v", s.EnableTradeManager)
-	gctlog.Infof(gctlog.Global, "\t live mode: %v", s.EnableLiveMode)
-	gctlog.Infof(gctlog.Global, "\t dry run mode: %v", s.EnableDryRun)
+	gctlog.Infof(gctlog.Global, "\t trading: %v", s.EnableTradeManager)
+	gctlog.Infof(gctlog.Global, "\t live: %v", s.EnableLiveMode)
+	gctlog.Infof(gctlog.Global, "\t dry run: %v", s.EnableDryRun)
+	gctlog.Infof(gctlog.Global, "\t Database: %v", s.EnableDatabaseManager)
+	gctlog.Infof(gctlog.Global, "\t watcher: %v", s.EnableWatcher)
 	gctlog.Infof(gctlog.Global, "\t comms relayer: %v", s.EnableCommsRelayer)
-	gctlog.Infof(gctlog.Global, "\t Enable gPRC: %v", s.EnableGRPC)
+	gctlog.Infof(gctlog.Global, "\t gPRC: %v", s.EnableGRPC)
 	gctlog.Infof(gctlog.Global, "\t event manager: %v", s.EnableEventManager)
-	gctlog.Infof(gctlog.Global, "\t Verbose mode: %v", s.Verbose)
-	gctlog.Infof(gctlog.Global, "\t Enable data history manager: %v", s.EnableDataHistoryManager)
-	gctlog.Infof(gctlog.Global, "\t Enable order manager: %v", s.EnableOrderManager)
-	gctlog.Infof(gctlog.Global, "\t Enable websocket RPC: %v", s.EnableWebsocketRPC)
-	gctlog.Infof(gctlog.Global, "\t Enable websocket routine: %v\n", s.EnableWebsocketRoutine)
+	gctlog.Infof(gctlog.Global, "\t Verbose: %v", s.Verbose)
+	gctlog.Infof(gctlog.Global, "\t data history manager: %v", s.EnableDataHistoryManager)
+	gctlog.Infof(gctlog.Global, "\t order manager: %v", s.EnableOrderManager)
+	gctlog.Infof(gctlog.Global, "\t websocket RPC: %v", s.EnableWebsocketRPC)
+	gctlog.Infof(gctlog.Global, "\t websocket routine: %v\n", s.EnableWebsocketRoutine)
 	gctlog.Infof(gctlog.Global, "- EXCHANGE SYNCER SETTINGS:\n")
-	gctlog.Infof(gctlog.Global, "\t Enable exchange sync manager: %v", s.EnableExchangeSyncManager)
+	gctlog.Infof(gctlog.Global, "\t exchange sync manager: %v", s.EnableExchangeSyncManager)
 	gctlog.Infof(gctlog.Global, "\t Exchange Websocket sync timeout: %v\n", s.SyncTimeoutWebsocket)
-	gctlog.Infof(gctlog.Global, "\t Enable kline syncing: %v\n", s.EnableKlineSyncing)
-	gctlog.Infof(gctlog.Global, "\t Enable ticker syncing: %v\n", s.EnableTickerSyncing)
-	gctlog.Infof(gctlog.Global, "\t Enable trade syncing: %v\n", s.EnableTradeSyncing)
+	gctlog.Infof(gctlog.Global, "\t kline syncing: %v\n", s.EnableKlineSyncing)
+	gctlog.Infof(gctlog.Global, "\t ticker syncing: %v\n", s.EnableTickerSyncing)
+	gctlog.Infof(gctlog.Global, "\t trade syncing: %v\n", s.EnableTradeSyncing)
 	// gctlog.Infof(gctlog.Global, "\t Enable orderbook syncing: %v\n", s.EnableOrderbookSyncing)
 	// gctlog.Infof(gctlog.Global, "\t Enable coinmarketcap analaysis: %v", s.EnableCoinmarketcapAnalysis)
 	// gctlog.Infof(gctlog.Global, "\t TM Verbose: %v", s.TradeManager.Verbose)
-	// gctlog.Infof(gctlog.Global, "\t Enable Database manager: %v", s.EnableDatabaseManager)
 	// gctlog.Infof(gctlog.Global, "\t Enable all exchanges: %v", s.EnableAllExchanges)
 	// gctlog.Infof(gctlog.Global, "\t Enable all pairs: %v", s.EnableAllPairs)
 	// gctlog.Infof(gctlog.Global, "\t Enable portfolio manager: %v", s.EnablePortfolioManager)
@@ -624,26 +625,6 @@ func (bot *Engine) Start() error {
 		}
 	}
 
-	if bot.Settings.EnableWatcher {
-		bot.watcher, err = SetupWatcher(
-			bot.Config.Watcher.Delay,
-			bot.ExchangeManager)
-		if err != nil {
-			gctlog.Errorf(gctlog.Global,
-				"%s unable to setup: %s",
-				WatcherName,
-				err)
-		} else {
-			err = bot.watcher.Start()
-			if err != nil {
-				gctlog.Errorf(gctlog.Global,
-					"%s unable to start: %s",
-					WatcherName,
-					err)
-			}
-		}
-	}
-
 	if bot.Settings.EnableDataHistoryManager {
 		if bot.dataHistoryManager == nil {
 			bot.dataHistoryManager, err = SetupDataHistoryManager(bot.ExchangeManager, bot.DatabaseManager, &bot.Config.DataHistoryManager)
@@ -666,6 +647,25 @@ func (bot *Engine) Start() error {
 				os.Exit(1)
 			} else {
 				bot.TradeManager.Start()
+			}
+		}
+		if bot.Settings.EnableWatcher {
+			bot.watcher, err = SetupWatcher(
+				bot.Config.Watcher.Delay,
+				bot)
+			if err != nil {
+				gctlog.Errorf(gctlog.Global,
+					"%s unable to setup: %s",
+					WatcherName,
+					err)
+			} else {
+				err = bot.watcher.Start()
+				if err != nil {
+					gctlog.Errorf(gctlog.Global,
+						"%s unable to start: %s",
+						WatcherName,
+						err)
+				}
 			}
 		}
 	}

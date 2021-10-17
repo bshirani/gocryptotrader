@@ -23,6 +23,7 @@ var (
 	WebsocketMgr     *SubLogger
 	EventMgr         *SubLogger
 	DispatchMgr      *SubLogger
+	Watcher          *SubLogger
 
 	RequestSys  *SubLogger
 	ExchangeSys *SubLogger

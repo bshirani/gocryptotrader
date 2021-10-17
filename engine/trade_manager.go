@@ -204,7 +204,7 @@ func (tm *TradeManager) Start() error {
 	log.Debugf(log.TradeManager, "TradeManager  %s", MsgSubSystemStarting)
 	tm.shutdown = make(chan struct{})
 
-	go tm.heartBeat()
+	// go tm.heartBeat()
 
 	// create data subscriptions
 
@@ -214,23 +214,36 @@ func (tm *TradeManager) Start() error {
 }
 
 func (tm *TradeManager) runLive() error {
+	lup := make(map[data.Handler]time.Time)
 	processEventTicker := time.NewTicker(time.Second)
 	for {
 		select {
 		case <-tm.shutdown:
 			return nil
 		case <-processEventTicker.C:
-			for _, exchangeMap := range tm.Datas.GetAllData() {
-				for _, assetMap := range exchangeMap {
-					for _, dataHandler := range assetMap {
-						d := dataHandler.Next()
-						if d == nil {
-							// if !tm.hasHandledEvent {
-							// 	log.Errorf(log.TradeManager, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
-							// }
-							return nil
+			t := time.Now()
+			thisMinute := time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location())
+			fmt.Println(" so lets go ")
+
+			for _, exchangeMap := range tm.Datas.GetAllData() { // for each exchange
+				for _, assetMap := range exchangeMap { // asset
+					for _, dataHandler := range assetMap { // coin
+						t1 := lup[dataHandler]
+
+						if t1 == thisMinute { //skip if alrady updated this minute
+							fmt.Print("already updated")
+							continue
+						} else {
+							fmt.Print("handle update, request from db")
+							d := dataHandler.Next()
+							if d == nil {
+								// if !tm.hasHandledEvent {
+								// 	log.Errorf(log.TradeManager, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
+								// }
+								return nil
+							}
+							tm.EventQueue.AppendEvent(d)
 						}
-						tm.EventQueue.AppendEvent(d)
 					}
 				}
 			}
@@ -243,10 +256,6 @@ func (tm *TradeManager) runLive() error {
 			}
 		}
 	}
-	return nil
-}
-
-func (tm *TradeManager) loadDataEvents() error {
 	return nil
 }
 
@@ -682,10 +691,11 @@ func (tm *TradeManager) loadOfflineData(cfg *config.Config, exch exchange.IBotEx
 	}
 	b := exch.GetBase()
 
-	dataType, err := eventtypes.DataTypeToInt(cfg.DataSettings.DataType)
-	if err != nil {
-		return nil, err
-	}
+	// dataType := 1 // trades
+	// dataType, err := eventtypes.DataTypeToInt(cfg.DataSettings.DataType)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	resp := &kline.DataFromKline{}
 	// log.Infof(log.TradeManager, "loading db data for %v %v %v...\n", exch.GetName(), a, fPair)
@@ -695,12 +705,12 @@ func (tm *TradeManager) loadOfflineData(cfg *config.Config, exch exchange.IBotEx
 	if cfg.DataSettings.DatabaseData.ConfigOverride != nil {
 		tm.Bot.Config.Database = *cfg.DataSettings.DatabaseData.ConfigOverride
 		gctdatabase.DB.DataPath = filepath.Join(gctcommon.GetDefaultDataDir(runtime.GOOS), "database")
-		err = gctdatabase.DB.SetConfig(cfg.DataSettings.DatabaseData.ConfigOverride)
+		err := gctdatabase.DB.SetConfig(cfg.DataSettings.DatabaseData.ConfigOverride)
 		if err != nil {
 			return nil, err
 		}
 	}
-	resp, err = loadDatabaseData(cfg, exch.GetName(), fPair, a, dataType)
+	resp, err := loadDatabaseData(cfg, exch.GetName(), fPair, a, 1)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve data from GoCryptoTrader database. Error: %v. Please ensure the database is setup correctly and has data before use", err)
 	}
@@ -725,12 +735,12 @@ func (tm *TradeManager) loadOfflineData(cfg *config.Config, exch exchange.IBotEx
 		return nil, fmt.Errorf("processing error, response returned nil")
 	}
 
-	err = b.ValidateKline(fPair, a, resp.Item.Interval)
-	if err != nil {
-		if dataType != eventtypes.DataTrade || !strings.EqualFold(err.Error(), "interval not supported") {
-			return nil, err
-		}
-	}
+	_ = b.ValidateKline(fPair, a, resp.Item.Interval)
+	// if err != nil {
+	// 	if dataType != eventtypes.DataTrade || !strings.EqualFold(err.Error(), "interval not supported") {
+	// 		return nil, err
+	// 	}
+	// }
 
 	err = resp.Load()
 	if err != nil {

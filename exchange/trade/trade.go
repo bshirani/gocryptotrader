@@ -108,11 +108,43 @@ func (p *Processor) Run(wg *sync.WaitGroup) {
 			ticker.Stop()
 			return
 		}
-		fmt.Println("hook into here")
 		err := SaveTradesToDatabase(bufferCopy...)
+
 		if err != nil {
 			log.Error(log.Trade, err)
 		}
+
+		// res := make(map[string]map[asset.Item]map[currency.Pair][]Data)
+		// for _, bc := range bufferCopy {
+		// 	if ex := res[bc.Exchange]; ex == nil {
+		// 		res[bc.Exchange] = make(map[asset.Item]map[currency.Pair][]Data)
+		// 	}
+		// 	if a := res[bc.Exchange][bc.AssetType]; a == nil {
+		// 		res[bc.Exchange][bc.AssetType] = make(map[currency.Pair][]Data)
+		// 	}
+		// 	if pair := res[bc.Exchange][bc.AssetType][bc.CurrencyPair]; pair == nil {
+		// 		res[bc.Exchange][bc.AssetType][bc.CurrencyPair] = make([]Data, 0)
+		// 	}
+		// 	res[bc.Exchange][bc.AssetType][bc.CurrencyPair] = append(
+		// 		res[bc.Exchange][bc.AssetType][bc.CurrencyPair],
+		// 		bc)
+		// }
+		//
+		// for i := range res {
+		// 	for a := range res[i] {
+		// 		for _, trades := range res[i][a] {
+		// 			candles, err := ConvertTradesToCandles(kline.Interval(5), trades...)
+		// 			if err != nil {
+		// 				log.Errorln(log.Trade, "could not convert live trade data to candles for", err)
+		// 			}
+		// 			candles.RemoveDuplicates()
+		// 			candles.SortCandlesByTimestamp(false)
+		// 			// fmt.Printf("%v", candles.Pair)
+		// 			// fmt.Println("has ", len(candles.Candles), "candles")
+		// 		}
+		// 	}
+		// }
+
 	}
 }
 
