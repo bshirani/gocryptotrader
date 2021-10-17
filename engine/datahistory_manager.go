@@ -79,9 +79,9 @@ func (m *DataHistoryManager) Catchup(pairSettings []ExchangeAssetPairSettings, e
 	// for each currency setting, perform catchup
 	// what are the currencies traded from what excahnges
 
-	names := make([]string, 10)
+	names := make([]string, 0)
 
-	for i, p := range pairSettings { // by exchange
+	for _, p := range pairSettings { // by exchange
 		// log.Debugf(log.DataHistory, "request datahistory catchup for %s %v %v", p.ExchangeName, p.AssetType, p.CurrencyPair)
 
 		start := time.Now().Add(time.Minute * -10)
@@ -92,7 +92,7 @@ func (m *DataHistoryManager) Catchup(pairSettings []ExchangeAssetPairSettings, e
 		}
 
 		name := fmt.Sprintf("catchupjob-%v-%d", p.CurrencyPair, time.Now().Unix())
-		names[i] = name
+		names = append(names, name)
 		job := DataHistoryJob{
 			Nickname:               name,
 			Exchange:               p.ExchangeName,
@@ -111,7 +111,7 @@ func (m *DataHistoryManager) Catchup(pairSettings []ExchangeAssetPairSettings, e
 			DecimalPlaceComparison: 3,
 		}
 
-		log.Debugf(log.DataHistory, "Creating history job for ", p.CurrencyPair)
+		log.Debugln(log.DataHistory, "Creating history job for ", p.CurrencyPair)
 		err = m.UpsertJob(&job, true)
 		if err != nil {
 			log.Errorln(log.DataHistory, "data history error: ", err)

@@ -198,7 +198,7 @@ func (tm *TradeManager) Start() error {
 	tm.setOrderManagerCallbacks()
 
 	tm.Warmup = false
-	// tm.warmup()
+	tm.warmup()
 
 	// throw error if not live
 	if !atomic.CompareAndSwapInt32(&tm.started, 0, 1) {
@@ -236,7 +236,6 @@ func (tm *TradeManager) runLive() error {
 				if t1 == thisMinute { //skip if alrady updated this minute
 					continue
 				} else {
-					lup[cs] = thisMinute
 					exch, _, asset, err := tm.loadExchangePairAssetBase(
 						cs.ExchangeName,
 						cs.CurrencyPair.Base.String(),
@@ -277,23 +276,24 @@ func (tm *TradeManager) runLive() error {
 							log.Errorf(log.Watcher, "could not convert database trade data for %v %v %v, %v", cs.ExchangeName, cs.AssetType, cs.CurrencyPair, err)
 						}
 
-						klineItem.SortCandlesByTimestamp(true)
 						// resp.Item.Candles = append(resp.Item.Candles, klineItem)
-						resp.Item = klineItem
+						if len(klineItem.Candles) > 0 {
+							lup[cs] = thisMinute
+							klineItem.SortCandlesByTimestamp(true)
+							resp.Item = klineItem
+							resp.Load()
+							tm.Datas.SetDataForCurrency(strings.ToLower(cs.ExchangeName), cs.AssetType, cs.CurrencyPair, resp)
 
-						resp.Load()
-
-						tm.Datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, resp)
-
-						for _, exchangeMap := range tm.Datas.GetAllData() { // for each exchange
-							for _, assetMap := range exchangeMap { // asset
-								for _, dataHandler := range assetMap { // coin
-									d := dataHandler.Next()
-									if d == nil {
-										continue
+							for _, exchangeMap := range tm.Datas.GetAllData() { // for each exchange
+								for _, assetMap := range exchangeMap { // asset
+									for _, dataHandler := range assetMap { // coin
+										d := dataHandler.Next()
+										if d == nil {
+											continue
+										}
+										fmt.Println("appending event", d)
+										tm.EventQueue.AppendEvent(d)
 									}
-									fmt.Println("appending event", d)
-									tm.EventQueue.AppendEvent(d)
 								}
 							}
 						}
@@ -681,10 +681,10 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 	log.Infoln(log.TradeManager, "Loaded", len(tm.CurrencySettings), "currencies")
 
 	tm.Portfolio = p
-	allCS, _ := tm.GetAllCurrencySettings()
+	// allCS, _ := tm.GetAllCurrencySettings()
 	// tm.FactorEngines = make(map[currency.Pair]*FactorEngine)
 	tm.FactorEngines = make(map[string]map[asset.Item]map[currency.Pair]*FactorEngine)
-	for _, x := range allCS {
+	for _, x := range tm.CurrencySettings {
 		fe, _ := SetupFactorEngine(x.CurrencyPair)
 		ex := strings.ToLower(x.ExchangeName)
 
@@ -697,7 +697,7 @@ func (tm *TradeManager) setupBot(cfg *config.Config) error {
 			tm.FactorEngines[ex][x.AssetType] = make(map[currency.Pair]*FactorEngine)
 		}
 
-		// fmt.Println("setup factor engine for pair", ex, x.CurrencyPair)
+		fmt.Println("setup factor engine for pair", ex, x.CurrencyPair)
 		tm.FactorEngines[ex][x.AssetType][x.CurrencyPair] = fe
 	}
 
@@ -830,8 +830,8 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 	// }
 	fmt.Println(tm.FactorEngines[strings.ToLower(ev.GetExchange())][ev.GetAssetType()][ev.Pair()], d)
 	// tm.FactorEngines[strings.ToLower(ev.GetExchange())][ev.GetAssetType()]
-	// fe := tm.FactorEngines[strings.ToLower(ev.GetExchange())][ev.GetAssetType()][ev.Pair()]
-	// fe.OnBar(d)
+	fe := tm.FactorEngines[strings.ToLower(ev.GetExchange())][ev.GetAssetType()][ev.Pair()]
+	fe.OnBar(d)
 
 	// HANDLE warmup MODE
 	// in warmup mode, we do not query the strategies

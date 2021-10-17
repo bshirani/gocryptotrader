@@ -38,7 +38,7 @@ func main() {
 	flag.BoolVar(&settings.EnableConnectivityMonitor, "connectivitymonitor", false, "enables the connectivity monitor")
 	flag.BoolVar(&settings.EnableCurrencyStateManager, "currencystatemanager", true, "enables the currency state manager")
 	flag.BoolVar(&settings.EnableWatcher, "watcher", true, "enables the system watcher")
-	flag.BoolVar(&settings.EnableDataHistoryManager, "datahistorymanager", false, "enables the data history manager")
+	flag.BoolVar(&settings.EnableDataHistoryManager, "datahistorymanager", true, "enables the data history manager")
 	flag.BoolVar(&settings.EnableDatabaseManager, "databasemanager", true, "enables database manager")
 	flag.BoolVar(&settings.EnableDepositAddressManager, "depositaddressmanager", false, "enables the deposit address manager")
 	flag.BoolVar(&settings.EnableDispatcher, "dispatch", true, "enables the dispatch system")
