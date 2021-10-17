@@ -191,6 +191,54 @@ func GetInRange(exchangeName, assetType, base, quote string, startDate, endDate 
 	return td, nil
 }
 
+func GetLast(exchangeName string, assetType asset.Item, pair currency.Pair) (td []Data, err error) {
+	var exchangeUUID uuid.UUID
+	exchangeUUID, err = exchange.UUIDByName(exchangeName)
+	if err != nil {
+		return nil, err
+	}
+	wheres := map[string]interface{}{
+		"exchange_name_id": exchangeUUID,
+		"asset":            strings.ToLower(assetType.String()),
+		"base":             strings.ToUpper(pair.Base.String()),
+		"quote":            strings.ToUpper(pair.Quote.String()),
+	}
+
+	q := []qm.QueryMod{qm.OrderBy("timestamp desc")}
+	for k, v := range wheres {
+		q = append(q, qm.Where(k+` = ?`, v))
+	}
+
+	query := postgres.Trades(q...)
+	var result []*postgres.Trade
+	result, err = query.All(context.Background(), database.DB.SQL)
+	if err != nil {
+		return td, err
+	}
+	for i := range result {
+		t := Data{
+			ID:        result[i].ID,
+			Timestamp: result[i].Timestamp,
+			Exchange:  strings.ToLower(exchangeName),
+			Base:      strings.ToUpper(result[i].Base),
+			Quote:     strings.ToUpper(result[i].Quote),
+			AssetType: strings.ToLower(result[i].Asset),
+			Price:     result[i].Price,
+			Amount:    result[i].Amount,
+		}
+		if result[i].Side.Valid {
+			t.Side = result[i].Side.String
+		}
+		td = append(td, t)
+	}
+	return td, nil
+	if err != nil {
+		return td, fmt.Errorf("trade.GetByExchangeInRange getInRangePostgres %w", err)
+	}
+
+	return td, nil
+}
+
 func getInRangePostgres(exchangeName, assetType, base, quote string, startDate, endDate time.Time) (td []Data, err error) {
 	var exchangeUUID uuid.UUID
 	exchangeUUID, err = exchange.UUIDByName(exchangeName)

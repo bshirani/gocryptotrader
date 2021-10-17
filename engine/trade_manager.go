@@ -837,8 +837,9 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 	// 	}
 	// }
 	// tm.FactorEngines[strings.ToLower(ev.GetExchange())][ev.GetAssetType()]
-	// fe := tm.FactorEngines[strings.ToLower(ev.GetExchange())][ev.GetAssetType()][ev.Pair()]
-	// fe.OnBar(d)
+	// fmt.Println(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
+	fe := tm.FactorEngines[strings.ToLower(ev.GetExchange())][ev.GetAssetType()][ev.Pair()]
+	fe.OnBar(d)
 
 	// HANDLE warmup MODE
 	// in warmup mode, we do not query the strategies
