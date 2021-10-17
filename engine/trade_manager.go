@@ -195,6 +195,9 @@ func (tm *TradeManager) processEvents() error {
 
 // LIVE FUNCTIONALITY
 func (tm *TradeManager) Start() error {
+	fmt.Println("waiting for cs")
+	tm.Bot.WaitForInitialCurrencySync()
+	fmt.Println("finished initial sync")
 	tm.setOrderManagerCallbacks()
 
 	// tm.Warmup = false
