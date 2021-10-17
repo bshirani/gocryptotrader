@@ -729,18 +729,20 @@ func (m *syncManager) worker() {
 							}
 						}
 
-						if m.config.SyncTrades {
-							if !m.isProcessing(exchangeName, c.Pair, c.AssetType, SyncItemTrade) {
-								if c.Trade.LastUpdated.IsZero() || time.Since(c.Trade.LastUpdated) > m.config.SyncTimeoutREST {
-									m.setProcessing(c.Exchange, c.Pair, c.AssetType, SyncItemTrade, true)
-									err := m.Update(c.Exchange, c.Pair, c.AssetType, SyncItemTrade, nil)
-									if err != nil {
-										log.Error(log.SyncMgr, err)
-									}
+					}
+
+					if m.config.SyncTrades {
+						if !m.isProcessing(exchangeName, c.Pair, c.AssetType, SyncItemTrade) {
+							if c.Trade.LastUpdated.IsZero() || time.Since(c.Trade.LastUpdated) > m.config.SyncTimeoutREST {
+								m.setProcessing(c.Exchange, c.Pair, c.AssetType, SyncItemTrade, true)
+								err := m.Update(c.Exchange, c.Pair, c.AssetType, SyncItemTrade, nil)
+								if err != nil {
+									log.Error(log.SyncMgr, err)
 								}
 							}
 						}
 					}
+
 				}
 			}
 		}
