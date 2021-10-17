@@ -499,8 +499,7 @@ func (g *Gateio) GetHistoricTrades(ctx context.Context, p currency.Pair, assetTy
 		return nil, err
 	}
 	if len(tradeData.Data) > 0 {
-
-		fmt.Println("last trade id ", tradeData.Data[0].TradeID)
+		fmt.Println("NOW last trade id ", tradeData.Data[0].TradeID)
 	} else {
 		fmt.Println("no trades returned")
 	}

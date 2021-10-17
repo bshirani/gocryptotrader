@@ -123,6 +123,7 @@ var (
 // DataHistoryManager is responsible for synchronising,
 // retrieving and saving candle and trade data from loaded jobs
 type DataHistoryManager struct {
+	bot                        *Engine
 	exchangeManager            iExchangeManager
 	databaseConnectionInstance database.IDatabase
 	started                    int32

@@ -4,17 +4,19 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gocryptotrader/config"
+	"gocryptotrader/currency"
+	"gocryptotrader/data"
+	"gocryptotrader/data/kline"
+	"gocryptotrader/data/kline/database"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync/atomic"
 	"time"
 
-	"gocryptotrader/config"
-	"gocryptotrader/currency"
-	"gocryptotrader/data"
-	"gocryptotrader/data/kline"
-	"gocryptotrader/data/kline/database"
+	. "github.com/volatiletech/sqlboiler/v4/queries/qm"
+
 	gctdatabase "gocryptotrader/database"
 	"gocryptotrader/database/repository/candle"
 	"gocryptotrader/eventtypes"
@@ -26,20 +28,20 @@ import (
 	"gocryptotrader/eventtypes/submit"
 	"gocryptotrader/exchange"
 	"gocryptotrader/exchange/asset"
+
 	gctkline "gocryptotrader/exchange/kline"
+
 	gctorder "gocryptotrader/exchange/order"
 	"gocryptotrader/exchange/ticker"
 	"gocryptotrader/exchange/trade"
 	"gocryptotrader/log"
+
 	gctlog "gocryptotrader/log"
 	"gocryptotrader/portfolio/report"
 	"gocryptotrader/portfolio/risk"
-	"gocryptotrader/portfolio/slippage"
 	"gocryptotrader/portfolio/statistics"
 	"gocryptotrader/portfolio/statistics/currencystatistics"
 	"gocryptotrader/portfolio/strategies"
-
-	"github.com/shopspring/decimal"
 )
 
 // Helper method for starting from live engine
@@ -200,8 +202,26 @@ func (tm *TradeManager) Start() error {
 	fmt.Println("finished initial sync")
 	tm.setOrderManagerCallbacks()
 
+	// cancel all datahistory jobs
+	// datahistoryjob.DataHistoryJob.Exec(SQL("update status = 1"))
+
 	// tm.Warmup = false
 	// tm.warmup()
+	// tm.wg.Add(1)
+	if tm.verbose {
+		log.Infoln(log.TradeManager, "Running catchup processes")
+	}
+	_, err := tm.Bot.dataHistoryManager.Catchup()
+	if err != nil {
+		log.Infoln(log.TradeManager, "history catchup failed")
+		os.Exit(1)
+	}
+	err = tm.Bot.dataHistoryManager.RunJobs()
+	if err != nil {
+		return err
+	}
+	// tm.wg.Wait()
+	// 	tm.wg.Done()
 
 	// throw error if not live
 	if !atomic.CompareAndSwapInt32(&tm.started, 0, 1) {
@@ -233,7 +253,7 @@ func (tm *TradeManager) runLive() error {
 			t := time.Now()
 			thisMinute := time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location())
 
-			for _, cs := range tm.CurrencySettings {
+			for _, cs := range tm.Bot.CurrencySettings {
 				t1 := lup[cs]
 
 				if t1 == thisMinute { //skip if alrady updated this minute
@@ -326,22 +346,10 @@ func (tm *TradeManager) warmup() error {
 
 	// run the catchup process
 
-	if tm.verbose {
-		log.Infoln(log.TradeManager, "Running catchup processes")
-	}
-	_, err := tm.Bot.dataHistoryManager.Catchup(tm.GetAllCurrencySettings())
-	if err != nil {
-		log.Infoln(log.TradeManager, "history catchup failed")
-		os.Exit(1)
-	}
-	err = tm.Bot.dataHistoryManager.RunJobs()
-	if err != nil {
-		return err
-	}
-	err = tm.Bot.dataHistoryManager.Stop()
-	if err != nil {
-		return err
-	}
+	// err = tm.Bot.dataHistoryManager.Stop()
+	// if err != nil {
+	// 	return err
+	// }
 
 	// get latest bars for warmup
 	cs, err := tm.GetAllCurrencySettings()
@@ -480,58 +488,6 @@ func (b *TradeManager) IsRunning() bool {
 		return false
 	}
 	return atomic.LoadInt32(&b.started) == 1
-}
-
-func (tm *TradeManager) setupExchangeSettings(cfg *config.Config) error {
-	for _, e := range tm.Bot.Config.GetEnabledExchanges() {
-		enabledPairs, _ := tm.Bot.Config.GetEnabledPairs(e, asset.Spot)
-		for _, pair := range enabledPairs {
-			// fmt.Println("enabledpairs", e, pair)
-			_, pair, a, err := tm.loadExchangePairAssetBase(e, pair.Base.String(), pair.Quote.String(), "spot")
-
-			// log.Debugln(log.TradeManager, "setting exchange settings...", pair, a)
-			if err != nil {
-				return err
-			}
-
-			tm.CurrencySettings = append(tm.CurrencySettings, ExchangeAssetPairSettings{
-				ExchangeName: e,
-				CurrencyPair: pair,
-				AssetType:    a,
-			})
-		}
-	}
-	return nil
-}
-
-func (tm *TradeManager) loadExchangePairAssetBase(exch, base, quote, ass string) (exchange.IBotExchange, currency.Pair, asset.Item, error) {
-	e, err := tm.Bot.GetExchangeByName(exch)
-	if err != nil {
-		return nil, currency.Pair{}, "", err
-	}
-
-	var cp, fPair currency.Pair
-	cp, err = currency.NewPairFromStrings(base, quote)
-	if err != nil {
-		return nil, currency.Pair{}, "", err
-	}
-
-	var a asset.Item
-	a, err = asset.New(ass)
-	if err != nil {
-		return nil, currency.Pair{}, "", err
-	}
-
-	exchangeBase := e.GetBase()
-	// if !exchangeBase.ValidateAPICredentials() {
-	// 	log.Warnf(log.TradeManager, "no credentials set for %v, this is theoretical only", exchangeBase.Name)
-	// }
-
-	fPair, err = exchangeBase.FormatExchangeCurrency(cp, a)
-	if err != nil {
-		return nil, currency.Pair{}, "", err
-	}
-	return e, fPair, a, nil
 }
 
 // this is only needed in backtest mode, except for when live runs the catchup process
@@ -1196,43 +1152,6 @@ func (e *Holder) NextEvent() (i eventtypes.EventHandler) {
 	return i
 }
 
-func (tm *TradeManager) GetAllCurrencySettings() ([]ExchangeAssetPairSettings, error) {
-	return tm.CurrencySettings, nil
-}
-
-// SetExchangeAssetCurrencySettings sets the settings for an exchange, asset, currency
-func (tm *TradeManager) SetExchangeAssetCurrencySettings(exch string, a asset.Item, cp currency.Pair, c *ExchangeAssetPairSettings) {
-	if c.ExchangeName == "" ||
-		c.AssetType == "" ||
-		c.CurrencyPair.IsEmpty() {
-		return
-	}
-
-	for i := range tm.CurrencySettings {
-		if tm.CurrencySettings[i].CurrencyPair == cp &&
-			tm.CurrencySettings[i].AssetType == a &&
-			exch == tm.CurrencySettings[i].ExchangeName {
-			tm.CurrencySettings[i] = *c
-			return
-		}
-	}
-	tm.CurrencySettings = append(tm.CurrencySettings, *c)
-}
-
-// GetCurrencySettings returns the settings for an exchange, asset currency
-func (tm *TradeManager) GetCurrencySettings(exch string, a asset.Item, cp currency.Pair) (ExchangeAssetPairSettings, error) {
-	for i := range tm.CurrencySettings {
-		if tm.CurrencySettings[i].CurrencyPair.Equal(cp) {
-			if tm.CurrencySettings[i].AssetType == a {
-				if exch == tm.CurrencySettings[i].ExchangeName {
-					return tm.CurrencySettings[i], nil
-				}
-			}
-		}
-	}
-	return ExchangeAssetPairSettings{}, fmt.Errorf("no currency settings found for %v %v %v", exch, a, cp)
-}
-
 // ExecuteOrder assesses the portfolio manager's order event and if it passes validation
 // will send an order to the exchange/fake order manager to be stored and raise a fill event
 func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om ExecutionHandler) (submit.Event, error) {
@@ -1308,85 +1227,4 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	}
 
 	return ev, nil
-}
-
-func (p *Portfolio) sizeOfflineOrder(high, low, volume decimal.Decimal, cs *ExchangeAssetPairSettings, f *fill.Fill) (adjustedPrice, adjustedAmount decimal.Decimal, err error) {
-	if cs == nil || f == nil {
-		return decimal.Zero, decimal.Zero, eventtypes.ErrNilArguments
-	}
-	// provide history and estimate volatility
-	slippageRate := slippage.EstimateSlippagePercentage(cs.MinimumSlippageRate, cs.MaximumSlippageRate)
-	if cs.SkipCandleVolumeFitting {
-		f.VolumeAdjustedPrice = f.ClosePrice
-		adjustedAmount = f.Amount
-	} else {
-		f.VolumeAdjustedPrice, adjustedAmount = ensureOrderFitsWithinHLV(f.ClosePrice, f.Amount, high, low, volume)
-		if !adjustedAmount.Equal(f.Amount) {
-			f.AppendReason(fmt.Sprintf("Order size shrunk from %v to %v to fit candle", f.Amount, adjustedAmount))
-		}
-	}
-
-	if adjustedAmount.LessThanOrEqual(decimal.Zero) && f.Amount.GreaterThan(decimal.Zero) {
-		return decimal.Zero, decimal.Zero, fmt.Errorf("amount set to 0, %w", errDataMayBeIncorrect)
-	}
-	adjustedPrice = applySlippageToPrice(f.GetDirection(), f.GetVolumeAdjustedPrice(), slippageRate)
-
-	f.Slippage = slippageRate.Mul(decimal.NewFromInt(100)).Sub(decimal.NewFromInt(100))
-	f.ExchangeFee = calculateExchangeFee(adjustedPrice, adjustedAmount, cs.TakerFee)
-	return adjustedPrice, adjustedAmount, nil
-}
-
-func applySlippageToPrice(direction gctorder.Side, price, slippageRate decimal.Decimal) decimal.Decimal {
-	adjustedPrice := price
-	if direction == gctorder.Buy {
-		adjustedPrice = price.Add(price.Mul(decimal.NewFromInt(1).Sub(slippageRate)))
-	} else if direction == gctorder.Sell {
-		adjustedPrice = price.Mul(slippageRate)
-	}
-	return adjustedPrice
-}
-
-func ensureOrderFitsWithinHLV(slippagePrice, amount, high, low, volume decimal.Decimal) (adjustedPrice, adjustedAmount decimal.Decimal) {
-	adjustedPrice = slippagePrice
-	if adjustedPrice.LessThan(low) {
-		adjustedPrice = low
-	}
-	if adjustedPrice.GreaterThan(high) {
-		adjustedPrice = high
-	}
-	if volume.LessThanOrEqual(decimal.Zero) {
-		return adjustedPrice, adjustedAmount
-	}
-	currentVolume := amount.Mul(adjustedPrice)
-	if currentVolume.GreaterThan(volume) {
-		// reduce the volume to not exceed the total volume of the candle
-		// it is slightly less than the total to still allow for the illusion
-		// that open high low close values are valid with the remaining volume
-		// this is very opinionated
-		currentVolume = volume.Mul(decimal.NewFromFloat(0.99999999))
-	}
-	// extract the amount from the adjusted volume
-	adjustedAmount = currentVolume.Div(adjustedPrice)
-
-	return adjustedPrice, adjustedAmount
-}
-
-func calculateExchangeFee(price, amount, fee decimal.Decimal) decimal.Decimal {
-	return fee.Mul(price).Mul(amount)
-}
-
-func reduceAmountToFitPortfolioLimit(adjustedPrice, amount, sizedPortfolioTotal decimal.Decimal, side gctorder.Side) decimal.Decimal {
-	// switch side {
-	// case gctorder.Buy:
-	// 	if adjustedPrice.Mul(amount).GreaterThan(sizedPortfolioTotal) {
-	// 		// adjusted amounts exceeds portfolio manager's allowed funds
-	// 		// the amount has to be reduced to equal the sizedPortfolioTotal
-	// 		amount = sizedPortfolioTotal.Div(adjustedPrice)
-	// 	}
-	// case gctorder.Sell:
-	// 	if amount.GreaterThan(sizedPortfolioTotal) {
-	// 		amount = sizedPortfolioTotal
-	// 	}
-	// }
-	return amount
 }

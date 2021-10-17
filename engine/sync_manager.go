@@ -737,12 +737,24 @@ func (m *syncManager) worker() {
 								// fmt.Println("on first update, sync all missing trades in batches until complete")
 								m.setProcessing(c.Exchange, c.Pair, c.AssetType, SyncItemTrade, true)
 
+								// t1 := time.Now()
+								// retCandle, _ := candle.Series(c.Exchange,
+								// 	c.Pair.Base.String(), c.Pair.Quote.String(),
+								// 	int64(60), c.AssetType.String(), t1, t1)
+
+								// fmt.Println("last candle", retCandle.Candles[0].Timestamp)
+
 								// download the recent trades
-								tr, err := exchanges[x].GetHistoricTrades(context.TODO(), c.Pair, c.AssetType, time.Now(), time.Now())
+								// tr, err := exchanges[x].GetHistoricTrades(context.TODO(), c.Pair, c.AssetType, time.Now(), time.Now())
+								// tr, err := exchanges[x].GetHistoricCandles(context.TODO(), c.Pair, c.AssetType, time.Now().Add(time.Hour*-1), time.Now(), kline.OneMin)
+
+								// fmt.Println(tr.Candles[len(tr.Candles)-1].Time)
+								// save candles to database
+
 								// if err != nil {
 								// 	log.Error(log.SyncMgr, err)
 								// }
-								fmt.Println(len(tr), err)
+								// fmt.Println(len(tr.Candles), err)
 
 								err = m.Update(c.Exchange, c.Pair, c.AssetType, SyncItemTrade, nil)
 								if err != nil {

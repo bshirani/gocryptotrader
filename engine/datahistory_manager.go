@@ -28,7 +28,7 @@ import (
 )
 
 // SetupDataHistoryManager creates a data history manager subsystem
-func SetupDataHistoryManager(em iExchangeManager, dcm iDatabaseConnectionManager, cfg *config.DataHistoryManager) (*DataHistoryManager, error) {
+func SetupDataHistoryManager(bot *Engine, em iExchangeManager, dcm iDatabaseConnectionManager, cfg *config.DataHistoryManager) (*DataHistoryManager, error) {
 	if em == nil {
 		return nil, errNilExchangeManager
 	}
@@ -61,7 +61,7 @@ func SetupDataHistoryManager(em iExchangeManager, dcm iDatabaseConnectionManager
 		exchangeManager:            em,
 		databaseConnectionInstance: db,
 		shutdown:                   make(chan struct{}),
-		interval:                   time.NewTicker(time.Minute),
+		interval:                   time.NewTicker(time.Second * 10),
 		jobDB:                      dhj,
 		jobResultDB:                dhjr,
 		maxJobsPerCycle:            cfg.MaxJobsPerCycle,
@@ -74,19 +74,19 @@ func SetupDataHistoryManager(em iExchangeManager, dcm iDatabaseConnectionManager
 	}, nil
 }
 
-func (m *DataHistoryManager) Catchup(pairSettings []ExchangeAssetPairSettings, err error) ([]string, error) {
+func (m *DataHistoryManager) Catchup() ([]string, error) {
 	// takes in a list of currency settings
 	// for each currency setting, perform catchup
 	// what are the currencies traded from what excahnges
 
 	names := make([]string, 0)
 
-	for _, p := range pairSettings { // by exchange
+	for _, p := range m.bot.CurrencySettings { // by exchange
 		// log.Debugf(log.DataHistory, "request datahistory catchup for %s %v %v", p.ExchangeName, p.AssetType, p.CurrencyPair)
 
 		start := time.Now().Add(time.Minute * -10)
 		end := time.Now()
-		err = common.StartEndTimeCheck(start, end)
+		err := common.StartEndTimeCheck(start, end)
 		if err != nil {
 			return names, err
 		}
@@ -112,7 +112,8 @@ func (m *DataHistoryManager) Catchup(pairSettings []ExchangeAssetPairSettings, e
 		}
 
 		log.Debugln(log.DataHistory, "Creating history job for ", p.CurrencyPair)
-		err = m.UpsertJob(&job, true)
+		err = m.runJob(&job)
+		// err = m.UpsertJob(&job, true)
 		if err != nil {
 			log.Errorln(log.DataHistory, "data history error: ", err)
 			return names, err
@@ -132,6 +133,7 @@ func (m *DataHistoryManager) Start() error {
 		return ErrSubSystemAlreadyStarted
 	}
 	m.shutdown = make(chan struct{})
+	m.Catchup()
 	m.run()
 	log.Debugf(log.DataHistory, "Data history manager %v", MsgSubSystemStarted)
 
@@ -380,14 +382,12 @@ func (m *DataHistoryManager) runJob(job *DataHistoryJob) error {
 	dbJob := m.convertJobToDBModel(job)
 	err = m.jobDB.Upsert(dbJob)
 	if err != nil {
-		fmt.Println("123error", err)
 		return fmt.Errorf("job %s failed to update database: %w", job.Nickname, err)
 	}
 
 	dbJobResults := m.convertJobResultToDBResult(job.Results)
 	err = m.jobResultDB.Upsert(dbJobResults...)
 	if err != nil {
-		fmt.Println("11123error", err)
 		return fmt.Errorf("job %s failed to insert job results to database: %w", job.Nickname, err)
 	}
 	return nil

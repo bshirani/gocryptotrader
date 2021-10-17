@@ -28,30 +28,31 @@ import (
 
 // overarching type across this code base.
 type Engine struct {
-	Config                  *config.Config
-	apiServer               *apiServerManager
-	TradeManager            *TradeManager
 	CommunicationsManager   *CommunicationManager
-	connectionManager       *connectionManager
-	currencyPairSyncer      *syncManager
+	Config                  *config.Config
+	CurrencySettings        []ExchangeAssetPairSettings
 	DatabaseManager         *DatabaseConnectionManager
 	DepositAddressManager   *DepositAddressManager
-	eventManager            *eventManager
 	ExchangeManager         *ExchangeManager
-	ntpManager              *ntpManager
-	RealOrderManager        *RealOrderManager
 	FakeOrderManager        *FakeOrderManager
 	OrderManager            OrderManagerHandler
-	portfolioManager        *portfolioManager
-	gctScriptManager        *gctscript.GctScriptManager
-	websocketRoutineManager *websocketRoutineManager
-	WithdrawManager         *WithdrawManager
-	dataHistoryManager      *DataHistoryManager
-	currencyStateManager    *CurrencyStateManager
-	watcher                 *Watcher
-	Settings                Settings
-	uptime                  time.Time
+	RealOrderManager        *RealOrderManager
 	ServicesWG              sync.WaitGroup
+	Settings                Settings
+	TradeManager            *TradeManager
+	WithdrawManager         *WithdrawManager
+	apiServer               *apiServerManager
+	connectionManager       *connectionManager
+	currencyPairSyncer      *syncManager
+	currencyStateManager    *CurrencyStateManager
+	dataHistoryManager      *DataHistoryManager
+	eventManager            *eventManager
+	gctScriptManager        *gctscript.GctScriptManager
+	ntpManager              *ntpManager
+	portfolioManager        *portfolioManager
+	uptime                  time.Time
+	watcher                 *Watcher
+	websocketRoutineManager *websocketRoutineManager
 }
 
 // Bot is a happy global engine to allow various areas of the application
@@ -627,7 +628,7 @@ func (bot *Engine) Start() error {
 
 	if bot.Settings.EnableDataHistoryManager {
 		if bot.dataHistoryManager == nil {
-			bot.dataHistoryManager, err = SetupDataHistoryManager(bot.ExchangeManager, bot.DatabaseManager, &bot.Config.DataHistoryManager)
+			bot.dataHistoryManager, err = SetupDataHistoryManager(bot, bot.ExchangeManager, bot.DatabaseManager, &bot.Config.DataHistoryManager)
 			if err != nil {
 				gctlog.Errorf(gctlog.Global, "database history manager unable to setup: %s", err)
 			} else {
@@ -1005,4 +1006,93 @@ func (bot *Engine) SetupExchanges() error {
 // of the currency pair syncer management system.
 func (bot *Engine) WaitForInitialCurrencySync() error {
 	return bot.currencyPairSyncer.WaitForInitialSync()
+}
+
+func (bot *Engine) setupExchangeSettings(cfg *config.Config) error {
+	for _, e := range bot.Config.GetEnabledExchanges() {
+		enabledPairs, _ := bot.Config.GetEnabledPairs(e, asset.Spot)
+		for _, pair := range enabledPairs {
+			// fmt.Println("enabledpairs", e, pair)
+			_, pair, a, err := bot.loadExchangePairAssetBase(e, pair.Base.String(), pair.Quote.String(), "spot")
+
+			// log.Debugln(log.TradeManager, "setting exchange settings...", pair, a)
+			if err != nil {
+				return err
+			}
+
+			bot.CurrencySettings = append(bot.CurrencySettings, ExchangeAssetPairSettings{
+				ExchangeName: e,
+				CurrencyPair: pair,
+				AssetType:    a,
+			})
+		}
+	}
+	return nil
+}
+
+func (bot *Engine) loadExchangePairAssetBase(exch, base, quote, ass string) (exchange.IBotExchange, currency.Pair, asset.Item, error) {
+	e, err := bot.GetExchangeByName(exch)
+	if err != nil {
+		return nil, currency.Pair{}, "", err
+	}
+
+	var cp, fPair currency.Pair
+	cp, err = currency.NewPairFromStrings(base, quote)
+	if err != nil {
+		return nil, currency.Pair{}, "", err
+	}
+
+	var a asset.Item
+	a, err = asset.New(ass)
+	if err != nil {
+		return nil, currency.Pair{}, "", err
+	}
+
+	exchangeBase := e.GetBase()
+	// if !exchangeBase.ValidateAPICredentials() {
+	// 	log.Warnf(log.TradeManager, "no credentials set for %v, this is theoretical only", exchangeBase.Name)
+	// }
+
+	fPair, err = exchangeBase.FormatExchangeCurrency(cp, a)
+	if err != nil {
+		return nil, currency.Pair{}, "", err
+	}
+	return e, fPair, a, nil
+}
+
+func (bot *Engine) GetAllCurrencySettings() ([]ExchangeAssetPairSettings, error) {
+	return bot.CurrencySettings, nil
+}
+
+// SetExchangeAssetCurrencySettings sets the settings for an exchange, asset, currency
+func (bot *Engine) SetExchangeAssetCurrencySettings(exch string, a asset.Item, cp currency.Pair, c *ExchangeAssetPairSettings) {
+	if c.ExchangeName == "" ||
+		c.AssetType == "" ||
+		c.CurrencyPair.IsEmpty() {
+		return
+	}
+
+	for i := range bot.CurrencySettings {
+		if bot.CurrencySettings[i].CurrencyPair == cp &&
+			bot.CurrencySettings[i].AssetType == a &&
+			exch == bot.CurrencySettings[i].ExchangeName {
+			bot.CurrencySettings[i] = *c
+			return
+		}
+	}
+	bot.CurrencySettings = append(bot.CurrencySettings, *c)
+}
+
+// GetCurrencySettings returns the settings for an exchange, asset currency
+func (bot *Engine) GetCurrencySettings(exch string, a asset.Item, cp currency.Pair) (ExchangeAssetPairSettings, error) {
+	for i := range bot.CurrencySettings {
+		if bot.CurrencySettings[i].CurrencyPair.Equal(cp) {
+			if bot.CurrencySettings[i].AssetType == a {
+				if exch == bot.CurrencySettings[i].ExchangeName {
+					return bot.CurrencySettings[i], nil
+				}
+			}
+		}
+	}
+	return ExchangeAssetPairSettings{}, fmt.Errorf("no currency settings found for %v %v %v", exch, a, cp)
 }

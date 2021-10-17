@@ -37,23 +37,22 @@ var (
 // TradeManager is the main holder of all strategy functionality
 type TradeManager struct {
 	Bot                *Engine
-	Datas              data.Holder
-	CurrencySettings   []ExchangeAssetPairSettings
-	Strategies         []strategies.Handler
-	Portfolio          PortfolioHandler
-	Exchange           ExecutionHandler
-	Statistic          statistics.Handler
-	EventQueue         EventHolder
-	Reports            report.Handler
-	OrderManager       OrderManagerHandler
-	syncManager        *syncManager
-	Warmup             bool
-	FactorEngines      map[string]map[asset.Item]map[currency.Pair]*FactorEngine
 	DataHistoryManager *DataHistoryManager
+	Datas              data.Holder
+	EventQueue         EventHolder
+	Exchange           ExecutionHandler
+	FactorEngines      map[string]map[asset.Item]map[currency.Pair]*FactorEngine
+	OrderManager       OrderManagerHandler
+	Portfolio          PortfolioHandler
+	Reports            report.Handler
+	Statistic          statistics.Handler
+	Strategies         []strategies.Handler
+	Warmup             bool
+	cfg                config.Config
 	hasHandledEvent    bool
 	shutdown           chan struct{}
-	cfg                config.Config
 	started            int32
+	syncManager        *syncManager
 	verbose            bool
 	wg                 sync.WaitGroup
 }

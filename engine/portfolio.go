@@ -26,6 +26,7 @@ import (
 	"gocryptotrader/portfolio/holdings"
 	"gocryptotrader/portfolio/positions"
 	"gocryptotrader/portfolio/risk"
+	"gocryptotrader/portfolio/slippage"
 	"gocryptotrader/portfolio/strategies"
 	"gocryptotrader/portfolio/trades"
 
@@ -1045,4 +1046,85 @@ func getFees(ctx context.Context, exch exchange.IBotExchange, fPair currency.Pai
 	}
 
 	return decimal.NewFromFloat(fMakerFee), decimal.NewFromFloat(fTakerFee)
+}
+
+func (p *Portfolio) sizeOfflineOrder(high, low, volume decimal.Decimal, cs *ExchangeAssetPairSettings, f *fill.Fill) (adjustedPrice, adjustedAmount decimal.Decimal, err error) {
+	if cs == nil || f == nil {
+		return decimal.Zero, decimal.Zero, eventtypes.ErrNilArguments
+	}
+	// provide history and estimate volatility
+	slippageRate := slippage.EstimateSlippagePercentage(cs.MinimumSlippageRate, cs.MaximumSlippageRate)
+	if cs.SkipCandleVolumeFitting {
+		f.VolumeAdjustedPrice = f.ClosePrice
+		adjustedAmount = f.Amount
+	} else {
+		f.VolumeAdjustedPrice, adjustedAmount = ensureOrderFitsWithinHLV(f.ClosePrice, f.Amount, high, low, volume)
+		if !adjustedAmount.Equal(f.Amount) {
+			f.AppendReason(fmt.Sprintf("Order size shrunk from %v to %v to fit candle", f.Amount, adjustedAmount))
+		}
+	}
+
+	if adjustedAmount.LessThanOrEqual(decimal.Zero) && f.Amount.GreaterThan(decimal.Zero) {
+		return decimal.Zero, decimal.Zero, fmt.Errorf("amount set to 0, %w", errDataMayBeIncorrect)
+	}
+	adjustedPrice = applySlippageToPrice(f.GetDirection(), f.GetVolumeAdjustedPrice(), slippageRate)
+
+	f.Slippage = slippageRate.Mul(decimal.NewFromInt(100)).Sub(decimal.NewFromInt(100))
+	f.ExchangeFee = calculateExchangeFee(adjustedPrice, adjustedAmount, cs.TakerFee)
+	return adjustedPrice, adjustedAmount, nil
+}
+
+func applySlippageToPrice(direction gctorder.Side, price, slippageRate decimal.Decimal) decimal.Decimal {
+	adjustedPrice := price
+	if direction == gctorder.Buy {
+		adjustedPrice = price.Add(price.Mul(decimal.NewFromInt(1).Sub(slippageRate)))
+	} else if direction == gctorder.Sell {
+		adjustedPrice = price.Mul(slippageRate)
+	}
+	return adjustedPrice
+}
+
+func ensureOrderFitsWithinHLV(slippagePrice, amount, high, low, volume decimal.Decimal) (adjustedPrice, adjustedAmount decimal.Decimal) {
+	adjustedPrice = slippagePrice
+	if adjustedPrice.LessThan(low) {
+		adjustedPrice = low
+	}
+	if adjustedPrice.GreaterThan(high) {
+		adjustedPrice = high
+	}
+	if volume.LessThanOrEqual(decimal.Zero) {
+		return adjustedPrice, adjustedAmount
+	}
+	currentVolume := amount.Mul(adjustedPrice)
+	if currentVolume.GreaterThan(volume) {
+		// reduce the volume to not exceed the total volume of the candle
+		// it is slightly less than the total to still allow for the illusion
+		// that open high low close values are valid with the remaining volume
+		// this is very opinionated
+		currentVolume = volume.Mul(decimal.NewFromFloat(0.99999999))
+	}
+	// extract the amount from the adjusted volume
+	adjustedAmount = currentVolume.Div(adjustedPrice)
+
+	return adjustedPrice, adjustedAmount
+}
+
+func calculateExchangeFee(price, amount, fee decimal.Decimal) decimal.Decimal {
+	return fee.Mul(price).Mul(amount)
+}
+
+func reduceAmountToFitPortfolioLimit(adjustedPrice, amount, sizedPortfolioTotal decimal.Decimal, side gctorder.Side) decimal.Decimal {
+	// switch side {
+	// case gctorder.Buy:
+	// 	if adjustedPrice.Mul(amount).GreaterThan(sizedPortfolioTotal) {
+	// 		// adjusted amounts exceeds portfolio manager's allowed funds
+	// 		// the amount has to be reduced to equal the sizedPortfolioTotal
+	// 		amount = sizedPortfolioTotal.Div(adjustedPrice)
+	// 	}
+	// case gctorder.Sell:
+	// 	if amount.GreaterThan(sizedPortfolioTotal) {
+	// 		amount = sizedPortfolioTotal
+	// 	}
+	// }
+	return amount
 }

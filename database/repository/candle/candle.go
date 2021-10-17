@@ -34,7 +34,14 @@ func Series(exchangeName, base, quote string, interval int64, asset string, star
 		qm.Where("quote = ?", strings.ToUpper(quote)),
 		qm.Where("interval = ?", interval),
 		qm.Where("asset = ?", strings.ToLower(asset)),
-		qm.OrderBy("timestamp"),
+	}
+
+	if start == end {
+		queries = append(queries, qm.OrderBy("timestamp desc"))
+		queries = append(queries, qm.Limit(1))
+	} else {
+		queries = append(queries, qm.OrderBy("timestamp"))
+		queries = append(queries, qm.Where("timestamp between ? and ?", start.UTC(), end.UTC()))
 	}
 
 	exchangeUUID, errS := exchange.UUIDByName(exchangeName)
@@ -42,7 +49,6 @@ func Series(exchangeName, base, quote string, interval int64, asset string, star
 		return out, errS
 	}
 	queries = append(queries, qm.Where("exchange_name_id = ?", exchangeUUID.String()))
-	queries = append(queries, qm.Where("timestamp between ? and ?", start.UTC(), end.UTC()))
 	retCandle, errC := modelPSQL.Candles(queries...).All(context.Background(), database.DB.SQL)
 	if errC != nil {
 		return out, errC
