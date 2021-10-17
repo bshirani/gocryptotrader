@@ -30,7 +30,7 @@ import (
 type Engine struct {
 	CommunicationsManager   *CommunicationManager
 	Config                  *config.Config
-	CurrencySettings        []ExchangeAssetPairSettings
+	CurrencySettings        []*ExchangeAssetPairSettings
 	DatabaseManager         *DatabaseConnectionManager
 	DepositAddressManager   *DepositAddressManager
 	ExchangeManager         *ExchangeManager
@@ -157,6 +157,7 @@ func validateSettings(b *Engine, s *Settings, flagSet map[string]bool) {
 
 	b.Settings.EnableDataHistoryManager = (flagSet["datahistorymanager"] && b.Settings.EnableDatabaseManager) || b.Config.DataHistoryManager.Enabled
 	b.Settings.EnableTradeManager = (flagSet["trademanager"] && b.Settings.EnableTradeManager) || b.Config.TradeManager.Enabled
+	b.Settings.EnableTrading = (flagSet["trading"] && b.Settings.EnableTrading) || b.Config.TradeManager.TradingEnabled
 
 	b.Settings.EnableCurrencyStateManager = (flagSet["currencystatemanager"] &&
 		b.Settings.EnableCurrencyStateManager) ||
@@ -1033,12 +1034,12 @@ func (bot *Engine) setupExchangeSettings() error {
 			// fmt.Println("enabledpairs", e, pair)
 			_, pair, a, err := bot.loadExchangePairAssetBase(e, pair.Base.String(), pair.Quote.String(), "spot")
 
-			// log.Debugln(log.TradeManager, "setting exchange settings...", pair, a)
+			// log.Debugln(log.TradeMgr, "setting exchange settings...", pair, a)
 			if err != nil {
 				return err
 			}
 
-			bot.CurrencySettings = append(bot.CurrencySettings, ExchangeAssetPairSettings{
+			bot.CurrencySettings = append(bot.CurrencySettings, &ExchangeAssetPairSettings{
 				ExchangeName: e,
 				CurrencyPair: pair,
 				AssetType:    a,
@@ -1068,7 +1069,7 @@ func (bot *Engine) loadExchangePairAssetBase(exch, base, quote, ass string) (exc
 
 	exchangeBase := e.GetBase()
 	// if !exchangeBase.ValidateAPICredentials() {
-	// 	log.Warnf(log.TradeManager, "no credentials set for %v, this is theoretical only", exchangeBase.Name)
+	// 	log.Warnf(log.TradeMgr, "no credentials set for %v, this is theoretical only", exchangeBase.Name)
 	// }
 
 	fPair, err = exchangeBase.FormatExchangeCurrency(cp, a)
@@ -1078,7 +1079,7 @@ func (bot *Engine) loadExchangePairAssetBase(exch, base, quote, ass string) (exc
 	return e, fPair, a, nil
 }
 
-func (bot *Engine) GetAllCurrencySettings() ([]ExchangeAssetPairSettings, error) {
+func (bot *Engine) GetAllCurrencySettings() ([]*ExchangeAssetPairSettings, error) {
 	return bot.CurrencySettings, nil
 }
 
@@ -1094,15 +1095,15 @@ func (bot *Engine) SetExchangeAssetCurrencySettings(exch string, a asset.Item, c
 		if bot.CurrencySettings[i].CurrencyPair == cp &&
 			bot.CurrencySettings[i].AssetType == a &&
 			exch == bot.CurrencySettings[i].ExchangeName {
-			bot.CurrencySettings[i] = *c
+			bot.CurrencySettings[i] = c
 			return
 		}
 	}
-	bot.CurrencySettings = append(bot.CurrencySettings, *c)
+	bot.CurrencySettings = append(bot.CurrencySettings, c)
 }
 
 // GetCurrencySettings returns the settings for an exchange, asset currency
-func (bot *Engine) GetCurrencySettings(exch string, a asset.Item, cp currency.Pair) (ExchangeAssetPairSettings, error) {
+func (bot *Engine) GetCurrencySettings(exch string, a asset.Item, cp currency.Pair) (*ExchangeAssetPairSettings, error) {
 	for i := range bot.CurrencySettings {
 		if bot.CurrencySettings[i].CurrencyPair.Equal(cp) {
 			if bot.CurrencySettings[i].AssetType == a {
@@ -1112,5 +1113,5 @@ func (bot *Engine) GetCurrencySettings(exch string, a asset.Item, cp currency.Pa
 			}
 		}
 	}
-	return ExchangeAssetPairSettings{}, fmt.Errorf("no currency settings found for %v %v %v", exch, a, cp)
+	return &ExchangeAssetPairSettings{}, fmt.Errorf("no currency settings found for %v %v %v", exch, a, cp)
 }

@@ -1792,12 +1792,12 @@ func LoadConfig(data []byte) (resp *Config, err error) {
 
 // PrintSetting prints relevant settings to the console for easy reading
 func (c *Config) PrintSetting() {
-	log.Info(log.TradeManager, "-------------------------------------------------------------\n")
+	log.Info(log.TradeMgr, "-------------------------------------------------------------\n")
 	if c.DataSettings.DatabaseData != nil {
-		log.Infof(log.TradeManager, "Start date: %v", c.DataSettings.DatabaseData.StartDate.Format(common.SimpleTimeFormat))
-		log.Infof(log.TradeManager, "End date: %v", c.DataSettings.DatabaseData.EndDate.Format(common.SimpleTimeFormat))
+		log.Infof(log.TradeMgr, "Start date: %v", c.DataSettings.DatabaseData.StartDate.Format(common.SimpleTimeFormat))
+		log.Infof(log.TradeMgr, "End date: %v", c.DataSettings.DatabaseData.EndDate.Format(common.SimpleTimeFormat))
 	}
-	log.Info(log.TradeManager, "-------------------------------------------------------------\n\n")
+	log.Info(log.TradeMgr, "-------------------------------------------------------------\n\n")
 }
 
 // Validate checks all config settings
@@ -1934,8 +1934,8 @@ func (c *Config) validateCurrencySettings() error {
 	for i := range c.CurrencySettings {
 		if c.CurrencySettings[i].InitialLegacyFunds > 0 {
 			// temporarily migrate legacy start config value
-			log.Warn(log.TradeManager, "config field 'initial-funds' no longer supported, please use 'initial-quote-funds'")
-			log.Warnf(log.TradeManager, "temporarily setting 'initial-quote-funds' to 'initial-funds' value of %v", c.CurrencySettings[i].InitialLegacyFunds)
+			log.Warn(log.TradeMgr, "config field 'initial-funds' no longer supported, please use 'initial-quote-funds'")
+			log.Warnf(log.TradeMgr, "temporarily setting 'initial-quote-funds' to 'initial-funds' value of %v", c.CurrencySettings[i].InitialLegacyFunds)
 			iqf := decimal.NewFromFloat(c.CurrencySettings[i].InitialLegacyFunds)
 			c.CurrencySettings[i].InitialQuoteFunds = &iqf
 		}

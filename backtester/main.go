@@ -121,7 +121,7 @@ func main() {
 
 	// err = tm.Statistic.CalculateAllResults()
 	// if err != nil {
-	// 	gctlog.Error(gctlog.TradeManager, err)
+	// 	gctlog.Error(gctlog.Global, err)
 	// 	os.Exit(1)
 	// }
 
@@ -129,7 +129,7 @@ func main() {
 		tm.Reports.UseDarkMode(darkReport)
 		err = tm.Reports.GenerateReport()
 		if err != nil {
-			gctlog.Error(gctlog.TradeManager, err)
+			gctlog.Error(gctlog.Global, err)
 		}
 	}
 }

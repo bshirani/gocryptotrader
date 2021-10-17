@@ -138,8 +138,9 @@ type Config struct {
 
 // DataHistoryManager holds all information required for the data history manager
 type TradeManagerConfig struct {
-	Enabled bool `json:"enabled"`
-	Verbose bool `json:"verbose"`
+	Enabled        bool `json:"enabled"`
+	Verbose        bool `json:"verbose"`
+	TradingEnabled bool `json:"tradingEnabled"`
 }
 
 // DataHistoryManager holds all information required for the data history manager

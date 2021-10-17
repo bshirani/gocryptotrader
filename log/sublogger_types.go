@@ -17,6 +17,7 @@ var (
 	GCTScriptMgr     *SubLogger
 	OrderMgr         *SubLogger
 	FakeOrderMgr     *SubLogger
+	StrategiesMgr    *SubLogger
 	PortfolioMgr     *SubLogger
 	SyncMgr          *SubLogger
 	TimeMgr          *SubLogger

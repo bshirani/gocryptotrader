@@ -37,7 +37,7 @@ type StrategyPortfolioHandler interface {
 }
 
 type FactorEngineHandler interface {
-	OnBar(data.Handler)
+	OnBar(data.Handler) error
 	Minute() *factors.MinuteDataFrame
 	Daily() *factors.DailyDataFrame
 }

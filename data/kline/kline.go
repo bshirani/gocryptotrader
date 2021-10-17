@@ -92,7 +92,7 @@ func (d *DataFromKline) AppendResults(ki *gctkline.Item) {
 			d.RangeHolder.Ranges[i].Intervals[j].HasData = true
 		}
 	}
-	// log.Debugf(log.TradeManager, "%s appending %v candle intervals: %v", d.Item.Pair, len(gctCandles), candleTimes)
+	// log.Debugf(log.TradeMgr, "%s appending %v candle intervals: %v", d.Item.Pair, len(gctCandles), candleTimes)
 	d.AppendStream(klineData...)
 	d.SortStream()
 }
@@ -107,7 +107,7 @@ func (d *DataFromKline) StreamOpen() []decimal.Decimal {
 		if val, ok := s[x].(*kline.Kline); ok {
 			ret[x] = val.Open
 		} else {
-			log.Errorf(log.TradeManager, "incorrect data loaded into stream")
+			log.Errorf(log.TradeMgr, "incorrect data loaded into stream")
 		}
 	}
 	return ret
@@ -123,7 +123,7 @@ func (d *DataFromKline) StreamHigh() []decimal.Decimal {
 		if val, ok := s[x].(*kline.Kline); ok {
 			ret[x] = val.High
 		} else {
-			log.Errorf(log.TradeManager, "incorrect data loaded into stream")
+			log.Errorf(log.TradeMgr, "incorrect data loaded into stream")
 		}
 	}
 	return ret
@@ -139,7 +139,7 @@ func (d *DataFromKline) StreamLow() []decimal.Decimal {
 		if val, ok := s[x].(*kline.Kline); ok {
 			ret[x] = val.Low
 		} else {
-			log.Errorf(log.TradeManager, "incorrect data loaded into stream")
+			log.Errorf(log.TradeMgr, "incorrect data loaded into stream")
 		}
 	}
 	return ret
@@ -155,7 +155,7 @@ func (d *DataFromKline) StreamClose() []decimal.Decimal {
 		if val, ok := s[x].(*kline.Kline); ok {
 			ret[x] = val.Close
 		} else {
-			log.Errorf(log.TradeManager, "incorrect data loaded into stream")
+			log.Errorf(log.TradeMgr, "incorrect data loaded into stream")
 		}
 	}
 	return ret
@@ -171,7 +171,7 @@ func (d *DataFromKline) StreamVol() []decimal.Decimal {
 		if val, ok := s[x].(*kline.Kline); ok {
 			ret[x] = val.Volume
 		} else {
-			log.Errorf(log.TradeManager, "incorrect data loaded into stream")
+			log.Errorf(log.TradeMgr, "incorrect data loaded into stream")
 		}
 	}
 	return ret

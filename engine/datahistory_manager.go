@@ -75,6 +75,27 @@ func SetupDataHistoryManager(bot *Engine, em iExchangeManager, dcm iDatabaseConn
 	}, nil
 }
 
+// cancel all datahistory jobs
+// datahistoryjob.DataHistoryJob.Exec(SQL("update status = 1"))
+
+// tm.Warmup = false
+// tm.warmup()
+// tm.wg.Add(1)
+// if tm.verbose {
+// 	log.Infoln(log.TradeMgr, "Running catchup processes")
+// }
+// _, err := tm.bot.dataHistoryManager.Catchup()
+// if err != nil {
+// 	log.Infoln(log.TradeMgr, "history catchup failed")
+// 	os.Exit(1)
+// }
+// err = tm.bot.dataHistoryManager.RunJobs()
+// if err != nil {
+// 	return err
+// }
+// tm.wg.Wait()
+// 	tm.wg.Done()
+
 func (m *DataHistoryManager) Catchup() ([]string, error) {
 	// takes in a list of currency settings
 	// for each currency setting, perform catchup

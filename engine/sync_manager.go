@@ -36,7 +36,7 @@ var (
 	// DefaultSyncerTimeoutREST the default time to switch from REST to websocket protocols without a response
 	DefaultSyncerTimeoutREST = time.Second * 15
 	// DefaultSyncerTimeoutWebsocket the default time to switch from websocket to REST protocols without a response
-	DefaultSyncerTimeoutWebsocket = time.Second * 120
+	DefaultSyncerTimeoutWebsocket = time.Second * 30
 	errNoSyncItemsEnabled         = errors.New("no sync items enabled")
 	errUnknownSyncItem            = errors.New("unknown sync item")
 	errSyncPairNotFound           = errors.New("exchange currency pair syncer not found")
@@ -1033,7 +1033,7 @@ func relayWebsocketEvent(result interface{}, event, assetType, exchangeName stri
 // 	// }
 //
 // 	resp := &kline.DataFromKline{}
-// 	// log.Infof(log.TradeManager, "loading db data for %v %v %v...\n", exch.GetName(), a, fPair)
+// 	// log.Infof(log.TradeMgr, "loading db data for %v %v %v...\n", exch.GetName(), a, fPair)
 // 	resp, err := loadDatabaseData(cfg, exch.GetName(), fPair, a, 1)
 // 	if err != nil {
 // 		return nil, fmt.Errorf("unable to retrieve data from GoCryptoTrader database. Error: %v. Please ensure the database is setup correctly and has data before use", err)
@@ -1055,7 +1055,7 @@ func relayWebsocketEvent(result interface{}, event, assetType, exchangeName stri
 // 	resp.RangeHolder.SetHasDataFromCandles(resp.Item.Candles)
 // 	summary := resp.RangeHolder.DataSummary(false)
 // 	if len(summary) > 0 {
-// 		log.Warnf(log.TradeManager, "%v", summary)
+// 		log.Warnf(log.TradeMgr, "%v", summary)
 // 	}
 // 	if resp == nil {
 // 		return nil, fmt.Errorf("processing error, response returned nil")

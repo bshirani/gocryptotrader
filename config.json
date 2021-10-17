@@ -38,7 +38,8 @@
  },
  "trade-manager": {
   "enabled": false,
-  "verbose": false
+  "verbose": false,
+  "tradingEnabled": false
  },
  "gocryptotrader-config-path": "",
  "name": "TrendExploiter",
@@ -258,7 +259,7 @@
    "listenAddress": ""
   },
   "websocketRPC": {
-   "enabled": true,
+   "enabled": false,
    "listenAddress": "",
    "connectionLimit": 0,
    "maxAuthFailures": 0,

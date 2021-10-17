@@ -73,9 +73,9 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 	// 		Snapshots: []compliance.Snapshot{},
 	// 	}
 	// 	// this needs to be per currency
-	// 	// log.Debugf(log.TradeManager, "Initialize Factor Engine for %v\n", p.CurrencySettings[i].CurrencyPair)
+	// 	// log.Debugf(log.StrategyMgr, "Initialize Factor Engine for %v\n", p.CurrencySettings[i].CurrencyPair)
 	// }
-	// log.Infof(log.TradeManager, "Setting up Portfolio")
+	// log.Infof(log.StrategyMgr, "Setting up Portfolio")
 	if sizeManager == nil {
 		return nil, errSizeManagerUnset
 	}
@@ -100,7 +100,7 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 	// load open trade from the database
 	// only in live mode do we  do this, so portfolio must be live aware unless it has a callback
 	// handle this in the trademanger
-	// log.Infof(log.TradeManager, "there are %d trades running", livetrade.Count())
+	// log.Infof(log.StrategyMgr, "there are %d trades running", livetrade.Count())
 
 	// load all pending and open trades from the database into positions and trades
 
@@ -139,8 +139,8 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 	}
 
 	if !p.bot.Settings.EnableDryRun {
-		log.Infoln(log.TradeManager, "Loaded Trades", len(activeTrades))
-		log.Infoln(log.TradeManager, "Loaded Orders", len(activeOrders))
+		log.Infoln(log.StrategiesMgr, "Loaded Trades", len(activeTrades))
+		log.Infoln(log.StrategiesMgr, "Loaded Orders", len(activeOrders))
 	}
 
 	return p, nil
@@ -469,12 +469,12 @@ func (p *Portfolio) OnFill(f fill.Event) {
 	// 	err = p.setHoldingsForOffset(&h, false)
 	// }
 	// if err != nil {
-	// 	log.Error(log.TradeManager, err)
+	// 	log.Error(log.StrategiesMgr, err)
 	// }
 
 	// err = p.addComplianceSnapshot(f)
 	// if err != nil {
-	// 	log.Error(log.TradeManager, err)
+	// 	log.Error(log.StrategiesMgr, err)
 	// }
 
 	// direction := f.GetDirection()
@@ -1008,12 +1008,12 @@ func verifyOrderWithinLimits(f *fill.Fill, limitReducedAmount decimal.Decimal, c
 
 func (p *Portfolio) printTradeDetails(t *livetrade.Details) {
 	secondsInTrade := int64(p.lastUpdate.Sub(t.EntryTime).Seconds())
-	log.Infof(log.TradeManager, "%s trade: pl:%v time:%d\n", t.StrategyID, t.ProfitLossPoints, secondsInTrade)
+	log.Infof(log.StrategiesMgr, "%s trade: pl:%v time:%d\n", t.StrategyID, t.ProfitLossPoints, secondsInTrade)
 	return
 }
 
 func (p *Portfolio) PrintPortfolioDetails() {
-	log.Infoln(log.TradeManager, "portfolio details", p.lastUpdate)
+	log.Infoln(log.StrategiesMgr, "portfolio details", p.lastUpdate)
 	active, _ := livetrade.Active()
 	activeOrders, _ := liveorder.Active()
 	closed, _ := livetrade.Closed()
@@ -1021,7 +1021,7 @@ func (p *Portfolio) PrintPortfolioDetails() {
 	for _, t := range active {
 		p.printTradeDetails(&t)
 	}
-	log.Infof(log.TradeManager, "orders:%d open_trades:%d closed_trades:%d", len(activeOrders), len(active), len(closed))
+	log.Infof(log.StrategiesMgr, "orders:%d open_trades:%d closed_trades:%d", len(activeOrders), len(active), len(closed))
 
 	// get strategy last updated time
 	// get factor engine last updated time for each pair
@@ -1032,8 +1032,8 @@ func (p *Portfolio) PrintPortfolioDetails() {
 
 	// current positions and their stats
 
-	// log.Infoln(log.TradeManager, "active strategies")
-	// log.Infoln(log.TradeManager, "active pairs")
+	// log.Infoln(log.StrategiesMgr, "active strategies")
+	// log.Infoln(log.StrategiesMgr, "active pairs")
 	return
 }
 
@@ -1051,7 +1051,7 @@ func getFees(ctx context.Context, exch exchange.IBotExchange, fPair currency.Pai
 			Amount:        1,
 		})
 	if err != nil {
-		log.Errorf(log.TradeManager, "Could not retrieve taker fee for %v. %v", exch.GetName(), err)
+		log.Errorf(log.StrategiesMgr, "Could not retrieve taker fee for %v. %v", exch.GetName(), err)
 	}
 
 	fMakerFee, err := exch.GetFeeByType(ctx,
@@ -1063,7 +1063,7 @@ func getFees(ctx context.Context, exch exchange.IBotExchange, fPair currency.Pai
 			Amount:        1,
 		})
 	if err != nil {
-		log.Errorf(log.TradeManager, "Could not retrieve maker fee for %v. %v", exch.GetName(), err)
+		log.Errorf(log.StrategiesMgr, "Could not retrieve maker fee for %v. %v", exch.GetName(), err)
 	}
 
 	return decimal.NewFromFloat(fMakerFee), decimal.NewFromFloat(fTakerFee)
@@ -1218,7 +1218,7 @@ func (p *Portfolio) heartBeat() {
 	// 		exchanges, err := p.bot.ExchangeManager.GetExchanges()
 	// 		for _, ex := range exchanges {
 	// 			if err != nil {
-	// 				log.Infoln(log.TradeManager, "error getting tick", err)
+	// 				log.Infoln(log.StrategiesMgr, "error getting tick", err)
 	// 			}
 	//
 	// 			for _, cp := range p.bot.CurrencySettings {
@@ -1227,9 +1227,9 @@ func (p *Portfolio) heartBeat() {
 	// 				// ticker := m.currencyPairs[x].Ticker
 	// 				secondsAgo := int(t1.Sub(tick.LastUpdated).Seconds())
 	// 				if secondsAgo > 10 {
-	// 					log.Warnln(log.TradeManager, cp.CurrencyPair, tick.Last, secondsAgo)
+	// 					log.Warnln(log.StrategiesMgr, cp.CurrencyPair, tick.Last, secondsAgo)
 	// 				} else {
-	// 					log.Infoln(log.TradeManager, cp.CurrencyPair, tick.Last, secondsAgo)
+	// 					log.Infoln(log.StrategiesMgr, cp.CurrencyPair, tick.Last, secondsAgo)
 	// 				}
 	// 			}
 	// 		}
@@ -1240,7 +1240,7 @@ func (p *Portfolio) heartBeat() {
 
 func (p *Portfolio) PrintTradingDetails() {
 	// fmt.Println("strategies running", len(p.Strategies))
-	log.Infoln(log.TradeManager, len(p.Strategies), "strategies running")
+	log.Infoln(log.StrategiesMgr, len(p.Strategies), "strategies running")
 
 	for _, cs := range p.bot.CurrencySettings {
 		// fmt.Println("currency", cs)
@@ -1253,10 +1253,10 @@ func (p *Portfolio) PrintTradingDetails() {
 		}
 		secondsAgo := int(time.Now().Sub(lastCandle.Timestamp).Seconds())
 		if secondsAgo > 60 {
-			log.Infoln(log.TradeManager, cs.CurrencyPair, "last updated", secondsAgo, "seconds ago")
+			log.Infoln(log.StrategiesMgr, cs.CurrencyPair, "last updated", secondsAgo, "seconds ago")
 		}
 		// else {
-		// 	log.Debugln(log.TradeManager, cs.CurrencyPair, "last updated", secondsAgo, "seconds ago")
+		// 	log.Debugln(log.StrategyMgr, cs.CurrencyPair, "last updated", secondsAgo, "seconds ago")
 		// }
 	}
 }

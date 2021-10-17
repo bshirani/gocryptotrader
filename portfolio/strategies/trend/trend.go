@@ -84,7 +84,7 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	trade := p.GetTradeForStrategy(s.GetID())
 	if trade == nil && len(orders) == 0 {
 		if p.GetLiveMode() {
-			log.Debugln(log.TradeManager, s.GetID(), "can trade")
+			log.Debugln(log.TradeMgr, s.GetID(), "can trade")
 		}
 		es.SetDecision(signal.Enter)
 	} else {
@@ -139,7 +139,7 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 			m.GetCurrentDateLow(),
 			len(daily.Open))
 
-		log.Debugf(log.TradeManager, "%s trend factors %s", es.CurrencyPair, factors)
+		log.Debugf(log.TradeMgr, "%s trend factors %s", es.CurrencyPair, factors)
 	}
 
 	// 	// fmt.Println("bar", m.LatestClose(), m.LastUpdate, d.Latest().GetTime())

@@ -2,14 +2,12 @@ package engine
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	"gocryptotrader/data/kline"
-	"gocryptotrader/database/repository/candle"
+	"gocryptotrader/data/kline/database"
 	"gocryptotrader/exchange"
 	"gocryptotrader/exchange/asset"
 	gctkline "gocryptotrader/exchange/kline"
@@ -94,14 +92,12 @@ func (w *Watcher) IsRunning() bool {
 }
 
 func (w *Watcher) monitor() {
-	// lup := make(map[string]map[asset.Item]map[currency.Pair]time.Time)
 	defer w.wg.Done()
-	lup := make(map[ExchangeAssetPairSettings]time.Time)
+	lup := make(map[*ExchangeAssetPairSettings]time.Time)
 	processEventTicker := time.NewTicker(time.Second)
 	for {
 		select {
 		case <-w.shutdown:
-			fmt.Println("received shutdown")
 			return
 		case <-processEventTicker.C:
 			t := time.Now()
@@ -113,16 +109,6 @@ func (w *Watcher) monitor() {
 				if t1 == thisMinute { //skip if alrady updated this minute
 					continue
 				} else {
-					exch, _, asset, err := w.bot.loadExchangePairAssetBase(
-						cs.ExchangeName,
-						cs.CurrencyPair.Base.String(),
-						cs.CurrencyPair.Quote.String(),
-						cs.AssetType.String())
-
-					if exch == nil {
-						fmt.Println("no exchange found")
-					}
-
 					trades, err := trade.GetTradesInRange(
 						cs.ExchangeName,
 						cs.AssetType.String(),
@@ -130,16 +116,6 @@ func (w *Watcher) monitor() {
 						cs.CurrencyPair.Quote.String(),
 						time.Now().Add(-time.Minute),
 						time.Now())
-
-					candles, _ := candle.Series(cs.ExchangeName,
-						cs.CurrencyPair.Base.String(), cs.CurrencyPair.Quote.String(),
-						60, cs.AssetType.String(), thisMinute, time.Now())
-
-					if len(candles.Candles) > 0 {
-						fmt.Println("candle range", thisMinute, cs.CurrencyPair, candles.Candles[0].Timestamp, candles.Candles[len(candles.Candles)-1].Timestamp)
-					} else {
-						fmt.Println("no candles", cs.CurrencyPair)
-					}
 
 					if err != nil {
 						fmt.Println("unable to retrieve data from GoCryptoTrader database. Error: %v. Please ensure the database is setup correctly and has data before use", err)
@@ -154,13 +130,6 @@ func (w *Watcher) monitor() {
 
 						lup[cs] = thisMinute
 
-						resp := &kline.DataFromKline{}
-						resp.Item = gctkline.Item{
-							Exchange: strings.ToLower(cs.ExchangeName),
-							Pair:     cs.CurrencyPair,
-							Interval: gctkline.OneMin,
-							Asset:    asset,
-						}
 						trades[0].CurrencyPair = cs.CurrencyPair
 						trades[0].Exchange = strings.ToLower(cs.ExchangeName)
 						klineItem, err := trade.ConvertTradesToCandles(
@@ -170,99 +139,38 @@ func (w *Watcher) monitor() {
 							log.Errorf(log.Watcher, "could not convert database trade data for %v %v %v, %v", cs.ExchangeName, cs.AssetType, cs.CurrencyPair, err)
 						}
 
-						// resp.Item.Candles = append(resp.Item.Candles, klineItem)
-						if len(klineItem.Candles) > 0 {
-							fmt.Println("last candle from trades", klineItem.Candles[len(klineItem.Candles)-1])
-							klineItem.SortCandlesByTimestamp(true)
-							resp.Item = klineItem
-							resp.Load()
+						// store the candles in the database
+						gctkline.StoreInDatabase(&klineItem, false)
 
-							// only if no already set
-							if w.tradeManager.Datas.GetDataForCurrency(strings.ToLower(cs.ExchangeName), cs.AssetType, cs.CurrencyPair) == nil {
-								fmt.Println("setting", &resp)
-								w.tradeManager.Datas.SetDataForCurrency(strings.ToLower(cs.ExchangeName), cs.AssetType, cs.CurrencyPair, resp)
-							}
+						// func LoadData(startDate, endDate time.Time, interval time.Duration, exchangeName string, dataType int64, fPair currency.Pair, a asset.Item) (*kline.DataFromKline, error) {
+						dbData, err := database.LoadData(
+							thisMinute,
+							thisMinute.Add(time.Minute),
+							time.Minute,
+							cs.ExchangeName,
+							0,
+							cs.CurrencyPair,
+							cs.AssetType)
 
-						} else {
-							fmt.Println("error n o candles")
-							os.Exit(123)
+						if err != nil {
+							fmt.Println("error load db data", err)
 						}
 
-						// w.queue.AppendEvent(signals[i])
+						if w.tradeManager.Datas.GetDataForCurrency(strings.ToLower(cs.ExchangeName), cs.AssetType, cs.CurrencyPair) == nil {
+							w.tradeManager.Datas.SetDataForCurrency(strings.ToLower(cs.ExchangeName), cs.AssetType, cs.CurrencyPair, dbData)
+						}
+
+						dbData.Load()
+
 					}
 					if err != nil {
-						fmt.Println("error", err)
+						fmt.Println("candlestick loader error", err)
 						continue
 					}
-
-					// for ev := w.EventQueue.NextEvent(); ; ev = w.EventQueue.NextEvent() {
-					// 	w.EventQueue.AppendEvent(d)
-					// }
 				}
 			}
 		}
 	}
-	//
-
-	// timer := time.NewTimer(0) // Prime firing of channel for initial sync.
-	// for {
-	// 	select {
-	// 		thisMinute := time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location())
-	// 		for _, cs := range w.bot.TradeManager.CurrencySettings {
-	// 			if lup[cs.ExchangeName] == nil {
-	// 				lup[cs.ExchangeName] = make(map[asset.Item]map[currency.Pair]time.Time)
-	// 			}
-	// 			if lup[cs.ExchangeName][cs.AssetType] == nil {
-	// 				lup[cs.ExchangeName][cs.AssetType] = make(map[currency.Pair]time.Time)
-	// 			}
-	// 			t1 := lup[cs.ExchangeName][cs.AssetType][cs.CurrencyPair]
-	//
-	// 			if t1 == thisMinute {
-	// 				continue
-	// 			} else {
-	// 				// fmt.Println("updating", cs.CurrencyPair, t1, thisMinute)
-	// 				// secondsPast := t1.Sub(t).Seconds()
-	// 				trades, err := trade.GetTradesInRange(
-	// 					cs.ExchangeName,
-	// 					cs.AssetType.String(),
-	// 					cs.CurrencyPair.Base.String(),
-	// 					cs.CurrencyPair.Quote.String(),
-	// 					time.Now().Add(-time.Minute),
-	// 					time.Now())
-	// 				if err != nil {
-	// 					log.Errorf(log.Watcher, "could not retrieve database trade data for %v %v %v, %v", cs.ExchangeName, cs.AssetType, cs.CurrencyPair, err)
-	// 				}
-	// 				if len(trades) > 0 {
-	// 					klineItem, err := trade.ConvertTradesToCandles(
-	// 						gctkline.Interval(kline.OneMin),
-	// 						trades...)
-	// 					if err != nil {
-	// 						log.Errorf(log.Watcher, "could not convert database trade data for %v %v %v, %v", cs.ExchangeName, cs.AssetType, cs.CurrencyPair, err)
-	// 					}
-	//
-	// 					klineItem.SortCandlesByTimestamp(true)
-	// 					fmt.Println("I have a bar for you")
-	//
-	// 					klineItem.Load()
-	// 					// w.queue.AppendEvent(signals[i])
-	// 					// startCandle := klineItem.Candles[0].Time
-	// 					// lastCandle := klineItem.Candles[len(klineItem.Candles)-1].Time
-	// 					// totalSeconds := startCandle.Sub(lastCandle).Seconds()
-	// 					// fmt.Println(cs.CurrencyPair, len(klineItem.Candles), "candles", totalSeconds, "seconds", lastCandle, startCandle)
-	// 					// if len(klineItem.Candles) > 0 {
-	// 					// 	for _, candle := range klineItem.Candles {
-	// 					// 		fmt.Println(candle.Time)
-	// 					// 	}
-	// 					// }
-	// 				}
-	//
-	// 				lastMinuteUpdated[cs.ExchangeName][cs.AssetType][cs.CurrencyPair] = thisMinute
-	// 			}
-	// 		}
-	//
-	// 		timer.Reset(w.sleep)
-	// 	}
-	// }
 }
 
 func (w *Watcher) update(exch exchange.IBotExchange, wg *sync.WaitGroup, enabledAssets asset.Items) {

@@ -32,7 +32,7 @@ func LoadData(startDate, endDate time.Time, interval time.Duration, exchangeName
 		resp.Item = klineItem
 		for i := range klineItem.Candles {
 			if klineItem.Candles[i].ValidationIssues != "" {
-				log.Warnf(log.TradeManager, "candle validation issue for %v %v %v: %v", klineItem.Exchange, klineItem.Asset, klineItem.Pair, klineItem.Candles[i].ValidationIssues)
+				log.Warnf(log.TradeMgr, "candle validation issue for %v %v %v: %v", klineItem.Exchange, klineItem.Asset, klineItem.Pair, klineItem.Candles[i].ValidationIssues)
 			}
 		}
 	case eventtypes.DataTrade:
