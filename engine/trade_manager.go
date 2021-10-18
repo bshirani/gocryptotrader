@@ -11,7 +11,6 @@ import (
 	"gocryptotrader/data/kline/database"
 	"os"
 	"path/filepath"
-	"sync"
 	"sync/atomic"
 	"time"
 
@@ -337,18 +336,18 @@ func (e *Holder) NextEvent() (i eventtypes.EventHandler) {
 
 func (tm *TradeManager) runLive() error {
 	processEventTicker := time.NewTicker(time.Second)
-	var localWG sync.WaitGroup
-	localWG.Add(1)
+	// var localWG sync.WaitGroup
+	// localWG.Add(1)
 
 	if tm.bot.dataHistoryManager.IsRunning() {
 		names, err := tm.bot.dataHistoryManager.Catchup()
 		fmt.Println("created jobs", names, err)
 	}
 
-	fmt.Println("waiting..")
-	localWG.Wait()
-	fmt.Println("done")
-	localWG.Done()
+	// fmt.Println("waiting..")
+	// localWG.Wait()
+	// fmt.Println("done")
+	// localWG.Done()
 
 	for {
 		select {
