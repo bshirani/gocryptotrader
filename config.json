@@ -38,12 +38,12 @@
   "risk-free-rate": "0"
  },
  "tradeManager": {
-  "enabled": false,
-  "verbose": false,
+  "enabled": true,
+  "verbose": true,
   "tradingEnabled": false
  },
  "factorEngine": {
-  "verbose": false
+  "verbose": true
  },
  "name": "TrendExploiter",
  "dataDirectory": "",

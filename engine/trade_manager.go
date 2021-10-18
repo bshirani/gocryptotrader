@@ -349,22 +349,13 @@ func (tm *TradeManager) handleEvent(ev eventtypes.EventHandler) error {
 }
 
 func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) error {
-	// this is where we update the portfolio
-
-	// if tm.Portfolio != nil {
-	// 	tm.Portfolio.Update(ev)
-	// }
-
-	// update order manager
-	// err := tm.updateStatsForDataEvent(ev)
-	// if err != nil {
-	// 	return err
-	// }
-
 	d := tm.Datas.GetDataForCurrency(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 	cs, err := tm.bot.GetCurrencySettings(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 	if cs == nil || err != nil {
 		fmt.Println("error !!! FAIL getting cs", cs)
+	}
+	if tm.verbose {
+		fmt.Println("on bar update", d.Latest().GetTime())
 	}
 	fe := tm.FactorEngines[cs]
 	err = fe.OnBar(d)
@@ -372,8 +363,6 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 		fmt.Printf("error updating factor engine for %v reason: %s", ev.Pair(), err)
 	}
 
-	// HANDLE warmup MODE
-	// in warmup mode, we do not query the strategies
 	if !tm.Warmup {
 		tm.bot.OrderManager.Update()
 
@@ -391,19 +380,6 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 			}
 		}
 	}
-
-	// if err != nil {
-	// 	if errors.Is(err, base.ErrTooMuchBadData) {
-	// 		// too much bad data is a severe error and backtesting must cease
-	// 		return err
-	// 	}
-	// 	log.Error(log.TradeMgr, err)
-	// 	return nil
-	// }
-	// err = tm.Statistic.SetEventForOffset(ev)
-	// if err != nil {
-	// 	log.Error(log.TradeMgr, err)
-	// }
 
 	return nil
 }
