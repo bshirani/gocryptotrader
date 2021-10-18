@@ -312,7 +312,8 @@
     "urlEndpoints": {
      "RestSpotSupplementaryURL": "https://data.gateio.io",
      "RestSpotURL": "https://api.gateio.io",
-     "WebsocketSpotURL": "wss://api.gateio.ws/ws/v4/"
+     "WebsocketSpotURL": "wss://api.gateio.ws/ws/v4/",
+     "EdgeCase1URL": "https://api.gateio.ws/api/v4"
     }
    },
    "features": {

@@ -134,6 +134,7 @@ func (g *Gateio) SetDefaults() {
 		exchange.RestSpot:              gateioTradeURL,
 		exchange.RestSpotSupplementary: gateioMarketURL,
 		exchange.WebsocketSpot:         gateioWebsocketEndpoint,
+		exchange.EdgeCase1:             gateiov4URL,
 	})
 	if err != nil {
 		log.Errorln(log.ExchangeSys, err)

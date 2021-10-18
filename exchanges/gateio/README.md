@@ -96,5 +96,3 @@ if err != nil {
 	// Exchanges will be abstracted out in further updates and examples will be
 	// supplied then
 ```
-
-
