@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"gocryptotrader/common"
-	"gocryptotrader/common/convert"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	tradesql "gocryptotrader/database/repository/trade"
@@ -736,81 +735,81 @@ func (g *Gateio) GetActiveOrders(ctx context.Context, req *order.GetOrdersReques
 		}
 		currPair = fPair.String()
 	}
-	if g.Websocket.CanUseAuthenticatedWebsocketForWrapper() {
-		for i := 0; ; i += 100 {
-			resp, err := g.wsGetOrderInfo(req.Type.String(), i, 100)
-			if err != nil {
-				return orders, err
-			}
-
-			for j := range resp.WebSocketOrderQueryRecords {
-				orderSide := order.Buy
-				if resp.WebSocketOrderQueryRecords[j].Type == 1 {
-					orderSide = order.Sell
-				}
-				orderType := order.Market
-				if resp.WebSocketOrderQueryRecords[j].OrderType == 1 {
-					orderType = order.Limit
-				}
-				p, err := currency.NewPairFromString(resp.WebSocketOrderQueryRecords[j].Market)
-				if err != nil {
-					return nil, err
-				}
-				orders = append(orders, order.Detail{
-					Exchange:        g.Name,
-					AccountID:       strconv.FormatInt(resp.WebSocketOrderQueryRecords[j].User, 10),
-					ID:              strconv.FormatInt(resp.WebSocketOrderQueryRecords[j].ID, 10),
-					Pair:            p,
-					Side:            orderSide,
-					Type:            orderType,
-					Date:            convert.TimeFromUnixTimestampDecimal(resp.WebSocketOrderQueryRecords[j].Ctime),
-					Price:           resp.WebSocketOrderQueryRecords[j].Price,
-					Amount:          resp.WebSocketOrderQueryRecords[j].Amount,
-					ExecutedAmount:  resp.WebSocketOrderQueryRecords[j].FilledAmount,
-					RemainingAmount: resp.WebSocketOrderQueryRecords[j].Left,
-					Fee:             resp.WebSocketOrderQueryRecords[j].DealFee,
-				})
-			}
-			if len(resp.WebSocketOrderQueryRecords) < 100 {
-				break
-			}
-		}
-	} else {
-		resp, err := g.GetOpenOrders(ctx, currPair)
-		if err != nil {
-			return nil, err
-		}
-
-		format, err := g.GetPairFormat(asset.Spot, false)
-		if err != nil {
-			return nil, err
-		}
-
-		for i := range resp.Orders {
-			if resp.Orders[i].Status != "open" {
-				continue
-			}
-			var symbol currency.Pair
-			symbol, err = currency.NewPairDelimiter(resp.Orders[i].CurrencyPair,
-				format.Delimiter)
-			if err != nil {
-				return nil, err
-			}
-			side := order.Side(strings.ToUpper(resp.Orders[i].Type))
-			orderDate := time.Unix(resp.Orders[i].Timestamp, 0)
-			orders = append(orders, order.Detail{
-				ID:              resp.Orders[i].OrderNumber,
-				Amount:          resp.Orders[i].Amount,
-				Price:           resp.Orders[i].Rate,
-				RemainingAmount: resp.Orders[i].FilledAmount,
-				Date:            orderDate,
-				Side:            side,
-				Exchange:        g.Name,
-				Pair:            symbol,
-				Status:          order.Status(resp.Orders[i].Status),
-			})
-		}
+	// if g.Websocket.CanUseAuthenticatedWebsocketForWrapper() {
+	// 	for i := 0; ; i += 100 {
+	// 		resp, err := g.wsGetOrderInfo(req.Type.String(), i, 100)
+	// 		if err != nil {
+	// 			return orders, err
+	// 		}
+	//
+	// 		for j := range resp.WebSocketOrderQueryRecords {
+	// 			orderSide := order.Buy
+	// 			if resp.WebSocketOrderQueryRecords[j].Type == 1 {
+	// 				orderSide = order.Sell
+	// 			}
+	// 			orderType := order.Market
+	// 			if resp.WebSocketOrderQueryRecords[j].OrderType == 1 {
+	// 				orderType = order.Limit
+	// 			}
+	// 			p, err := currency.NewPairFromString(resp.WebSocketOrderQueryRecords[j].Market)
+	// 			if err != nil {
+	// 				return nil, err
+	// 			}
+	// 			orders = append(orders, order.Detail{
+	// 				Exchange:        g.Name,
+	// 				AccountID:       strconv.FormatInt(resp.WebSocketOrderQueryRecords[j].User, 10),
+	// 				ID:              strconv.FormatInt(resp.WebSocketOrderQueryRecords[j].ID, 10),
+	// 				Pair:            p,
+	// 				Side:            orderSide,
+	// 				Type:            orderType,
+	// 				Date:            convert.TimeFromUnixTimestampDecimal(resp.WebSocketOrderQueryRecords[j].Ctime),
+	// 				Price:           resp.WebSocketOrderQueryRecords[j].Price,
+	// 				Amount:          resp.WebSocketOrderQueryRecords[j].Amount,
+	// 				ExecutedAmount:  resp.WebSocketOrderQueryRecords[j].FilledAmount,
+	// 				RemainingAmount: resp.WebSocketOrderQueryRecords[j].Left,
+	// 				Fee:             resp.WebSocketOrderQueryRecords[j].DealFee,
+	// 			})
+	// 		}
+	// 		if len(resp.WebSocketOrderQueryRecords) < 100 {
+	// 			break
+	// 		}
+	// 	}
+	// } else {
+	resp, err := g.GetOpenOrders(ctx, currPair)
+	if err != nil {
+		return nil, err
 	}
+
+	format, err := g.GetPairFormat(asset.Spot, false)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range resp.Orders {
+		if resp.Orders[i].Status != "open" {
+			continue
+		}
+		var symbol currency.Pair
+		symbol, err = currency.NewPairDelimiter(resp.Orders[i].CurrencyPair,
+			format.Delimiter)
+		if err != nil {
+			return nil, err
+		}
+		side := order.Side(strings.ToUpper(resp.Orders[i].Type))
+		orderDate := time.Unix(resp.Orders[i].Timestamp, 0)
+		orders = append(orders, order.Detail{
+			ID:              resp.Orders[i].OrderNumber,
+			Amount:          resp.Orders[i].Amount,
+			Price:           resp.Orders[i].Rate,
+			RemainingAmount: resp.Orders[i].FilledAmount,
+			Date:            orderDate,
+			Side:            side,
+			Exchange:        g.Name,
+			Pair:            symbol,
+			Status:          order.Status(resp.Orders[i].Status),
+		})
+	}
+	// }
 	order.FilterOrdersByTimeRange(&orders, req.StartTime, req.EndTime)
 	order.FilterOrdersBySide(&orders, req.Side)
 	return orders, nil
@@ -864,7 +863,8 @@ func (g *Gateio) GetOrderHistory(ctx context.Context, req *order.GetOrdersReques
 
 // AuthenticateWebsocket sends an authentication message to the websocket
 func (g *Gateio) AuthenticateWebsocket(_ context.Context) error {
-	return g.wsServerSignIn()
+	return nil
+	// return g.wsServerSignIn()
 }
 
 // ValidateCredentials validates current credentials used for wrapper

@@ -6,6 +6,7 @@ require (
 	github.com/aquasecurity/libbpfgo v0.2.1-libbpf-0.4.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/d5/tengo/v2 v2.8.0
+	github.com/deckarep/golang-set v1.7.1 // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/friendsofgo/errors v0.9.2 // indirect
 	github.com/go-delve/delve v1.7.2 // indirect

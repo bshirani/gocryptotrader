@@ -2,10 +2,10 @@ package gateio
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"gocryptotrader/currency"
-	"gocryptotrader/exchange/stream"
 )
 
 // TimeInterval Interval represents interval enum.
@@ -379,12 +379,13 @@ var WithdrawalFees = map[currency.Code]float64{
 	currency.EXC:      10,
 }
 
-// WebsocketRequest defines the initial request in JSON
-type WebsocketRequest struct {
-	ID       int64                        `json:"id"`
-	Method   string                       `json:"method"`
-	Params   []interface{}                `json:"params"`
-	Channels []stream.ChannelSubscription `json:"-"` // used for tracking associated channel subs on batched requests
+type UpdateMsg struct {
+	Time    int64           `json:"time"`
+	Id      *int64          `json:"id,omitempty"`
+	Channel string          `json:"channel"`
+	Event   string          `json:"event"`
+	Error   *ServiceError   `json:"error,omitempty"`
+	Result  json.RawMessage `json:"result"`
 }
 
 // WebsocketResponse defines a websocket response from gateio
@@ -419,11 +420,13 @@ type WebsocketTicker struct {
 
 // WebsocketTrade defines trade data
 type WebsocketTrade struct {
-	ID     int64   `json:"id"`
-	Time   float64 `json:"time"`
-	Price  float64 `json:"price,string"`
-	Amount float64 `json:"amount,string"`
-	Type   string  `json:"type"`
+	Amount       float64 `json:"amount,string"`
+	CreateTimeMs string  `json:"create_time_ms"`
+	CurrencyPair string  `json:"currency_pair"`
+	Side         string  `json:"side"`
+	ID           int64   `json:"id"`
+	Price        float64 `json:"price,string"`
+	Time         float64 `json:"create_time"`
 }
 
 // WebsocketBalance holds a slice of WebsocketBalanceCurrency
@@ -549,4 +552,71 @@ type wsOrderbook struct {
 	Asks [][]string `json:"asks"`
 	Bids [][]string `json:"bids"`
 	ID   int64      `json:"id"`
+}
+
+type ServiceError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
+func (e ServiceError) Error() string {
+	return e.Message
+}
+
+func newAuthEmptyErr() error {
+	return fmt.Errorf("auth key or secret empty")
+}
+
+type WSEvent struct {
+	UpdateMsg
+}
+
+type ChannelEvent struct {
+	Event  string
+	Market []string
+}
+
+type WebsocketRequest struct {
+	Time    int64 `json:"time"`
+	Market  []string
+	ID      int64    `json:"id,omitempty"`
+	Channel string   `json:"channel"`
+	Event   string   `json:"event"`
+	Payload []string `json:"payload"`
+}
+
+// // WebsocketRequest defines the initial request in JSON
+// type WebsocketRequest struct {
+// 	ID       int64                        `json:"id"`
+// 	Method   string                       `json:"method"`
+// 	Params   []interface{}                `json:"params"`
+// 	Channels []stream.ChannelSubscription `json:"-"` // used for tracking associated channel subs on batched requests
+// }
+
+type Request struct {
+	App     string   `json:"app,omitempty"`
+	Time    int64    `json:"time"`
+	Id      *int64   `json:"id,omitempty"`
+	Channel string   `json:"channel"`
+	Event   string   `json:"event"`
+	Auth    Auth     `json:"auth"`
+	Payload []string `json:"payload"`
+}
+
+type Auth struct {
+	Method string `json:"method"`
+	Key    string `json:"KEY"`
+	Secret string `json:"SIGN"`
+}
+
+type SubscribeOptions struct {
+	ID          int64 `json:"id"`
+	IsReConnect bool  `json:"-"`
+}
+
+type requestHistory struct {
+	Channel string   `json:"channel"`
+	Event   string   `json:"event"`
+	Payload []string `json:"payload"`
+	op      *SubscribeOptions
 }
