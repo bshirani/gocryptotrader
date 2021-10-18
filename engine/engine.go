@@ -690,11 +690,6 @@ func (bot *Engine) Start() error {
 	// end check
 	gctlog.Debugf(gctlog.Global, "Bot '%s' started.\n", bot.Config.Name)
 
-	if bot.dataHistoryManager.IsRunning() {
-		os.Exit(123)
-		bot.dataHistoryManager.Catchup()
-	}
-
 	return nil
 }
 

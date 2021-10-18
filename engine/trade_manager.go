@@ -8,8 +8,10 @@ import (
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/data"
+	"gocryptotrader/data/kline/database"
 	"os"
 	"path/filepath"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -61,6 +63,10 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	}
 	if bot == nil {
 		return nil, errNilBot
+	}
+	if len(cfg.CurrencySettings) < 1 {
+		fmt.Println("no cs")
+		os.Exit(123)
 	}
 	tm := &TradeManager{
 		shutdown: make(chan struct{}),
@@ -116,6 +122,12 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 		tm.initializePortfolio(cfg)
 	}
 	if err != nil {
+		os.Exit(123)
+	}
+
+	fmt.Println("done setting up bot with", len(tm.bot.CurrencySettings), "currencies")
+	if len(tm.bot.CurrencySettings) < 1 {
+		fmt.Println("no currency settings")
 		os.Exit(123)
 	}
 
@@ -202,6 +214,29 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 
 func (tm *TradeManager) Run() error {
 	log.Debugf(log.TradeMgr, "TradeManager Running. Warmup: %v\n", tm.Warmup)
+
+	for _, cs := range tm.bot.CurrencySettings {
+		dbData, err := database.LoadData(
+			time.Now(),
+			time.Now().Add(time.Minute-20),
+			time.Minute,
+			cs.ExchangeName,
+			0,
+			cs.CurrencyPair,
+			cs.AssetType)
+
+		if err != nil {
+			fmt.Println("error loading db data", err)
+			// create a data history request if there isn't one already
+			os.Exit(123)
+		} else {
+			fmt.Println("loaded data for", cs.CurrencyPair)
+		}
+
+		tm.Datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, dbData)
+		dbData.Load()
+	}
+
 dataLoadingIssue:
 	for ev := tm.EventQueue.NextEvent(); ; ev = tm.EventQueue.NextEvent() {
 		if ev == nil {
@@ -302,6 +337,19 @@ func (e *Holder) NextEvent() (i eventtypes.EventHandler) {
 
 func (tm *TradeManager) runLive() error {
 	processEventTicker := time.NewTicker(time.Second)
+	var localWG sync.WaitGroup
+	localWG.Add(1)
+
+	if tm.bot.dataHistoryManager.IsRunning() {
+		names, err := tm.bot.dataHistoryManager.Catchup()
+		fmt.Println("created jobs", names, err)
+	}
+
+	fmt.Println("waiting..")
+	localWG.Wait()
+	fmt.Println("done")
+	localWG.Done()
+
 	for {
 		select {
 		case <-tm.shutdown:
@@ -526,12 +574,14 @@ func (tm *TradeManager) updateStatsForDataEvent(ev eventtypes.DataEventHandler) 
 }
 
 func (tm *TradeManager) startOfflineServices() error {
-	for i := range tm.bot.Config.CurrencySettings {
-		err := tm.bot.LoadExchange(tm.bot.Config.CurrencySettings[i].ExchangeName, nil)
+	for _, cs := range tm.cfg.CurrencySettings {
+		err := tm.bot.LoadExchange(cs.ExchangeName, nil)
 		if err != nil && !errors.Is(err, ErrExchangeAlreadyLoaded) {
 			return err
 		}
 	}
+
+	tm.bot.setupExchangeSettings()
 
 	// start fake order manager here since we don't start engine in live mode
 	var err error

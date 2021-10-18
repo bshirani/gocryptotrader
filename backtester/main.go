@@ -39,6 +39,7 @@ func main() {
 	}
 
 	var cfg *config.Config
+	fmt.Println("reading", configPath)
 	cfg, err = config.ReadConfigFromFile(configPath)
 	if err != nil {
 		fmt.Printf("Could not read config. Error: %v. Path: %s\n", err, configPath)
@@ -107,7 +108,7 @@ func main() {
 		log.Global,
 		"%d trades, %d strategies, %d pairs",
 		len(tm.Portfolio.GetAllClosedTrades()),
-		len(tm.bot.Config.StrategiesSettings),
+		len(bot.Config.StrategiesSettings),
 		len(pairs),
 	)
 

@@ -888,7 +888,14 @@ func (g *Gateio) GetHistoricCandles(ctx context.Context, pair currency.Pair, a a
 	hours := time.Since(start).Hours()
 	formattedPair, err := g.FormatExchangeCurrency(pair, a)
 	if err != nil {
+		fmt.Println("error getting currency", err)
 		return kline.Item{}, err
+	}
+
+	fmt.Println("requesting historic candles hours", int(hours))
+	hrs := int(hours)
+	if hrs < 1 {
+		hrs = 1
 	}
 
 	params := KlinesRequestParams{
@@ -899,6 +906,7 @@ func (g *Gateio) GetHistoricCandles(ctx context.Context, pair currency.Pair, a a
 
 	klineData, err := g.GetSpotKline(ctx, params)
 	if err != nil {
+		fmt.Println("error getting kline", err)
 		return kline.Item{}, err
 	}
 	klineData.Interval = interval

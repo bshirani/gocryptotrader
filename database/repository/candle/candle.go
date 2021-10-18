@@ -22,12 +22,9 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
-// Series returns candle data
-func Series(exchangeName, base, quote string, interval int64, asset string, start, end time.Time) (out Item, err error) {
-	// boil.DebugMode = true
-	defer func() {
-		boil.DebugMode = false
-	}()
+func Last(exchangeName, base, quote string, interval int64, asset string) (out Candle, err error) {
+	boil.DebugMode = true
+	defer func() { boil.DebugMode = false }()
 	if exchangeName == "" || base == "" || quote == "" || asset == "" || interval <= 0 {
 		return out, errInvalidInput
 	}
@@ -37,14 +34,8 @@ func Series(exchangeName, base, quote string, interval int64, asset string, star
 		qm.Where("quote = ?", strings.ToUpper(quote)),
 		qm.Where("interval = ?", interval),
 		qm.Where("asset = ?", strings.ToLower(asset)),
-	}
-
-	if start == end {
-		queries = append(queries, qm.OrderBy("timestamp desc"))
-		queries = append(queries, qm.Limit(1))
-	} else {
-		queries = append(queries, qm.OrderBy("timestamp"))
-		queries = append(queries, qm.Where("timestamp between ? and ?", start.UTC(), end.UTC()))
+		qm.OrderBy("timestamp desc"),
+		qm.Limit(1),
 	}
 
 	exchangeUUID, errS := exchange.UUIDByName(exchangeName)
@@ -52,6 +43,56 @@ func Series(exchangeName, base, quote string, interval int64, asset string, star
 		return out, errS
 	}
 	queries = append(queries, qm.Where("exchange_name_id = ?", exchangeUUID.String()))
+	retCandle, errC := modelPSQL.Candles(queries...).All(context.Background(), database.DB.SQL)
+	if errC != nil {
+		return out, errC
+	}
+
+	if len(retCandle) > 0 {
+		out = Candle{
+			Timestamp:        retCandle[0].Timestamp,
+			Open:             retCandle[0].Open,
+			High:             retCandle[0].High,
+			Low:              retCandle[0].Low,
+			Close:            retCandle[0].Close,
+			Volume:           retCandle[0].Volume,
+			SourceJobID:      retCandle[0].SourceJobID.String,
+			ValidationJobID:  retCandle[0].ValidationJobID.String,
+			ValidationIssues: retCandle[0].ValidationIssues.String,
+		}
+
+		if out.Timestamp.IsZero() {
+			return out, fmt.Errorf("%w: %s %s %s %v %s", ErrNoCandleDataFound, exchangeName, base, quote, interval, asset)
+		}
+	} else {
+		fmt.Println("err no candle data")
+		return out, errNoCandleData
+	}
+
+	return out, err
+}
+
+// Series returns candle data
+func Series(exchangeName, base, quote string, interval int64, asset string, start, end time.Time) (out Item, err error) {
+	// boil.DebugMode = true
+	if exchangeName == "" || base == "" || quote == "" || asset == "" || interval <= 0 {
+		return out, errInvalidInput
+	}
+
+	queries := []qm.QueryMod{
+		qm.Where("base = ?", strings.ToUpper(base)),
+		qm.Where("quote = ?", strings.ToUpper(quote)),
+		qm.Where("interval = ?", interval),
+		qm.Where("asset = ?", strings.ToLower(asset)),
+		qm.OrderBy("timestamp"),
+	}
+
+	exchangeUUID, errS := exchange.UUIDByName(exchangeName)
+	if errS != nil {
+		return out, errS
+	}
+	queries = append(queries, qm.Where("exchange_name_id = ?", exchangeUUID.String()))
+	queries = append(queries, qm.Where("timestamp between ? and ?", start.UTC(), end.UTC()))
 	retCandle, errC := modelPSQL.Candles(queries...).All(context.Background(), database.DB.SQL)
 	if errC != nil {
 		return out, errC

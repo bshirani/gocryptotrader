@@ -101,9 +101,13 @@ func (m *DataHistoryManager) Catchup() ([]string, error) {
 	// for each currency setting, perform catchup
 	// what are the currencies traded from what excahnges
 
+	if m.verbose {
+		fmt.Println("run catchup")
+	}
+
 	names := make([]string, 0)
 
-	for _, p := range m.bot.CurrencySettings { // by exchange
+	for _, p := range m.bot.CurrencySettings {
 		// log.Debugf(log.DataHistory, "request datahistory catchup for %s %v %v", p.ExchangeName, p.AssetType, p.CurrencyPair)
 
 		start := time.Now().Add(time.Minute * -10)
@@ -112,6 +116,26 @@ func (m *DataHistoryManager) Catchup() ([]string, error) {
 		if err != nil {
 			return names, err
 		}
+
+		// (exchangeName, base, quote string, interval int64, asset string, start, end time.Time) (out Item, err error) {
+		lastCandle, err := candle.Last(
+			p.ExchangeName,
+			p.CurrencyPair.Base.String(),
+			p.CurrencyPair.Quote.String(),
+			60,
+			p.AssetType.String())
+
+		fmt.Println("last candle for ", p.CurrencyPair, lastCandle.Timestamp, err)
+
+		lastUpdateAgo := time.Now().Sub(lastCandle.Timestamp).Seconds()
+		fmt.Println("last update was", lastUpdateAgo, "seconds ago")
+		if err != nil {
+			fmt.Println("no candle exists for", p.CurrencyPair)
+			return nil, nil
+		}
+
+		// determine if we need to create one first of all
+		// determine how much data we need
 
 		name := fmt.Sprintf("catchupjob-%v-%d", p.CurrencyPair, time.Now().Unix())
 		names = append(names, name)
@@ -126,15 +150,15 @@ func (m *DataHistoryManager) Catchup() ([]string, error) {
 			RunBatchLimit:          10,
 			RequestSizeLimit:       100,
 			DataType:               dataHistoryDataType(eventtypes.DataCandle),
-			MaxRetryAttempts:       10,
+			MaxRetryAttempts:       1,
 			Status:                 dataHistoryStatusActive,
 			OverwriteExistingData:  true,
 			ConversionInterval:     60000000000,
 			DecimalPlaceComparison: 3,
 		}
 
-		log.Debugln(log.DataHistory, "Creating history job for ", p.CurrencyPair)
-		err = m.runJob(&job)
+		log.Debugln(log.DataHistory, "Creating history job for ", p.CurrencyPair, job)
+		// err = m.runJob(&job)
 		// err = m.UpsertJob(&job, true)
 		if err != nil {
 			log.Errorln(log.DataHistory, "data history error: ", err)
@@ -706,6 +730,7 @@ func (m *DataHistoryManager) completeJob(job *DataHistoryJob, allResultsSuccessf
 }
 
 func (m *DataHistoryManager) saveCandlesInBatches(job *DataHistoryJob, candles *kline.Item, r *DataHistoryJobResult) error {
+	fmt.Println("save candles in batches", len(candles.Candles))
 	if !m.IsRunning() {
 		return ErrSubSystemNotStarted
 	}
@@ -733,6 +758,7 @@ func (m *DataHistoryManager) saveCandlesInBatches(job *DataHistoryJob, candles *
 			if err != nil {
 				r.Result += "could not save results: " + err.Error() + ". "
 				r.Status = dataHistoryStatusFailed
+				fmt.Println("FAILED")
 			}
 			break
 		}
@@ -775,6 +801,7 @@ func (m *DataHistoryManager) processCandleData(job *DataHistoryJob, exch exchang
 		Status:            dataHistoryStatusComplete,
 		Date:              time.Now(),
 	}
+	fmt.Println("requesting candles", startRange, endRange, job.Interval)
 	candles, err := exch.GetHistoricCandlesExtended(context.TODO(),
 		job.Pair,
 		job.Asset,
