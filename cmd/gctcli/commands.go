@@ -35,7 +35,7 @@ func doThing(c *cli.Context) error {
 	defer closeConn(conn, cancel)
 
 	client := gctrpc.NewGoCryptoTraderClient(conn)
-	result, err := client.GetInfo(c.Context,
+	result, err := client.DoThing(c.Context,
 		&gctrpc.GetInfoRequest{},
 	)
 

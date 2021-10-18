@@ -1,4 +1,4 @@
-jackage vm
+package vm
 
 import (
 	"errors"

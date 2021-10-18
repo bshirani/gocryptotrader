@@ -202,6 +202,24 @@ func (s *RPCServer) GetInfo(_ context.Context, _ *gctrpc.GetInfoRequest) (*gctrp
 	}, nil
 }
 
+// GetInfo returns info about the current GoCryptoTrader session
+func (s *RPCServer) DoThing(_ context.Context, _ *gctrpc.GetInfoRequest) (*gctrpc.GetInfoResponse, error) {
+	rpcEndpoints, err := s.getRPCEndpoints()
+	if err != nil {
+		return nil, err
+	}
+
+	return &gctrpc.GetInfoResponse{
+		Uptime:               time.Since(s.uptime).String(),
+		EnabledExchanges:     int64(s.Config.CountEnabledExchanges()),
+		AvailableExchanges:   int64(len(s.Config.Exchanges)),
+		DefaultFiatCurrency:  s.Config.Currency.FiatDisplayCurrency.String(),
+		DefaultForexProvider: s.Config.GetPrimaryForexProvider(),
+		SubsystemStatus:      s.GetSubsystemsStatus(),
+		RpcEndpoints:         rpcEndpoints,
+	}, nil
+}
+
 func (s *RPCServer) getRPCEndpoints() (map[string]*gctrpc.RPCEndpoint, error) {
 	endpoints, err := s.Engine.GetRPCEndpoints()
 	if err != nil {

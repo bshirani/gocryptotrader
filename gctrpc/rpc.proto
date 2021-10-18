@@ -1007,6 +1007,12 @@ service GoCryptoTrader {
         };
     }
 
+    rpc DoThing (GetInfoRequest) returns (GetInfoResponse) {
+        option (google.api.http) = {
+            get :"/v1/dothing"
+        };
+    }
+
     rpc GetSubsystems (GetSubsystemsRequest) returns (GetSusbsytemsResponse) {
         option (google.api.http) = {
             get: "/v1/getsubsystems"
