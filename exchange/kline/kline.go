@@ -437,6 +437,10 @@ func CalculateCandleDateRanges(start, end time.Time, interval Interval, limit ui
 	}
 
 	for x := range splitIntervalsByLimit {
+		// endTime := splitIntervalsByLimit[x][len(splitIntervalsByLimit[x])-1].End.Time
+		// startTime := splitIntervalsByLimit[x][0].Start.Time
+		// mins := endTime.Sub(startTime).Minutes()
+		// fmt.Println("creating range", splitIntervalsByLimit[x][0].Start, mins, "minutes")
 		resp.Ranges = append(resp.Ranges, IntervalRange{
 			Start:     splitIntervalsByLimit[x][0].Start,
 			End:       splitIntervalsByLimit[x][len(splitIntervalsByLimit[x])-1].End,

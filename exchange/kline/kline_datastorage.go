@@ -113,6 +113,7 @@ func StoreInDatabase(in *Item, force bool) (uint64, error) {
 			return 0, err
 		}
 	}
+	fmt.Println("inserting candles", len(databaseCandles.Candles))
 	return candle.Insert(&databaseCandles)
 }
 

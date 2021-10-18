@@ -21,11 +21,13 @@ import (
 const (
 	gateioTradeURL   = "https://api.gateio.io"
 	gateioMarketURL  = "https://data.gateio.io"
+	gateiov4URL      = "https://api.gateio.ws/api/v4"
 	gateioAPIVersion = "api2/1"
 
 	gateioSymbol          = "pairs"
 	gateioMarketInfo      = "marketinfo"
 	gateioKline           = "candlestick2"
+	gateioCandlesticks    = "candlesticks"
 	gateioOrder           = "private"
 	gateioBalances        = "private/balances"
 	gateioCancelOrder     = "private/cancelOrder"
@@ -206,6 +208,68 @@ func (g *Gateio) GetOrderbook(ctx context.Context, symbol string) (Orderbook, er
 }
 
 // GetSpotKline returns kline data for the most recent time period
+func (g *Gateio) GetSpotKlineV4(ctx context.Context, arg KlinesRequestParamsV4) (kline.Item, error) {
+	urlPath := fmt.Sprintf("/spot/%s?currency_pair=%s&from=%d&to=%d&interval=%s",
+		gateioCandlesticks,
+		arg.Symbol,
+		arg.From,
+		arg.To,
+		arg.Interval)
+
+	fmt.Println("urlpath", urlPath)
+	var respData [][]string
+
+	err := g.SendHTTPv4Request(ctx, exchange.EdgeCase1, urlPath, &respData)
+	if err != nil {
+		return kline.Item{}, err
+	}
+
+	result := kline.Item{
+		Exchange: g.Name,
+	}
+
+	if respData == nil || len(respData) == 0 {
+		return kline.Item{}, errors.New("no candles received")
+	}
+
+	for _, k := range respData {
+		ot, err := convert.UnixTimestampStrToTime(k[0])
+		if err != nil {
+			return kline.Item{}, fmt.Errorf("cannot parse Kline.OpenTime. Err: %s", err)
+		}
+		_vol, err := convert.FloatFromString(k[1])
+		if err != nil {
+			return kline.Item{}, fmt.Errorf("cannot parse Kline.Volume. Err: %s", err)
+		}
+		_close, err := convert.FloatFromString(k[2])
+		if err != nil {
+			return kline.Item{}, fmt.Errorf("cannot parse Kline.Close. Err: %s", err)
+		}
+		_high, err := convert.FloatFromString(k[3])
+		if err != nil {
+			return kline.Item{}, fmt.Errorf("cannot parse Kline.High. Err: %s", err)
+		}
+		_low, err := convert.FloatFromString(k[4])
+		if err != nil {
+			return kline.Item{}, fmt.Errorf("cannot parse Kline.Low. Err: %s", err)
+		}
+		_open, err := convert.FloatFromString(k[5])
+		if err != nil {
+			return kline.Item{}, fmt.Errorf("cannot parse Kline.Open. Err: %s", err)
+		}
+		result.Candles = append(result.Candles, kline.Candle{
+			Time:   ot,
+			Volume: _vol,
+			Close:  _close,
+			High:   _high,
+			Low:    _low,
+			Open:   _open,
+		})
+	}
+	return result, nil
+}
+
+// GetSpotKline returns kline data for the most recent time period
 func (g *Gateio) GetSpotKline(ctx context.Context, arg KlinesRequestParams) (kline.Item, error) {
 	urlPath := fmt.Sprintf("/%s/%s/%s?group_sec=%s&range_hour=%d",
 		gateioAPIVersion,
@@ -326,6 +390,26 @@ func (g *Gateio) CancelExistingOrder(ctx context.Context, orderID int64, symbol 
 
 // SendHTTPRequest sends an unauthenticated HTTP request
 func (g *Gateio) SendHTTPRequest(ctx context.Context, ep exchange.URL, path string, result interface{}) error {
+	endpoint, err := g.API.Endpoints.GetURL(ep)
+	if err != nil {
+		return err
+	}
+
+	item := &request.Item{
+		Method:        http.MethodGet,
+		Path:          endpoint + path,
+		Result:        result,
+		Verbose:       g.Verbose,
+		HTTPDebugging: g.HTTPDebugging,
+		HTTPRecording: g.HTTPRecording,
+	}
+	return g.SendPayload(ctx, request.Unset, func() (*request.Item, error) {
+		return item, nil
+	})
+}
+
+// SendHTTPRequest sends an unauthenticated HTTP request
+func (g *Gateio) SendHTTPv4Request(ctx context.Context, ep exchange.URL, path string, result interface{}) error {
 	endpoint, err := g.API.Endpoints.GetURL(ep)
 	if err != nil {
 		return err

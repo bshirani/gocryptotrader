@@ -134,6 +134,7 @@ func (g *Gateio) SetDefaults() {
 		exchange.RestSpot:              gateioTradeURL,
 		exchange.RestSpotSupplementary: gateioMarketURL,
 		exchange.WebsocketSpot:         gateioWebsocketEndpoint,
+		exchange.EdgeCase1:             gateiov4URL,
 	})
 	if err != nil {
 		log.Errorln(log.ExchangeSys, err)
@@ -885,36 +886,36 @@ func (g *Gateio) GetHistoricCandles(ctx context.Context, pair currency.Pair, a a
 		return kline.Item{}, err
 	}
 
-	hours := time.Since(start).Hours()
 	formattedPair, err := g.FormatExchangeCurrency(pair, a)
 	if err != nil {
 		fmt.Println("error getting currency", err)
 		return kline.Item{}, err
 	}
 
-	fmt.Println("requesting historic candles hours", int(hours))
-	hrs := int(hours)
-	if hrs < 1 {
-		hrs = 1
-	}
-
-	params := KlinesRequestParams{
+	fmt.Println("fromto", start, end)
+	params := KlinesRequestParamsV4{
 		Symbol:   formattedPair.String(),
-		GroupSec: g.FormatExchangeKlineInterval(interval),
-		HourSize: int(hours),
+		From:     start.Unix(),
+		To:       end.Unix(),
+		Interval: "1m",
 	}
 
-	klineData, err := g.GetSpotKline(ctx, params)
+	klineData, err := g.GetSpotKlineV4(ctx, params)
 	if err != nil {
-		fmt.Println("error getting kline", err)
+		fmt.Println("error getting kline!!!", err)
 		return kline.Item{}, err
 	}
 	klineData.Interval = interval
 	klineData.Pair = pair
 	klineData.Asset = a
+	fmt.Println("setting interval", interval)
 
-	klineData.SortCandlesByTimestamp(false)
-	klineData.RemoveOutsideRange(start, end)
+	// klineData.SortCandlesByTimestamp(false)
+	// fmt.Println("before remove", len(klineData.Candles), start, end)
+	// klineData.RemoveOutsideRange(start, end)
+	// fmt.Println("after remove", len(klineData.Candles))
+
+	fmt.Println("first time", klineData.Candles[0].Time)
 
 	// store in database
 	kline.StoreInDatabase(&klineData, false)

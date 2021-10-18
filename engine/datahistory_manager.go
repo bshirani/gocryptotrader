@@ -75,27 +75,7 @@ func SetupDataHistoryManager(bot *Engine, em iExchangeManager, dcm iDatabaseConn
 	}, nil
 }
 
-// cancel all datahistory jobs
 // datahistoryjob.DataHistoryJob.Exec(SQL("update status = 1"))
-
-// tm.Warmup = false
-// tm.warmup()
-// tm.wg.Add(1)
-// if tm.verbose {
-// 	log.Infoln(log.TradeMgr, "Running catchup processes")
-// }
-// _, err := tm.bot.dataHistoryManager.Catchup()
-// if err != nil {
-// 	log.Infoln(log.TradeMgr, "history catchup failed")
-// 	os.Exit(1)
-// }
-// err = tm.bot.dataHistoryManager.RunJobs()
-// if err != nil {
-// 	return err
-// }
-// tm.wg.Wait()
-// 	tm.wg.Done()
-
 func (m *DataHistoryManager) Catchup() ([]string, error) {
 	// takes in a list of currency settings
 	// for each currency setting, perform catchup
@@ -110,13 +90,6 @@ func (m *DataHistoryManager) Catchup() ([]string, error) {
 	for _, p := range m.bot.CurrencySettings {
 		// log.Debugf(log.DataHistory, "request datahistory catchup for %s %v %v", p.ExchangeName, p.AssetType, p.CurrencyPair)
 
-		start := time.Now().Add(time.Minute * -10)
-		end := time.Now()
-		err := common.StartEndTimeCheck(start, end)
-		if err != nil {
-			return names, err
-		}
-
 		// (exchangeName, base, quote string, interval int64, asset string, start, end time.Time) (out Item, err error) {
 		lastCandle, err := candle.Last(
 			p.ExchangeName,
@@ -125,10 +98,10 @@ func (m *DataHistoryManager) Catchup() ([]string, error) {
 			60,
 			p.AssetType.String())
 
-		fmt.Println("last candle for ", p.CurrencyPair, lastCandle.Timestamp, err)
+		fmt.Println("%v's last candle %d seconds ago %v", p.CurrencyPair, int(time.Now().Sub(lastCandle.Timestamp).Seconds()), err)
 
 		lastUpdateAgo := time.Now().Sub(lastCandle.Timestamp).Seconds()
-		fmt.Println("last update was", lastUpdateAgo, "seconds ago")
+		fmt.Printf("last update was %d seconds ago %s\n", int(lastUpdateAgo), lastCandle.Timestamp)
 		if err != nil {
 			fmt.Println("no candle exists for", p.CurrencyPair)
 			return nil, nil
@@ -137,6 +110,12 @@ func (m *DataHistoryManager) Catchup() ([]string, error) {
 		// determine if we need to create one first of all
 		// determine how much data we need
 
+		start := time.Now().Add(time.Minute * -10)
+		end := time.Now()
+		err = common.StartEndTimeCheck(start, end)
+		if err != nil {
+			return names, err
+		}
 		name := fmt.Sprintf("catchupjob-%v-%d", p.CurrencyPair, time.Now().Unix())
 		names = append(names, name)
 		job := DataHistoryJob{
@@ -148,7 +127,7 @@ func (m *DataHistoryManager) Catchup() ([]string, error) {
 			EndDate:                end,
 			Interval:               kline.Interval(60000000000),
 			RunBatchLimit:          10,
-			RequestSizeLimit:       100,
+			RequestSizeLimit:       999,
 			DataType:               dataHistoryDataType(eventtypes.DataCandle),
 			MaxRetryAttempts:       1,
 			Status:                 dataHistoryStatusActive,
@@ -157,9 +136,9 @@ func (m *DataHistoryManager) Catchup() ([]string, error) {
 			DecimalPlaceComparison: 3,
 		}
 
-		log.Debugln(log.DataHistory, "Creating history job for ", p.CurrencyPair, job)
+		log.Debugln(log.DataHistory, "Creating history job for ", p.CurrencyPair, job.StartDate, job.EndDate)
 		// err = m.runJob(&job)
-		// err = m.UpsertJob(&job, true)
+		err = m.UpsertJob(&job, true)
 		if err != nil {
 			log.Errorln(log.DataHistory, "data history error: ", err)
 			return names, err
@@ -170,7 +149,7 @@ func (m *DataHistoryManager) Catchup() ([]string, error) {
 	return names, nil
 }
 
-// Start runs the subsystem
+// Start runs the 999
 func (m *DataHistoryManager) Start() error {
 	if m == nil {
 		return ErrNilSubsystem
@@ -285,8 +264,10 @@ func (m *DataHistoryManager) compareJobsToData(jobs ...*DataHistoryJob) error {
 			dataHistoryConvertTradesDataType:
 			candles, err = m.candleLoader(jobs[i].Exchange, jobs[i].Pair, jobs[i].Asset, jobs[i].Interval, jobs[i].StartDate, jobs[i].EndDate)
 			if err != nil && !errors.Is(err, candle.ErrNoCandleDataFound) {
+				fmt.Printf("%s could not load candle data: %w\n", jobs[i].Nickname, err)
 				return fmt.Errorf("%s could not load candle data: %w", jobs[i].Nickname, err)
 			}
+			fmt.Println("set has data from candles", len(candles.Candles))
 			jobs[i].rangeHolder.SetHasDataFromCandles(candles.Candles)
 		case dataHistoryTradeDataType:
 			for x := range jobs[i].rangeHolder.Ranges {
@@ -366,7 +347,11 @@ func (m *DataHistoryManager) RunJobs() error {
 			log.Error(log.DataHistory, err)
 		}
 		if m.verbose {
-			log.Debugf(log.DataHistory, "completed run of data history job %v", validJobs[i].Nickname)
+			log.Debugf(
+				log.DataHistory,
+				"completed run of data history job %v %s",
+				validJobs[i].Nickname,
+				validJobs[i].Status)
 		}
 	}
 	log.Debugf(log.DataHistory, "completed run of data history jobs")
@@ -730,7 +715,6 @@ func (m *DataHistoryManager) completeJob(job *DataHistoryJob, allResultsSuccessf
 }
 
 func (m *DataHistoryManager) saveCandlesInBatches(job *DataHistoryJob, candles *kline.Item, r *DataHistoryJobResult) error {
-	fmt.Println("save candles in batches", len(candles.Candles))
 	if !m.IsRunning() {
 		return ErrSubSystemNotStarted
 	}
@@ -808,13 +792,21 @@ func (m *DataHistoryManager) processCandleData(job *DataHistoryJob, exch exchang
 		startRange,
 		endRange,
 		job.Interval)
+
 	// fmt.Println("process candle data for", job.Pair, startRange, endRange)
+
 	if err != nil {
 		r.Result += "could not get candles: " + err.Error() + ". "
 		r.Status = dataHistoryStatusFailed
 		return r, nil
 	}
 	job.rangeHolder.SetHasDataFromCandles(candles.Candles)
+	fmt.Println("candles returned", len(candles.Candles))
+	fmt.Println("intervalIndex", intervalIndex)
+	for i := range job.rangeHolder.Ranges {
+		fmt.Println("range", i)
+	}
+
 	for i := range job.rangeHolder.Ranges[intervalIndex].Intervals {
 		if !job.rangeHolder.Ranges[intervalIndex].Intervals[i].HasData {
 			r.Status = dataHistoryStatusFailed

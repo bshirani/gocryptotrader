@@ -56,6 +56,24 @@ type KlinesRequestParams struct {
 	GroupSec string
 }
 
+// KlinesRequestParams represents Klines request data.
+type KlinesRequestParamsV4 struct {
+	Symbol   string // Required field; example LTCBTC,BTCUSDT
+	From     int64
+	To       int64
+	Interval string
+	Limit    int
+}
+
+type KLineResponseV4 struct {
+	Time   string
+	Volume string
+	Close  string
+	High   string
+	Low    string
+	Open   string
+}
+
 // KLineResponse holds the kline response data
 type KLineResponse struct {
 	ID        float64
