@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"time"
 )
@@ -28,8 +29,107 @@ const (
 )
 
 func main() {
+	start, _ := time.Parse("2006-01-02", "2021-08-01")
+	t1 := start.AddDate(-3, 0, 0)
+	finished := make(chan bool)
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
 
-	// continue
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		for range c {
+			<-finished
+			os.Exit(0)
+		}
+	}()
+
+	for _, p := range symbols() {
+		fmt.Printf("%s%10s%s...", string(colorCyan), p, string(colorReset))
+		for d := start; d.After(t1); d = d.AddDate(0, -1, 0) {
+			go worker(d, p, finished)
+			<-finished
+		}
+		fmt.Println(string(colorReset))
+	}
+}
+
+func worker(d time.Time, p string, finished chan bool) {
+	var monthYear string
+	if int(d.Month()) < 10 {
+		monthYear = fmt.Sprintf("%d0%d", d.Year(), d.Month())
+	} else {
+		monthYear = fmt.Sprintf("%d%-d", d.Year(), d.Month())
+	}
+
+	path := fmt.Sprintf(gateioDownloadURL+gateioPathFormat, "spot", "candlesticks_1m", monthYear, p, monthYear)
+
+	// only if file does not exist
+	// does file exist?
+
+	baseDir := "/home/bijan/work/crypto/gateiodata"
+
+	csvFilename := fmt.Sprintf("%s/%s/%s-%s.csv.gz", baseDir, p, p, monthYear)
+	filename := fmt.Sprintf("%s/%s/%s-%s.csv.gz", baseDir, p, p, monthYear)
+	filename404 := fmt.Sprintf("%s/%s/%s-%s.404", baseDir, p, p, monthYear)
+
+	if _, err := os.Stat(csvFilename); !errors.Is(err, os.ErrNotExist) {
+		fmt.Printf("%s%s", string(colorGreen), "E")
+		finished <- true
+		return
+
+	} else if _, err := os.Stat(filename404); !errors.Is(err, os.ErrNotExist) {
+		// 404ed already
+		fmt.Printf("%s%s", string(colorRed), "A")
+		finished <- true
+		return
+	} else if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
+		// file does not exist
+
+		// create dir if necessary
+		// fmt.Println("wget", path, filename)
+		newpath := filepath.Join(baseDir, p)
+		os.MkdirAll(newpath, os.ModePerm)
+	} else {
+		// file exists
+
+		fmt.Printf("%s%s", string(colorGreen), "E")
+		finished <- true
+		return
+	}
+
+	res, e := http.Get(path)
+	if res.StatusCode > 299 {
+		fmt.Printf("%s%s", string(colorRed), "F")
+		f, e := os.Create(filename404)
+		if e != nil {
+			panic(e)
+		}
+		f.Close()
+		finished <- true
+		return
+	} else {
+		fmt.Printf("%s%s", string(colorGreen), "S")
+	}
+	defer res.Body.Close()
+
+	f, e := os.Create(filename)
+	if e != nil {
+		panic(e)
+	}
+	defer f.Close()
+	io.Copy(f, res.Body)
+	// time.Sleep(time.Millisecond * 500)
+
+	if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
+		fmt.Println("FILE DOES NOT EXIST", filename)
+		os.Exit(123)
+	}
+
+	fmt.Println("finished")
+	finished <- true
+}
+
+func symbols() []string {
 	file, err := os.Open("./symbols.txt")
 	if err != nil {
 		log.Fatal(err)
@@ -42,80 +142,5 @@ func main() {
 		pairs = append(pairs, scanner.Text())
 	}
 	fmt.Println("loaded", len(pairs))
-	// os.Exit(1)
-
-	// set the starting date (in any way you wish)
-	start, _ := time.Parse("2006-01-02", "2021-08-01")
-	t1 := start.AddDate(-3, 0, 0)
-	// handle error
-
-	// set d to starting date and keep adding 1 day to it as long as month doesn't change
-	for _, p := range pairs {
-		fmt.Printf("%s%10s%s...", string(colorCyan), p, string(colorReset))
-
-		for d := start; d.After(t1); d = d.AddDate(0, -1, 0) {
-			var monthYear string
-			if int(d.Month()) < 10 {
-				monthYear = fmt.Sprintf("%d0%d", d.Year(), d.Month())
-			} else {
-				monthYear = fmt.Sprintf("%d%-d", d.Year(), d.Month())
-			}
-
-			path := fmt.Sprintf(gateioDownloadURL+gateioPathFormat, "spot", "candlesticks_1m", monthYear, p, monthYear)
-
-			// only if file does not exist
-			// does file exist?
-
-			filename := fmt.Sprintf("/home/bijan/work/crypto/gateiodata/%s/%s-%s.csv.gz", p, p, monthYear)
-			filename404 := fmt.Sprintf("/home/bijan/work/crypto/gateiodata/%s/%s-%s.404", p, p, monthYear)
-			if _, err := os.Stat(filename404); !errors.Is(err, os.ErrNotExist) {
-				fmt.Printf("%s%s", string(colorRed), "❌")
-				continue
-			} else if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
-				// create dir if necessary
-				// fmt.Println("wget", path, filename)
-				newpath := filepath.Join(".", p)
-				os.MkdirAll(newpath, os.ModePerm)
-				// continue
-			} else {
-				// file exists
-				fmt.Printf("%s%s", string(colorGreen), "✅")
-				continue
-			}
-
-			res, e := http.Get(path)
-			// if e != nil {
-			// 	fmt.Println("error!!", e)
-			// 	continue
-			// }
-			if res.StatusCode > 299 {
-				fmt.Printf("%s%s", string(colorRed), "❌")
-				f, e := os.Create(filename404)
-				if e != nil {
-					panic(e)
-				}
-				f.Close()
-				continue
-			} else {
-				fmt.Printf("%s%s", string(colorGreen), "✅")
-			}
-			defer res.Body.Close()
-			io.ReadAll(res.Body)
-			res.Body.Close()
-			f, e := os.Create(filename)
-			if e != nil {
-				panic(e)
-			}
-			defer f.Close()
-			f.ReadFrom(res.Body)
-			// time.Sleep(time.Millisecond * 500)
-
-			if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
-				fmt.Println("FILE DOES NOT EXIST", filename)
-				os.Exit(123)
-			}
-		}
-		fmt.Println(string(colorReset))
-	}
-
+	return pairs
 }
