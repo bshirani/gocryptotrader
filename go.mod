@@ -33,6 +33,7 @@ require (
 	github.com/spf13/cobra v1.2.1 // indirect
 	github.com/spf13/viper v1.9.0
 	github.com/thrasher-corp/gct-ta v0.0.0-20200623072738-f2b55b7f9f41
+	github.com/timescale/timescaledb-tune v0.12.0 // indirect
 	github.com/urfave/cli/v2 v2.3.0
 	github.com/volatiletech/inflect v0.0.1 // indirect
 	github.com/volatiletech/null v8.0.0+incompatible
