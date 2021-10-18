@@ -54,6 +54,9 @@ func main() {
 }
 
 func worker(d time.Time, p string, finished chan bool) {
+	defer func() {
+		finished <- true
+	}()
 	var monthYear string
 	if int(d.Month()) < 10 {
 		monthYear = fmt.Sprintf("%d0%d", d.Year(), d.Month())
@@ -74,13 +77,11 @@ func worker(d time.Time, p string, finished chan bool) {
 
 	if _, err := os.Stat(csvFilename); !errors.Is(err, os.ErrNotExist) {
 		fmt.Printf("%s%s", string(colorGreen), "E")
-		finished <- true
 		return
 
 	} else if _, err := os.Stat(filename404); !errors.Is(err, os.ErrNotExist) {
 		// 404ed already
 		fmt.Printf("%s%s", string(colorRed), "A")
-		finished <- true
 		return
 	} else if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
 		// file does not exist
@@ -93,7 +94,6 @@ func worker(d time.Time, p string, finished chan bool) {
 		// file exists
 
 		fmt.Printf("%s%s", string(colorGreen), "E")
-		finished <- true
 		return
 	}
 
@@ -105,7 +105,6 @@ func worker(d time.Time, p string, finished chan bool) {
 			panic(e)
 		}
 		f.Close()
-		finished <- true
 		return
 	} else {
 		fmt.Printf("%s%s", string(colorGreen), "S")
@@ -125,8 +124,6 @@ func worker(d time.Time, p string, finished chan bool) {
 		os.Exit(123)
 	}
 
-	fmt.Println("finished")
-	finished <- true
 }
 
 func symbols() []string {
