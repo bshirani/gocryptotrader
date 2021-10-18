@@ -76,7 +76,7 @@ func SetupDataHistoryManager(bot *Engine, em iExchangeManager, dcm iDatabaseConn
 }
 
 // datahistoryjob.DataHistoryJob.Exec(SQL("update status = 1"))
-func (m *DataHistoryManager) Catchup() ([]string, error) {
+func (m *DataHistoryManager) Catchup(callback func()) ([]string, error) {
 	// takes in a list of currency settings
 	// for each currency setting, perform catchup
 	// what are the currencies traded from what excahnges
@@ -146,6 +146,8 @@ func (m *DataHistoryManager) Catchup() ([]string, error) {
 		}
 	}
 
+	fmt.Println("called finished")
+	callback()
 	return names, nil
 }
 

@@ -67,6 +67,17 @@ func (db *DBService) GetByNickName(nickname string) (*DataHistoryJob, error) {
 	return db.getByNicknamePostgres(nickname)
 }
 
+// GetByNickName returns a job by its nickname
+func (db *DBService) CountActive() (int64, error) {
+	// boil.DebugMode = true
+	query := postgres.Datahistoryjobs(qm.Where("status=0"))
+	result, err := query.Count(context.Background(), db.sql)
+	if err != nil {
+		return -1, err
+	}
+	return result, err
+}
+
 // GetByID returns a job by its id
 func (db *DBService) GetByID(id string) (*DataHistoryJob, error) {
 	return db.getByIDPostgres(id)

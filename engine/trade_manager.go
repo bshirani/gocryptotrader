@@ -9,6 +9,7 @@ import (
 	"gocryptotrader/currency"
 	"gocryptotrader/data"
 	"gocryptotrader/data/kline/database"
+	"gocryptotrader/database/repository/datahistoryjob"
 	"os"
 	"path/filepath"
 	"sync"
@@ -342,14 +343,30 @@ func (tm *TradeManager) runLive() error {
 	localWG.Add(1)
 
 	if tm.bot.dataHistoryManager.IsRunning() {
-		names, err := tm.bot.dataHistoryManager.Catchup()
+		names, err := tm.bot.dataHistoryManager.Catchup(func() { localWG.Done() })
 		fmt.Println("created jobs", names, err)
 	}
 
-	fmt.Println("waiting..")
+	dbm := tm.bot.DatabaseManager.GetInstance()
+	db, err := datahistoryjob.Setup(dbm)
+	if err != nil {
+		fmt.Println("error", err)
+	}
+
+	for {
+		// count jobs running
+		active, err := db.CountActive()
+		if err != nil {
+			fmt.Println("error", err)
+		}
+		fmt.Println("active jobs", active)
+		if active == 0 {
+			break
+		}
+		time.Sleep(time.Second)
+	}
+
 	localWG.Wait()
-	fmt.Println("done")
-	localWG.Done()
 
 	for {
 		select {
