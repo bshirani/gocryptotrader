@@ -14,11 +14,38 @@ import (
 	"gocryptotrader/common"
 	"gocryptotrader/currency"
 	"gocryptotrader/gctrpc"
+
 	"github.com/urfave/cli/v2"
 )
 
 var startTime, endTime, order string
 var limit int
+
+var doThingCommand = &cli.Command{
+	Name:   "dothing",
+	Usage:  "gets GoCryptoTrader info",
+	Action: doThing,
+}
+
+func doThing(c *cli.Context) error {
+	conn, cancel, err := setupClient(c)
+	if err != nil {
+		return err
+	}
+	defer closeConn(conn, cancel)
+
+	client := gctrpc.NewGoCryptoTraderClient(conn)
+	result, err := client.GetInfo(c.Context,
+		&gctrpc.GetInfoRequest{},
+	)
+
+	if err != nil {
+		return err
+	}
+
+	jsonOutput(result)
+	return nil
+}
 
 var getInfoCommand = &cli.Command{
 	Name:   "getinfo",

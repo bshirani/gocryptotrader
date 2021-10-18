@@ -129,7 +129,9 @@
   "timeout": 60000000000,
   "max_virtual_machines": 10,
   "allow_imports": true,
-  "auto_load": [],
+  "auto_load": [
+   "one.gct"
+  ],
   "verbose": false
  },
  "currencyConfig": {

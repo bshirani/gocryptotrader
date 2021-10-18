@@ -103,6 +103,7 @@ func main() {
 		},
 	}
 	app.Commands = []*cli.Command{
+		doThingCommand,
 		getInfoCommand,
 		getSubsystemsCommand,
 		enableSubsystemCommand,
