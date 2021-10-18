@@ -59,7 +59,6 @@ func (tm *TradeManager) Reset() {
 	// tm.Exchange.Reset()
 	// reset live trades here
 	// tm.bot = nil
-	// tm.FactorEngine = nil
 }
 
 // NewFromConfig takes a strategy config and configures a backtester variable to run
@@ -76,7 +75,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	}
 
 	tm.cfg = *cfg
-	tm.verbose = false
+	tm.verbose = cfg.TradeManager.Verbose
 	tm.Warmup = bot.Config.LiveMode
 
 	tm.EventQueue = &Holder{}
@@ -774,8 +773,7 @@ func (tm *TradeManager) initializePortfolio(strategyConfig *config.Config) error
 func (tm *TradeManager) initializeFactorEngines() error {
 	tm.FactorEngines = make(map[*ExchangeAssetPairSettings]*FactorEngine)
 	for _, cs := range tm.bot.CurrencySettings {
-		log.Debugln(log.TradeMgr, "creating fctor engine", cs.ExchangeName, cs.CurrencyPair)
-		fe, _ := SetupFactorEngine(cs)
+		fe, _ := SetupFactorEngine(cs, &tm.bot.Config.FactorEngine)
 		tm.FactorEngines[cs] = fe
 	}
 	return nil

@@ -735,73 +735,63 @@ func (m *syncManager) worker() {
 					if m.config.SyncTrades {
 						if !m.isProcessing(exchangeName, c.Pair, c.AssetType, SyncItemTrade) {
 							if c.Trade.LastUpdated.IsZero() {
-								// fmt.Println("on first update, sync all missing trades in batches until complete")
+								// first time processing
 								m.setProcessing(c.Exchange, c.Pair, c.AssetType, SyncItemTrade, true)
-
-								// t1 := time.Now()
-								// retCandle, _ := candle.Series(c.Exchange,
-								// 	c.Pair.Base.String(), c.Pair.Quote.String(),
-								// 	int64(60), c.AssetType.String(), t1, t1)
-
-								// fmt.Println("last candle", retCandle.Candles[0].Timestamp)
-
-								// download the recent trades
-								// tr, err := exchanges[x].GetHistoricTrades(context.TODO(), c.Pair, c.AssetType, time.Now(), time.Now())
-								tr, err := exchanges[x].GetHistoricCandles(context.TODO(), c.Pair, c.AssetType, time.Now().Add(time.Hour*-1), time.Now(), kline.OneMin)
-
-								fmt.Println("now last candle", tr.Candles[len(tr.Candles)-1].Time)
-								// save candles to database
-
-								// if err != nil {
-								// 	log.Error(log.SyncMgr, err)
-								// }
-								// fmt.Println(len(tr.Candles), err)
-
+								_, err := exchanges[x].GetHistoricCandles(context.TODO(), c.Pair, c.AssetType, time.Now().Add(time.Hour*-1), time.Now(), kline.OneMin)
+								if err != nil {
+									log.Error(log.SyncMgr, err)
+								}
 								err = m.Update(c.Exchange, c.Pair, c.AssetType, SyncItemTrade, nil)
 								if err != nil {
 									log.Error(log.SyncMgr, err)
 								}
 								continue
-							} else if time.Since(c.Trade.LastUpdated) > m.config.SyncTimeoutREST ||
-								(time.Since(c.Trade.LastUpdated) > m.config.SyncTimeoutWebsocket && c.Trade.IsUsingWebsocket) {
-
-								if c.Trade.IsUsingWebsocket {
-									if time.Since(c.Created) < m.config.SyncTimeoutWebsocket {
-										m.setProcessing(c.Exchange, c.Pair, c.AssetType, SyncItemTrade, true)
-										err := m.Update(c.Exchange, c.Pair, c.AssetType, SyncItemTrade, nil)
-										if err != nil {
-											log.Error(log.SyncMgr, err)
-										}
-
-										continue
-									}
-									fmt.Println("handle timeout")
-
-									if supportsREST {
-										m.setProcessing(c.Exchange, c.Pair, c.AssetType, SyncItemTrade, true)
-										c.Trade.IsUsingWebsocket = false
-										c.Trade.IsUsingREST = true
-										log.Warnf(log.SyncMgr,
-											"%s %s %s: No trade update after %s, switching from websocket to rest",
-											c.Exchange,
-											m.FormatCurrency(c.Pair).String(),
-											strings.ToUpper(c.AssetType.String()),
-											m.config.SyncTimeoutWebsocket,
-										)
-										switchedToRest = true
-										m.setProcessing(c.Exchange, c.Pair, c.AssetType, SyncItemTrade, false)
-									}
+							} else {
+								m.setProcessing(c.Exchange, c.Pair, c.AssetType, SyncItemTrade, true)
+								updateErr := m.Update(c.Exchange, c.Pair, c.AssetType, SyncItemTrade, err)
+								if updateErr != nil {
+									log.Error(log.SyncMgr, updateErr)
 								}
+								// if time.Since(c.Trade.LastUpdated) > m.config.SyncTimeoutREST ||
+								// 	(time.Since(c.Trade.LastUpdated) > m.config.SyncTimeoutWebsocket && c.Trade.IsUsingWebsocket) {
 
-								if c.Ticker.IsUsingREST {
-									fmt.Println("is using rest!!!!!!!!!!!!!!!!!!!!!!")
-									m.setProcessing(c.Exchange, c.Pair, c.AssetType, SyncItemTrade, true)
-									updateErr := m.Update(c.Exchange, c.Pair, c.AssetType, SyncItemTrade, err)
-									if updateErr != nil {
-										log.Error(log.SyncMgr, updateErr)
-									}
-								}
-
+								// if c.Trade.IsUsingWebsocket {
+								// 	if time.Since(c.Created) < m.config.SyncTimeoutWebsocket {
+								// 		m.setProcessing(c.Exchange, c.Pair, c.AssetType, SyncItemTrade, true)
+								// 		fmt.Println("sync trades")
+								// 		err := m.Update(c.Exchange, c.Pair, c.AssetType, SyncItemTrade, nil)
+								// 		if err != nil {
+								// 			log.Error(log.SyncMgr, err)
+								// 		}
+								//
+								// 		continue
+								// 	}
+								// 	fmt.Println("WS Trade Update Last", int(time.Since(c.Created)), "seconds ago", "for", c.Pair)
+								//
+								// 	if supportsREST {
+								// 		m.setProcessing(c.Exchange, c.Pair, c.AssetType, SyncItemTrade, true)
+								// 		c.Trade.IsUsingWebsocket = false
+								// 		c.Trade.IsUsingREST = true
+								// 		log.Warnf(log.SyncMgr,
+								// 			"%s %s %s: No trade update after %s, switching from websocket to rest",
+								// 			c.Exchange,
+								// 			m.FormatCurrency(c.Pair).String(),
+								// 			strings.ToUpper(c.AssetType.String()),
+								// 			m.config.SyncTimeoutWebsocket,
+								// 		)
+								// 		switchedToRest = true
+								// 		m.setProcessing(c.Exchange, c.Pair, c.AssetType, SyncItemTrade, false)
+								// 	}
+								// }
+								//
+								// if c.Trade.IsUsingREST {
+								// 	fmt.Println("is using rest!!!!!!!!!!!!!!!!!!!!!!")
+								// 	m.setProcessing(c.Exchange, c.Pair, c.AssetType, SyncItemTrade, true)
+								// 	updateErr := m.Update(c.Exchange, c.Pair, c.AssetType, SyncItemTrade, err)
+								// 	if updateErr != nil {
+								// 		log.Error(log.SyncMgr, updateErr)
+								// 	}
+								// }
 							}
 						} else {
 							time.Sleep(time.Millisecond * 50)

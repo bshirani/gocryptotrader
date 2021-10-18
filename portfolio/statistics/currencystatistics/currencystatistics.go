@@ -6,7 +6,6 @@ import (
 	"sort"
 	"time"
 
-	"github.com/shopspring/decimal"
 	gctcommon "gocryptotrader/common"
 	gctmath "gocryptotrader/common/math"
 	"gocryptotrader/currency"
@@ -15,6 +14,8 @@ import (
 	gctkline "gocryptotrader/exchange/kline"
 	gctorder "gocryptotrader/exchange/order"
 	"gocryptotrader/log"
+
+	"github.com/shopspring/decimal"
 )
 
 // CalculateResults calculates all statistics for the exchange, asset, currency pair

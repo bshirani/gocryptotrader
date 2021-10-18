@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"gocryptotrader/common"
+	"gocryptotrader/config"
 	"gocryptotrader/data"
 	"gocryptotrader/factors"
 
@@ -13,7 +14,7 @@ import (
 
 // initialize minute and daily data series here
 // load data from cache here
-func SetupFactorEngine(eap *ExchangeAssetPairSettings) (*FactorEngine, error) {
+func SetupFactorEngine(eap *ExchangeAssetPairSettings, cfg *config.FactorEngineConfig) (*FactorEngine, error) {
 	f := &FactorEngine{}
 	p := eap.CurrencyPair
 
@@ -33,6 +34,9 @@ func (f *FactorEngine) Daily() *factors.DailyDataFrame {
 }
 
 func (f *FactorEngine) OnBar(d data.Handler) error {
+	if f.Verbose {
+		fmt.Println("factor engine on bar", d.Latest().GetTime(), d.Latest().ClosePrice())
+	}
 	bar := d.Latest()
 	f.minute.Close = append(f.minute.Close, bar.ClosePrice())
 	f.minute.Open = append(f.minute.Open, bar.OpenPrice())

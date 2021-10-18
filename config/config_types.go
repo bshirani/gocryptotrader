@@ -101,9 +101,12 @@ type Config struct {
 	StrategyCurrencySettings []StrategyCurrencySettings `json:"strategy-currency-settings"`
 	DataSettings             DataSettings               `json:"data-settings"`
 	PortfolioSettings        PortfolioSettings          `json:"portfolio-settings"`
-	StatisticSettings        StatisticSettings          `json:"statistic-settings"`
-	TradeManager             TradeManagerConfig         `json:"trade-manager"`
-	GoCryptoTraderConfigPath string                     `json:"gocryptotrader-config-path"`
+
+	GoCryptoTraderConfigPath string `json:"gocryptotrader-config-path"`
+
+	StatisticSettings StatisticSettings  `json:"statisticSettings"`
+	TradeManager      TradeManagerConfig `json:"tradeManager"`
+	FactorEngine      FactorEngineConfig `json:"factorEngine"`
 
 	Name                 string                    `json:"name"`
 	DataDirectory        string                    `json:"dataDirectory"`
@@ -141,6 +144,10 @@ type TradeManagerConfig struct {
 	Enabled        bool `json:"enabled"`
 	Verbose        bool `json:"verbose"`
 	TradingEnabled bool `json:"tradingEnabled"`
+}
+
+type FactorEngineConfig struct {
+	Verbose bool `json:"verbose"`
 }
 
 // DataHistoryManager holds all information required for the data history manager

@@ -113,7 +113,6 @@ func (g *Gateio) wsReadData() {
 		}
 		err := g.wsHandleData(resp.Raw)
 		if err != nil {
-			fmt.Println("!!!!!!!!!!!!!!!!!!!!gateio ws error", err)
 			g.Websocket.DataHandler <- err
 		}
 	}

@@ -33,15 +33,18 @@
    "maximum-total": "0"
   }
  },
- "statistic-settings": {
+ "gocryptotrader-config-path": "",
+ "statisticSettings": {
   "risk-free-rate": "0"
  },
- "trade-manager": {
+ "tradeManager": {
   "enabled": false,
   "verbose": false,
   "tradingEnabled": false
  },
- "gocryptotrader-config-path": "",
+ "factorEngine": {
+  "verbose": false
+ },
  "name": "TrendExploiter",
  "dataDirectory": "",
  "encryptConfig": -1,
