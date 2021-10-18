@@ -51,11 +51,9 @@ type BalancesResponse struct {
 
 // KlinesRequestParams represents Klines request data.
 type KlinesRequestParams struct {
-	CurrencyPair string `json:"currency_pair"`
-	Limit        int    `json:"limit"`
-	From         int64  `json:"from"`
-	To           int64  `json:"to"`
-	Interval     string `json:"interval"`
+	Symbol   string // Required field; example LTCBTC,BTCUSDT
+	HourSize int    // How many hours of data
+	GroupSec string
 }
 
 // KLineResponse holds the kline response data
