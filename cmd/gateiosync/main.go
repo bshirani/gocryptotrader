@@ -17,6 +17,7 @@ const (
 	gateioDownloadURL = "https://download.gatedata.org"
 	// gateioPathFormat = "/${biz}/${type}/${year}${month}/${market}-${year}${month}.csv.gz"
 	gateioPathFormat = "/%s/%s/%s/%s-%s.csv.gz"
+	baseDir          = "/home/bijan/work/crypto/gateiodata"
 	colorReset       = "\033[0m"
 
 	colorRed    = "\033[31m"
@@ -69,9 +70,7 @@ func worker(d time.Time, p string, finished chan bool) {
 	// only if file does not exist
 	// does file exist?
 
-	baseDir := "/home/bijan/work/crypto/gateiodata"
-
-	csvFilename := fmt.Sprintf("%s/%s/%s-%s.csv.gz", baseDir, p, p, monthYear)
+	csvFilename := fmt.Sprintf("%s/%s/%s-%s.csv", baseDir, p, p, monthYear)
 	filename := fmt.Sprintf("%s/%s/%s-%s.csv.gz", baseDir, p, p, monthYear)
 	filename404 := fmt.Sprintf("%s/%s/%s-%s.404", baseDir, p, p, monthYear)
 
@@ -81,7 +80,7 @@ func worker(d time.Time, p string, finished chan bool) {
 
 	} else if _, err := os.Stat(filename404); !errors.Is(err, os.ErrNotExist) {
 		// 404ed already
-		fmt.Printf("%s%s", string(colorRed), "A")
+		fmt.Printf("%s%s", string(colorRed), "4")
 		return
 	} else if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
 		// file does not exist
