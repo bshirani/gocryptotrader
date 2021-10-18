@@ -8,11 +8,8 @@ import (
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/data"
-	"gocryptotrader/data/kline"
-	"gocryptotrader/data/kline/database"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync/atomic"
 	"time"
 
@@ -36,8 +33,6 @@ import (
 	"gocryptotrader/portfolio/strategies"
 )
 
-// Helper method for starting from live engine
-// New returns a new TradeManager instance
 func NewTradeManager(bot *Engine) (*TradeManager, error) {
 	wd, err := os.Getwd()
 	configPath := filepath.Join(wd, "backtester", "config", "trend.strat")
@@ -49,8 +44,6 @@ func NewTradeManager(bot *Engine) (*TradeManager, error) {
 	return NewTradeManagerFromConfig(btcfg, "xx", "xx", bot)
 }
 
-// Reset TradeManager values to default
-// this working will allow backtests to be run without shutting the engine on/off
 func (tm *TradeManager) Reset() {
 	tm.EventQueue.Reset()
 	tm.Datas.Reset()
@@ -61,7 +54,6 @@ func (tm *TradeManager) Reset() {
 	// tm.bot = nil
 }
 
-// NewFromConfig takes a strategy config and configures a backtester variable to run
 func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, bot *Engine) (*TradeManager, error) {
 	log.Debugln(log.TradeMgr, "TradeManager: Initializing... dry run", bot.Config.DryRun)
 	if cfg == nil {
@@ -108,29 +100,107 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	tm.OrderManager = bot.OrderManager
 	tm.syncManager = bot.currencyPairSyncer
 
-	err = tm.setupBot(cfg)
+	tm.Datas = &data.HandlerPerCurrency{}
+	tm.Datas.Setup()
+	if !tm.bot.Config.LiveMode {
+		err = tm.startOfflineServices()
+	}
 	if err != nil {
-		fmt.Println("error setting up bot")
-		os.Exit(123)
-	} else {
-		fmt.Println("bot setup complete")
+		fmt.Println("failed to setup bot", err)
+		// return err
 	}
 
-	// initialize the data structure to hold the klines for each pair
+	tm.initializeFactorEngines()
+
+	if tm.bot.Settings.EnableTrading {
+		tm.initializePortfolio(cfg)
+	}
+	if err != nil {
+		os.Exit(123)
+	}
+
+	tm.setOrderManagerCallbacks()
+
 	return tm, err
 }
 
-func (tm *TradeManager) setOrderManagerCallbacks() {
-	// tm.bot.OrderManager.SetOnSubmit(tm.onSubmit)
-	tm.OrderManager.SetOnFill(tm.onFill)
-	tm.OrderManager.SetOnCancel(tm.onCancel)
+func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om ExecutionHandler) (submit.Event, error) {
+	// u, _ := uuid.NewV4()
+	// var orderID string
+	priceFloat, _ := o.GetPrice().Float64()
+	a, _ := o.GetAmount().Float64()
+	fee, _ := o.GetExchangeFee().Float64()
+
+	submission := &gctorder.Submit{
+		Price:       priceFloat,
+		Amount:      a,
+		Fee:         fee,
+		Exchange:    o.GetExchange(),
+		ID:          o.GetID(),
+		Side:        o.GetDirection(),
+		AssetType:   o.GetAssetType(),
+		Date:        o.GetTime(),
+		LastUpdated: o.GetTime(),
+		Pair:        o.Pair(),
+		Type:        gctorder.Market,
+		StrategyID:  o.GetStrategyID(),
+	}
+
+	omr, err := om.Submit(context.TODO(), submission)
+	if err != nil {
+		fmt.Println("tm: ERROR order manager submission", err, submission.Side, omr)
+	}
+
+	// fmt.Println("tm: order manager response", omr)
+
+	// if order is placed, update the status of the order to Open
+
+	// update order event order_id, status
+
+	// add the submission to the store
+
+	// we can call on submit manually here
+
+	// if o.GetStrategyID() == "" {
+	// 	return nil, fmt.Errorf("exchange: order has no strategyid")
+	// }
+
+	// update the store with the submission ID
+	ords, _ := om.GetOrdersSnapshot("")
+	var internalOrderID string
+	for i := range ords {
+		if ords[i].ID != o.GetID() {
+			continue
+		}
+		internalOrderID = ords[i].InternalOrderID
+		internalOrderID = ords[i].InternalOrderID
+		ords[i].StrategyID = o.GetStrategyID()
+		ords[i].Date = o.GetTime()
+		ords[i].LastUpdated = o.GetTime()
+		ords[i].CloseTime = o.GetTime()
+	}
+
+	ev := &submit.Submit{
+		IsOrderPlaced:   omr.IsOrderPlaced,
+		InternalOrderID: internalOrderID,
+		StrategyID:      o.GetStrategyID(),
+	} // transform into submit event
+
+	if ev.GetInternalOrderID() == "" {
+		log.Errorln(log.TradeMgr, "error: order has no internal order id")
+	}
+
+	if ev.IsOrderPlaced {
+		// fmt.Println("TM ORDERPLACED, create fill event")
+		tm.onFill(omr)
+	} else {
+		fmt.Println("TM ERROR: ORDERPLACED NOT")
+	}
+
+	return ev, nil
 }
 
-// BACKTEST FUNCTIONALITY
-// Run will iterate over loaded data events
-// save them and then handle the event based on its type
 func (tm *TradeManager) Run() error {
-	tm.setOrderManagerCallbacks()
 	log.Debugf(log.TradeMgr, "TradeManager Running. Warmup: %v\n", tm.Warmup)
 dataLoadingIssue:
 	for ev := tm.EventQueue.NextEvent(); ; ev = tm.EventQueue.NextEvent() {
@@ -169,42 +239,65 @@ dataLoadingIssue:
 	return nil
 }
 
-func (tm *TradeManager) processEvents() error {
-	for ev := tm.EventQueue.NextEvent(); ; ev = tm.EventQueue.NextEvent() {
-		if ev != nil {
-			err := tm.handleEvent(ev)
-			if err != nil {
-				return err
-			}
-		} else {
-			return nil
-		}
-
-		if !tm.hasHandledEvent {
-			tm.hasHandledEvent = true
-		}
-	}
-}
-
-// LIVE FUNCTIONALITY
 func (tm *TradeManager) Start() error {
 	tm.bot.WaitForInitialCurrencySync()
-	tm.setOrderManagerCallbacks()
-
-	// throw error if not live
 	if !atomic.CompareAndSwapInt32(&tm.started, 0, 1) {
 		return fmt.Errorf("backtester %w", ErrSubSystemAlreadyStarted)
 	}
-
-	// start trade manager
 	log.Debugf(log.TradeMgr, "TradeManager  %s", MsgSubSystemStarting)
 	tm.shutdown = make(chan struct{})
-
 	// go tm.heartBeat()
-
 	log.Debugln(log.TradeMgr, "Running Live")
 	go tm.runLive()
 	return nil
+}
+
+func (tm *TradeManager) Stop() error {
+	if tm == nil {
+		return ErrNilSubsystem
+	}
+	if !atomic.CompareAndSwapInt32(&tm.started, 1, 0) {
+		return ErrSubSystemNotStarted
+	}
+
+	log.Debugln(log.TradeMgr, "Backtester Stopping...")
+	if tm.bot.OrderManager.IsRunning() {
+		tm.bot.OrderManager.Stop()
+	}
+	for _, s := range tm.Strategies {
+		s.Stop()
+	}
+	close(tm.shutdown)
+	tm.bot.TradeManager = nil
+	tm.wg.Wait()
+	log.Debugln(log.TradeMgr, "Backtester Stopped.")
+	return nil
+}
+
+func (b *TradeManager) IsRunning() bool {
+	if b == nil {
+		return false
+	}
+	return atomic.LoadInt32(&b.started) == 1
+}
+
+func (e *Holder) Reset() {
+	e.Queue = nil
+}
+
+func (e *Holder) AppendEvent(i eventtypes.EventHandler) {
+	e.Queue = append(e.Queue, i)
+}
+
+func (e *Holder) NextEvent() (i eventtypes.EventHandler) {
+	if len(e.Queue) == 0 {
+		return nil
+	}
+
+	i = e.Queue[0]
+	e.Queue = e.Queue[1:]
+
+	return i
 }
 
 func (tm *TradeManager) runLive() error {
@@ -214,9 +307,9 @@ func (tm *TradeManager) runLive() error {
 		case <-tm.shutdown:
 			return nil
 		case <-processEventTicker.C:
-			for _, exchangeMap := range tm.Datas.GetAllData() { // for each exchange
-				for _, assetMap := range exchangeMap { // asset
-					for _, dataHandler := range assetMap { // coin
+			for _, exchangeMap := range tm.Datas.GetAllData() {
+				for _, assetMap := range exchangeMap {
+					for _, dataHandler := range assetMap {
 						d := dataHandler.Next()
 						if d == nil {
 							continue
@@ -231,92 +324,6 @@ func (tm *TradeManager) runLive() error {
 			}
 		}
 	}
-	return nil
-}
-
-// Stop shuts down the live data loop
-func (tm *TradeManager) Stop() error {
-	if tm == nil {
-		return ErrNilSubsystem
-	}
-	if !atomic.CompareAndSwapInt32(&tm.started, 1, 0) {
-		return ErrSubSystemNotStarted
-	}
-
-	log.Debugln(log.TradeMgr, "Backtester Stopping...")
-	if tm.bot.OrderManager.IsRunning() {
-		tm.bot.OrderManager.Stop()
-	}
-	// if tm.bot.DatabaseManager.IsRunning() {
-	// 	tm.bot.DatabaseManager.Stop()
-	// }
-
-	for _, s := range tm.Strategies {
-		s.Stop()
-	}
-
-	close(tm.shutdown)
-	tm.bot.TradeManager = nil
-	tm.wg.Wait()
-	log.Debugln(log.TradeMgr, "Backtester Stopped.")
-	return nil
-}
-
-// func (tm *TradeManager) loadOfflineDatas() error {
-// 	fmt.Println("ok", len(tm.bot.CurrencySettings))
-// 	// cfg := &tm.cfg
-//
-// 	tm.Datas.Setup()
-//
-// 	// LOAD DATA FOR EVERY PAIR
-// 	for _, cs := range tm.bot.CurrencySettings {
-// 		// exchangeName := strings.ToLower(exch.GetName())
-// 		// klineData, err := tm.loadOfflineData(cfg, exch, pair, a)
-//
-// 		// err = resp.Load()
-// 		// if err != nil {
-// 		// 	fmt.Println("error", err)
-// 		// 	continue
-// 		// }
-// 		// tm.Datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, resp)
-// 	}
-// 	return nil
-// }
-//
-// IsRunning returns if gctscript manager subsystem is started
-func (b *TradeManager) IsRunning() bool {
-	if b == nil {
-		return false
-	}
-	return atomic.LoadInt32(&b.started) == 1
-}
-
-// this is only needed in backtest mode, except for when live runs the catchup process
-// setupBot sets up a basic bot to retrieve exchange data
-// as well as process orders
-// setup order manager, exchange manager, database manager
-func (tm *TradeManager) setupBot(strategyConfig *config.Config) error {
-	var err error
-
-	tm.Datas = &data.HandlerPerCurrency{}
-	tm.Datas.Setup()
-
-	if !tm.bot.Config.LiveMode {
-		err = tm.startOfflineServices()
-	}
-
-	if err != nil {
-		fmt.Println("failed to setup bot", err)
-		return err
-	}
-
-	tm.initializeFactorEngines()
-
-	if tm.bot.Settings.EnableTrading {
-		fmt.Println("enable trading")
-		tm.initializePortfolio(strategyConfig)
-	}
-
 	return nil
 }
 
@@ -401,14 +408,23 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 	return nil
 }
 
-// processSimultaneousDataEvents determines what signal events are generated and appended
-// to the event queue based on whether it is running a multi-currency consideration strategy order not
-//
-// for multi-currency-consideration it will pass all currency datas to the strategy for it to determine what
-// currencies to act upon
-//
-// for non-multi-currency-consideration strategies, it will simply process every currency individually
-// against the strategy and generate signals
+func (tm *TradeManager) processEvents() error {
+	for ev := tm.EventQueue.NextEvent(); ; ev = tm.EventQueue.NextEvent() {
+		if ev != nil {
+			err := tm.handleEvent(ev)
+			if err != nil {
+				return err
+			}
+		} else {
+			return nil
+		}
+
+		if !tm.hasHandledEvent {
+			tm.hasHandledEvent = true
+		}
+	}
+}
+
 func (tm *TradeManager) processSimultaneousDataEvents() error {
 	return nil
 }
@@ -435,7 +451,6 @@ func (tm *TradeManager) processSignalEvent(ev signal.Event) {
 	}
 }
 
-// creates a fill event based on an order submit response
 func (tm *TradeManager) onFill(o *OrderSubmitResponse) {
 	if o.StrategyID == "" {
 		fmt.Println("order submit response has no strategyID")
@@ -490,7 +505,6 @@ func (tm *TradeManager) processFillEvent(ev fill.Event) {
 	tm.Portfolio.OnFill(ev)
 }
 
-// new orders
 func (tm *TradeManager) processOrderEvent(o order.Event) {
 	if o.GetStrategyID() == "" {
 		log.Error(log.TradeMgr, "order event has no strategy ID")
@@ -517,8 +531,6 @@ func (tm *TradeManager) processOrderEvent(o order.Event) {
 	tm.EventQueue.AppendEvent(submitEvent)
 }
 
-// updateStatsForDataEvent makes various systems aware of price movements from
-// data events
 func (tm *TradeManager) updateStatsForDataEvent(ev eventtypes.DataEventHandler) error {
 	// update statistics with the latest price
 	err := tm.Statistic.SetupEventForTime(ev)
@@ -534,124 +546,6 @@ func (tm *TradeManager) updateStatsForDataEvent(ev eventtypes.DataEventHandler) 
 		log.Error(log.TradeMgr, err)
 	}
 	return nil
-}
-
-func loadDatabaseData(cfg *config.Config, name string, fPair currency.Pair, a asset.Item, dataType int64) (*kline.DataFromKline, error) {
-	if cfg == nil || cfg.DataSettings.DatabaseData == nil {
-		return nil, errors.New("nil config data received")
-	}
-	if cfg.DataSettings.Interval <= 0 {
-		return nil, errIntervalUnset
-	}
-
-	return database.LoadData(
-		time.Now(),
-		time.Now().Add(-1*time.Minute),
-		cfg.DataSettings.Interval,
-		strings.ToLower(name),
-		dataType,
-		fPair,
-		a)
-}
-
-// Reset returns struct to defaults
-func (e *Holder) Reset() {
-	e.Queue = nil
-}
-
-// AppendEvent adds and event to the queue
-func (e *Holder) AppendEvent(i eventtypes.EventHandler) {
-	e.Queue = append(e.Queue, i)
-}
-
-// NextEvent removes the current event and returns the next event in the queue
-func (e *Holder) NextEvent() (i eventtypes.EventHandler) {
-	if len(e.Queue) == 0 {
-		return nil
-	}
-
-	i = e.Queue[0]
-	e.Queue = e.Queue[1:]
-
-	return i
-}
-
-// ExecuteOrder assesses the portfolio manager's order event and if it passes validation
-// will send an order to the exchange/fake order manager to be stored and raise a fill event
-func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om ExecutionHandler) (submit.Event, error) {
-	// u, _ := uuid.NewV4()
-	// var orderID string
-	priceFloat, _ := o.GetPrice().Float64()
-	a, _ := o.GetAmount().Float64()
-	fee, _ := o.GetExchangeFee().Float64()
-
-	submission := &gctorder.Submit{
-		Price:       priceFloat,
-		Amount:      a,
-		Fee:         fee,
-		Exchange:    o.GetExchange(),
-		ID:          o.GetID(),
-		Side:        o.GetDirection(),
-		AssetType:   o.GetAssetType(),
-		Date:        o.GetTime(),
-		LastUpdated: o.GetTime(),
-		Pair:        o.Pair(),
-		Type:        gctorder.Market,
-		StrategyID:  o.GetStrategyID(),
-	}
-
-	omr, err := om.Submit(context.TODO(), submission)
-	if err != nil {
-		fmt.Println("tm: ERROR order manager submission", err, submission.Side, omr)
-	}
-
-	// fmt.Println("tm: order manager response", omr)
-
-	// if order is placed, update the status of the order to Open
-
-	// update order event order_id, status
-
-	// add the submission to the store
-
-	// we can call on submit manually here
-
-	// if o.GetStrategyID() == "" {
-	// 	return nil, fmt.Errorf("exchange: order has no strategyid")
-	// }
-
-	// update the store with the submission ID
-	ords, _ := om.GetOrdersSnapshot("")
-	var internalOrderID string
-	for i := range ords {
-		if ords[i].ID != o.GetID() {
-			continue
-		}
-		internalOrderID = ords[i].InternalOrderID
-		internalOrderID = ords[i].InternalOrderID
-		ords[i].StrategyID = o.GetStrategyID()
-		ords[i].Date = o.GetTime()
-		ords[i].LastUpdated = o.GetTime()
-		ords[i].CloseTime = o.GetTime()
-	}
-
-	ev := &submit.Submit{
-		IsOrderPlaced:   omr.IsOrderPlaced,
-		InternalOrderID: internalOrderID,
-		StrategyID:      o.GetStrategyID(),
-	} // transform into submit event
-
-	if ev.GetInternalOrderID() == "" {
-		log.Errorln(log.TradeMgr, "error: order has no internal order id")
-	}
-
-	if ev.IsOrderPlaced {
-		// fmt.Println("TM ORDERPLACED, create fill event")
-		tm.onFill(omr)
-	} else {
-		fmt.Println("TM ERROR: ORDERPLACED NOT")
-	}
-
-	return ev, nil
 }
 
 func (tm *TradeManager) startOfflineServices() error {
@@ -777,4 +671,9 @@ func (tm *TradeManager) initializeFactorEngines() error {
 		tm.FactorEngines[cs] = fe
 	}
 	return nil
+}
+func (tm *TradeManager) setOrderManagerCallbacks() {
+	// tm.bot.OrderManager.SetOnSubmit(tm.onSubmit)
+	tm.OrderManager.SetOnFill(tm.onFill)
+	tm.OrderManager.SetOnCancel(tm.onCancel)
 }
