@@ -140,12 +140,13 @@ func (w *Watcher) monitor() {
 						}
 
 						// store the candles in the database
+
 						gctkline.StoreInDatabase(&klineItem, false)
 
 						// func LoadData(startDate, endDate time.Time, interval time.Duration, exchangeName string, dataType int64, fPair currency.Pair, a asset.Item) (*kline.DataFromKline, error) {
 						dbData, err := database.LoadData(
 							thisMinute,
-							thisMinute.Add(time.Minute),
+							thisMinute.Add(time.Minute*2),
 							time.Minute,
 							cs.ExchangeName,
 							0,
@@ -156,15 +157,22 @@ func (w *Watcher) monitor() {
 							fmt.Println("error load db data", err)
 						}
 
-						if w.tradeManager.Datas.GetDataForCurrency(strings.ToLower(cs.ExchangeName), cs.AssetType, cs.CurrencyPair) == nil {
-							w.tradeManager.Datas.SetDataForCurrency(strings.ToLower(cs.ExchangeName), cs.AssetType, cs.CurrencyPair, dbData)
-						}
+						// saved the trades as candlesticks, now pull the new candlesticks and queue them
+						// retCandle, _ := candle.Series(cs.ExchangeName, cs.CurrencyPair.Base.String(), cs.CurrencyPair.Quote.String(), 60, cs.AssetType.String(), time.Now().Add(time.Minute*-5), time.Now())
+						// candles := retCandle.Candles
+						// fmt.Println("last candle1", candles[len(candles)-1])
+						// fmt.Println("last candle2", dbData.Item.Candles[len(dbData.Item.Candles)-1])
+
+						// only if no already set
+						// if w.tradeManager.Datas.GetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair) == nil {
+						w.tradeManager.Datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, dbData)
+						// }
 
 						dbData.Load()
 
 					}
 					if err != nil {
-						fmt.Println("candlestick loader error", err)
+						fmt.Println("error", err)
 						continue
 					}
 				}

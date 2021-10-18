@@ -307,6 +307,7 @@ func (tm *TradeManager) runLive() error {
 		case <-tm.shutdown:
 			return nil
 		case <-processEventTicker.C:
+			fmt.Printf(".")
 			for _, exchangeMap := range tm.Datas.GetAllData() {
 				for _, assetMap := range exchangeMap {
 					for _, dataHandler := range assetMap {
@@ -354,9 +355,9 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 	if cs == nil || err != nil {
 		fmt.Println("error !!! FAIL getting cs", cs)
 	}
-	if tm.verbose {
-		fmt.Println("on bar update", d.Latest().GetTime())
-	}
+	// if tm.verbose {
+	fmt.Println("on bar update", d.Latest().GetTime())
+	// }
 	fe := tm.FactorEngines[cs]
 	err = fe.OnBar(d)
 	if err != nil {
