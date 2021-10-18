@@ -19,7 +19,6 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type GoCryptoTraderClient interface {
 	GetInfo(ctx context.Context, in *GetInfoRequest, opts ...grpc.CallOption) (*GetInfoResponse, error)
-	DoThing(ctx context.Context, in *GetInfoRequest, opts ...grpc.CallOption) (*GetInfoResponse, error)
 	GetSubsystems(ctx context.Context, in *GetSubsystemsRequest, opts ...grpc.CallOption) (*GetSusbsytemsResponse, error)
 	EnableSubsystem(ctx context.Context, in *GenericSubsystemRequest, opts ...grpc.CallOption) (*GenericResponse, error)
 	DisableSubsystem(ctx context.Context, in *GenericSubsystemRequest, opts ...grpc.CallOption) (*GenericResponse, error)
