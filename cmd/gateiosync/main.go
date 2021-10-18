@@ -66,10 +66,10 @@ func main() {
 			// only if file does not exist
 			// does file exist?
 
-			filename := fmt.Sprintf("%s/%s-%s.csv.gz", p, p, monthYear)
-			filename404 := fmt.Sprintf("%s/%s-%s.404", p, p, monthYear)
+			filename := fmt.Sprintf("/home/bijan/work/crypto/gateiodata/%s/%s-%s.csv.gz", p, p, monthYear)
+			filename404 := fmt.Sprintf("/home/bijan/work/crypto/gateiodata/%s/%s-%s.404", p, p, monthYear)
 			if _, err := os.Stat(filename404); !errors.Is(err, os.ErrNotExist) {
-				fmt.Printf("%s%s", string(colorRed), "A")
+				fmt.Printf("%s%s", string(colorRed), "❌")
 				continue
 			} else if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
 				// create dir if necessary
@@ -79,7 +79,7 @@ func main() {
 				// continue
 			} else {
 				// file exists
-				fmt.Printf("%s%s", string(colorGreen), "😀")
+				fmt.Printf("%s%s", string(colorGreen), "✅")
 				continue
 			}
 
@@ -89,7 +89,7 @@ func main() {
 			// 	continue
 			// }
 			if res.StatusCode > 299 {
-				fmt.Printf("%s%s", string(colorRed), "F")
+				fmt.Printf("%s%s", string(colorRed), "❌")
 				f, e := os.Create(filename404)
 				if e != nil {
 					panic(e)
@@ -97,7 +97,7 @@ func main() {
 				f.Close()
 				continue
 			} else {
-				fmt.Printf("%s%s", string(colorGreen), "S")
+				fmt.Printf("%s%s", string(colorGreen), "✅")
 			}
 			defer res.Body.Close()
 			io.ReadAll(res.Body)
