@@ -1284,7 +1284,7 @@ service GoCryptoTrader {
 
     rpc WithdrawalEventsByExchange(WithdrawalEventsByExchangeRequest) returns (WithdrawalEventsByExchangeResponse) {
         option (google.api.http) = {
-            post: "/v1/withdrawaleventbyid"
+            post: "/v1/withdrawaleventbyexchange"
             body: "*"
         };
     }
@@ -1394,14 +1394,14 @@ service GoCryptoTrader {
 
     rpc GCTScriptStopAll(GCTScriptStopAllRequest) returns (GenericResponse) {
         option (google.api.http) = {
-            post: "/v1/gctscript/stop",
+            post: "/v1/gctscript/stopall",
             body: "*"
         };
     }
 
     rpc GCTScriptListAll(GCTScriptListAllRequest) returns (GCTScriptStatusResponse) {
         option (google.api.http) = {
-            post: "/v1/gctscript/stop",
+            post: "/v1/gctscript/list",
             body: "*"
         };
     }
@@ -1474,13 +1474,13 @@ service GoCryptoTrader {
 
     rpc GetRecentTrades(GetSavedTradesRequest) returns (SavedTradesResponse) {
         option (google.api.http) = {
-            get: "/v1/getsavedtrades"
+            get: "/v1/getrecenttrades"
         };
     }
 
     rpc GetHistoricTrades(GetSavedTradesRequest) returns (stream SavedTradesResponse) {
         option (google.api.http) = {
-            get: "/v1/getsavedtrades"
+            get: "/v1/gethistorictrades"
         };
     }
 
