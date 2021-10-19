@@ -336,16 +336,17 @@ func (e *Holder) NextEvent() (i eventtypes.EventHandler) {
 	return i
 }
 
-func (tm *TradeManager) runLive() error {
-	processEventTicker := time.NewTicker(time.Second)
+func (tm *TradeManager) waitForDataCatchup() {
 	var localWG sync.WaitGroup
 	localWG.Add(1)
 
 	if tm.bot.dataHistoryManager.IsRunning() {
 		names, err := tm.bot.dataHistoryManager.Catchup(func() { localWG.Done() })
-		fmt.Println("created jobs", names, err)
-	}
+		if len(names) > 0 {
+			fmt.Println("created jobs", names, err)
 
+		}
+	}
 	dbm := tm.bot.DatabaseManager.GetInstance()
 	db, err := datahistoryjob.Setup(dbm)
 	if err != nil {
@@ -358,7 +359,6 @@ func (tm *TradeManager) runLive() error {
 		if err != nil {
 			fmt.Println("error", err)
 		}
-		fmt.Println("active jobs", active)
 		if active == 0 {
 			break
 		}
@@ -366,6 +366,11 @@ func (tm *TradeManager) runLive() error {
 	}
 
 	localWG.Wait()
+}
+
+func (tm *TradeManager) runLive() error {
+	processEventTicker := time.NewTicker(time.Second)
+	tm.waitForDataCatchup()
 
 	for {
 		select {

@@ -4,15 +4,15 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"strings"
-	"time"
-
 	"gocryptotrader/database"
 	"gocryptotrader/database/models/postgres"
 	"gocryptotrader/database/repository/datahistoryjobresult"
 	"gocryptotrader/log"
+	"strings"
+	"time"
 
 	"github.com/volatiletech/null/v8"
+	"github.com/volatiletech/sqlboiler/queries"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
@@ -34,6 +34,11 @@ func Setup(db database.IDatabase) (*DBService, error) {
 		sql:    dbCon,
 		driver: cfg.Driver,
 	}, nil
+}
+
+func (db *DBService) ClearJobs() error {
+	_, err := queries.Raw("update datahistoryjob set status = 1 where status = 0").Exec(db.sql)
+	return err
 }
 
 // Upsert inserts or updates jobs into the database

@@ -892,7 +892,6 @@ func (g *Gateio) GetHistoricCandles(ctx context.Context, pair currency.Pair, a a
 		return kline.Item{}, err
 	}
 
-	fmt.Println("fromto", start, end)
 	params := KlinesRequestParamsV4{
 		Symbol:   formattedPair.String(),
 		From:     start.Unix(),
@@ -902,7 +901,7 @@ func (g *Gateio) GetHistoricCandles(ctx context.Context, pair currency.Pair, a a
 
 	klineData, err := g.GetSpotKlineV4(ctx, params)
 	if err != nil {
-		fmt.Println("error getting kline!!!", err)
+		log.Errorln(log.ExchangeSys, "error getting Kline data", err)
 		return kline.Item{}, err
 	}
 	klineData.Interval = interval
@@ -913,8 +912,7 @@ func (g *Gateio) GetHistoricCandles(ctx context.Context, pair currency.Pair, a a
 	// fmt.Println("before remove", len(klineData.Candles), start, end)
 	// klineData.RemoveOutsideRange(start, end)
 	// fmt.Println("after remove", len(klineData.Candles))
-
-	fmt.Println("first time", klineData.Candles[0].Time)
+	// fmt.Println("first time", klineData.Candles[0].Time)
 
 	// store in database
 	kline.StoreInDatabase(&klineData, false)

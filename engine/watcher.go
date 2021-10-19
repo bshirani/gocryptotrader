@@ -66,7 +66,7 @@ func (w *Watcher) Start() error {
 
 // Stop stops the subsystem
 func (w *Watcher) Stop() error {
-	fmt.Println("trying to stop")
+	log.Debugf(log.Watcher, "watcher trying to stop")
 	if w == nil {
 		return fmt.Errorf("%s %w", WatcherName, ErrNilSubsystem)
 	}

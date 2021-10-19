@@ -216,7 +216,6 @@ func (g *Gateio) GetSpotKlineV4(ctx context.Context, arg KlinesRequestParamsV4) 
 		arg.To,
 		arg.Interval)
 
-	fmt.Println("urlpath", urlPath)
 	var respData [][]string
 
 	err := g.SendHTTPv4Request(ctx, exchange.EdgeCase1, urlPath, &respData)
@@ -229,7 +228,12 @@ func (g *Gateio) GetSpotKlineV4(ctx context.Context, arg KlinesRequestParamsV4) 
 	}
 
 	if respData == nil || len(respData) == 0 {
-		return kline.Item{}, errors.New("no candles received")
+		return kline.Item{}, fmt.Errorf("no candles received %s from:%s to:%s url:%v%s",
+			arg.Symbol,
+			convert.UnixTimestampToTime(arg.From),
+			convert.UnixTimestampToTime(arg.To),
+			exchange.EdgeCase1.String(),
+			urlPath)
 	}
 
 	for _, k := range respData {
