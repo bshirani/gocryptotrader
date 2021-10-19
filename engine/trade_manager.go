@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gocryptotrader/common"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/data"
@@ -566,13 +567,12 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 				if strategy.GetPair() == ev.Pair() {
 					if tm.bot.Config.LiveMode {
 						if tm.verbose {
-							// fmt.Println("Updating strategy", strategy.GetID(), d.Latest().GetTime(), fe.Minute().M60Range.Last(1))
-							// fe.PrintLast(d)
 							log.Debugf(log.TradeMgr,
-								"%s %s bs:%v hrRng:%v hrPctChg:%v",
+								"%s %s %s close:%v hrRng:%v hrPctChg:%v",
+								ev.GetTime().Format(common.SimpleTimeFormat),
 								strings.ToUpper(strategy.GetPair().String()),
 								strategy.GetDirection(),
-								len(fe.Minute().Close),
+								fe.Minute().Close.Last(1),
 								fe.Minute().M60Range.Last(1),
 								fe.Minute().M60RangeDivClose.Last(1).Mul(decimal.NewFromInt(100)))
 						}
@@ -780,36 +780,36 @@ func (tm *TradeManager) initializeStrategies(cfg *config.Config) {
 	var s strategies.Handler
 	count := 0
 	for _, strat := range cfg.StrategiesSettings {
-		// for _, dir := range []gctorder.Side{gctorder.Buy, gctorder.Sell} {
-		for _, c := range tm.bot.CurrencySettings {
-			// fmt.Println("c", c)
-			// _, pair, _, _ := tm.loadExchangePairAssetBase(c.ExchangeName, c.Base, c.Quote, c.Asset)
-			s, _ = strategies.LoadStrategyByName(strat.Name)
+		for _, dir := range []gctorder.Side{gctorder.Buy, gctorder.Sell} {
+			for _, c := range tm.bot.CurrencySettings {
+				// fmt.Println("c", c)
+				// _, pair, _, _ := tm.loadExchangePairAssetBase(c.ExchangeName, c.Base, c.Quote, c.Asset)
+				s, _ = strategies.LoadStrategyByName(strat.Name)
 
-			// tm.SetExchangeAssetCurrencySettings(exch, a, cp , c *ExchangeAssetPairSettings) {
-			count += 1
+				// tm.SetExchangeAssetCurrencySettings(exch, a, cp , c *ExchangeAssetPairSettings) {
+				count += 1
 
-			// fmt.Println("type of s", reflect.New(reflect.TypeOf(s)))
-			// fmt.Println("type", reflect.New(reflect.ValueOf(s).Elem().Type()).Interface())
-			// fmt.Println("valueof", reflect.New(reflect.ValueOf(s).Elem().Type()))
-			// strategy = reflect.New(reflect.ValueOf(s).Elem().Type()).Interface().(strategy.Handler)
-			// fmt.Println("loaded", strategy)
+				// fmt.Println("type of s", reflect.New(reflect.TypeOf(s)))
+				// fmt.Println("type", reflect.New(reflect.ValueOf(s).Elem().Type()).Interface())
+				// fmt.Println("valueof", reflect.New(reflect.ValueOf(s).Elem().Type()))
+				// strategy = reflect.New(reflect.ValueOf(s).Elem().Type()).Interface().(strategy.Handler)
+				// fmt.Println("loaded", strategy)
 
-			id := fmt.Sprintf("%d_%s_%s_%v", count, s.Name(), string(gctorder.Buy), c.CurrencyPair)
-			s.SetID(id)
-			s.SetNumID(count)
-			s.SetPair(c.CurrencyPair)
-			s.SetDirection(gctorder.Buy)
+				id := fmt.Sprintf("%d_%s_%s_%v", count, s.Name(), string(gctorder.Buy), c.CurrencyPair)
+				s.SetID(id)
+				s.SetNumID(count)
+				s.SetPair(c.CurrencyPair)
+				s.SetDirection(dir)
 
-			// validate strategy
-			if s.GetID() == "" {
-				fmt.Println("no strategy id")
-				os.Exit(2)
+				// validate strategy
+				if s.GetID() == "" {
+					fmt.Println("no strategy id")
+					os.Exit(2)
+				}
+				s.SetDefaults()
+				slit = append(slit, s)
 			}
-			s.SetDefaults()
-			slit = append(slit, s)
 		}
-		// }
 	}
 	tm.Strategies = slit
 }
