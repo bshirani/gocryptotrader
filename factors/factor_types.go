@@ -47,4 +47,5 @@ type MinuteDataFrame struct {
 	M60High          Series
 	M60Range         Series
 	M60RangeDivClose Series
+	M60PctChange     Series
 }

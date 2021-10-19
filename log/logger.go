@@ -48,14 +48,12 @@ func (l *Logger) newLogEvent(data, header, slName string, w io.Writer) error {
 	// displayError(fields.logger.newLogEvent(fmt.Sprintln(v...), fields.logger.ErrorHeader, fields.name, fields.output))
 	if header == l.ErrorHeader {
 		color.Set(color.FgRed, color.Bold)
-		defer color.Unset()
 	} else if header == l.WarnHeader {
 		color.Set(color.FgMagenta)
-		defer color.Unset()
 	} else if header == l.InfoHeader {
 		color.Set(color.FgBlue, color.Bold)
-		defer color.Unset()
 	}
+	defer color.Unset()
 	e := eventPool.Get().(*Event)
 	e.output = w
 	slName = fmt.Sprintf("%12s", slName)

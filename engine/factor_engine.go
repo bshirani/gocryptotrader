@@ -62,6 +62,8 @@ func (f *FactorEngine) Daily() *factors.DailyDataFrame {
 }
 
 func (f *FactorEngine) OnBar(d data.Handler) error {
+	bar := d.Latest()
+
 	if len(f.minute.Close) > 60 {
 		// how much has moved in past hour
 		highBars := f.minute.High[len(f.minute.High)-61 : len(f.minute.High)-1]
@@ -88,13 +90,17 @@ func (f *FactorEngine) OnBar(d data.Handler) error {
 			}
 		}
 		hrRange := high.Sub(low)
-		hrRangeRelClose := hrRange.Div(d.Latest().ClosePrice())
+		hrRangeRelClose := hrRange.Div(bar.ClosePrice())
 		hrRangeRelClose = hrRangeRelClose.Mul(decimal.NewFromInt(100))
+		hrAgoClose := f.minute.Close[len(f.minute.Close)-60]
+		curClose := bar.ClosePrice()
+		hrPctChg := (curClose.Sub(hrAgoClose)).Div(curClose).Mul(decimal.NewFromInt(100))
 
 		f.minute.M60Low = append(f.minute.M60Low, low)
 		f.minute.M60High = append(f.minute.M60High, high)
 		f.minute.M60Range = append(f.minute.M60Range, hrRange)
-		f.minute.M60RangeDivClose = append(f.minute.M60RangeDivClose, hrRange.Div(d.Latest().ClosePrice()))
+		f.minute.M60RangeDivClose = append(f.minute.M60RangeDivClose, hrRange.Div(bar.ClosePrice()))
+		f.minute.M60PctChange = append(f.minute.M60PctChange, hrPctChg)
 
 		if f.Verbose {
 			f.PrintLast(d)
@@ -102,12 +108,10 @@ func (f *FactorEngine) OnBar(d data.Handler) error {
 
 	} else {
 		if f.Verbose {
-			lt := d.Latest()
-			log.Debugln(log.FactorEngine, "onbar", lt.Pair(), lt.GetTime(), lt.ClosePrice())
+			log.Debugln(log.FactorEngine, "onbar", bar.Pair(), bar.GetTime(), bar.ClosePrice())
 		}
 	}
 
-	bar := d.Latest()
 	f.minute.Close = append(f.minute.Close, bar.ClosePrice())
 	f.minute.Open = append(f.minute.Open, bar.OpenPrice())
 	f.minute.High = append(f.minute.High, bar.HighPrice())

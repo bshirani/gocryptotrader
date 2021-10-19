@@ -38,6 +38,7 @@ import (
 	"gocryptotrader/portfolio/statistics/currencystatistics"
 	"gocryptotrader/portfolio/strategies"
 
+	"github.com/fatih/color"
 	"github.com/shopspring/decimal"
 )
 
@@ -563,21 +564,35 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 		tm.bot.OrderManager.Update()
 
 		if len(fe.Minute().M60Range) > 0 {
+			if tm.bot.Config.LiveMode {
+				if tm.verbose {
+					hrChg := fe.Minute().M60PctChange.Last(1).Round(2)
+
+					if hrChg.GreaterThan(decimal.NewFromInt(0)) {
+						color.Set(color.FgGreen, color.Bold)
+					} else if hrChg.IsZero() {
+						color.Set(color.FgWhite)
+					} else if hrChg.LessThan(decimal.NewFromInt(0)) {
+						color.Set(color.FgRed, color.Bold)
+					}
+					defer color.Unset()
+
+					log.Debugf(log.TradeMgr,
+						"%s %s rRng:%v%% hrPctChg:%v%% close:%v hrRng:%v hrH: %v hrL: %v ",
+						ev.GetTime().Format(common.SimpleTimeFormat),
+						strings.ToUpper(ev.Pair().String()),
+						fe.Minute().M60RangeDivClose.Last(1).Mul(decimal.NewFromInt(100)).Round(2),
+						hrChg,
+						fe.Minute().Close.Last(1),
+						fe.Minute().M60Range.Last(1),
+						fe.Minute().M60High.Last(1),
+						fe.Minute().M60Low.Last(1))
+
+				}
+			}
+
 			for _, strategy := range tm.Strategies {
 				if strategy.GetPair() == ev.Pair() {
-					if tm.bot.Config.LiveMode {
-						if tm.verbose {
-							log.Debugf(log.TradeMgr,
-								"%s %s %s close:%v hrRng:%v hrPctChg:%v",
-								ev.GetTime().Format(common.SimpleTimeFormat),
-								strings.ToUpper(strategy.GetPair().String()),
-								strategy.GetDirection(),
-								fe.Minute().Close.Last(1),
-								fe.Minute().M60Range.Last(1),
-								fe.Minute().M60RangeDivClose.Last(1).Mul(decimal.NewFromInt(100)))
-						}
-					}
-
 					s, err := strategy.OnData(d, tm.Portfolio, fe)
 					if err != nil {
 						fmt.Println("error processing data event", err)
