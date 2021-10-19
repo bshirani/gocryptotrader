@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"gocryptotrader/config"
+	"gocryptotrader/currency"
 	"gocryptotrader/data"
 	"gocryptotrader/eventtypes"
+	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/order"
 	gctorder "gocryptotrader/exchange/order"
 	"gocryptotrader/portfolio/report"
@@ -39,7 +41,7 @@ type TradeManager struct {
 	Datas              data.Holder
 	EventQueue         EventHolder
 	Exchange           ExecutionHandler
-	FactorEngines      map[*ExchangeAssetPairSettings]*FactorEngine
+	FactorEngines      map[string]map[asset.Item]map[currency.Pair]*FactorEngine
 	OrderManager       OrderManagerHandler
 	Portfolio          PortfolioHandler
 	Reports            report.Handler

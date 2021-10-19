@@ -455,27 +455,52 @@ func (tm *TradeManager) waitForFactorEnginesWarmup() {
 }
 
 func (tm *TradeManager) runLive() error {
-	processEventTicker := time.NewTicker(time.Second)
+	processEventTicker := time.NewTicker(time.Second * 5)
 	tm.waitForDataCatchup()
 	tm.waitForFactorEnginesWarmup()
 	fmt.Println("Run Live Started")
+
+	lup := make(map[*ExchangeAssetPairSettings]time.Time)
 
 	for {
 		select {
 		case <-tm.shutdown:
 			return nil
 		case <-processEventTicker.C:
-			for _, exchangeMap := range tm.Datas.GetAllData() {
-				for _, assetMap := range exchangeMap {
-					for _, dataHandler := range assetMap {
-						d := dataHandler.Next()
-						if d == nil {
-							continue
-						}
-						tm.EventQueue.AppendEvent(d)
+			t := time.Now()
+			thisMinute := time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location())
+			lup = make(map[*ExchangeAssetPairSettings]time.Time)
+
+			for _, cs := range tm.bot.CurrencySettings {
+				if lup[cs] != thisMinute {
+					dbData, err := database.LoadData(
+						thisMinute,
+						time.Now(),
+						time.Minute,
+						cs.ExchangeName,
+						0,
+						cs.CurrencyPair,
+						cs.AssetType)
+
+					if err != nil {
+						// fmt.Println(err)
+						continue
+					}
+					lup[cs] = thisMinute
+					dbData.Load()
+					tm.Datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, dbData)
+
+					dataEvent := dbData.Next()
+
+					if dataEvent == nil {
+						fmt.Println("no event")
+						continue
+					} else {
+						tm.EventQueue.AppendEvent(dataEvent)
 					}
 				}
 			}
+
 			err := tm.processEvents()
 			if err != nil {
 				log.Errorln(log.TradeMgr, "procesing events", err)
@@ -515,7 +540,10 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 	if tm.verbose {
 		fmt.Println("on bar update", d.Latest().GetTime())
 	}
-	fe := tm.FactorEngines[cs]
+	// fmt.Println("factor engines for exchanges", len(tm.FactorEngines[cs.ExchangeName]))
+	// fmt.Println("factor engines for asset", len(tm.FactorEngines[cs.ExchangeName][cs.AssetType]))
+	fe := tm.FactorEngines[cs.ExchangeName][cs.AssetType][cs.CurrencyPair]
+	// fmt.Println("factor engines for pair", fe, fe.Minute)
 	err = fe.OnBar(d)
 	if err != nil {
 		fmt.Printf("error updating factor engine for %v reason: %s", ev.Pair(), err)
@@ -799,10 +827,16 @@ func (tm *TradeManager) initializePortfolio(strategyConfig *config.Config) error
 }
 
 func (tm *TradeManager) initializeFactorEngines() error {
-	tm.FactorEngines = make(map[*ExchangeAssetPairSettings]*FactorEngine)
+	tm.FactorEngines = make(map[string]map[asset.Item]map[currency.Pair]*FactorEngine)
 	for _, cs := range tm.bot.CurrencySettings {
+		if tm.FactorEngines[cs.ExchangeName] == nil {
+			tm.FactorEngines[cs.ExchangeName] = make(map[asset.Item]map[currency.Pair]*FactorEngine)
+		}
+		if tm.FactorEngines[cs.ExchangeName][cs.AssetType] == nil {
+			tm.FactorEngines[cs.ExchangeName][cs.AssetType] = make(map[currency.Pair]*FactorEngine)
+		}
 		fe, _ := SetupFactorEngine(cs, &tm.bot.Config.FactorEngine)
-		tm.FactorEngines[cs] = fe
+		tm.FactorEngines[cs.ExchangeName][cs.AssetType][cs.CurrencyPair] = fe
 	}
 	return nil
 }

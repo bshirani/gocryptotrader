@@ -868,12 +868,6 @@ func (m *syncManager) worker() {
 								minutes := int(time.Now().UTC().Sub(lastCandle.Timestamp).Minutes())
 								if minutes > 0 {
 									_, err := exchanges[x].GetHistoricCandles(context.TODO(), c.Pair, c.AssetType, lastCandle.Timestamp, time.Now(), kline.OneMin)
-									// lastCandle, _ = candle.Last(c.Exchange,
-									// 	c.Pair.Base.String(),
-									// 	c.Pair.Quote.String(),
-									// 	60,
-									// 	c.AssetType.String())
-									// fmt.Println("synced", c.Pair, int(time.Now().UTC().Sub(lastCandle.Timestamp).Minutes()))
 									if err != nil {
 										log.Error(log.SyncMgr, err)
 									}

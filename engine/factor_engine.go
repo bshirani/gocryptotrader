@@ -8,6 +8,7 @@ import (
 	"gocryptotrader/config"
 	"gocryptotrader/data"
 	"gocryptotrader/factors"
+	"gocryptotrader/log"
 
 	"github.com/shopspring/decimal"
 )
@@ -35,9 +36,9 @@ func (f *FactorEngine) Daily() *factors.DailyDataFrame {
 }
 
 func (f *FactorEngine) OnBar(d data.Handler) error {
-	// if f.Verbose {
-	// 	log.Debugln(log.FactorEngine, "onbar", d.Latest().Pair(), d.Latest().GetTime(), d.Latest().ClosePrice())
-	// }
+	if f.Verbose {
+		log.Debugln(log.FactorEngine, "onbar", d.Latest().Pair(), d.Latest().GetTime(), d.Latest().ClosePrice())
+	}
 	bar := d.Latest()
 	f.minute.Close = append(f.minute.Close, bar.ClosePrice())
 	f.minute.Open = append(f.minute.Open, bar.OpenPrice())
