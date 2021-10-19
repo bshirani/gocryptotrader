@@ -48,6 +48,7 @@ func (d *DataFromKline) Load() error {
 		}
 		d.addedTimes[d.Item.Candles[i].Time] = true
 	}
+	// fmt.Println("klineloaded", len(klineData), klineData[0].GetTime(), klineData[len(klineData)-1].GetTime())
 	d.SetStream(klineData)
 	d.SortStream()
 	return nil

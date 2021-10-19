@@ -461,19 +461,25 @@ func (tm *TradeManager) runLive() error {
 
 	lup := make(map[*ExchangeAssetPairSettings]time.Time)
 
+	var thisMinute, lastMinute time.Time
+	loc, _ := time.LoadLocation("GMT")
+
 	for {
 		select {
 		case <-tm.shutdown:
 			return nil
 		case <-processEventTicker.C:
-			t := time.Now()
-			thisMinute := time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location())
-			lup = make(map[*ExchangeAssetPairSettings]time.Time)
+			t := time.Now().UTC()
+			thisMinute = time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, loc)
+			if thisMinute != lastMinute {
+				lup = make(map[*ExchangeAssetPairSettings]time.Time)
+				lastMinute = thisMinute
+			}
 
 			for _, cs := range tm.bot.CurrencySettings {
 				if lup[cs] != thisMinute {
 					dbData, err := database.LoadData(
-						thisMinute,
+						thisMinute.Add(time.Minute*-1),
 						time.Now(),
 						time.Minute,
 						cs.ExchangeName,
@@ -485,17 +491,29 @@ func (tm *TradeManager) runLive() error {
 						// fmt.Println(err)
 						continue
 					}
-					lup[cs] = thisMinute
-					dbData.Load()
-					// tm.Datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, dbData)
-					dataEvent := dbData.Next()
+					lastCandle := dbData.Item.Candles[len(dbData.Item.Candles)-1]
+					t1 := lastCandle.Time
+					t2 := thisMinute
+					sameTime := (t1.Year() == t2.Year() && t1.Month() == t2.Month() && t1.Day() == t2.Day() && t1.Hour() == t2.Hour() && t1.Minute() == t2.Minute())
 
-					if dataEvent == nil {
-						fmt.Println("no event")
+					if !sameTime {
+						// fmt.Println("don't have bar yet", lastCandle.Time, thisMinute)
 						continue
-					} else {
-						tm.EventQueue.AppendEvent(dataEvent)
 					}
+					dbData.Load()
+
+					for dataEvent := dbData.Next(); ; dataEvent = dbData.Next() {
+						if dataEvent == nil {
+							dataEvent := dbData.Latest()
+							tm.EventQueue.AppendEvent(dataEvent)
+							lup[cs] = thisMinute
+							// fmt.Println(cs.CurrencyPair, "seen", thisMinute, "loadedbars", t1, len(dbData.Item.Candles))
+							// fmt.Println("sending event", dataEvent.GetTime())
+							tm.Datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, dbData)
+							break
+						}
+					}
+
 				}
 			}
 

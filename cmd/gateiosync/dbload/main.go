@@ -86,6 +86,5 @@ func finishedSymbols() []string {
 	for scanner.Scan() {
 		pairs = append(pairs, scanner.Text())
 	}
-	fmt.Println("loaded", len(pairs))
 	return pairs
 }

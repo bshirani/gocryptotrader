@@ -66,20 +66,25 @@ func (f *FactorEngine) OnBar(d data.Handler) error {
 		if len(f.minute.Close) > 60 {
 			// log.Debugln(log.FactorEngine, "onbar price change", d.Latest().Pair(), d.Latest().GetTime(), d.Latest().ClosePrice())
 			// how much has moved in past hour
-			hourBars := d.History()[len(d.History())-61 : len(d.History())-1]
-			// fmt.Println("have", len(hourBars), "bars")
+			highBars := f.minute.High[len(f.minute.High)-61 : len(f.minute.High)-1]
+			lowBars := f.minute.Low[len(f.minute.Low)-61 : len(f.minute.Low)-1]
 
-			high := hourBars[0].HighPrice()
-			for i := range hourBars {
-				h := hourBars[i].HighPrice()
+			if len(lowBars) != len(highBars) {
+				fmt.Println("error not same amount of bars data")
+			}
+			// fmt.Println("have", len(highBars), "bars")
+
+			high := highBars[0]
+			for i := range highBars {
+				h := highBars[i]
 				if h.GreaterThan(high) {
 					high = h
 				}
 			}
 
-			low := hourBars[0].LowPrice()
-			for i := range hourBars {
-				l := hourBars[i].LowPrice()
+			low := lowBars[0]
+			for i := range lowBars {
+				l := lowBars[i]
 				if l.LessThan(low) {
 					low = l
 				}
@@ -88,13 +93,18 @@ func (f *FactorEngine) OnBar(d data.Handler) error {
 			hrRangeRelClose := hrRange.Div(d.Latest().ClosePrice())
 			hrRangeRelClose = hrRangeRelClose.Mul(decimal.NewFromInt(100))
 
+			lt := d.Latest()
+
 			if hrRangeRelClose.GreaterThan(decimal.NewFromInt(1)) {
-				log.Infof(log.FactorEngine, "%s %s %v %v%%", d.Latest().Pair(), "60m range", hrRange, hrRangeRelClose.Round(2))
+				log.Infof(log.FactorEngine, "%s %s %s %v %v%%", lt.GetTime(), lt.Pair(), "60m range", hrRange, hrRangeRelClose.Round(2))
+			} else if !hrRange.IsZero() {
+				log.Debugf(log.FactorEngine, "%s %s %s %v %v%%", lt.GetTime(), lt.Pair(), "60m range", hrRange, hrRangeRelClose.Round(2))
 			} else {
-				log.Debugf(log.FactorEngine, "%s %s %v %v%%", d.Latest().Pair(), "60m range", hrRange, hrRangeRelClose.Round(2))
+				log.Errorf(log.FactorEngine, "ZERO %s %s close:%v high:%v low:%v range:%v", lt.GetTime(), lt.Pair(), lt.ClosePrice(), lt.HighPrice(), lt.LowPrice(), hrRange)
 			}
 		} else {
-			log.Debugln(log.FactorEngine, "onbar", d.Latest().Pair(), d.Latest().GetTime(), d.Latest().ClosePrice())
+			lt := d.Latest()
+			log.Debugln(log.FactorEngine, "onbar", lt.Pair(), lt.GetTime(), lt.ClosePrice())
 		}
 	}
 
