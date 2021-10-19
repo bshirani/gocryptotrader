@@ -110,9 +110,9 @@ func (m *DataHistoryManager) Catchup(callback func()) ([]string, error) {
 		// determine if we need to create one first of all
 		// determine how much data we need
 
-		start := time.Now().Add(time.Minute * -10)
+		start := time.Now().AddDate(0, -2, 0)
 		end := time.Now()
-		err = common.StartEndTimeCheck(start, end)
+		err = common.StartEndTimeCheck(lastCandle.Timestamp, end)
 		if err != nil {
 			return names, err
 		}
@@ -146,7 +146,6 @@ func (m *DataHistoryManager) Catchup(callback func()) ([]string, error) {
 		}
 	}
 
-	fmt.Println("called finished")
 	callback()
 	return names, nil
 }
@@ -740,24 +739,31 @@ func (m *DataHistoryManager) saveCandlesInBatches(job *DataHistoryJob, candles *
 				log.Debugf(log.DataHistory, "Saving %v candles. Range %v-%v/%v", len(newCandle.Candles[i:]), i, len(candles.Candles), len(candles.Candles))
 			}
 			newCandle.Candles = newCandle.Candles[i:]
+			fmt.Println(0)
 			_, err = m.candleSaver(&newCandle, job.OverwriteExistingData)
+			fmt.Println(1)
 			if err != nil {
+				fmt.Println(2)
 				r.Result += "could not save results: " + err.Error() + ". "
 				r.Status = dataHistoryStatusFailed
 				fmt.Println("FAILED")
 			}
+			fmt.Println(3)
 			break
 		}
 		if m.verbose {
 			log.Debugf(log.DataHistory, "Saving %v candles. Range %v-%v/%v", m.maxResultInsertions, i, i+int(m.maxResultInsertions), len(candles.Candles))
 		}
 		newCandle.Candles = newCandle.Candles[i : i+int(m.maxResultInsertions)]
+		fmt.Println(1)
 		_, err = m.candleSaver(&newCandle, job.OverwriteExistingData)
+		fmt.Println(2)
 		if err != nil {
 			r.Result += "could not save results: " + err.Error() + ". "
 			r.Status = dataHistoryStatusFailed
 		}
 	}
+	fmt.Println("here")
 	return nil
 }
 
@@ -804,10 +810,6 @@ func (m *DataHistoryManager) processCandleData(job *DataHistoryJob, exch exchang
 	}
 	job.rangeHolder.SetHasDataFromCandles(candles.Candles)
 	fmt.Println("candles returned", len(candles.Candles))
-	fmt.Println("intervalIndex", intervalIndex)
-	for i := range job.rangeHolder.Ranges {
-		fmt.Println("range", i)
-	}
 
 	for i := range job.rangeHolder.Ranges[intervalIndex].Intervals {
 		if !job.rangeHolder.Ranges[intervalIndex].Intervals[i].HasData {

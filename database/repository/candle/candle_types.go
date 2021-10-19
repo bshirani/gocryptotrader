@@ -14,7 +14,7 @@ var (
 
 // Item generic candle holder for modelPSQL
 type Item struct {
-	ID         string
+	ID         int64
 	ExchangeID string
 	Base       string
 	Quote      string

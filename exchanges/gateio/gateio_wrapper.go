@@ -908,7 +908,6 @@ func (g *Gateio) GetHistoricCandles(ctx context.Context, pair currency.Pair, a a
 	klineData.Interval = interval
 	klineData.Pair = pair
 	klineData.Asset = a
-	fmt.Println("setting interval", interval)
 
 	// klineData.SortCandlesByTimestamp(false)
 	// fmt.Println("before remove", len(klineData.Candles), start, end)
