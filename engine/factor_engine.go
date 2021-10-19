@@ -64,7 +64,6 @@ func (f *FactorEngine) Daily() *factors.DailyDataFrame {
 func (f *FactorEngine) OnBar(d data.Handler) error {
 	if f.Verbose {
 		if len(f.minute.Close) > 60 {
-			// log.Debugln(log.FactorEngine, "onbar price change", d.Latest().Pair(), d.Latest().GetTime(), d.Latest().ClosePrice())
 			// how much has moved in past hour
 			highBars := f.minute.High[len(f.minute.High)-61 : len(f.minute.High)-1]
 			lowBars := f.minute.Low[len(f.minute.Low)-61 : len(f.minute.Low)-1]
@@ -93,18 +92,20 @@ func (f *FactorEngine) OnBar(d data.Handler) error {
 			hrRangeRelClose := hrRange.Div(d.Latest().ClosePrice())
 			hrRangeRelClose = hrRangeRelClose.Mul(decimal.NewFromInt(100))
 
-			lt := d.Latest()
+			f.minute.M60Low = append(f.minute.M60Low, low)
+			f.minute.M60High = append(f.minute.M60High, high)
+			f.minute.M60Range = append(f.minute.M60Range, hrRange)
+			f.minute.M60RangeDivClose = append(f.minute.M60Range, hrRange.Div(d.Latest().ClosePrice()))
 
-			if hrRangeRelClose.GreaterThan(decimal.NewFromInt(1)) {
-				log.Infof(log.FactorEngine, "%s %s %s %v %v%%", lt.GetTime(), lt.Pair(), "60m range", hrRange, hrRangeRelClose.Round(2))
-			} else if !hrRange.IsZero() {
-				log.Debugf(log.FactorEngine, "%s %s %s %v %v%%", lt.GetTime(), lt.Pair(), "60m range", hrRange, hrRangeRelClose.Round(2))
-			} else {
-				log.Errorf(log.FactorEngine, "ZERO %s %s close:%v high:%v low:%v range:%v", lt.GetTime(), lt.Pair(), lt.ClosePrice(), lt.HighPrice(), lt.LowPrice(), hrRange)
-			}
+			// fmt.Println("set m60 range", f.minute.M60Range[len(f.minute.M60Range)-1])
+
+			f.printLast(d)
+
 		} else {
-			lt := d.Latest()
-			log.Debugln(log.FactorEngine, "onbar", lt.Pair(), lt.GetTime(), lt.ClosePrice())
+			if f.Verbose {
+				lt := d.Latest()
+				log.Debugln(log.FactorEngine, "onbar", lt.Pair(), lt.GetTime(), lt.ClosePrice())
+			}
 		}
 	}
 
@@ -155,6 +156,24 @@ func (f *FactorEngine) OnBar(d data.Handler) error {
 	// s.indicatorValues = append(s.indicatorValues, i)
 
 	// f.minute
+}
+
+func (f *FactorEngine) printLast(d data.Handler) {
+	if len(f.Minute().Close) > 60 {
+		hrRangeRelClose := f.minute.M60RangeDivClose[len(f.minute.M60RangeDivClose)-1]
+		hrRange := f.minute.M60Range[len(f.minute.M60Range)-1]
+		lt := d.Latest()
+
+		if hrRangeRelClose.GreaterThan(decimal.NewFromInt(1)) {
+			log.Infof(log.FactorEngine, "%s %s %s %v %v%%", lt.GetTime(), lt.Pair(), "60m range", hrRange, hrRangeRelClose.Round(2))
+		} else if !hrRange.IsZero() {
+			log.Debugf(log.FactorEngine, "%s %s %s %v %v%%", lt.GetTime(), lt.Pair(), "60m range", hrRange, hrRangeRelClose.Round(2))
+		} else {
+			log.Errorf(log.FactorEngine, "ZERO %s %s close:%v high:%v low:%v range:%v", lt.GetTime(), lt.Pair(), lt.ClosePrice(), lt.HighPrice(), lt.LowPrice(), hrRange)
+		}
+	} else {
+		log.Debugln(log.FactorEngine, "HH onbar price change", d.Latest().Pair(), d.Latest().GetTime(), d.Latest().ClosePrice())
+	}
 }
 
 func (f *FactorEngine) createNewDailyBar(m *factors.MinuteDataFrame, d *factors.DailyDataFrame) *factors.DailyDataFrame {

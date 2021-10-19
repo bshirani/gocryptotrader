@@ -76,6 +76,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 
 	tm.cfg = *cfg
 	tm.verbose = cfg.TradeManager.Verbose
+	fmt.Println("VERBOSE??????", tm.verbose)
 
 	tm.EventQueue = &Holder{}
 	reports := &report.Data{
@@ -216,7 +217,7 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 // in backtest mode...
 // in live mode...
 
-func (tm *TradeManager) Run(warmup bool) error {
+func (tm *TradeManager) Run() error {
 	// log.Debugf(log.TradeMgr, "TradeManager Running. Warmup: %v\n", warmup)
 	// for _, cs := range tm.bot.CurrencySettings {
 	// 	dbData, err := database.LoadData(
@@ -431,7 +432,8 @@ func (tm *TradeManager) waitForFactorEnginesWarmup() {
 		dbData.Load()
 	}
 
-	tm.Run(true)
+	tm.Run()
+	tm.tradingEnabled = true
 
 	// dbm := tm.bot.DatabaseManager.GetInstance()
 	// if err != nil {
@@ -565,19 +567,33 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 		fmt.Printf("error updating factor engine for %v reason: %s", ev.Pair(), err)
 	}
 
-	tm.bot.OrderManager.Update()
+	if tm.tradingEnabled {
+		tm.bot.OrderManager.Update()
 
-	for _, strategy := range tm.Strategies {
-		if strategy.GetPair() == ev.Pair() {
-			if tm.bot.Config.LiveMode {
-				fmt.Println("Updating strategy", strategy.GetID(), d.Latest().GetTime())
+		for _, strategy := range tm.Strategies {
+			if strategy.GetPair() == ev.Pair() {
+				if tm.bot.Config.LiveMode {
+					if len(fe.Minute().M60Range) > 0 {
+						fmt.Println("Updating strategy", strategy.GetID(), d.Latest().GetTime(), fe.Minute().M60Range.Last(1))
+					} else {
+						fmt.Println("only have", len(fe.Minute().M60Range))
+					}
+
+					if tm.verbose {
+						log.Debugln(log.TradeMgr,
+							"STRATEGY UPDATE bars:%d lastHrPctChange:%v",
+							len(fe.Minute().Close),
+							fe.Minute().M60RangeDivClose.Last(1))
+					}
+				}
+
+				s, err := strategy.OnData(d, tm.Portfolio, fe)
+				if err != nil {
+					fmt.Println("error processing data event", err)
+					return err
+				}
+				tm.EventQueue.AppendEvent(s)
 			}
-			s, err := strategy.OnData(d, tm.Portfolio, fe)
-			if err != nil {
-				fmt.Println("error processing data event", err)
-				return err
-			}
-			tm.EventQueue.AppendEvent(s)
 		}
 	}
 

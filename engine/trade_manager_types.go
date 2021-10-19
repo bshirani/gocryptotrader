@@ -47,7 +47,7 @@ type TradeManager struct {
 	Reports            report.Handler
 	Statistic          statistics.Handler
 	Strategies         []strategies.Handler
-	Warmup             bool
+	tradingEnabled     bool
 	cfg                config.Config
 	hasHandledEvent    bool
 	shutdown           chan struct{}
