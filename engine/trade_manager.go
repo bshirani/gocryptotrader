@@ -337,7 +337,6 @@ func (e *Holder) NextEvent() (i eventtypes.EventHandler) {
 }
 
 func (tm *TradeManager) runLive() error {
-	defer func() { fmt.Println("deferring") }()
 	processEventTicker := time.NewTicker(time.Second)
 	var localWG sync.WaitGroup
 	localWG.Add(1)

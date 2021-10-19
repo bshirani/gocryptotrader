@@ -109,6 +109,14 @@ func (m *DataHistoryManager) Catchup(callback func()) ([]string, error) {
 
 		// determine if we need to create one first of all
 		// determine how much data we need
+		// count the number of bars per day per currency
+
+		// count, err := candle.CountSince(cs.ExchangeName, cs.CurrencyPair.Base.String(), cs.CurrencyPair.Quote.String(), 60, cs.AssetType.String(), time.Now().Add(time.Minute*-5), time.Now())
+		// candles, err := candle.Series(cs.ExchangeName, cs.CurrencyPair.Base.String(), cs.CurrencyPair.Quote.String(), 60, cs.AssetType.String(), time.Now().Add(time.Minute*-5), time.Now())
+		// if err != nil {
+		// 	fmt.Println("error getting count", err)
+		// }
+		fmt.Println("currency enabled", p.CurrencyPair)
 
 		start := time.Now().AddDate(0, -2, 0)
 		end := time.Now()
@@ -138,7 +146,7 @@ func (m *DataHistoryManager) Catchup(callback func()) ([]string, error) {
 
 		log.Debugln(log.DataHistory, "Creating history job for ", p.CurrencyPair, job.StartDate, job.EndDate)
 		// err = m.runJob(&job)
-		err = m.UpsertJob(&job, true)
+		// err = m.UpsertJob(&job, true)
 		if err != nil {
 			log.Errorln(log.DataHistory, "data history error: ", err)
 			return names, err
@@ -146,7 +154,7 @@ func (m *DataHistoryManager) Catchup(callback func()) ([]string, error) {
 		}
 	}
 
-	callback()
+	// callback()
 	return names, nil
 }
 
