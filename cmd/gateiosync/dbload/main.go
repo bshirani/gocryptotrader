@@ -26,37 +26,38 @@ func main() {
 	}
 	for _, file := range files {
 		if file.IsDir() {
-			pairPath := path.Join(baseDir, file.Name())
-			files, _ = ioutil.ReadDir(pairPath)
-
-			var alreadyProcessed bool
-			c, err := currency.NewPairFromString(file.Name())
-			if err != nil {
-				fmt.Println("cant find currency", err)
-			}
-			for _, file = range files {
-				for _, x := range finished {
-					if strings.EqualFold(x, file.Name()) {
-						alreadyProcessed = true
-						continue
-					}
-				}
-				if !alreadyProcessed {
-					if strings.HasSuffix(file.Name(), ".csv") {
-						cmd := fmt.Sprintf(baseCmd, "gateio", c.Base.String(), c.Quote.String(), path.Join(pairPath, file.Name()))
-						fmt.Println(cmd)
-						out, err := exec.Command("bash", "-c", cmd).Output()
-						if err != nil {
-							fmt.Println("err running cmd", cmd, out, err)
-							os.Exit(2)
+			// if not finished
+			files, _ = ioutil.ReadDir(path.Join(baseDir, file.Name()))
+			for _, f := range files {
+				if strings.HasSuffix(f.Name(), ".csv") {
+					for _, fin := range finished {
+						if strings.EqualFold(fin, f.Name()) {
+							// fmt.Println("already processed")
+							continue
 						}
-						markFileFinished(file.Name())
 					}
+					task(f.Name())
 				}
-				alreadyProcessed = false
 			}
 		}
 	}
+}
+
+func task(fileName string) {
+	fmt.Println(fileName)
+	dirName := strings.Split(fileName, "-")[0]
+	c, err := currency.NewPairFromString(dirName)
+	if err != nil {
+		fmt.Println("cant find currency", err)
+	}
+	cmd := fmt.Sprintf(baseCmd, "gateio", c.Base.String(), c.Quote.String(), path.Join(baseDir, dirName, fileName))
+	// fmt.Println(cmd)
+	out, err := exec.Command("bash", "-c", cmd).Output()
+	if err != nil {
+		fmt.Println("err running cmd", cmd, out, err)
+		os.Exit(2)
+	}
+	markFileFinished(fileName)
 }
 
 func markFileFinished(symbol string) {
