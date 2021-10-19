@@ -15,14 +15,40 @@ import (
 
 // initialize minute and daily data series here
 // load data from cache here
-func SetupFactorEngine(eap *ExchangeAssetPairSettings, cfg *config.FactorEngineConfig) (*FactorEngine, error) {
+func SetupFactorEngine(cs *ExchangeAssetPairSettings, cfg *config.FactorEngineConfig) (*FactorEngine, error) {
 	f := &FactorEngine{}
-	p := eap.CurrencyPair
+	p := cs.CurrencyPair
 	f.Verbose = cfg.Verbose
 
 	f.Pair = p
 	f.minute = &factors.MinuteDataFrame{}
 	f.daily = &factors.DailyDataFrame{}
+
+	// warmup the factor engine
+
+	// load candles from db and convert to events
+
+	// dbData, err := database.LoadData(
+	// 	time.Now().Add(time.Minute*-20),
+	// 	time.Now(),
+	// 	time.Minute,
+	// 	cs.ExchangeName,
+	// 	0,
+	// 	cs.CurrencyPair,
+	// 	cs.AssetType)
+	//
+	// if err != nil {
+	// 	fmt.Println("error factor engine warmup", err)
+	// }
+	// datas := &data.HandlerPerCurrency{}
+	// datas.Setup()
+	// datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, dbData)
+	// dbData.Load()
+	// dataHandler := datas.GetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair)
+	//
+	// for ev := dataHandler.Next(); ev != nil; dataHandler.Next() {
+	// 	f.OnBar(dataHandler)
+	// }
 
 	return f, nil
 }
@@ -37,8 +63,41 @@ func (f *FactorEngine) Daily() *factors.DailyDataFrame {
 
 func (f *FactorEngine) OnBar(d data.Handler) error {
 	if f.Verbose {
-		log.Debugln(log.FactorEngine, "onbar", d.Latest().Pair(), d.Latest().GetTime(), d.Latest().ClosePrice())
+		if len(f.minute.Close) > 60 {
+			// log.Debugln(log.FactorEngine, "onbar price change", d.Latest().Pair(), d.Latest().GetTime(), d.Latest().ClosePrice())
+			// how much has moved in past hour
+			hourBars := d.History()[len(d.History())-61 : len(d.History())-1]
+			// fmt.Println("have", len(hourBars), "bars")
+
+			high := hourBars[0].HighPrice()
+			for i := range hourBars {
+				h := hourBars[i].HighPrice()
+				if h.GreaterThan(high) {
+					high = h
+				}
+			}
+
+			low := hourBars[0].LowPrice()
+			for i := range hourBars {
+				l := hourBars[i].LowPrice()
+				if l.LessThan(low) {
+					low = l
+				}
+			}
+			hrRange := high.Sub(low)
+			hrRangeRelClose := hrRange.Div(d.Latest().ClosePrice())
+			hrRangeRelClose = hrRangeRelClose.Mul(decimal.NewFromInt(100))
+
+			if hrRangeRelClose.GreaterThan(decimal.NewFromInt(1)) {
+				log.Infof(log.FactorEngine, "%s %s %v %v%%", d.Latest().Pair(), "60m range", hrRange, hrRangeRelClose.Round(2))
+			} else {
+				log.Debugf(log.FactorEngine, "%s %s %v %v%%", d.Latest().Pair(), "60m range", hrRange, hrRangeRelClose.Round(2))
+			}
+		} else {
+			log.Debugln(log.FactorEngine, "onbar", d.Latest().Pair(), d.Latest().GetTime(), d.Latest().ClosePrice())
+		}
 	}
+
 	bar := d.Latest()
 	f.minute.Close = append(f.minute.Close, bar.ClosePrice())
 	f.minute.Open = append(f.minute.Open, bar.OpenPrice())

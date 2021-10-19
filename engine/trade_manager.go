@@ -117,8 +117,6 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 		// return err
 	}
 
-	tm.initializeFactorEngines()
-
 	if tm.bot.Settings.EnableTrading {
 		tm.initializePortfolio(cfg)
 	}
@@ -408,13 +406,14 @@ func (tm *TradeManager) waitForDataCatchup() {
 func (tm *TradeManager) waitForFactorEnginesWarmup() {
 	// var localWG sync.WaitGroup
 	// localWG.Add(1)
+	tm.initializeFactorEngines()
 
 	fmt.Println("warmup factor engine here")
 
 	// load all candles for instrument
 
 	for _, cs := range tm.bot.CurrencySettings {
-		startDate := time.Now().Add(time.Minute * -30)
+		startDate := time.Now().Add(time.Minute * -120)
 		// candles, _ := CandleSeriesForSettings(cs, 60, startDate, time.Now())
 		dbData, err := database.LoadData(
 			startDate,
@@ -488,8 +487,7 @@ func (tm *TradeManager) runLive() error {
 					}
 					lup[cs] = thisMinute
 					dbData.Load()
-					tm.Datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, dbData)
-
+					// tm.Datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, dbData)
 					dataEvent := dbData.Next()
 
 					if dataEvent == nil {
