@@ -9,6 +9,7 @@ import (
 	"gocryptotrader/currency"
 	"gocryptotrader/data"
 	"gocryptotrader/data/kline/database"
+	"gocryptotrader/database/repository/candle"
 	"gocryptotrader/database/repository/datahistoryjob"
 	"os"
 	"path/filepath"
@@ -365,19 +366,67 @@ func (tm *TradeManager) waitForDataCatchup() {
 		time.Sleep(time.Second)
 	}
 
+	rTotal := make(map[*ExchangeAssetPairSettings]int)
+	for _, p := range tm.bot.CurrencySettings {
+		t := time.Now()
+		nowTime := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+		startDate := nowTime.AddDate(0, -1, 0)
+		rTotal[p] = 0
+
+		candles, _ := candle.Series(p.ExchangeName, p.CurrencyPair.Base.String(), p.CurrencyPair.Quote.String(), 60, p.AssetType.String(), startDate, time.Now())
+		rTotal[p] += len(candles.Candles)
+		// fmt.Println(p.CurrencyPair, "total bars", rTotal[p])
+	}
+
 	localWG.Wait()
 }
+
+// ensure that we're synced before moving on
+// r := make(map[*ExchangeAssetPairSettings]map[time.Time]int)
+// for x := startDate; x.Before(nowTime); x = x.AddDate(0, 0, 1) {
+// 	if r[p] == nil {
+// 		r[p] = make(map[time.Time]int)
+// 	}
+// 	candles, _ := candle.Series(p.ExchangeName, p.CurrencyPair.Base.String(), p.CurrencyPair.Quote.String(), 60, p.AssetType.String(), time.Now().Add(time.Minute*-5), time.Now())
+// 	r[p][x] = len(candles.Candles)
+// 	rTotal[p] += len(candles.Candles)
+// 	fmt.Println("adding", len(candles.Candles), rTotal[p])
+// }
+
+// func (tm *TradeManager) waitForFactorEnginesWarmup() {
+// 	var localWG sync.WaitGroup
+// 	localWG.Add(1)
+//
+// 	dbm := tm.bot.DatabaseManager.GetInstance()
+// 	if err != nil {
+// 		fmt.Println("error", err)
+// 	}
+//
+// 	for {
+// 		// count jobs running
+// 		active, err := db.CountActive()
+// 		if err != nil {
+// 			fmt.Println("error", err)
+// 		}
+// 		if active == 0 {
+// 			break
+// 		}
+// 		time.Sleep(time.Second)
+// 	}
+//
+// 	localWG.Wait()
+// }
 
 func (tm *TradeManager) runLive() error {
 	processEventTicker := time.NewTicker(time.Second)
 	tm.waitForDataCatchup()
+	fmt.Println("Run Live Started")
 
 	for {
 		select {
 		case <-tm.shutdown:
 			return nil
 		case <-processEventTicker.C:
-			fmt.Printf(".")
 			for _, exchangeMap := range tm.Datas.GetAllData() {
 				for _, assetMap := range exchangeMap {
 					for _, dataHandler := range assetMap {
@@ -425,9 +474,9 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 	if cs == nil || err != nil {
 		fmt.Println("error !!! FAIL getting cs", cs)
 	}
-	// if tm.verbose {
-	fmt.Println("on bar update", d.Latest().GetTime())
-	// }
+	if tm.verbose {
+		fmt.Println("on bar update", d.Latest().GetTime())
+	}
 	fe := tm.FactorEngines[cs]
 	err = fe.OnBar(d)
 	if err != nil {

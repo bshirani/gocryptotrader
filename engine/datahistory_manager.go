@@ -62,7 +62,7 @@ func SetupDataHistoryManager(bot *Engine, em iExchangeManager, dcm iDatabaseConn
 		exchangeManager:            em,
 		databaseConnectionInstance: db,
 		shutdown:                   make(chan struct{}),
-		interval:                   time.NewTicker(time.Second * 10),
+		interval:                   time.NewTicker(time.Second),
 		jobDB:                      dhj,
 		jobResultDB:                dhjr,
 		maxJobsPerCycle:            cfg.MaxJobsPerCycle,
@@ -90,93 +90,99 @@ func (m *DataHistoryManager) Catchup(callback func()) ([]string, error) {
 	}
 
 	names := make([]string, 0)
+	t := time.Now()
 
-	// r := make(map[*ExchangeAssetPairSettings]map[time.Time]int)
+	// start two months ago
+	dayTime := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+	startDate := dayTime.AddDate(0, -2, 10)
 
 	for _, p := range m.bot.CurrencySettings {
-		// log.Debugf(log.DataHistory, "request datahistory catchup for %s %v %v", p.ExchangeName, p.AssetType, p.CurrencyPair)
+		fmt.Printf("checking c %s", p.CurrencyPair)
+		for x := startDate; x.Before(dayTime); x = x.AddDate(0, 0, 1) {
+			t1 := x
+			t2 := x.AddDate(0, 0, 1)
+			startFmt := fmt.Sprintf("%d-%02d-%02d", t1.Year(), t1.Month(), t1.Day())
+			endFmt := fmt.Sprintf("%d-%02d-%02d", t2.Year(), t2.Month(), t2.Day())
 
-		// t := time.Now()
-		// nowTime := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
-		// startDate := nowTime.AddDate(0, -2, 0)
-		// for x := startDate; x.Before(nowTime); x = x.AddDate(0, 0, 1) {
-		// 	if r[p] == nil {
-		// 		r[p] = make(map[time.Time]int)
-		// 	}
-		// 	candles, _ := candle.Series(p.ExchangeName, p.CurrencyPair.Base.String(), p.CurrencyPair.Quote.String(), 60, p.AssetType.String(), time.Now().Add(time.Minute*-5), time.Now())
-		// 	r[p][x] = len(candles.Candles)
-		// }
+			candles, _ := candle.Series(p.ExchangeName, p.CurrencyPair.Base.String(), p.CurrencyPair.Quote.String(), 60, p.AssetType.String(), t1, t2)
+			if len(candles.Candles) > 1400 {
+				fmt.Printf("%d-%d:%d, ", x.Month(), x.Day(), len(candles.Candles))
+				continue
+			}
 
-		t1 := time.Now().AddDate(0, -1, 0)
-		t2 := time.Now()
-		startFmt := fmt.Sprintf("%d-%02d-%02d", t1.Year(), t1.Month(), t1.Day())
-		endFmt := fmt.Sprintf("%d-%02d-%02d", t2.Year(), t2.Month(), t2.Day())
+			name := fmt.Sprintf("%v-%s-%s--%d", p.CurrencyPair, startFmt, endFmt, time.Now().Unix())
+			names = append(names, name)
 
-		// (exchangeName, base, quote string, interval int64, asset string, start, end time.Time) (out Item, err error) {
-		lastCandles, err := candle.Series(
-			p.ExchangeName,
-			p.CurrencyPair.Base.String(),
-			p.CurrencyPair.Quote.String(),
-			60,
-			p.AssetType.String(),
-			time.Now().AddDate(0, -1, 0),
-			time.Now(),
-		)
+			job := DataHistoryJob{
+				Nickname:               name,
+				Exchange:               p.ExchangeName,
+				Asset:                  p.AssetType,
+				Pair:                   p.CurrencyPair,
+				StartDate:              t1,
+				EndDate:                t2,
+				Interval:               kline.Interval(60000000000),
+				RunBatchLimit:          10,
+				RequestSizeLimit:       999,
+				DataType:               dataHistoryDataType(eventtypes.DataCandle),
+				MaxRetryAttempts:       1,
+				Status:                 dataHistoryStatusActive,
+				OverwriteExistingData:  false,
+				ConversionInterval:     60000000000,
+				DecimalPlaceComparison: 3,
+			}
 
-		if len(lastCandles.Candles) < 10000 {
-			fmt.Println(p.CurrencyPair, "less than 10000 bars in past 1 months", len(lastCandles.Candles))
-		} else {
-			fmt.Println(p.CurrencyPair, "has", len(lastCandles.Candles), "bars")
-			continue
+			// log.Debugln(log.DataHistory, "Creating history job for ", p.CurrencyPair, startFmt, endFmt)
+
+			// err = m.runJob(&job)
+			err := m.UpsertJob(&job, true)
+			if err != nil {
+				log.Errorln(log.DataHistory, "data history error: ", err)
+				return names, err
+				// return errCatchupFailed
+			}
 		}
-
-		// err = common.StartEndTimeCheck(lastCandle.Timestamp, end)
-		// if err != nil {
-		// 	return names, err
-		// }
-		name := fmt.Sprintf("catchupjob-%v-%s-%s", p.CurrencyPair, startFmt, endFmt)
-		names = append(names, name)
-
-		job := DataHistoryJob{
-			Nickname:               name,
-			Exchange:               p.ExchangeName,
-			Asset:                  p.AssetType,
-			Pair:                   p.CurrencyPair,
-			StartDate:              t1,
-			EndDate:                t2,
-			Interval:               kline.Interval(60000000000),
-			RunBatchLimit:          10,
-			RequestSizeLimit:       999,
-			DataType:               dataHistoryDataType(eventtypes.DataCandle),
-			MaxRetryAttempts:       1,
-			Status:                 dataHistoryStatusActive,
-			OverwriteExistingData:  false,
-			ConversionInterval:     60000000000,
-			DecimalPlaceComparison: 3,
-		}
-
-		log.Debugln(log.DataHistory, "Creating history job for ", p.CurrencyPair, startFmt, endFmt)
-
-		// err = m.runJob(&job)
-		err = m.UpsertJob(&job, true)
-		if err != nil {
-			log.Errorln(log.DataHistory, "data history error: ", err)
-			return names, err
-			// return errCatchupFailed
-		}
+		fmt.Println()
 	}
 
+	fmt.Println("created", len(names), "data history jobs")
+
 	callback()
-	// for c := range r {
-	// 	sum := 0
-	// 	for t := range r[c] {
-	// 		sum += r[c][t]
-	// 	}
-	// 	fmt.Println(c.CurrencyPair, "has", sum, "bars for past month")
-	// }
-	// os.Exit(2)
 	return names, nil
 }
+
+// for _, p := range m.bot.CurrencySettings {
+// 	// log.Debugf(log.DataHistory, "request datahistory catchup for %s %v %v", p.ExchangeName, p.AssetType, p.CurrencyPair)
+//
+// for c := range r {
+// 	sum := 0
+// 	for t := range r[c] {
+// 		sum += r[c][t]
+// 	}
+// 	fmt.Println(c.CurrencyPair, "has", sum, "bars for past month")
+// }
+// os.Exit(2)
+// // (exchangeName, base, quote string, interval int64, asset string, start, end time.Time) (out Item, err error) {
+// lastCandles, err := candle.Series(
+// 	p.ExchangeName,
+// 	p.CurrencyPair.Base.String(),
+// 	p.CurrencyPair.Quote.String(),
+// 	60,
+// 	p.AssetType.String(),
+// 	t1,
+// 	time.Now(),
+// )
+//
+// if len(lastCandles.Candles) < 20000 {
+// 	fmt.Println(p.CurrencyPair, "only", len(lastCandles.Candles), "bars in past 1 months")
+// } else {
+// 	fmt.Println(p.CurrencyPair, "has", len(lastCandles.Candles), "bars")
+// 	continue
+// }
+
+// err = common.StartEndTimeCheck(lastCandle.Timestamp, end)
+// if err != nil {
+// 	return names, err
+// }
 
 // Start runs the 999
 func (m *DataHistoryManager) Start() error {
@@ -353,7 +359,10 @@ func (m *DataHistoryManager) RunJobs() error {
 	}
 
 	if !atomic.CompareAndSwapInt32(&m.processing, 0, 1) {
-		return fmt.Errorf("cannot process jobs, %w", errAlreadyRunning)
+		if m.verbose {
+			return fmt.Errorf("cannot process jobs, %w", errAlreadyRunning)
+		}
+		return nil
 	}
 	defer atomic.StoreInt32(&m.processing, 0)
 
@@ -761,30 +770,30 @@ func (m *DataHistoryManager) saveCandlesInBatches(job *DataHistoryJob, candles *
 	if m.maxResultInsertions <= 0 {
 		m.maxResultInsertions = defaultMaxResultInsertions
 	}
-	var err error
 	for i := 0; i < len(candles.Candles); i += int(m.maxResultInsertions) {
 		newCandle := *candles
 		if i+int(m.maxResultInsertions) > len(newCandle.Candles) {
-			if m.verbose {
-				log.Debugf(log.DataHistory, "Saving %v candles. Range %v-%v/%v", len(newCandle.Candles[i:]), i, len(candles.Candles), len(candles.Candles))
-			}
 			newCandle.Candles = newCandle.Candles[i:]
-			_, err = m.candleSaver(&newCandle, job.OverwriteExistingData)
+			inserted, err := m.candleSaver(&newCandle, job.OverwriteExistingData)
 			if err != nil {
 				r.Result += "could not save results: " + err.Error() + ". "
 				r.Status = dataHistoryStatusFailed
 				log.Errorln(log.DataHistory, "Candle saving failed", err)
 			}
+			if m.verbose {
+				log.Debugf(log.DataHistory, "Saving %v candles. Inserted: %d. Range %v-%v/%v", len(newCandle.Candles[i:]), inserted, i, len(candles.Candles), len(candles.Candles))
+			}
 			break
 		}
-		if m.verbose {
-			log.Debugf(log.DataHistory, "Saving %v candles. Range %v-%v/%v", m.maxResultInsertions, i, i+int(m.maxResultInsertions), len(candles.Candles))
-		}
 		newCandle.Candles = newCandle.Candles[i : i+int(m.maxResultInsertions)]
-		_, err = m.candleSaver(&newCandle, job.OverwriteExistingData)
+		inserted, err := m.candleSaver(&newCandle, job.OverwriteExistingData)
 		if err != nil {
+			fmt.Println("FAILED", inserted, "candles")
 			r.Result += "could not save results: " + err.Error() + ". "
 			r.Status = dataHistoryStatusFailed
+		}
+		if m.verbose {
+			log.Debugf(log.DataHistory, "Saving %v candles. Inserted: %d Range %v-%v/%v", m.maxResultInsertions, inserted, i, i+int(m.maxResultInsertions), len(candles.Candles))
 		}
 	}
 	return nil

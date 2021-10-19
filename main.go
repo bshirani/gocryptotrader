@@ -35,7 +35,7 @@ func main() {
 	flag.BoolVar(&settings.EnableAllPairs, "enableallpairs", false, "enables all pairs for enabled exchanges")
 	flag.BoolVar(&settings.EnableCoinmarketcapAnalysis, "coinmarketcap", false, "overrides config and runs currency analysis")
 	flag.BoolVar(&settings.EnableCommsRelayer, "enablecommsrelayer", false, "enables available communications relayer")
-	flag.BoolVar(&settings.EnableConnectivityMonitor, "connectivitymonitor", false, "enables the connectivity monitor")
+	flag.BoolVar(&settings.EnableConnectivityMonitor, "connectivitymonitor", true, "enables the connectivity monitor")
 	flag.BoolVar(&settings.EnableCurrencyStateManager, "currencystatemanager", true, "enables the currency state manager")
 	flag.BoolVar(&settings.EnableWatcher, "watcher", true, "enables the system watcher")
 	flag.BoolVar(&settings.EnableDataHistoryManager, "datahistorymanager", true, "enables the data history manager")
