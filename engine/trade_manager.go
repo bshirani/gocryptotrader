@@ -124,6 +124,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 		tm.initializePortfolio(cfg)
 	}
 	if err != nil {
+		fmt.Println("error setting up tm", err)
 		os.Exit(123)
 	}
 
@@ -214,13 +215,16 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	return ev, nil
 }
 
+// load data if necessary
+// in backtest mode...
+// in live mode...
+
 func (tm *TradeManager) Run() error {
 	log.Debugf(log.TradeMgr, "TradeManager Running. Warmup: %v\n", tm.Warmup)
-
 	for _, cs := range tm.bot.CurrencySettings {
 		dbData, err := database.LoadData(
+			time.Now().Add(time.Minute-30),
 			time.Now(),
-			time.Now().Add(time.Minute-20),
 			time.Minute,
 			cs.ExchangeName,
 			0,
@@ -238,7 +242,6 @@ func (tm *TradeManager) Run() error {
 		tm.Datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, dbData)
 		dbData.Load()
 	}
-
 dataLoadingIssue:
 	for ev := tm.EventQueue.NextEvent(); ; ev = tm.EventQueue.NextEvent() {
 		if ev == nil {
@@ -249,7 +252,7 @@ dataLoadingIssue:
 					for currencyPair, dataHandler := range assetMap {
 						d := dataHandler.Next()
 						if d == nil {
-							fmt.Println("no data found for", currencyPair)
+							log.Errorf(log.TradeMgr, "No data found for %v", currencyPair)
 							if !tm.hasHandledEvent {
 								log.Errorf(log.TradeMgr, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
 							}
@@ -393,33 +396,59 @@ func (tm *TradeManager) waitForDataCatchup() {
 // 	fmt.Println("adding", len(candles.Candles), rTotal[p])
 // }
 
-// func (tm *TradeManager) waitForFactorEnginesWarmup() {
-// 	var localWG sync.WaitGroup
-// 	localWG.Add(1)
-//
-// 	dbm := tm.bot.DatabaseManager.GetInstance()
-// 	if err != nil {
-// 		fmt.Println("error", err)
-// 	}
-//
-// 	for {
-// 		// count jobs running
-// 		active, err := db.CountActive()
-// 		if err != nil {
-// 			fmt.Println("error", err)
-// 		}
-// 		if active == 0 {
-// 			break
-// 		}
-// 		time.Sleep(time.Second)
-// 	}
-//
-// 	localWG.Wait()
-// }
+func (tm *TradeManager) waitForFactorEnginesWarmup() {
+	var localWG sync.WaitGroup
+	localWG.Add(1)
+
+	fmt.Println("warmup factor engine here")
+
+	// load all candles for instrument
+
+	// for _, cs := range tm.bot.CurrencySettings {
+	// 	startDate := time.Now().Add(time.Minute * -20000)
+	// 	// candles, _ := CandleSeriesForSettings(cs, 60, startDate, time.Now())
+	// 	dbData, err := database.LoadData(
+	// 		startDate,
+	// 		time.Now(),
+	// 		time.Minute,
+	// 		cs.ExchangeName,
+	// 		0,
+	// 		cs.CurrencyPair,
+	// 		cs.AssetType)
+	// 	if err != nil {
+	// 		fmt.Println("error load db data", err)
+	// 	}
+	// 	fmt.Println(cs.CurrencyPair, "loaded", len(dbData.Item.Candles), "candles")
+	// 	tm.Datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, dbData)
+	// 	dbData.Load()
+	// }
+
+	tm.Run()
+
+	// dbm := tm.bot.DatabaseManager.GetInstance()
+	// if err != nil {
+	// 	fmt.Println("error", err)
+	// }
+	//
+	// for {
+	// 	// count jobs running
+	// 	active, err := db.CountActive()
+	// 	if err != nil {
+	// 		fmt.Println("error", err)
+	// 	}
+	// 	if active == 0 {
+	// 		break
+	// 	}
+	// 	time.Sleep(time.Second)
+	// }
+
+	localWG.Wait()
+}
 
 func (tm *TradeManager) runLive() error {
 	processEventTicker := time.NewTicker(time.Second)
-	tm.waitForDataCatchup()
+	// tm.waitForDataCatchup()
+	tm.waitForFactorEnginesWarmup()
 	fmt.Println("Run Live Started")
 
 	for {
@@ -774,4 +803,9 @@ func (tm *TradeManager) setOrderManagerCallbacks() {
 	// tm.bot.OrderManager.SetOnSubmit(tm.onSubmit)
 	tm.OrderManager.SetOnFill(tm.onFill)
 	tm.OrderManager.SetOnCancel(tm.onCancel)
+}
+
+// Series returns candle data
+func CandleSeriesForSettings(e *ExchangeAssetPairSettings, interval int64, start, end time.Time) (out candle.Item, err error) {
+	return candle.Series(e.ExchangeName, e.CurrencyPair.Base.String(), e.CurrencyPair.Quote.String(), 60, e.AssetType.String(), start, end)
 }

@@ -75,7 +75,6 @@ func SetupDataHistoryManager(bot *Engine, em iExchangeManager, dcm iDatabaseConn
 	}, nil
 }
 
-// datahistoryjob.DataHistoryJob.Exec(SQL("update status = 1"))
 func (m *DataHistoryManager) Catchup(callback func()) ([]string, error) {
 	// takes in a list of currency settings
 	// for each currency setting, perform catchup
@@ -149,40 +148,6 @@ func (m *DataHistoryManager) Catchup(callback func()) ([]string, error) {
 	callback()
 	return names, nil
 }
-
-// for _, p := range m.bot.CurrencySettings {
-// 	// log.Debugf(log.DataHistory, "request datahistory catchup for %s %v %v", p.ExchangeName, p.AssetType, p.CurrencyPair)
-//
-// for c := range r {
-// 	sum := 0
-// 	for t := range r[c] {
-// 		sum += r[c][t]
-// 	}
-// 	fmt.Println(c.CurrencyPair, "has", sum, "bars for past month")
-// }
-// os.Exit(2)
-// // (exchangeName, base, quote string, interval int64, asset string, start, end time.Time) (out Item, err error) {
-// lastCandles, err := candle.Series(
-// 	p.ExchangeName,
-// 	p.CurrencyPair.Base.String(),
-// 	p.CurrencyPair.Quote.String(),
-// 	60,
-// 	p.AssetType.String(),
-// 	t1,
-// 	time.Now(),
-// )
-//
-// if len(lastCandles.Candles) < 20000 {
-// 	fmt.Println(p.CurrencyPair, "only", len(lastCandles.Candles), "bars in past 1 months")
-// } else {
-// 	fmt.Println(p.CurrencyPair, "has", len(lastCandles.Candles), "bars")
-// 	continue
-// }
-
-// err = common.StartEndTimeCheck(lastCandle.Timestamp, end)
-// if err != nil {
-// 	return names, err
-// }
 
 // Start runs the 999
 func (m *DataHistoryManager) Start() error {
