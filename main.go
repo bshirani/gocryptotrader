@@ -44,7 +44,7 @@ func main() {
 	flag.BoolVar(&settings.EnableDispatcher, "dispatch", true, "enables the dispatch system")
 	flag.BoolVar(&settings.EnableDryRun, "enabledryrun", false, "dry runs bot, doesn't use database for trades/orders")
 	flag.BoolVar(&settings.EnableEventManager, "eventmanager", true, "enables the event manager")
-	flag.BoolVar(&settings.EnableExchangeSyncManager, "syncmanager", false, "enables to exchange sync manager")
+	flag.BoolVar(&settings.EnableExchangeSyncManager, "syncmanager", true, "enables to exchange sync manager")
 	flag.BoolVar(&settings.EnableGCTScriptManager, "gctscriptmanager", true, "enables gctscript manager")
 	flag.BoolVar(&settings.EnableGRPC, "grpc", true, "enables the grpc server")
 	flag.BoolVar(&settings.EnableGRPCProxy, "grpcproxy", false, "enables the grpc proxy server")
@@ -64,7 +64,7 @@ func main() {
 	flag.IntVar(&settings.GoMaxProcs, "gomaxprocs", runtime.GOMAXPROCS(-1), "sets the runtime GOMAXPROCS value")
 
 	// Exchange syncer settings
-	flag.BoolVar(&settings.EnableKlineSyncing, "klinesync", false, "enables kline syncing for all enabled exchanges")
+	flag.BoolVar(&settings.EnableKlineSyncing, "klinesync", true, "enables kline syncing for all enabled exchanges")
 	flag.BoolVar(&settings.EnableTickerSyncing, "tickersync", false, "enables ticker syncing for all enabled exchanges")
 	flag.BoolVar(&settings.EnableOrderbookSyncing, "orderbooksync", false, "enables orderbook syncing for all enabled exchanges")
 	flag.BoolVar(&settings.EnableTradeSyncing, "tradesync", false, "enables trade syncing for all enabled exchanges")

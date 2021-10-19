@@ -17,6 +17,7 @@ import (
 func SetupFactorEngine(eap *ExchangeAssetPairSettings, cfg *config.FactorEngineConfig) (*FactorEngine, error) {
 	f := &FactorEngine{}
 	p := eap.CurrencyPair
+	f.Verbose = cfg.Verbose
 
 	f.Pair = p
 	f.minute = &factors.MinuteDataFrame{}
@@ -34,9 +35,9 @@ func (f *FactorEngine) Daily() *factors.DailyDataFrame {
 }
 
 func (f *FactorEngine) OnBar(d data.Handler) error {
-	if f.Verbose {
-		fmt.Println("factor engine on bar", d.Latest().GetTime(), d.Latest().ClosePrice())
-	}
+	// if f.Verbose {
+	// 	log.Debugln(log.FactorEngine, "onbar", d.Latest().Pair(), d.Latest().GetTime(), d.Latest().ClosePrice())
+	// }
 	bar := d.Latest()
 	f.minute.Close = append(f.minute.Close, bar.ClosePrice())
 	f.minute.Open = append(f.minute.Open, bar.OpenPrice())

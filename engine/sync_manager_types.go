@@ -28,6 +28,7 @@ type currencyPairSyncAgent struct {
 	Ticker    syncBase
 	Orderbook syncBase
 	Trade     syncBase
+	Kline     syncBase
 }
 
 // Config stores the currency pair config

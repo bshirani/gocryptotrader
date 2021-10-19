@@ -18,6 +18,7 @@ var (
 	OrderMgr         *SubLogger
 	FakeOrderMgr     *SubLogger
 	StrategiesMgr    *SubLogger
+	FactorEngine     *SubLogger
 	PortfolioMgr     *SubLogger
 	SyncMgr          *SubLogger
 	TimeMgr          *SubLogger

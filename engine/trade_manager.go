@@ -245,18 +245,20 @@ dataLoadingIssue:
 	for ev := tm.EventQueue.NextEvent(); ; ev = tm.EventQueue.NextEvent() {
 		if ev == nil {
 			dataHandlerMap := tm.Datas.GetAllData()
-			for exchangeName, exchangeMap := range dataHandlerMap {
-				for assetItem, assetMap := range exchangeMap {
+			for _, exchangeMap := range dataHandlerMap {
+				for _, assetMap := range exchangeMap {
 					// var hasProcessedData bool
-					for currencyPair, dataHandler := range assetMap {
+					tm.hasHandledEvent = false
+					for _, dataHandler := range assetMap {
 						d := dataHandler.Next()
 						if d == nil {
-							log.Errorf(log.TradeMgr, "No data found for %v", currencyPair)
-							if !tm.hasHandledEvent {
-								log.Errorf(log.TradeMgr, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
-							}
+							// log.Errorf(log.TradeMgr, "No data found for %v", currencyPair)
+							// if !tm.hasHandledEvent {
+							// 	log.Errorf(log.TradeMgr, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
+							// }
 							break dataLoadingIssue
 						}
+						tm.hasHandledEvent = true
 						tm.EventQueue.AppendEvent(d)
 					}
 				}
@@ -353,11 +355,15 @@ func (tm *TradeManager) waitForDataCatchup() {
 
 	if tm.bot.dataHistoryManager.IsRunning() {
 		// names, err := tm.bot.dataHistoryManager.CatchupDays(func() { localWG.Done() })
-		_ = tm.bot.dataHistoryManager.CatchupToday(func() { localWG.Done() })
+		_ = tm.bot.dataHistoryManager.CatchupToday(func() { fmt.Println("proceeding"); localWG.Done() })
 		// if len(names) > 0 {
 		// 	fmt.Println("created jobs", names, err)
 		// }
 	}
+
+	fmt.Println("wait for data catchup")
+	localWG.Wait()
+	fmt.Println("finished wait for data catchup")
 
 	for {
 		// count jobs running
@@ -368,22 +374,23 @@ func (tm *TradeManager) waitForDataCatchup() {
 		if active == 0 {
 			break
 		}
+		fmt.Println("jobs still running")
 		time.Sleep(time.Second)
 	}
 
-	rTotal := make(map[*ExchangeAssetPairSettings]int)
-	for _, p := range tm.bot.CurrencySettings {
-		t := time.Now()
-		nowTime := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
-		startDate := nowTime.AddDate(0, -1, 0)
-		rTotal[p] = 0
-
-		candles, _ := candle.Series(p.ExchangeName, p.CurrencyPair.Base.String(), p.CurrencyPair.Quote.String(), 60, p.AssetType.String(), startDate, time.Now())
-		rTotal[p] += len(candles.Candles)
-		// fmt.Println(p.CurrencyPair, "total bars", rTotal[p])
-	}
-
-	localWG.Wait()
+	// fmt.Println("validating...")
+	// rTotal := make(map[*ExchangeAssetPairSettings]int)
+	// for _, p := range tm.bot.CurrencySettings {
+	// 	t := time.Now()
+	// 	nowTime := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+	// 	startDate := nowTime.AddDate(0, -1, 0)
+	// 	rTotal[p] = 0
+	//
+	// 	candles, _ := candle.Series(p.ExchangeName, p.CurrencyPair.Base.String(), p.CurrencyPair.Quote.String(), 60, p.AssetType.String(), startDate, time.Now())
+	// 	rTotal[p] += len(candles.Candles)
+	// 	fmt.Println(p.CurrencyPair, "has", rTotal[p], "bars")
+	// }
+	fmt.Println("completed data catchup")
 }
 
 // ensure that we're synced before moving on
@@ -399,8 +406,8 @@ func (tm *TradeManager) waitForDataCatchup() {
 // }
 
 func (tm *TradeManager) waitForFactorEnginesWarmup() {
-	var localWG sync.WaitGroup
-	localWG.Add(1)
+	// var localWG sync.WaitGroup
+	// localWG.Add(1)
 
 	fmt.Println("warmup factor engine here")
 
@@ -420,7 +427,7 @@ func (tm *TradeManager) waitForFactorEnginesWarmup() {
 		if err != nil {
 			fmt.Println("error load db data", err)
 		}
-		fmt.Println(cs.CurrencyPair, "loaded", len(dbData.Item.Candles), "candles")
+		// fmt.Println(cs.CurrencyPair, "loaded", len(dbData.Item.Candles), "candles")
 		tm.Datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, dbData)
 		dbData.Load()
 	}
@@ -444,7 +451,7 @@ func (tm *TradeManager) waitForFactorEnginesWarmup() {
 	// 	time.Sleep(time.Second)
 	// }
 
-	localWG.Wait()
+	// localWG.Wait()
 }
 
 func (tm *TradeManager) runLive() error {

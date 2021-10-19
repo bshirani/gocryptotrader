@@ -141,6 +141,7 @@ func init() {
 	ConnectionMgr = registerNewSubLogger("CONNECTION")
 	Watcher = registerNewSubLogger("WATCHER")
 	TradeMgr = registerNewSubLogger("TRADEMANAGER")
+	FactorEngine = registerNewSubLogger("FACTORENGINE")
 	StrategiesMgr = registerNewSubLogger("STRATEGIES")
 	FakeOrderMgr = registerNewSubLogger("FAKEORDER")
 	CommunicationMgr = registerNewSubLogger("COMMS")

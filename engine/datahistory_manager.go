@@ -77,7 +77,7 @@ func SetupDataHistoryManager(bot *Engine, em iExchangeManager, dcm iDatabaseConn
 
 func (m *DataHistoryManager) CatchupDays(callback func()) error {
 	if m.verbose {
-		fmt.Println("run catchup")
+		log.Debugln(log.DataHistory, "catchup days")
 	}
 
 	// start two months ago
@@ -99,33 +99,28 @@ func (m *DataHistoryManager) CatchupDays(callback func()) error {
 		}
 	}
 
-	callback()
-	return nil
-}
-
-func (m *DataHistoryManager) CatchupToday(callback func()) error {
 	if m.verbose {
-		fmt.Println("catchup today")
+		log.Debugln(log.DataHistory, "catchup today")
 	}
-
-	t := time.Now().UTC()
-
 	for _, p := range m.bot.CurrencySettings {
 		t1 := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location()).UTC()
 		t2 := time.Now().UTC()
 		minPast := int(t2.Sub(t1).Minutes())
 		candles, _ := candle.Series(p.ExchangeName, p.CurrencyPair.Base.String(), p.CurrencyPair.Quote.String(), 60, p.AssetType.String(), t1, t2)
 		missing := minPast - len(candles.Candles)
-		if missing > 5 && missing < 60 {
-			fmt.Println("success")
-			t1 = time.Now().UTC().Add(time.Hour * -1)
-		} else if missing <= 5 {
+		if missing > 60 {
 			continue
 		} else {
-			fmt.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!sync day")
+			fmt.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!sync hour")
 		}
 		m.createCatchupJob(p.ExchangeName, p.AssetType, p.CurrencyPair, t1, t2)
 	}
+
+	callback()
+	return nil
+}
+
+func (m *DataHistoryManager) CatchupToday(callback func()) error {
 
 	callback()
 	return nil
@@ -349,7 +344,7 @@ func (m *DataHistoryManager) RunJobs() error {
 		return nil
 	}
 
-	log.Debugf(log.DataHistory, "processing data history jobs")
+	log.Debugf(log.DataHistory, "processing data history jobs %d", len(validJobs))
 	for i := 0; (i < int(m.maxJobsPerCycle) || m.maxJobsPerCycle == -1) && i < len(validJobs); i++ {
 		err := m.runJob(validJobs[i])
 		if err != nil {

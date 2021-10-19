@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"gocryptotrader/common"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
+	"gocryptotrader/database/repository/candle"
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/kline"
 	"gocryptotrader/exchange/orderbook"
@@ -32,7 +34,7 @@ var (
 	createdCounter = 0
 	removedCounter = 0
 	// DefaultSyncerWorkers limits the number of sync workers
-	DefaultSyncerWorkers = 1
+	DefaultSyncerWorkers = 5
 	// DefaultSyncerTimeoutREST the default time to switch from REST to websocket protocols without a response
 	DefaultSyncerTimeoutREST = time.Second * 15
 	// DefaultSyncerTimeoutWebsocket the default time to switch from websocket to REST protocols without a response
@@ -360,6 +362,17 @@ func (m *syncManager) add(c *currencyPairSyncAgent) {
 		}
 	}
 
+	if m.config.SyncKlines {
+		if m.config.Verbose {
+			log.Debugf(log.SyncMgr,
+				"%s: Added kline sync item %v ", c.Exchange, m.FormatCurrency(c.Pair).String())
+		}
+		if atomic.LoadInt32(&m.initSyncCompleted) != 1 {
+			m.initSyncWG.Add(1)
+			createdCounter++
+		}
+	}
+
 	c.Created = time.Now()
 	m.currencyPairs = append(m.currencyPairs, *c)
 }
@@ -379,6 +392,8 @@ func (m *syncManager) isProcessing(exchangeName string, p currency.Pair, a asset
 				return m.currencyPairs[x].Orderbook.IsProcessing
 			case SyncItemTrade:
 				return m.currencyPairs[x].Trade.IsProcessing
+			case SyncItemKline:
+				return m.currencyPairs[x].Kline.IsProcessing
 			}
 		}
 	}
@@ -401,6 +416,8 @@ func (m *syncManager) setProcessing(exchangeName string, p currency.Pair, a asse
 				m.currencyPairs[x].Orderbook.IsProcessing = processing
 			case SyncItemTrade:
 				m.currencyPairs[x].Trade.IsProcessing = processing
+			case SyncItemKline:
+				m.currencyPairs[x].Kline.IsProcessing = processing
 			}
 		}
 	}
@@ -487,6 +504,8 @@ func (m *syncManager) Update(exchangeName string, p currency.Pair, a asset.Item,
 				}
 
 			case SyncItemTrade:
+				fmt.Println("xx")
+				os.Exit(123)
 				origHadData := m.currencyPairs[x].Trade.HaveData
 				m.currencyPairs[x].Trade.LastUpdated = time.Now()
 				if err != nil {
@@ -504,6 +523,20 @@ func (m *syncManager) Update(exchangeName string, p currency.Pair, a asset.Item,
 					m.initSyncWG.Done()
 				}
 			case SyncItemKline:
+				origHadData := m.currencyPairs[x].Kline.HaveData
+				// fmt.Println("updatting KLINE")
+				m.currencyPairs[x].Kline.LastUpdated = time.Now()
+				m.currencyPairs[x].Kline.HaveData = true
+				// m.currencyPairs[x].Kline.IsProcessing = false
+				if atomic.LoadInt32(&m.initSyncCompleted) != 1 && !origHadData {
+					removedCounter++
+					log.Debugf(log.SyncMgr, "%s candle sync complete %v [%d/%d].",
+						exchangeName,
+						m.FormatCurrency(p).String(),
+						removedCounter,
+						createdCounter)
+					m.initSyncWG.Done()
+				}
 				continue
 			}
 		}
@@ -519,12 +552,12 @@ func (m *syncManager) worker() {
 	defer cleanup()
 
 	for atomic.LoadInt32(&m.started) != 0 {
+		// fmt.Println("RUNNING WORKINGGGGGGGGGGGGGGGG")
 		exchanges, err := m.exchangeManager.GetExchanges()
 		if err != nil {
 			log.Errorf(log.SyncMgr, "Sync manager cannot get exchanges: %v", err)
 		}
 		for x := range exchanges {
-			time.Sleep(time.Millisecond * 500)
 			exchangeName := exchanges[x].GetName()
 			supportsREST := exchanges[x].SupportsREST()
 			supportsRESTTickerBatching := exchanges[x].SupportsRESTTickerBatchUpdates()
@@ -590,6 +623,11 @@ func (m *syncManager) worker() {
 
 							if m.config.SyncTrades {
 								c.Trade = sBase
+
+							}
+
+							if m.config.SyncKlines {
+								c.Kline = sBase
 							}
 
 							m.add(c)
@@ -729,7 +767,6 @@ func (m *syncManager) worker() {
 								time.Sleep(time.Millisecond * 50)
 							}
 						}
-
 					}
 
 					if m.config.SyncTrades {
@@ -798,9 +835,67 @@ func (m *syncManager) worker() {
 						}
 					}
 
+					if m.config.SyncKlines {
+						if !m.isProcessing(exchangeName, c.Pair, c.AssetType, SyncItemKline) {
+							if c.Kline.LastUpdated.IsZero() {
+								m.setProcessing(c.Exchange, c.Pair, c.AssetType, SyncItemKline, true)
+								lastCandle, _ := candle.Last(c.Exchange,
+									c.Pair.Base.String(),
+									c.Pair.Quote.String(),
+									60,
+									c.AssetType.String())
+								minutes := time.Now().UTC().Sub(lastCandle.Timestamp).Minutes()
+								if minutes > 0 {
+									_, err := exchanges[x].GetHistoricCandles(context.TODO(), c.Pair, c.AssetType, lastCandle.Timestamp, time.Now(), kline.OneMin)
+									if err != nil {
+										log.Error(log.SyncMgr, err)
+									}
+								}
+
+								updateErr := m.Update(c.Exchange, c.Pair, c.AssetType, SyncItemKline, err)
+								if updateErr != nil {
+									log.Error(log.SyncMgr, updateErr)
+								}
+								m.setProcessing(exchangeName, c.Pair, c.AssetType, SyncItemKline, false)
+							} else if time.Now().Sub(c.Kline.LastUpdated).Seconds() > 5 {
+								m.setProcessing(exchangeName, c.Pair, c.AssetType, SyncItemKline, true)
+
+								lastCandle, _ := candle.Last(c.Exchange,
+									c.Pair.Base.String(),
+									c.Pair.Quote.String(),
+									60,
+									c.AssetType.String())
+								minutes := int(time.Now().UTC().Sub(lastCandle.Timestamp).Minutes())
+								if minutes > 0 {
+									_, err := exchanges[x].GetHistoricCandles(context.TODO(), c.Pair, c.AssetType, lastCandle.Timestamp, time.Now(), kline.OneMin)
+									// lastCandle, _ = candle.Last(c.Exchange,
+									// 	c.Pair.Base.String(),
+									// 	c.Pair.Quote.String(),
+									// 	60,
+									// 	c.AssetType.String())
+									// fmt.Println("synced", c.Pair, int(time.Now().UTC().Sub(lastCandle.Timestamp).Minutes()))
+									if err != nil {
+										log.Error(log.SyncMgr, err)
+									}
+								}
+
+								c.Kline.LastUpdated = time.Now()
+								updateErr := m.Update(c.Exchange, c.Pair, c.AssetType, SyncItemKline, err)
+								if updateErr != nil {
+									log.Error(log.SyncMgr, updateErr)
+								}
+								m.setProcessing(c.Exchange, c.Pair, c.AssetType, SyncItemKline, false)
+							}
+						} else {
+							time.Sleep(time.Millisecond * 500)
+						}
+					}
 				}
 			}
 		}
+
+		// fmt.Println("sleeping worker")
+		// time.Sleep(time.Second * 10) // NOTE
 	}
 }
 
