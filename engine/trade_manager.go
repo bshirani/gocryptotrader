@@ -13,6 +13,7 @@ import (
 	"gocryptotrader/database/repository/datahistoryjob"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -35,6 +36,8 @@ import (
 	"gocryptotrader/portfolio/statistics"
 	"gocryptotrader/portfolio/statistics/currencystatistics"
 	"gocryptotrader/portfolio/strategies"
+
+	"github.com/shopspring/decimal"
 )
 
 func NewTradeManager(bot *Engine) (*TradeManager, error) {
@@ -76,7 +79,6 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 
 	tm.cfg = *cfg
 	tm.verbose = cfg.TradeManager.Verbose
-	fmt.Println("VERBOSE??????", tm.verbose)
 
 	tm.EventQueue = &Holder{}
 	reports := &report.Data{
@@ -354,15 +356,13 @@ func (tm *TradeManager) waitForDataCatchup() {
 
 	if tm.bot.dataHistoryManager.IsRunning() {
 		// names, err := tm.bot.dataHistoryManager.CatchupDays(func() { localWG.Done() })
-		_ = tm.bot.dataHistoryManager.CatchupToday(func() { fmt.Println("proceeding"); localWG.Done() })
+		_ = tm.bot.dataHistoryManager.CatchupToday(func() { localWG.Done() })
 		// if len(names) > 0 {
 		// 	fmt.Println("created jobs", names, err)
 		// }
 	}
 
-	fmt.Println("wait for data catchup")
 	localWG.Wait()
-	fmt.Println("finished wait for data catchup")
 
 	for {
 		// count jobs running
@@ -389,7 +389,6 @@ func (tm *TradeManager) waitForDataCatchup() {
 	// 	rTotal[p] += len(candles.Candles)
 	// 	fmt.Println(p.CurrencyPair, "has", rTotal[p], "bars")
 	// }
-	fmt.Println("completed data catchup")
 }
 
 // ensure that we're synced before moving on
@@ -408,8 +407,6 @@ func (tm *TradeManager) waitForFactorEnginesWarmup() {
 	// var localWG sync.WaitGroup
 	// localWG.Add(1)
 	tm.initializeFactorEngines()
-
-	fmt.Println("warmup factor engine here")
 
 	// load all candles for instrument
 
@@ -459,7 +456,7 @@ func (tm *TradeManager) runLive() error {
 	processEventTicker := time.NewTicker(time.Second * 5)
 	tm.waitForDataCatchup()
 	tm.waitForFactorEnginesWarmup()
-	fmt.Println("Run Live Started")
+	log.Infoln(log.TradeMgr, "Running Live!")
 
 	lup := make(map[*ExchangeAssetPairSettings]time.Time)
 
@@ -555,13 +552,7 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 	if cs == nil || err != nil {
 		fmt.Println("error !!! FAIL getting cs", cs)
 	}
-	if tm.verbose {
-		fmt.Println("on bar update", d.Latest().GetTime())
-	}
-	// fmt.Println("factor engines for exchanges", len(tm.FactorEngines[cs.ExchangeName]))
-	// fmt.Println("factor engines for asset", len(tm.FactorEngines[cs.ExchangeName][cs.AssetType]))
 	fe := tm.FactorEngines[cs.ExchangeName][cs.AssetType][cs.CurrencyPair]
-	// fmt.Println("factor engines for pair", fe, fe.Minute)
 	err = fe.OnBar(d)
 	if err != nil {
 		fmt.Printf("error updating factor engine for %v reason: %s", ev.Pair(), err)
@@ -570,30 +561,33 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 	if tm.tradingEnabled {
 		tm.bot.OrderManager.Update()
 
-		for _, strategy := range tm.Strategies {
-			if strategy.GetPair() == ev.Pair() {
-				if tm.bot.Config.LiveMode {
-					if len(fe.Minute().M60Range) > 0 {
-						fmt.Println("Updating strategy", strategy.GetID(), d.Latest().GetTime(), fe.Minute().M60Range.Last(1))
-					} else {
-						fmt.Println("only have", len(fe.Minute().M60Range))
+		if len(fe.Minute().M60Range) > 0 {
+			for _, strategy := range tm.Strategies {
+				if strategy.GetPair() == ev.Pair() {
+					if tm.bot.Config.LiveMode {
+						if tm.verbose {
+							// fmt.Println("Updating strategy", strategy.GetID(), d.Latest().GetTime(), fe.Minute().M60Range.Last(1))
+							// fe.PrintLast(d)
+							log.Debugf(log.TradeMgr,
+								"%s %s bs:%v hrRng:%v hrPctChg:%v",
+								strings.ToUpper(strategy.GetPair().String()),
+								strategy.GetDirection(),
+								len(fe.Minute().Close),
+								fe.Minute().M60Range.Last(1),
+								fe.Minute().M60RangeDivClose.Last(1).Mul(decimal.NewFromInt(100)))
+						}
 					}
 
-					if tm.verbose {
-						log.Debugln(log.TradeMgr,
-							"STRATEGY UPDATE bars:%d lastHrPctChange:%v",
-							len(fe.Minute().Close),
-							fe.Minute().M60RangeDivClose.Last(1))
+					s, err := strategy.OnData(d, tm.Portfolio, fe)
+					if err != nil {
+						fmt.Println("error processing data event", err)
+						return err
 					}
+					tm.EventQueue.AppendEvent(s)
 				}
-
-				s, err := strategy.OnData(d, tm.Portfolio, fe)
-				if err != nil {
-					fmt.Println("error processing data event", err)
-					return err
-				}
-				tm.EventQueue.AppendEvent(s)
 			}
+		} else {
+			fmt.Println("only have", len(fe.Minute().M60Range), "close", len(fe.Minute().Close))
 		}
 	}
 

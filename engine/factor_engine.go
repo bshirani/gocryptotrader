@@ -62,50 +62,48 @@ func (f *FactorEngine) Daily() *factors.DailyDataFrame {
 }
 
 func (f *FactorEngine) OnBar(d data.Handler) error {
-	if f.Verbose {
-		if len(f.minute.Close) > 60 {
-			// how much has moved in past hour
-			highBars := f.minute.High[len(f.minute.High)-61 : len(f.minute.High)-1]
-			lowBars := f.minute.Low[len(f.minute.Low)-61 : len(f.minute.Low)-1]
+	if len(f.minute.Close) > 60 {
+		// how much has moved in past hour
+		highBars := f.minute.High[len(f.minute.High)-61 : len(f.minute.High)-1]
+		lowBars := f.minute.Low[len(f.minute.Low)-61 : len(f.minute.Low)-1]
 
-			if len(lowBars) != len(highBars) {
-				fmt.Println("error not same amount of bars data")
+		if len(lowBars) != len(highBars) {
+			fmt.Println("error not same amount of bars data")
+		}
+		// fmt.Println("have", len(highBars), "bars")
+
+		high := highBars[0]
+		for i := range highBars {
+			h := highBars[i]
+			if h.GreaterThan(high) {
+				high = h
 			}
-			// fmt.Println("have", len(highBars), "bars")
+		}
 
-			high := highBars[0]
-			for i := range highBars {
-				h := highBars[i]
-				if h.GreaterThan(high) {
-					high = h
-				}
+		low := lowBars[0]
+		for i := range lowBars {
+			l := lowBars[i]
+			if l.LessThan(low) {
+				low = l
 			}
+		}
+		hrRange := high.Sub(low)
+		hrRangeRelClose := hrRange.Div(d.Latest().ClosePrice())
+		hrRangeRelClose = hrRangeRelClose.Mul(decimal.NewFromInt(100))
 
-			low := lowBars[0]
-			for i := range lowBars {
-				l := lowBars[i]
-				if l.LessThan(low) {
-					low = l
-				}
-			}
-			hrRange := high.Sub(low)
-			hrRangeRelClose := hrRange.Div(d.Latest().ClosePrice())
-			hrRangeRelClose = hrRangeRelClose.Mul(decimal.NewFromInt(100))
+		f.minute.M60Low = append(f.minute.M60Low, low)
+		f.minute.M60High = append(f.minute.M60High, high)
+		f.minute.M60Range = append(f.minute.M60Range, hrRange)
+		f.minute.M60RangeDivClose = append(f.minute.M60RangeDivClose, hrRange.Div(d.Latest().ClosePrice()))
 
-			f.minute.M60Low = append(f.minute.M60Low, low)
-			f.minute.M60High = append(f.minute.M60High, high)
-			f.minute.M60Range = append(f.minute.M60Range, hrRange)
-			f.minute.M60RangeDivClose = append(f.minute.M60Range, hrRange.Div(d.Latest().ClosePrice()))
+		if f.Verbose {
+			f.PrintLast(d)
+		}
 
-			// fmt.Println("set m60 range", f.minute.M60Range[len(f.minute.M60Range)-1])
-
-			f.printLast(d)
-
-		} else {
-			if f.Verbose {
-				lt := d.Latest()
-				log.Debugln(log.FactorEngine, "onbar", lt.Pair(), lt.GetTime(), lt.ClosePrice())
-			}
+	} else {
+		if f.Verbose {
+			lt := d.Latest()
+			log.Debugln(log.FactorEngine, "onbar", lt.Pair(), lt.GetTime(), lt.ClosePrice())
 		}
 	}
 
@@ -158,7 +156,7 @@ func (f *FactorEngine) OnBar(d data.Handler) error {
 	// f.minute
 }
 
-func (f *FactorEngine) printLast(d data.Handler) {
+func (f *FactorEngine) PrintLast(d data.Handler) {
 	if len(f.Minute().Close) > 60 {
 		hrRangeRelClose := f.minute.M60RangeDivClose[len(f.minute.M60RangeDivClose)-1]
 		hrRange := f.minute.M60Range[len(f.minute.M60Range)-1]

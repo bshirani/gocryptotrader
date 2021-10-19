@@ -38,6 +38,7 @@ import (
 
 // Setup creates a portfolio manager instance and sets private fields
 func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*Portfolio, error) {
+
 	buyRule := config.MinMax{
 		MinimumSize:  cfg.PortfolioSettings.BuySide.MinimumSize,
 		MaximumSize:  cfg.PortfolioSettings.BuySide.MaximumSize,
@@ -87,6 +88,7 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 		return nil, errRiskManagerUnset
 	}
 	p := &Portfolio{}
+	p.verbose = cfg.PortfolioSettings.Verbose
 
 	// create position for every strategy
 	// create open trades array for every strategy
@@ -166,7 +168,9 @@ func (p *Portfolio) OnCancel(cancel cancel.Event) {
 // if successful, it will pass on an order.Order to be used by the exchange event handler to place an order based on
 // the portfolio manager's recommendations
 func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*order.Order, error) {
-	fmt.Println("PORTFOLIO ON SIGNAL", ev.GetTime())
+	if p.verbose {
+		fmt.Println("PORTFOLIO ON SIGNAL", ev.GetTime())
+	}
 	if ev == nil || cs == nil {
 		return nil, eventtypes.ErrNilArguments
 	}

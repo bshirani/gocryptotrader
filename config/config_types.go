@@ -436,6 +436,7 @@ type StatisticSettings struct {
 // these settings will override ExchangeSettings that go against it
 // and assess the bigger picture
 type PortfolioSettings struct {
+	Verbose  bool     `json:"verbose"`
 	Leverage Leverage `json:"leverage"`
 	BuySide  MinMax   `json:"buy-side"`
 	SellSide MinMax   `json:"sell-side"`
