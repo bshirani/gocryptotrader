@@ -75,78 +75,85 @@ func SetupDataHistoryManager(bot *Engine, em iExchangeManager, dcm iDatabaseConn
 	}, nil
 }
 
-func (m *DataHistoryManager) Catchup(callback func()) ([]string, error) {
-	// takes in a list of currency settings
-	// for each currency setting, perform catchup
-	// what are the currencies traded from what excahnges
-
-	db := m.bot.DatabaseManager.GetInstance()
-	dhj, _ := datahistoryjob.Setup(db)
-	dhj.ClearJobs()
-
+func (m *DataHistoryManager) CatchupDays(callback func()) error {
 	if m.verbose {
 		fmt.Println("run catchup")
 	}
 
-	names := make([]string, 0)
-	t := time.Now()
-
 	// start two months ago
+	t := time.Now()
 	dayTime := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 	startDate := dayTime.AddDate(0, -2, 10)
 
 	for _, p := range m.bot.CurrencySettings {
-		fmt.Printf("checking c %s", p.CurrencyPair)
 		for x := startDate; x.Before(dayTime); x = x.AddDate(0, 0, 1) {
 			t1 := x
 			t2 := x.AddDate(0, 0, 1)
-			startFmt := fmt.Sprintf("%d-%02d-%02d", t1.Year(), t1.Month(), t1.Day())
-			endFmt := fmt.Sprintf("%d-%02d-%02d", t2.Year(), t2.Month(), t2.Day())
 
 			candles, _ := candle.Series(p.ExchangeName, p.CurrencyPair.Base.String(), p.CurrencyPair.Quote.String(), 60, p.AssetType.String(), t1, t2)
 			if len(candles.Candles) > 1400 {
-				fmt.Printf("%d-%d:%d, ", x.Month(), x.Day(), len(candles.Candles))
+				// fmt.Printf("%d-%d:%d, ", x.Month(), x.Day(), len(candles.Candles))
 				continue
 			}
-
-			name := fmt.Sprintf("%v-%s-%s--%d", p.CurrencyPair, startFmt, endFmt, time.Now().Unix())
-			names = append(names, name)
-
-			job := DataHistoryJob{
-				Nickname:               name,
-				Exchange:               p.ExchangeName,
-				Asset:                  p.AssetType,
-				Pair:                   p.CurrencyPair,
-				StartDate:              t1,
-				EndDate:                t2,
-				Interval:               kline.Interval(60000000000),
-				RunBatchLimit:          10,
-				RequestSizeLimit:       999,
-				DataType:               dataHistoryDataType(eventtypes.DataCandle),
-				MaxRetryAttempts:       1,
-				Status:                 dataHistoryStatusActive,
-				OverwriteExistingData:  false,
-				ConversionInterval:     60000000000,
-				DecimalPlaceComparison: 3,
-			}
-
-			// log.Debugln(log.DataHistory, "Creating history job for ", p.CurrencyPair, startFmt, endFmt)
-
-			// err = m.runJob(&job)
-			err := m.UpsertJob(&job, true)
-			if err != nil {
-				log.Errorln(log.DataHistory, "data history error: ", err)
-				return names, err
-				// return errCatchupFailed
-			}
+			m.createCatchupJob(p.ExchangeName, p.AssetType, p.CurrencyPair, t1, t2)
 		}
-		fmt.Println()
 	}
 
-	fmt.Println("created", len(names), "data history jobs")
+	callback()
+	return nil
+}
+
+func (m *DataHistoryManager) CatchupToday(callback func()) error {
+	if m.verbose {
+		fmt.Println("catchup today")
+	}
+
+	t := time.Now().UTC()
+
+	for _, p := range m.bot.CurrencySettings {
+		t1 := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location()).UTC()
+		t2 := time.Now().UTC()
+		minPast := int(t2.Sub(t1).Minutes())
+		candles, _ := candle.Series(p.ExchangeName, p.CurrencyPair.Base.String(), p.CurrencyPair.Quote.String(), 60, p.AssetType.String(), t1, t2)
+		missing := minPast - len(candles.Candles)
+		if missing > 5 && missing < 60 {
+			fmt.Println("success")
+			t1 = time.Now().UTC().Add(time.Hour * -1)
+		} else if missing <= 5 {
+			continue
+		} else {
+			fmt.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!sync day")
+		}
+		m.createCatchupJob(p.ExchangeName, p.AssetType, p.CurrencyPair, t1, t2)
+	}
 
 	callback()
-	return names, nil
+	return nil
+}
+
+func (m *DataHistoryManager) createCatchupJob(exchangeName string, a asset.Item, c currency.Pair, start, end time.Time) error {
+	startFmt := fmt.Sprintf("%d-%02d-%02d", start.Year(), start.Month(), start.Day())
+	endFmt := fmt.Sprintf("%d-%02d-%02d", end.Year(), end.Month(), end.Day())
+	name := fmt.Sprintf("%v-%s-%s--%d", c, startFmt, endFmt, time.Now().Unix())
+
+	job := DataHistoryJob{
+		Nickname:               name,
+		Exchange:               exchangeName,
+		Asset:                  a,
+		Pair:                   c,
+		StartDate:              start,
+		EndDate:                end,
+		Interval:               kline.Interval(60000000000),
+		RunBatchLimit:          10,
+		RequestSizeLimit:       999,
+		DataType:               dataHistoryDataType(eventtypes.DataCandle),
+		MaxRetryAttempts:       1,
+		Status:                 dataHistoryStatusActive,
+		OverwriteExistingData:  false,
+		ConversionInterval:     60000000000,
+		DecimalPlaceComparison: 3,
+	}
+	return m.UpsertJob(&job, true)
 }
 
 // Start runs the 999

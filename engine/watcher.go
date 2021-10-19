@@ -94,7 +94,7 @@ func (w *Watcher) IsRunning() bool {
 func (w *Watcher) monitor() {
 	defer w.wg.Done()
 	lup := make(map[*ExchangeAssetPairSettings]time.Time)
-	processEventTicker := time.NewTicker(time.Second)
+	processEventTicker := time.NewTicker(w.sleep)
 	for {
 		select {
 		case <-w.shutdown:

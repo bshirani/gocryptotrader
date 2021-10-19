@@ -14,7 +14,7 @@ import (
 
 // DefaultProcessorIntervalTime is the default timer
 // to process queued trades and save them to the database
-const DefaultProcessorIntervalTime = time.Second * 7
+const DefaultProcessorIntervalTime = time.Second * 15
 
 var (
 	processor Processor
