@@ -35,3 +35,12 @@ type Candle struct {
 	ValidationJobID  string
 	ValidationIssues string
 }
+
+type PairCandleCountResponse struct {
+	ExchangeID string    `boil:"exchange_id"`
+	AssetType  string    `boil:"asset_type"`
+	Date       time.Time `boil:"date"`
+	Base       string    `boil:"base"`
+	Quote      string    `boil:"quote"`
+	Count      int64     `boil:"count"`
+}

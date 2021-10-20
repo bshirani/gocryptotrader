@@ -5,7 +5,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gocryptotrader/common"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/data"
@@ -15,7 +14,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"time"
 
@@ -342,7 +340,8 @@ func (e *Holder) NextEvent() (i eventtypes.EventHandler) {
 }
 
 func (tm *TradeManager) waitForDataCatchup() {
-	var localWG sync.WaitGroup
+	// fmt.Println(0)
+	// var localWG sync.WaitGroup
 	// localWG.Add(1)
 
 	db := tm.bot.DatabaseManager.GetInstance()
@@ -353,13 +352,13 @@ func (tm *TradeManager) waitForDataCatchup() {
 
 	dhj.ClearJobs()
 
-	localWG.Add(1)
-	tm.bot.dataHistoryManager.CatchupDays(func() { localWG.Done() })
-	localWG.Add(1)
-	tm.bot.dataHistoryManager.CatchupToday(func() { localWG.Done() })
-
-	log.Infoln(log.TradeMgr, "Waiting for data catchup...")
-	localWG.Wait()
+	log.Infoln(log.TradeMgr, "Catching up days...")
+	// localWG.Add(1)
+	tm.bot.dataHistoryManager.CatchupDays(func() {})
+	log.Infoln(log.TradeMgr, "Done with catchup")
+	os.Exit(1123)
+	// localWG.Add(1)
+	// localWG.Wait()
 
 	for {
 		// count jobs running
@@ -572,12 +571,13 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 					defer color.Unset()
 
 					log.Debugf(log.TradeMgr,
-						"%s %s rRng:%v%% hrPctChg:%v%% close:%v hrRng:%v hrH: %v hrL: %v ",
-						ev.GetTime().Format(common.SimpleTimeFormat),
+						"%d:%d %-10s %12v %7v%% %7v%% %12v %12v %12v",
+						ev.GetTime().Hour(),
+						ev.GetTime().Minute(),
 						strings.ToUpper(ev.Pair().String()),
+						fe.Minute().Close.Last(1),
 						fe.Minute().M60RangeDivClose.Last(1).Mul(decimal.NewFromInt(100)).Round(2),
 						hrChg,
-						fe.Minute().Close.Last(1),
 						fe.Minute().M60Range.Last(1),
 						fe.Minute().M60High.Last(1),
 						fe.Minute().M60Low.Last(1))

@@ -56,7 +56,7 @@ func (l *Logger) newLogEvent(data, header, slName string, w io.Writer) error {
 	defer color.Unset()
 	e := eventPool.Get().(*Event)
 	e.output = w
-	slName = fmt.Sprintf("%12s", slName)
+	slName = fmt.Sprintf("%10s", slName)
 	header = fmt.Sprintf("%8s", header)
 	e.data = append(e.data, []byte(header)...)
 	if l.Timestamp != "" {

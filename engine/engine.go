@@ -164,7 +164,6 @@ func validateSettings(b *Engine, s *Settings, flagSet map[string]bool) {
 
 	if b.Settings.EnableTradeManager {
 		b.Settings.EnableDataHistoryManager = true
-		b.Settings.EnableExchangeSyncManager = true
 	}
 
 	b.Settings.EnableCurrencyStateManager = (flagSet["currencystatemanager"] &&

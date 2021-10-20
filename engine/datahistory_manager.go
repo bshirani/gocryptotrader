@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"os"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -17,6 +18,7 @@ import (
 	"gocryptotrader/database/repository/candle"
 	"gocryptotrader/database/repository/datahistoryjob"
 	"gocryptotrader/database/repository/datahistoryjobresult"
+	exchangesql "gocryptotrader/database/repository/exchange"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/exchange"
 	"gocryptotrader/exchange/asset"
@@ -82,26 +84,35 @@ func (m *DataHistoryManager) CatchupDays(callback func()) error {
 
 	// start two months ago
 	t := time.Now()
-	dayTime := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
-	startDate := dayTime.AddDate(0, -2, 10)
+	// dayTime := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+	// startDate := dayTime.AddDate(0, -2, 10)
+	// syncDays := true
+	counts, _ := candle.Counts()
+	// fmt.Println("counts", c)
 
-	for _, p := range m.bot.CurrencySettings {
-		for x := startDate; x.Before(dayTime); x = x.AddDate(0, 0, 1) {
-			t1 := x
-			t2 := x.AddDate(0, 0, 1)
+	// for _, co := range c {
+	// 	fmt.Println(co.Base, co.Quote, co.Date, co.Count)
+	// }
 
-			candles, _ := candle.Series(p.ExchangeName, p.CurrencyPair.Base.String(), p.CurrencyPair.Quote.String(), 60, p.AssetType.String(), t1, t2)
-			if len(candles.Candles) > 1400 {
-				// fmt.Printf("%d-%d:%d, ", x.Month(), x.Day(), len(candles.Candles))
-				continue
-			}
-			m.createCatchupJob(p.ExchangeName, p.AssetType, p.CurrencyPair, t1, t2)
+	for _, co := range counts {
+		if co.Count < 1400 {
+			t1 := co.Date
+			t2 := co.Date.AddDate(0, 0, 1)
+			p, _ := currency.NewPairFromString(fmt.Sprintf("%s_%s", co.Base, co.Quote))
+			uid, _ := uuid.FromString(co.ExchangeID)
+			e, _ := exchangesql.OneByUUID(uid)
+			a, _ := asset.New(co.AssetType)
+			fmt.Println(p, co.ExchangeID, co.Base, co.Quote, co.Count, t1, t2)
+			m.createCatchupJob(e.Name, a, p, t1, t2)
 		}
 	}
+
+	time.Sleep(time.Minute)
 
 	if m.verbose {
 		log.Debugln(log.DataHistory, "catchup today")
 	}
+
 	for _, p := range m.bot.CurrencySettings {
 		t1 := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location()).UTC()
 		t2 := time.Now().UTC()
@@ -110,17 +121,10 @@ func (m *DataHistoryManager) CatchupDays(callback func()) error {
 		missing := minPast - len(candles.Candles)
 		if missing < 60 {
 			continue
-		} else {
-			log.Warnf(log.DataHistory, "Data history manager Syncing More Than 60 minutes of Data %v", MsgSubSystemStarted)
 		}
+		log.Warnf(log.DataHistory, "Data history manager Syncing More Than 60 minutes of Data %v", MsgSubSystemStarted)
 		m.createCatchupJob(p.ExchangeName, p.AssetType, p.CurrencyPair, t1, t2)
 	}
-
-	callback()
-	return nil
-}
-
-func (m *DataHistoryManager) CatchupToday(callback func()) error {
 
 	callback()
 	return nil
@@ -792,7 +796,14 @@ func (m *DataHistoryManager) processCandleData(job *DataHistoryJob, exch exchang
 		Status:            dataHistoryStatusComplete,
 		Date:              time.Now(),
 	}
-	// fmt.Println("requesting candles", startRange, endRange, job.Interval)
+
+	if startRange.Before(time.Now().AddDate(-10, 0, 0)) {
+		fmt.Println("ERROR time")
+		os.Exit(123)
+	}
+
+	fmt.Println("requesting candles", startRange, endRange, job.Interval)
+
 	candles, err := exch.GetHistoricCandlesExtended(context.TODO(),
 		job.Pair,
 		job.Asset,

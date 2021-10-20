@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -882,6 +883,7 @@ func (g *Gateio) FormatExchangeKlineInterval(in kline.Interval) string {
 
 // GetHistoricCandles returns candles between a time period for a set time interval
 func (g *Gateio) GetHistoricCandles(ctx context.Context, pair currency.Pair, a asset.Item, start, end time.Time, interval kline.Interval) (kline.Item, error) {
+	// fmt.Println("gateio getting data", start, start.Unix(), end, end.Unix())
 	if err := g.ValidateKline(pair, a, interval); err != nil {
 		return kline.Item{}, err
 	}
@@ -890,6 +892,14 @@ func (g *Gateio) GetHistoricCandles(ctx context.Context, pair currency.Pair, a a
 	if err != nil {
 		fmt.Println("error getting currency", err)
 		return kline.Item{}, err
+	}
+
+	if start.After(end) {
+		fmt.Println("start after end")
+		os.Exit(2)
+	} else if start.Before(time.Now().AddDate(-10, 0, 0)) {
+		fmt.Println("start time null")
+		os.Exit(2)
 	}
 
 	params := KlinesRequestParamsV4{

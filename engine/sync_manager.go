@@ -867,12 +867,16 @@ func (m *syncManager) worker() {
 									c.Pair.Quote.String(),
 									60,
 									c.AssetType.String())
-								minutes := int(time.Now().UTC().Sub(lastCandle.Timestamp).Minutes())
-								if minutes > 0 {
-									_, err := exchanges[x].GetHistoricCandles(context.TODO(), c.Pair, c.AssetType, lastCandle.Timestamp, time.Now(), kline.OneMin)
-									if err != nil {
-										log.Error(log.SyncMgr, err)
-									}
+								minMissing := int(time.Now().UTC().Sub(lastCandle.Timestamp).Minutes())
+								var err error
+								if minMissing > 1000 {
+									st := time.Now().Add(time.Minute * -999)
+									_, err = exchanges[x].GetHistoricCandles(context.TODO(), c.Pair, c.AssetType, st, time.Now(), kline.OneMin)
+								} else if minMissing > 0 {
+									_, err = exchanges[x].GetHistoricCandles(context.TODO(), c.Pair, c.AssetType, lastCandle.Timestamp, time.Now(), kline.OneMin)
+								}
+								if err != nil {
+									log.Error(log.SyncMgr, err)
 								}
 
 								c.Kline.LastUpdated = time.Now()

@@ -18,9 +18,23 @@ import (
 	"gocryptotrader/log"
 
 	"github.com/volatiletech/null/v8"
+	"github.com/volatiletech/sqlboiler/queries"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
+
+func Counts() (pairCounts []PairCandleCountResponse, err error) {
+	fmt.Println(123)
+	queries.Raw(`
+		select date_trunc('day', timestamp) as "date", base, quote, exchange_name_id as exchange_id, asset as asset_type, count(*) AS "count"
+		from candle where timestamp between now() - interval '2 months' and now()
+		group by date_trunc('day', timestamp), base, quote, asset_type, exchange_name_id;
+	`).Bind(context.TODO(), database.DB.SQL, &pairCounts)
+	if err != nil {
+		fmt.Println("candle.counts error", err)
+	}
+	return pairCounts, err
+}
 
 func Last(exchangeName, base, quote string, interval int64, asset string) (out Candle, err error) {
 	// boil.DebugMode = true
@@ -65,7 +79,7 @@ func Last(exchangeName, base, quote string, interval int64, asset string) (out C
 			return out, fmt.Errorf("%w: %s %s %s %v %s", ErrNoCandleDataFound, exchangeName, base, quote, interval, asset)
 		}
 	} else {
-		fmt.Println("err no candle data")
+		fmt.Println("candle.err no candle data")
 		return out, errNoCandleData
 	}
 
