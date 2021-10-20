@@ -153,10 +153,10 @@ type FactorEngineConfig struct {
 // DataHistoryManager holds all information required for the data history manager
 type DataHistoryManager struct {
 	Enabled             bool          `json:"enabled"`
+	Verbose             bool          `json:"verbose"`
 	CheckInterval       time.Duration `json:"checkInterval"`
 	MaxJobsPerCycle     int64         `json:"maxJobsPerCycle"`
 	MaxResultInsertions int64         `json:"maxResultInsertions"`
-	Verbose             bool          `json:"verbose"`
 }
 
 // CurrencyStateManager defines a set of configuration options for the currency

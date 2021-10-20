@@ -181,7 +181,7 @@ func (m *DataHistoryManager) CatchupDays(daysBack int) error {
 func (m *DataHistoryManager) createCatchupJob(exchangeName string, a asset.Item, c currency.Pair, start, end time.Time) error {
 	startFmt := fmt.Sprintf("%d-%02d-%02d", start.Year(), start.Month(), start.Day())
 	endFmt := fmt.Sprintf("%d-%02d-%02d", end.Year(), end.Month(), end.Day())
-	name := fmt.Sprintf("%v-%s-%s--%d", c, startFmt, endFmt, time.Now().Unix())
+	name := fmt.Sprintf("%v-%s-%s--%d-catchup", c, startFmt, endFmt, time.Now().Unix())
 
 	job := DataHistoryJob{
 		Nickname:               name,
@@ -499,7 +499,7 @@ ranges:
 		if skipProcessing {
 			_, ok := job.Results[job.rangeHolder.Ranges[i].Start.Time]
 			if !ok && !job.OverwriteExistingData {
-				fmt.Println("NOT OK AND NOT OVERWRITE")
+				fmt.Println("Does not have results in same range")
 				// we have determined that data is there, however it is not reflected in
 				// this specific job's results, which is required for a job to be complete
 				var id uuid.UUID
@@ -800,15 +800,15 @@ func (m *DataHistoryManager) saveCandlesInBatches(job *DataHistoryJob, candles *
 				r.Status = dataHistoryStatusFailed
 				log.Errorln(log.DataHistory, "Candle saving failed", err)
 			}
-			// if m.verbose {
-			log.Debugf(log.DataHistory,
-				"%8s Saving candles. s:%v e:%v in:%d/%d",
-				fmt.Sprintf("%s-%s", job.Pair.Upper().Base.String(), job.Pair.Upper().Quote.String()),
-				newCandle.Candles[0].Time.Format(common.SimpleTimeFormat),
-				newCandle.Candles[len(newCandle.Candles)-1].Time.Format(common.SimpleTimeFormat),
-				len(newCandle.Candles[i:]),
-				inserted)
-			// }
+			if m.verbose {
+				log.Debugf(log.DataHistory,
+					"%8s saving candles %v-%v in:%d/%d",
+					fmt.Sprintf("%s-%s", job.Pair.Upper().Base.String(), job.Pair.Upper().Quote.String()),
+					newCandle.Candles[0].Time.Format(common.SimpleTimeFormat),
+					newCandle.Candles[len(newCandle.Candles)-1].Time.Format(common.SimpleTimeFormat),
+					len(newCandle.Candles[i:]),
+					inserted)
+			}
 			break
 		}
 		newCandle.Candles = newCandle.Candles[i : i+int(m.maxResultInsertions)]
@@ -867,9 +867,9 @@ func (m *DataHistoryManager) processCandleData(job *DataHistoryJob, exch exchang
 		endRange,
 		job.Interval)
 
-	if m.verbose {
-		fmt.Println("process candle data for", job.Pair, startRange, endRange)
-	}
+	// if m.verbose {
+	// 	log.Debugln(log.DataHistory, "process candle data for", job.Pair, startRange, endRange)
+	// }
 
 	if err != nil {
 		r.Result += "could not get candles: " + err.Error() + ". "

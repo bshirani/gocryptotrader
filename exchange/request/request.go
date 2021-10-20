@@ -155,6 +155,7 @@ func (r *Requester) doRequest(ctx context.Context, endpoint EndpointLimit, newRe
 		if retry, checkErr := r.retryPolicy(resp, err); checkErr != nil {
 			return checkErr
 		} else if retry {
+			log.Warnf(log.RequestSys, "retrying request: %s", r.Name)
 			if err == nil {
 				// If the body isn't fully read, the connection cannot be re-used
 				r.drainBody(resp.Body)

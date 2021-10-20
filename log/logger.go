@@ -49,7 +49,7 @@ func (l *Logger) newLogEvent(data, header, slName string, w io.Writer) error {
 	if header == l.ErrorHeader {
 		color.Set(color.FgRed, color.Bold)
 	} else if header == l.WarnHeader {
-		color.Set(color.FgMagenta)
+		color.Set(color.FgMagenta, color.Bold)
 	} else if header == l.InfoHeader {
 		color.Set(color.FgBlue, color.Bold)
 	}
