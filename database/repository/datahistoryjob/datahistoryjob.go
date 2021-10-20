@@ -95,6 +95,8 @@ func (db *DBService) GetJobsBetween(startDate, endDate time.Time) ([]DataHistory
 
 // GetAllIncompleteJobsAndResults returns all jobs that have the status "active"
 func (db *DBService) GetAllIncompleteJobsAndResults() ([]DataHistoryJob, error) {
+	// boil.DebugMode = true
+	// defer func() { boil.DebugMode = false }()
 	query := postgres.Datahistoryjobs(
 		qm.Load(postgres.DatahistoryjobRels.JobDatahistoryjobresults),
 		qm.Where("status = ?", 0))

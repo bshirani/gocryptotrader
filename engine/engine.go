@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"bufio"
 	"context"
 	"errors"
 	"fmt"
@@ -1036,15 +1035,15 @@ func (bot *Engine) WaitForInitialCurrencySync() error {
 }
 
 func (bot *Engine) setupExchangeSettings() error {
-	badList := GetBadSymbols()
+	// badList := GetBadSymbols()
 	for _, e := range bot.Config.GetEnabledExchanges() {
 		enabledPairs, _ := bot.Config.GetEnabledPairs(e, asset.Spot)
 		for _, pair := range enabledPairs {
 
-			if IsSymbolInList(pair, badList) {
-				fmt.Println("removed bad symbol", pair)
-				continue
-			}
+			// if IsSymbolInList(pair, badList) {
+			// 	fmt.Println("removed bad symbol", pair)
+			// 	continue
+			// }
 
 			// fmt.Println("enabledpairs", e, pair)
 			_, pair, a, err := bot.loadExchangePairAssetBase(e, pair.Base.String(), pair.Quote.String(), "spot")
@@ -1131,27 +1130,27 @@ func (bot *Engine) GetCurrencySettings(exch string, a asset.Item, cp currency.Pa
 	return &ExchangeAssetPairSettings{}, fmt.Errorf("no currency settings found for %v %v %v", exch, a, cp)
 }
 
-func GetBadSymbols() []string {
-	file, err := os.Open("./bad_symbols.txt")
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(123)
-	}
-	defer file.Close()
-
-	pairs := make([]string, 0)
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		pairs = append(pairs, scanner.Text())
-	}
-	return pairs
-}
-
-func IsSymbolInList(p currency.Pair, badSymbols []string) bool {
-	for _, bad := range badSymbols {
-		if strings.EqualFold(p.Upper().String(), bad) {
-			return true
-		}
-	}
-	return false
-}
+// func GetBadSymbols() []string {
+// 	file, err := os.Open("./bad_symbols.txt")
+// 	if err != nil {
+// 		fmt.Println(err)
+// 		os.Exit(123)
+// 	}
+// 	defer file.Close()
+//
+// 	pairs := make([]string, 0)
+// 	scanner := bufio.NewScanner(file)
+// 	for scanner.Scan() {
+// 		pairs = append(pairs, scanner.Text())
+// 	}
+// 	return pairs
+// }
+//
+// func IsSymbolInList(p currency.Pair, badSymbols []string) bool {
+// 	for _, bad := range badSymbols {
+// 		if strings.EqualFold(p.Upper().String(), bad) {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
