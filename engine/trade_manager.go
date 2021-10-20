@@ -358,11 +358,7 @@ func (tm *TradeManager) waitForDataCatchup() {
 
 	if tm.bot.dataHistoryManager.IsRunning() {
 		// names, err := tm.bot.dataHistoryManager.CatchupDays(func() { localWG.Done() })
-		i := tm.bot.dataHistoryManager.CatchupToday(func() { fmt.Println("DONE"); localWG.Done() })
-		fmt.Println("created", i, "jobs")
-		// if len(names) > 0 {
-		// 	fmt.Println("created jobs", names, err)
-		// }
+		tm.bot.dataHistoryManager.CatchupToday(func() { fmt.Println("DONE"); localWG.Done() })
 	}
 
 	log.Infoln(log.TradeMgr, "Waiting for data catchup...")
@@ -575,7 +571,7 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 					} else if hrChg.IsZero() {
 						color.Set(color.FgWhite)
 					} else if hrChg.LessThan(decimal.NewFromInt(0)) {
-						color.Set(color.FgRed, color.Bold)
+						color.Set(color.FgCyan, color.Bold)
 					}
 					defer color.Unset()
 
