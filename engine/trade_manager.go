@@ -352,20 +352,26 @@ func (tm *TradeManager) waitForDataCatchup() {
 	dhj.ClearJobs()
 
 	log.Infoln(log.TradeMgr, "Catching up days...", tm.bot.dataHistoryManager.DaysBack)
-	tm.bot.dataHistoryManager.CatchupDays(tm.bot.dataHistoryManager.DaysBack)
+	daysBack := make([]int, tm.bot.dataHistoryManager.DaysBack)
 
-	for {
-		// count jobs running
-		active, err := dhj.CountActive()
-		if err != nil {
-			fmt.Println("error", err)
+	for i := range daysBack {
+		i += 1
+		for {
+			active, err := dhj.CountActive()
+			if err != nil {
+				fmt.Println("error", err)
+			}
+			if active == 0 {
+				fmt.Println("starting days back", i)
+				break
+			}
+			time.Sleep(time.Second)
 		}
-		if active == 0 {
-			break
-		}
-		time.Sleep(time.Millisecond * 500)
+
+		tm.bot.dataHistoryManager.CatchupDays(int64(i))
 	}
 
+	// time.Sleep(time.Millisecond * 500)
 	log.Infoln(log.TradeMgr, "Done with catchup")
 	os.Exit(1123)
 
@@ -578,7 +584,7 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 					defer color.Unset()
 
 					log.Debugf(log.TradeMgr,
-						"%d:%d %-10s %12v %7v%% %7v%% %12v %12v %12v",
+						"%d:%d %-12s %12v %7v%% %7v%% %12v %12v %12v",
 						ev.GetTime().Hour(),
 						ev.GetTime().Minute(),
 						strings.ToUpper(ev.Pair().String()),
