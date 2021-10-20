@@ -103,7 +103,7 @@
   "checkInterval": 60000000000,
   "maxJobsPerCycle": 5,
   "maxResultInsertions": 10000,
-  "verbose": false
+  "verbose": true
  },
  "currencyStateManager": {
   "enabled": true,

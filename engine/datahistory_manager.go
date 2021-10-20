@@ -18,7 +18,6 @@ import (
 	"gocryptotrader/database/repository/candle"
 	"gocryptotrader/database/repository/datahistoryjob"
 	"gocryptotrader/database/repository/datahistoryjobresult"
-	exchangesql "gocryptotrader/database/repository/exchange"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/exchange"
 	"gocryptotrader/exchange/asset"
@@ -77,6 +76,27 @@ func SetupDataHistoryManager(bot *Engine, em iExchangeManager, dcm iDatabaseConn
 	}, nil
 }
 
+// var activePair bool
+// for _, co := range counts {
+// 	p, _ := currency.NewPairFromString(fmt.Sprintf("%s_%s", co.Base, co.Quote))
+// 	for cs := range m.bot.CurrencySettings {
+// 		if strings.EqualFold(p.String(), cs.CurrencyPair.String()) {
+// 			activePair = true
+// 		}
+// 	}
+//
+// 	if activePair && co.Count < 1400 {
+// 		t1 := co.Date
+// 		t2 := co.Date.AddDate(0, 0, 1)
+// 		uid, _ := uuid.FromString(co.ExchangeID)
+// 		e, _ := exchangesql.OneByUUID(uid)
+// 		a, _ := asset.New(co.AssetType)
+// 		fmt.Println(p, co.ExchangeID, co.Base, co.Quote, co.Count, t1, t2)
+// 		m.createCatchupJob(e.Name, a, p, t1, t2)
+// 	}
+// 	activePair = false
+// }
+
 func (m *DataHistoryManager) CatchupDays(callback func()) error {
 	if m.verbose {
 		log.Debugln(log.DataHistory, "catchup days")
@@ -84,30 +104,27 @@ func (m *DataHistoryManager) CatchupDays(callback func()) error {
 
 	// start two months ago
 	t := time.Now()
-	// dayTime := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
-	// startDate := dayTime.AddDate(0, -2, 10)
-	// syncDays := true
-	counts, _ := candle.Counts()
-	// fmt.Println("counts", c)
+	dayTime := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+	startDate := dayTime.AddDate(0, -2, 10)
+	syncDays := true
 
-	// for _, co := range c {
-	// 	fmt.Println(co.Base, co.Quote, co.Date, co.Count)
-	// }
+	if syncDays {
+		for _, p := range m.bot.CurrencySettings {
+			for x := startDate; x.Before(dayTime); x = x.AddDate(0, 0, 1) {
+				t1 := x
+				t2 := x.AddDate(0, 0, 1)
 
-	for _, co := range counts {
-		if co.Count < 1400 {
-			t1 := co.Date
-			t2 := co.Date.AddDate(0, 0, 1)
-			p, _ := currency.NewPairFromString(fmt.Sprintf("%s_%s", co.Base, co.Quote))
-			uid, _ := uuid.FromString(co.ExchangeID)
-			e, _ := exchangesql.OneByUUID(uid)
-			a, _ := asset.New(co.AssetType)
-			fmt.Println(p, co.ExchangeID, co.Base, co.Quote, co.Count, t1, t2)
-			m.createCatchupJob(e.Name, a, p, t1, t2)
+				candles, _ := candle.Series(p.ExchangeName, p.CurrencyPair.Base.String(), p.CurrencyPair.Quote.String(), 60, p.AssetType.String(), t1, t2)
+				if len(candles.Candles) > 1400 {
+					// fmt.Printf("%d-%d:%d, ", x.Month(), x.Day(), len(candles.Candles))
+					continue
+				}
+				// log.Warnf(log.DataHistory, "Data history manager Syncing Days")
+				// fmt.Printf(".")
+				m.createCatchupJob(p.ExchangeName, p.AssetType, p.CurrencyPair, t1, t2)
+			}
 		}
 	}
-
-	time.Sleep(time.Minute)
 
 	if m.verbose {
 		log.Debugln(log.DataHistory, "catchup today")
@@ -802,7 +819,7 @@ func (m *DataHistoryManager) processCandleData(job *DataHistoryJob, exch exchang
 		os.Exit(123)
 	}
 
-	fmt.Println("requesting candles", startRange, endRange, job.Interval)
+	// fmt.Println("requesting candles", startRange, endRange, job.Interval)
 
 	candles, err := exch.GetHistoricCandlesExtended(context.TODO(),
 		job.Pair,

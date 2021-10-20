@@ -27,7 +27,7 @@ func Counts() (pairCounts []PairCandleCountResponse, err error) {
 	fmt.Println(123)
 	queries.Raw(`
 		select date_trunc('day', timestamp) as "date", base, quote, exchange_name_id as exchange_id, asset as asset_type, count(*) AS "count"
-		from candle where timestamp between now() - interval '2 months' and now()
+		from candle where timestamp between now() - interval '2 months' and now() - interval '1 day'
 		group by date_trunc('day', timestamp), base, quote, asset_type, exchange_name_id;
 	`).Bind(context.TODO(), database.DB.SQL, &pairCounts)
 	if err != nil {
