@@ -71,8 +71,6 @@ func main() {
 		fmt.Printf("Could not load backtester. Error: %v.\n", err)
 		os.Exit(-1)
 	}
-	bot.Config.LiveMode = false
-
 	var tm *engine.TradeManager
 
 	err = cfg.Validate()

@@ -4,7 +4,7 @@
 
 | Config | Description | Example |
 | ------ | ----------- | ------- |
-| syncmanager | Determines whether the subsystem is enabled | `true` |
+| sync | Determines whether the subsystem is enabled | `true` |
 | tickersync |  Enables ticker syncing for all enabled exchanges |   `true`|
 | orderbooksync | Enables orderbook syncing for all enabled exchanges |  `true` |
 | tradesync | Enables trade syncing for all enabled exchanges |  `true` |

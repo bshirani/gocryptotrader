@@ -24,6 +24,8 @@ import (
 	gctlog "gocryptotrader/log"
 	"gocryptotrader/portfolio/withdraw"
 	"gocryptotrader/utils"
+
+	"github.com/fatih/color"
 )
 
 // overarching type across this code base.
@@ -155,10 +157,10 @@ func loadConfigWithSettings(settings *Settings, flagSet map[string]bool) (*confi
 func validateSettings(b *Engine, s *Settings, flagSet map[string]bool) {
 	b.Settings = *s
 
-	b.Settings.EnableDataHistoryManager = (flagSet["datahistorymanager"] && b.Settings.EnableDatabaseManager) || b.Config.DataHistoryManager.Enabled
+	b.Settings.EnableDataHistoryManager = (flagSet["datahistory"] && b.Settings.EnableDatabaseManager) || b.Config.DataHistoryManager.Enabled
 	// fmt.Println("enabled dhm?", b.Settings.EnableDataHistoryManager)
-	b.Settings.EnableTradeManager = (flagSet["trademanager"] && b.Settings.EnableTradeManager) || b.Config.TradeManager.Enabled
-	b.Settings.EnableTrading = (flagSet["trading"] && b.Settings.EnableTrading) || b.Config.TradeManager.TradingEnabled
+	b.Settings.EnableTradeManager = (flagSet["trader"] && b.Settings.EnableTradeManager) || b.Config.TradeManager.Enabled
+	b.Settings.EnableTrading = (flagSet["trade"] && b.Settings.EnableTrading) || b.Config.TradeManager.TradingEnabled
 
 	b.Settings.EnableCurrencyStateManager = (flagSet["currencystatemanager"] &&
 		b.Settings.EnableCurrencyStateManager) ||
@@ -250,72 +252,90 @@ func validateSettings(b *Engine, s *Settings, flagSet map[string]bool) {
 	}
 }
 
+func setColor(value bool) {
+	if value {
+		color.Set(color.FgGreen, color.Bold)
+	} else {
+		color.Set(color.FgRed, color.Bold)
+	}
+}
+
+func engineLog(str string, args ...interface{}) {
+	if len(args) > 0 {
+		switch args[0].(type) {
+		case bool:
+			defer color.Unset()
+			setColor(args[0].(bool))
+		}
+	}
+	str = fmt.Sprintf("%s%s", str, "\n")
+	fmt.Printf(str, args...)
+}
+
 // PrintSettings returns the engine settings
 func PrintSettings(s *Settings) {
-	gctlog.Infoln(gctlog.Global)
-	gctlog.Infof(gctlog.Global, "ENGINE SETTINGS")
-	gctlog.Infof(gctlog.Global, "- CORE SETTINGS:")
-	gctlog.Infof(gctlog.Global, "\t trading: %v", s.EnableTradeManager)
-	gctlog.Infof(gctlog.Global, "\t live: %v", s.EnableLiveMode)
-	gctlog.Infof(gctlog.Global, "\t dry run: %v", s.EnableDryRun)
-	gctlog.Infof(gctlog.Global, "\t Database: %v", s.EnableDatabaseManager)
-	gctlog.Infof(gctlog.Global, "\t watcher: %v", s.EnableWatcher)
-	gctlog.Infof(gctlog.Global, "\t comms relayer: %v", s.EnableCommsRelayer)
-	gctlog.Infof(gctlog.Global, "\t gPRC: %v", s.EnableGRPC)
-	gctlog.Infof(gctlog.Global, "\t event manager: %v", s.EnableEventManager)
-	gctlog.Infof(gctlog.Global, "\t Verbose: %v", s.Verbose)
-	gctlog.Infof(gctlog.Global, "\t data history manager: %v", s.EnableDataHistoryManager)
-	gctlog.Infof(gctlog.Global, "\t order manager: %v", s.EnableOrderManager)
-	gctlog.Infof(gctlog.Global, "\t websocket RPC: %v", s.EnableWebsocketRPC)
-	gctlog.Infof(gctlog.Global, "\t websocket routine: %v\n", s.EnableWebsocketRoutine)
-	gctlog.Infof(gctlog.Global, "\t exchange_sync: %v kline: %v ticker: %v trade: %v wsTimeout:%v\n", s.EnableExchangeSyncManager, s.SyncTimeoutWebsocket, s.EnableKlineSyncing, s.EnableTickerSyncing, s.EnableTradeSyncing)
-	// gctlog.Infof(gctlog.Global, "\t Enable orderbook syncing: %v\n", s.EnableOrderbookSyncing)
-	gctlog.Infof(gctlog.Global, "\t coinmarketcap analaysis: %v", s.EnableCoinmarketcapAnalysis)
-	// gctlog.Infof(gctlog.Global, "\t TM Verbose: %v", s.TradeManager.Verbose)
-	// gctlog.Infof(gctlog.Global, "\t Enable all exchanges: %v", s.EnableAllExchanges)
-	// gctlog.Infof(gctlog.Global, "\t Enable all pairs: %v", s.EnableAllPairs)
-	// gctlog.Infof(gctlog.Global, "\t Enable portfolio manager: %v", s.EnablePortfolioManager)
-	// gctlog.Infof(gctlog.Global, "\t Enable currency state manager: %v", s.EnableCurrencyStateManager)
-	// gctlog.Infof(gctlog.Global, "\t Portfolio manager sleep delay: %v\n", s.PortfolioManagerDelay)
-	// gctlog.Infof(gctlog.Global, "\t Enable gRPC Proxy: %v", s.EnableGRPCProxy)
-	// gctlog.Infof(gctlog.Global, "\t Event manager sleep delay: %v", s.EventManagerDelay)
-	// gctlog.Infof(gctlog.Global, "\t Enable deposit address manager: %v\n", s.EnableDepositAddressManager)
-	// gctlog.Infof(gctlog.Global, "\t Enable NTP client: %v", s.EnableNTPClient)
-	// gctlog.Infof(gctlog.Global, "\t Enable dispatcher: %v", s.EnableDispatcher)
-	// gctlog.Infof(gctlog.Global, "\t Dispatch package max worker amount: %d", s.DispatchMaxWorkerAmount)
-	// gctlog.Infof(gctlog.Global, "\t Dispatch package jobs limit: %d", s.DispatchJobsLimit)
-	// gctlog.Infof(gctlog.Global, "\t Exchange sync continuously: %v\n", s.SyncContinuously)
-	// gctlog.Infof(gctlog.Global, "\t Exchange sync workers: %v\n", s.SyncWorkers)
-	// gctlog.Infof(gctlog.Global, "\t Exchange REST sync timeout: %v\n", s.SyncTimeoutREST)
-	// gctlog.Infof(gctlog.Global, "- FOREX SETTINGS:")
-	// gctlog.Infof(gctlog.Global, "\t Enable currency conveter: %v", s.EnableCurrencyConverter)
-	// gctlog.Infof(gctlog.Global, "\t Enable currency layer: %v", s.EnableCurrencyLayer)
-	// gctlog.Infof(gctlog.Global, "\t Enable fixer: %v", s.EnableFixer)
-	// gctlog.Infof(gctlog.Global, "\t Enable OpenExchangeRates: %v", s.EnableOpenExchangeRates)
-	// gctlog.Infof(gctlog.Global, "\t Enable ExchangeRateHost: %v", s.EnableExchangeRateHost)
-	// gctlog.Infof(gctlog.Global, "- EXCHANGE SETTINGS:")
-	// gctlog.Infof(gctlog.Global, "\t Enable exchange auto pair updates: %v", s.EnableExchangeAutoPairUpdates)
-	// gctlog.Infof(gctlog.Global, "\t Disable all exchange auto pair updates: %v", s.DisableExchangeAutoPairUpdates)
-	// gctlog.Infof(gctlog.Global, "\t Enable exchange websocket support: %v", s.EnableExchangeWebsocketSupport)
-	// gctlog.Infof(gctlog.Global, "\t Enable exchange verbose mode: %v", s.EnableExchangeVerbose)
-	// gctlog.Infof(gctlog.Global, "\t Enable exchange HTTP rate limiter: %v", s.EnableExchangeHTTPRateLimiter)
-	// gctlog.Infof(gctlog.Global, "\t Enable exchange HTTP debugging: %v", s.EnableExchangeHTTPDebugging)
-	// gctlog.Infof(gctlog.Global, "\t Max HTTP request jobs: %v", s.MaxHTTPRequestJobsLimit)
-	// gctlog.Infof(gctlog.Global, "\t HTTP request max retry attempts: %v", s.RequestMaxRetryAttempts)
-	// gctlog.Infof(gctlog.Global, "\t Trade buffer processing interval: %v", s.TradeBufferProcessingInterval)
-	// gctlog.Infof(gctlog.Global, "\t HTTP timeout: %v", s.HTTPTimeout)
-	// gctlog.Infof(gctlog.Global, "\t HTTP user agent: %v", s.HTTPUserAgent)
-	// gctlog.Infof(gctlog.Global, "- GCTSCRIPT SETTINGS: ")
-	// gctlog.Infof(gctlog.Global, "\t Enable GCTScript manager: %v", s.EnableGCTScriptManager)
-	// gctlog.Infof(gctlog.Global, "\t GCTScript max virtual machines: %v", s.MaxVirtualMachines)
-	// gctlog.Infof(gctlog.Global, "- WITHDRAW SETTINGS: ")
-	// gctlog.Infof(gctlog.Global, "\t Withdraw Cache size: %v", s.WithdrawCacheSize)
-	// gctlog.Infof(gctlog.Global, "- COMMON SETTINGS:")
-	// gctlog.Infof(gctlog.Global, "\t Global HTTP timeout: %v", s.GlobalHTTPTimeout)
-	// gctlog.Infof(gctlog.Global, "\t Global HTTP user agent: %v", s.GlobalHTTPUserAgent)
-	// gctlog.Infof(gctlog.Global, "\t Global HTTP proxy: %v", s.GlobalHTTPProxy)
+	engineLog("\t live: %v", s.EnableLiveMode)
+	engineLog("\t dry run: %v", s.EnableDryRun)
+	engineLog("")
 
-	// gctlog.Infoln(gctlog.Global)
+	engineLog("\t sync: %v kline:%v ticker:%v trade:%v wsTimeout:%v", s.EnableExchangeSyncManager, s.EnableKlineSyncing, s.EnableTickerSyncing, s.EnableTradeSyncing, s.SyncTimeoutWebsocket)
+	engineLog("\t trademgr: %v", s.EnableTradeManager)
+	engineLog("\t trading: %v", s.EnableTrading)
+	engineLog("\t verbose: %v", s.Verbose)
+	engineLog("\t order manager: %v", s.EnableOrderManager)
+	engineLog("\t data history: %v", s.EnableDataHistoryManager)
+	// engineLog("\t coinmarketcap analaysis: %v", s.EnableCoinmarketcapAnalysis)
+	// engineLog("\t gPRC: %v", s.EnableGRPC)
+	// engineLog("\t database: %v", s.EnableDatabaseManager)
+	// engineLog("\t watcher: %v", s.EnableWatcher)
+	// engineLog("\t comms relayer: %v", s.EnableCommsRelayer)
+	// engineLog("\t event manager: %v", s.EnableEventManager)
+	// engineLog("\t websocket RPC: %v", s.EnableWebsocketRPC)
+	// engineLog("\t websocket routine: %v", s.EnableWebsocketRoutine)
+	// engineLog("\t Enable orderbook syncing: %v\n", s.EnableOrderbookSyncing)
+	// engineLog("\t TM Verbose: %v", s.TradeManager.Verbose)
+	// engineLog("\t Enable all exchanges: %v", s.EnableAllExchanges)
+	// engineLog("\t Enable all pairs: %v", s.EnableAllPairs)
+	// engineLog("\t Enable portfolio manager: %v", s.EnablePortfolioManager)
+	// engineLog("\t Enable currency state manager: %v", s.EnableCurrencyStateManager)
+	// engineLog("\t Portfolio manager sleep delay: %v\n", s.PortfolioManagerDelay)
+	// engineLog("\t Enable gRPC Proxy: %v", s.EnableGRPCProxy)
+	// engineLog("\t Event manager sleep delay: %v", s.EventManagerDelay)
+	// engineLog("\t Enable deposit address manager: %v\n", s.EnableDepositAddressManager)
+	// engineLog("\t Enable NTP client: %v", s.EnableNTPClient)
+	// engineLog("\t Enable dispatcher: %v", s.EnableDispatcher)
+	// engineLog("\t Dispatch package max worker amount: %d", s.DispatchMaxWorkerAmount)
+	// engineLog("\t Dispatch package jobs limit: %d", s.DispatchJobsLimit)
+	// engineLog("\t Exchange sync continuously: %v\n", s.SyncContinuously)
+	// engineLog("\t Exchange sync workers: %v\n", s.SyncWorkers)
+	// engineLog("\t Exchange REST sync timeout: %v\n", s.SyncTimeoutREST)
+	// engineLog("- FOREX SETTINGS:")
+	// engineLog("\t Enable currency conveter: %v", s.EnableCurrencyConverter)
+	// engineLog("\t Enable currency layer: %v", s.EnableCurrencyLayer)
+	// engineLog("\t Enable fixer: %v", s.EnableFixer)
+	// engineLog("\t Enable OpenExchangeRates: %v", s.EnableOpenExchangeRates)
+	// engineLog("\t Enable ExchangeRateHost: %v", s.EnableExchangeRateHost)
+	// engineLog("- EXCHANGE SETTINGS:")
+	// engineLog("\t Enable exchange auto pair updates: %v", s.EnableExchangeAutoPairUpdates)
+	// engineLog("\t Disable all exchange auto pair updates: %v", s.DisableExchangeAutoPairUpdates)
+	// engineLog("\t Enable exchange websocket support: %v", s.EnableExchangeWebsocketSupport)
+	// engineLog("\t Enable exchange verbose mode: %v", s.EnableExchangeVerbose)
+	// engineLog("\t Enable exchange HTTP rate limiter: %v", s.EnableExchangeHTTPRateLimiter)
+	// engineLog("\t Enable exchange HTTP debugging: %v", s.EnableExchangeHTTPDebugging)
+	// engineLog("\t Max HTTP request jobs: %v", s.MaxHTTPRequestJobsLimit)
+	// engineLog("\t HTTP request max retry attempts: %v", s.RequestMaxRetryAttempts)
+	// engineLog("\t Trade buffer processing interval: %v", s.TradeBufferProcessingInterval)
+	// engineLog("\t HTTP timeout: %v", s.HTTPTimeout)
+	// engineLog("\t HTTP user agent: %v", s.HTTPUserAgent)
+	// engineLog("- GCTSCRIPT SETTINGS: ")
+	// engineLog("\t Enable GCTScript manager: %v", s.EnableGCTScriptManager)
+	// engineLog("\t GCTScript max virtual machines: %v", s.MaxVirtualMachines)
+	// engineLog("- WITHDRAW SETTINGS: ")
+	// engineLog("\t Withdraw Cache size: %v", s.WithdrawCacheSize)
+	// engineLog("- COMMON SETTINGS:")
+	// engineLog("\t Global HTTP timeout: %v", s.GlobalHTTPTimeout)
+	// engineLog("\t Global HTTP user agent: %v", s.GlobalHTTPUserAgent)
+	// engineLog("\t Global HTTP proxy: %v", s.GlobalHTTPProxy)
 }
 
 // Start starts the engine
@@ -326,9 +346,6 @@ func (bot *Engine) Start() error {
 	var err error
 	newEngineMutex.Lock()
 	defer newEngineMutex.Unlock()
-
-	bot.Settings.EnableLiveMode = true
-	bot.Config.LiveMode = true
 
 	if bot.Settings.EnableDatabaseManager {
 		bot.DatabaseManager, err = SetupDatabaseConnectionManager(&bot.Config.Database)
@@ -424,6 +441,7 @@ func (bot *Engine) Start() error {
 		bot.Settings.EnableFixer ||
 		bot.Settings.EnableOpenExchangeRates ||
 		bot.Settings.EnableExchangeRateHost {
+		os.Exit(123)
 		err = currency.RunStorageUpdater(currency.BotOverrides{
 			Coinmarketcap:       bot.Settings.EnableCoinmarketcapAnalysis,
 			FxCurrencyConverter: bot.Settings.EnableCurrencyConverter,
@@ -968,7 +986,7 @@ func (bot *Engine) LoadExchange(name string, wg *sync.WaitGroup) error {
 		}
 	}
 
-	// gctlog.Infof(gctlog.Global, "starting exchange...")
+	// engineLog("starting exchange...")
 	if wg != nil {
 		exch.Start(wg)
 	} else {

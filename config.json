@@ -1,5 +1,5 @@
 {
- "LiveMode": true,
+ "LiveMode": false,
  "DryRun": false,
  "nickname": "",
  "goal": "",
@@ -99,7 +99,7 @@
   "checkInterval": 1000000000
  },
  "dataHistoryManager": {
-  "enabled": true,
+  "enabled": false,
   "checkInterval": 60000000000,
   "maxJobsPerCycle": 5,
   "maxResultInsertions": 10000,
@@ -182,7 +182,7 @@
    },
    {
     "name": "ExchangeRateHost",
-    "enabled": false,
+    "enabled": true,
     "verbose": false,
     "restPollingDelay": 600,
     "apiKey": "Key",
