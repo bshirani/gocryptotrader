@@ -7,6 +7,7 @@ import (
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/kline"
 )
 
 // syncBase stores information
@@ -57,6 +58,7 @@ type syncManager struct {
 	mux                            sync.Mutex
 	initSyncWG                     sync.WaitGroup
 	inService                      sync.WaitGroup
+	candleSaver                    func(*kline.Item, bool) (uint64, error)
 	heartBeatWg                    sync.WaitGroup
 	shutdown                       chan struct{}
 

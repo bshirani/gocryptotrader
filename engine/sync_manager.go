@@ -74,6 +74,7 @@ func setupSyncManager(c *Config, exchangeManager iExchangeManager, remoteConfig 
 		exchangeManager:                exchangeManager,
 		websocketRoutineManagerEnabled: websocketRoutineManagerEnabled,
 		shutdown:                       make(chan struct{}),
+		candleSaver:                    kline.StoreInDatabase,
 	}
 
 	s.tickerBatchLastRequested = make(map[string]time.Time)
@@ -841,24 +842,24 @@ func (m *syncManager) worker() {
 							// 	m.setProcessing(c.Exchange, c.Pair, c.AssetType, SyncItemKline, true)
 							// 	m.Update(c.Exchange, c.Pair, c.AssetType, SyncItemKline, nil)
 							// 	m.setProcessing(c.Exchange, c.Pair, c.AssetType, SyncItemKline, false)
-							// 	// lastCandle, _ := candle.Last(c.Exchange,
-							// 	// 	c.Pair.Base.String(),
-							// 	// 	c.Pair.Quote.String(),
-							// 	// 	60,
-							// 	// 	c.AssetType.String())
-							// 	// minutes := time.Now().UTC().Sub(lastCandle.Timestamp).Minutes()
-							// 	// if minutes > 0 {
-							// 	// 	_, err := exchanges[x].GetHistoricCandles(context.TODO(), c.Pair, c.AssetType, lastCandle.Timestamp, time.Now(), kline.OneMin)
-							// 	// 	if err != nil {
-							// 	// 		log.Error(log.SyncMgr, err)
-							// 	// 	}
-							// 	// }
-							// 	//
-							// 	// updateErr := m.Update(c.Exchange, c.Pair, c.AssetType, SyncItemKline, err)
-							// 	// if updateErr != nil {
-							// 	// 	log.Error(log.SyncMgr, updateErr)
-							// 	// }
-							// 	// m.setProcessing(exchangeName, c.Pair, c.AssetType, SyncItemKline, false)
+							// lastCandle, _ := candle.Last(c.Exchange,
+							// 	c.Pair.Base.String(),
+							// 	c.Pair.Quote.String(),
+							// 	60,
+							// 	c.AssetType.String())
+							// minutes := time.Now().UTC().Sub(lastCandle.Timestamp).Minutes()
+							// if minutes > 0 {
+							// 	_, err := exchanges[x].GetHistoricCandles(context.TODO(), c.Pair, c.AssetType, lastCandle.Timestamp, time.Now(), kline.OneMin)
+							// 	if err != nil {
+							// 		log.Error(log.SyncMgr, err)
+							// 	}
+							// }
+							//
+							// updateErr := m.Update(c.Exchange, c.Pair, c.AssetType, SyncItemKline, err)
+							// if updateErr != nil {
+							// 	log.Error(log.SyncMgr, updateErr)
+							// }
+							// m.setProcessing(exchangeName, c.Pair, c.AssetType, SyncItemKline, false)
 							// } else
 							if time.Now().Sub(c.Kline.LastUpdated).Seconds() > 5 {
 								m.setProcessing(exchangeName, c.Pair, c.AssetType, SyncItemKline, true)
@@ -870,21 +871,28 @@ func (m *syncManager) worker() {
 									c.AssetType.String())
 								minMissing := int(time.Now().UTC().Sub(lastCandle.Timestamp).Minutes())
 								var err error
+								var newCandle kline.Item
 								if minMissing > 1000 {
 									st := time.Now().Add(time.Minute * -999)
-									_, err = exchanges[x].GetHistoricCandles(context.TODO(), c.Pair, c.AssetType, st, time.Now(), kline.OneMin)
+									newCandle, err = exchanges[x].GetHistoricCandles(context.TODO(), c.Pair, c.AssetType, st, time.Now(), kline.OneMin)
+
 								} else if minMissing > 0 {
-									_, err = exchanges[x].GetHistoricCandles(context.TODO(), c.Pair, c.AssetType, lastCandle.Timestamp, time.Now(), kline.OneMin)
+									newCandle, err = exchanges[x].GetHistoricCandles(context.TODO(), c.Pair, c.AssetType, lastCandle.Timestamp, time.Now(), kline.OneMin)
 								}
-								if err != nil {
-									log.Error(log.SyncMgr, err)
+
+								if len(newCandle.Candles) > 0 {
+									_, err = m.candleSaver(&newCandle, false)
+									if err != nil {
+										log.Error(log.SyncMgr, err)
+									}
+
+									updateErr := m.Update(c.Exchange, c.Pair, c.AssetType, SyncItemKline, err)
+									if updateErr != nil {
+										log.Error(log.SyncMgr, updateErr)
+									}
 								}
 
 								c.Kline.LastUpdated = time.Now()
-								updateErr := m.Update(c.Exchange, c.Pair, c.AssetType, SyncItemKline, err)
-								if updateErr != nil {
-									log.Error(log.SyncMgr, updateErr)
-								}
 								m.setProcessing(c.Exchange, c.Pair, c.AssetType, SyncItemKline, false)
 							}
 						} else {

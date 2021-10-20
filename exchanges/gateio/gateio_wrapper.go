@@ -914,6 +914,7 @@ func (g *Gateio) GetHistoricCandles(ctx context.Context, pair currency.Pair, a a
 		log.Errorln(log.ExchangeSys, "Kline.data", err)
 		return kline.Item{}, err
 	}
+	// klineData.Exchange = "gateio"
 	klineData.Interval = interval
 	klineData.Pair = pair
 	klineData.Asset = a

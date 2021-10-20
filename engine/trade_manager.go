@@ -355,7 +355,7 @@ func (tm *TradeManager) waitForDataCatchup() {
 	// localWG.Add(1)
 	// localWG.Add(1)
 	// localWG.Wait()
-	N := make([]struct{}, 1)
+	N := make([]struct{}, 10)
 	// var complete bool
 	for i := range N {
 		i += 1
@@ -365,24 +365,31 @@ func (tm *TradeManager) waitForDataCatchup() {
 			if err != nil {
 				fmt.Println("error", err)
 			}
-			if active == 0 {
-				// fmt.Println("catchup days", i)
-				tm.bot.dataHistoryManager.CatchupDays(i)
-				active, err = dhj.CountActive()
-				// fmt.Println("now have", active)
-				if active > 0 {
-					continue
-				} else {
-					break
-				}
-				// time.Sleep(time.Millisecond * 2000)
+			if active > 0 {
+				continue
 			}
+
+			fmt.Println("catchup days!!!!!!!!!!!!!!!!!", i)
+			if active == 0 {
+				// fmt.Println("no new jobs, finished")
+				tm.bot.dataHistoryManager.CatchupDays(i)
+				break
+			}
+
+			// time.Sleep(time.Millisecond * 2000)
 			// if complete {
 			// 	break
 			// }
+		}
+
+		active, _ := dhj.CountActive()
+		// fmt.Println("now have", active)
+		if i > 1 && active == 0 {
+			break
+		} else {
+			fmt.Println("still active")
 			time.Sleep(time.Millisecond * 500)
 		}
-		// fmt.Println("here")
 	}
 
 	log.Infoln(log.TradeMgr, "Done with catchup")

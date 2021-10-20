@@ -63,7 +63,7 @@ func LoadFromDatabase(exchange string, pair currency.Pair, a asset.Item, interva
 // StoreInDatabase returns Item from database seeded data
 func StoreInDatabase(in *Item, force bool) (uint64, error) {
 	if in.Exchange == "" {
-		return 0, errors.New("name cannot be blank")
+		return 0, errors.New("exchange name cannot be blank")
 	}
 	if in.Pair.IsEmpty() {
 		return 0, errors.New("currency pair cannot be empty")
