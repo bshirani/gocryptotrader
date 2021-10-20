@@ -11,6 +11,7 @@ var TableNames = struct {
 	Datahistoryjobresult    string
 	Exchange                string
 	GooseDBVersion          string
+	Instrument              string
 	LiveOrder               string
 	LiveTrade               string
 	Script                  string
@@ -27,6 +28,7 @@ var TableNames = struct {
 	Datahistoryjobresult:    "datahistoryjobresult",
 	Exchange:                "exchange",
 	GooseDBVersion:          "goose_db_version",
+	Instrument:              "instrument",
 	LiveOrder:               "live_order",
 	LiveTrade:               "live_trade",
 	Script:                  "script",

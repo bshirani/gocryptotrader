@@ -9,6 +9,7 @@ import (
 
 	"gocryptotrader/config"
 	gctdatabase "gocryptotrader/database"
+	"gocryptotrader/database/repository/instrument"
 	"gocryptotrader/engine"
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/log"
@@ -78,8 +79,17 @@ func main() {
 	}
 
 	pairs, _ := bot.Config.GetAvailablePairs("gateio", asset.Spot)
+	// pair := pair.NewPairFromString("BTC_USD")
 	for _, p := range pairs {
-		fmt.Println(p)
+		details := instrument.Details{
+			Base:  p.Base,
+			Quote: p.Quote,
+		}
+		err := instrument.Insert(details)
+		if err != nil {
+			fmt.Println("error", err)
+			os.Exit(123)
+		}
 		// upsert
 	}
 
