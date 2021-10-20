@@ -9,9 +9,12 @@ import (
 
 // const declarations consist of endpoints
 const (
-	APIEndpointURL     = "https://currencyconverterapi.com/api/"
-	APIEndpointFreeURL = "https://free.currencyconverterapi.com/api/"
-	APIEndpointVersion = "v5"
+	// APIEndpointURL = "https://currencyconverterapi.com/api/"
+	APIEndpointURL = "https://free.currconv.com/api"
+	// APIEndpointFreeURL = "https://free.currencyconverterapi.com/api/"
+	APIEndpointFreeURL = "https://free.currconv.com/api"
+	// convert?q=USD_PHP&compact=ultra&apiKey=818658e17fc5c7ccddcd"
+	APIEndpointVersion = "v7"
 
 	APIEndpointConvert    = "convert"
 	APIEndpointCurrencies = "currencies"

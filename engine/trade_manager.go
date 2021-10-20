@@ -830,14 +830,12 @@ func (tm *TradeManager) initializeStrategies(cfg *config.Config) {
 }
 
 func (tm *TradeManager) initializePortfolio(strategyConfig *config.Config) error {
-	// for i := range strategyConfig.Stratey
+	// for i := range strategyConfig.Strategy
 	tm.initializeStrategies(strategyConfig)
 
-	// if tm.verbose {
-	log.Infof(log.TradeMgr, "Running %d strategies\n", len(tm.Strategies))
-	log.Infof(log.TradeMgr, "Running %d currencies\n", len(tm.bot.CurrencySettings))
-	// log.Infof(log.TradeMgr, "Running %d exchanges\n", len(tm.bot.CurrencySettings))
-	// }
+	if tm.verbose {
+		log.Infof(log.TradeMgr, "Running %d strategies %d currencies", len(tm.Strategies), len(tm.bot.CurrencySettings))
+	}
 
 	// setup portfolio with strategies
 	var p *Portfolio

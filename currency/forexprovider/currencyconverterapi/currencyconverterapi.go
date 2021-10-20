@@ -154,16 +154,17 @@ func (c *CurrencyConverter) SendHTTPRequest(endPoint string, values url.Values, 
 	var path string
 	var auth bool
 	if c.APIKey == "" || c.APIKey == defaultAPIKey {
-		path = fmt.Sprintf("%s%s/%s?", APIEndpointFreeURL, APIEndpointVersion, endPoint)
+		path = fmt.Sprintf("%s/%s/%s?", APIEndpointFreeURL, APIEndpointVersion, endPoint)
 		auth = true
 	} else {
-		path = fmt.Sprintf("%s%s%s?", APIEndpointURL, APIEndpointVersion, endPoint)
+		path = fmt.Sprintf("%s/%s/%s?", APIEndpointURL, APIEndpointVersion, endPoint)
 		values.Set("apiKey", c.APIKey)
 	}
 
 	path += values.Encode()
 	item := &request.Item{
-		Method:      path,
+		Path:        path,
+		Method:      "GET",
 		Result:      result,
 		AuthRequest: auth,
 		Verbose:     c.Verbose}

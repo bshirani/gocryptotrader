@@ -31,11 +31,6 @@
 | Yobit | Yes | NA | NA |
 | ZB.COM | Yes | Yes | NA |
 
-We are aiming to support the top 30 exchanges sorted by average liquidity as [ranked by CoinMarketCap](https://coinmarketcap.com/rankings/exchanges/).
-However, we welcome pull requests for any exchange which does not match this criterion. If you need help with this, please join us on [Slack](https://join.slack.com/t/gocryptotrader/shared_invite/enQtNTQ5NDAxMjA2Mjc5LTc5ZDE1ZTNiOGM3ZGMyMmY1NTAxYWZhODE0MWM5N2JlZDk1NDU0YTViYzk4NTk3OTRiMDQzNGQ1YTc4YmRlMTk).
-
-** NA means not applicable as the exchange does not support the feature.
-
 ## Current Features
 
 + Support for all exchange fiat and digital currencies, with the ability to individually toggle them on/off.
@@ -63,11 +58,6 @@ However, we welcome pull requests for any exchange which does not match this cri
 + Backtesting application. An event-driven backtesting tool to test and iterate trading strategies using historical or custom data. See [backtester](/backtester/README.md).
 + WebGUI (discontinued).
 
-## Compiling instructions
-
-Download and install Go from [Go Downloads](https://golang.org/dl/) for your
-platform.
-
 ### Linux/OSX
 
 GoCryptoTrader is built using [Go Modules](https://github.com/golang/go/wiki/Modules) and requires Go 1.11 or above
@@ -80,19 +70,3 @@ go build
 mkdir ~/.gocryptotrader
 cp config_example.json ~/.gocryptotrader/config.json
 ```
-
-### Windows
-
-```bash
-git clone https://github.com/thrasher-corp/gocryptotrader.git
-cd gocryptotrader
-go build
-copy config_example.json %APPDATA%\GoCryptoTrader\config.json
-```
-
-+ Make any neccessary changes to the `config.json` file.
-+ Run the `gocryptotrader` binary file inside your GOPATH bin folder.
-
-## Binaries
-
-Binaries will be published once the codebase reaches a stable condition.

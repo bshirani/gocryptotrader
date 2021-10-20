@@ -137,7 +137,7 @@
   "forexProviders": [
    {
     "name": "CurrencyConverter",
-    "enabled": false,
+    "enabled": true,
     "verbose": false,
     "restPollingDelay": 600,
     "apiKey": "Key",
@@ -182,7 +182,7 @@
    },
    {
     "name": "ExchangeRateHost",
-    "enabled": true,
+    "enabled": false,
     "verbose": false,
     "restPollingDelay": 600,
     "apiKey": "Key",
@@ -192,10 +192,10 @@
   ],
   "cryptocurrencyProvider": {
    "name": "CoinMarketCap",
-   "enabled": false,
+   "enabled": true,
    "verbose": false,
-   "apiKey": "Key",
-   "accountPlan": "accountPlan"
+   "apiKey": "3be249cb-0c44-44f2-8995-34fd4437fa23",
+   "accountPlan": "basic"
   },
   "cryptocurrencies": "BTC,LTC,ETH,XRP,NMC,NVC,PPC,XBT,DOGE,DASH",
   "currencyPairFormat": {

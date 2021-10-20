@@ -33,7 +33,7 @@ func main() {
 	// Core settings
 	flag.BoolVar(&settings.EnableAllExchanges, "enableallexchanges", false, "enables all exchanges")
 	flag.BoolVar(&settings.EnableAllPairs, "enableallpairs", false, "enables all pairs for enabled exchanges")
-	flag.BoolVar(&settings.EnableCoinmarketcapAnalysis, "coinmarketcap", false, "overrides config and runs currency analysis")
+	flag.BoolVar(&settings.EnableCoinmarketcapAnalysis, "coinmarketcap", true, "overrides config and runs currency analysis")
 	flag.BoolVar(&settings.EnableCommsRelayer, "enablecommsrelayer", false, "enables available communications relayer")
 	flag.BoolVar(&settings.EnableConnectivityMonitor, "connectivitymonitor", true, "enables the connectivity monitor")
 	flag.BoolVar(&settings.EnableCurrencyStateManager, "currencystatemanager", true, "enables the currency state manager")
@@ -44,7 +44,7 @@ func main() {
 	flag.BoolVar(&settings.EnableDispatcher, "dispatch", true, "enables the dispatch system")
 	flag.BoolVar(&settings.EnableDryRun, "enabledryrun", false, "dry runs bot, doesn't use database for trades/orders")
 	flag.BoolVar(&settings.EnableEventManager, "eventmanager", true, "enables the event manager")
-	flag.BoolVar(&settings.EnableExchangeSyncManager, "syncmanager", true, "enables to exchange sync manager")
+	flag.BoolVar(&settings.EnableExchangeSyncManager, "syncmanager", false, "enables to exchange sync manager")
 	flag.BoolVar(&settings.EnableGCTScriptManager, "gctscriptmanager", true, "enables gctscript manager")
 	flag.BoolVar(&settings.EnableGRPC, "grpc", true, "enables the grpc server")
 	flag.BoolVar(&settings.EnableGRPCProxy, "grpcproxy", false, "enables the grpc proxy server")
@@ -53,9 +53,9 @@ func main() {
 	flag.BoolVar(&settings.EnableOrderManager, "ordermanager", false, "enables the order manager")
 	flag.BoolVar(&settings.EnablePortfolioManager, "portfoliomanager", false, "enables the portfolio manager")
 	flag.BoolVar(&settings.EnableTradeManager, "trademanager", false, "enables trading manager")
-	flag.BoolVar(&settings.EnableTrading, "trading", true, "enables trading")
+	flag.BoolVar(&settings.EnableTrading, "trading", false, "enables trading")
 	flag.BoolVar(&settings.EnableWebsocketRPC, "websocketrpc", false, "enables the websocket RPC server")
-	flag.BoolVar(&settings.EnableWebsocketRoutine, "websocketroutine", true, "enables the websocket routine for all loaded exchanges")
+	flag.BoolVar(&settings.EnableWebsocketRoutine, "websocketroutine", false, "enables the websocket routine for all loaded exchanges")
 	flag.BoolVar(&settings.Verbose, "verbose", false, "increases logging verbosity for GoCryptoTrader")
 	flag.DurationVar(&settings.EventManagerDelay, "eventmanagerdelay", time.Duration(0), "sets the event managers sleep delay between event checking")
 	flag.DurationVar(&settings.PortfolioManagerDelay, "portfoliomanagerdelay", time.Duration(0), "sets the portfolio managers sleep delay between updates")
@@ -76,11 +76,11 @@ func main() {
 		"the amount of time before the syncer will switch from the websocket protocol to REST protocol (e.g. from websocket to REST)")
 
 	// Forex provider settings
-	flag.BoolVar(&settings.EnableCurrencyConverter, "currencyconverter", false, "overrides config and sets up foreign exchange Currency Converter")
+	flag.BoolVar(&settings.EnableCurrencyConverter, "currencyconverter", true, "overrides config and sets up foreign exchange Currency Converter")
 	flag.BoolVar(&settings.EnableCurrencyLayer, "currencylayer", false, "overrides config and sets up foreign exchange Currency Layer")
 	flag.BoolVar(&settings.EnableFixer, "fixer", false, "overrides config and sets up foreign exchange Fixer.io")
 	flag.BoolVar(&settings.EnableOpenExchangeRates, "openexchangerates", false, "overrides config and sets up foreign exchange Open Exchange Rates")
-	flag.BoolVar(&settings.EnableExchangeRateHost, "exchangeratehost", false, "overrides config and sets up foreign exchange ExchangeRate.host")
+	flag.BoolVar(&settings.EnableExchangeRateHost, "exchangeratehost", true, "overrides config and sets up foreign exchange ExchangeRate.host")
 
 	// Exchange tuning settings
 	flag.BoolVar(&settings.EnableExchangeAutoPairUpdates, "exchangeautopairupdates", false, "enables automatic available currency pair updates for supported exchanges")
