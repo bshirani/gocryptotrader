@@ -89,7 +89,7 @@ func NewFromSettings(settings *Settings, flagSet map[string]bool) (*Engine, erro
 
 	b.Config, err = loadConfigWithSettings(settings, flagSet)
 	if err != nil {
-		fmt.Println(2)
+		fmt.Println(22222)
 		return nil, fmt.Errorf("failed to load config. Err: %s", err)
 	}
 
@@ -116,8 +116,8 @@ func NewFromSettings(settings *Settings, flagSet map[string]bool) (*Engine, erro
 	}
 
 	b.ExchangeManager = SetupExchangeManager()
-	// exchanges, _ := b.ExchangeManager.GetExchanges()
-	// fmt.Println("exchange manager", b.ExchangeManager, exchanges)
+	exchanges, _ := b.ExchangeManager.GetExchanges()
+	fmt.Println("exchange manager", b.ExchangeManager, exchanges)
 
 	validateSettings(&b, settings, flagSet)
 
@@ -639,7 +639,7 @@ func (bot *Engine) Start() error {
 		}
 	}
 
-	err = bot.setupExchangeSettings()
+	err = bot.SetupExchangeSettings()
 	if err != nil {
 		fmt.Println("error setting up exchange settings", bot.Config, err)
 		return err
@@ -1034,25 +1034,14 @@ func (bot *Engine) WaitForInitialCurrencySync() error {
 	return bot.currencyPairSyncer.WaitForInitialSync()
 }
 
-func (bot *Engine) setupExchangeSettings() error {
-	// badList := GetBadSymbols()
+func (bot *Engine) SetupExchangeSettings() error {
 	for _, e := range bot.Config.GetEnabledExchanges() {
 		enabledPairs, _ := bot.Config.GetEnabledPairs(e, asset.Spot)
 		for _, pair := range enabledPairs {
-
-			// if IsSymbolInList(pair, badList) {
-			// 	fmt.Println("removed bad symbol", pair)
-			// 	continue
-			// }
-
-			// fmt.Println("enabledpairs", e, pair)
 			_, pair, a, err := bot.loadExchangePairAssetBase(e, pair.Base.String(), pair.Quote.String(), "spot")
-
-			// log.Debugln(log.TradeMgr, "setting exchange settings...", pair, a)
 			if err != nil {
 				return err
 			}
-
 			bot.CurrencySettings = append(bot.CurrencySettings, &ExchangeAssetPairSettings{
 				ExchangeName: e,
 				CurrencyPair: pair,
@@ -1066,6 +1055,7 @@ func (bot *Engine) setupExchangeSettings() error {
 func (bot *Engine) loadExchangePairAssetBase(exch, base, quote, ass string) (exchange.IBotExchange, currency.Pair, asset.Item, error) {
 	e, err := bot.GetExchangeByName(exch)
 	if err != nil {
+		fmt.Println(123)
 		return nil, currency.Pair{}, "", err
 	}
 

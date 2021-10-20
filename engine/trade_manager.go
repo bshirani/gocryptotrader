@@ -113,7 +113,11 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	tm.Datas = &data.HandlerPerCurrency{}
 	tm.Datas.Setup()
 	if !tm.bot.Config.LiveMode {
+		fmt.Println("starting offline services")
 		err = tm.startOfflineServices()
+	} else {
+		fmt.Println("is live")
+		os.Exit(11)
 	}
 	if err != nil {
 		fmt.Println("failed to setup bot", err)
@@ -130,7 +134,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 
 	// fmt.Println("done setting up bot with", len(tm.bot.CurrencySettings), "currencies")
 	if len(tm.bot.CurrencySettings) < 1 {
-		fmt.Println("no currency settings")
+		fmt.Println("!!no currency settings")
 		os.Exit(123)
 	}
 
@@ -220,28 +224,7 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 // in live mode...
 
 func (tm *TradeManager) Run() error {
-	// log.Debugf(log.TradeMgr, "TradeManager Running. Warmup: %v\n", warmup)
-	// for _, cs := range tm.bot.CurrencySettings {
-	// 	dbData, err := database.LoadData(
-	// 		time.Now().Add(time.Minute-30),
-	// 		time.Now(),
-	// 		time.Minute,
-	// 		cs.ExchangeName,
-	// 		0,
-	// 		cs.CurrencyPair,
-	// 		cs.AssetType)
-	//
-	// 	if err != nil {
-	// 		fmt.Println("error loading db data", err)
-	// 		// create a data history request if there isn't one already
-	// 		os.Exit(123)
-	// 	} else {
-	// 		fmt.Println("loaded data for", cs.CurrencyPair)
-	// 	}
-	//
-	// 	tm.Datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, dbData)
-	// 	dbData.Load()
-	// }
+	log.Debugf(log.TradeMgr, "TradeManager Running")
 dataLoadingIssue:
 	for ev := tm.EventQueue.NextEvent(); ; ev = tm.EventQueue.NextEvent() {
 		if ev == nil {
@@ -252,8 +235,8 @@ dataLoadingIssue:
 					tm.hasHandledEvent = false
 					for _, dataHandler := range assetMap {
 						d := dataHandler.Next()
+						fmt.Println("d", d)
 						if d == nil {
-							// log.Errorf(log.TradeMgr, "No data found for %v", currencyPair)
 							// if !tm.hasHandledEvent {
 							// 	log.Errorf(log.TradeMgr, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
 							// }
@@ -276,6 +259,7 @@ dataLoadingIssue:
 			tm.hasHandledEvent = true
 		}
 	}
+	fmt.Println("done running")
 
 	return nil
 }
@@ -757,6 +741,7 @@ func (tm *TradeManager) updateStatsForDataEvent(ev eventtypes.DataEventHandler) 
 }
 
 func (tm *TradeManager) startOfflineServices() error {
+	fmt.Println("TM start offline services")
 	for _, cs := range tm.cfg.CurrencySettings {
 		err := tm.bot.LoadExchange(cs.ExchangeName, nil)
 		if err != nil && !errors.Is(err, ErrExchangeAlreadyLoaded) {
@@ -764,7 +749,7 @@ func (tm *TradeManager) startOfflineServices() error {
 		}
 	}
 
-	tm.bot.setupExchangeSettings()
+	tm.bot.SetupExchangeSettings()
 
 	// start fake order manager here since we don't start engine in live mode
 	var err error
@@ -794,6 +779,31 @@ func (tm *TradeManager) startOfflineServices() error {
 			gctlog.Errorf(gctlog.Global, "Database manager unable to start: %v", err)
 		}
 	}
+
+	tm.initializeFactorEngines()
+
+	for _, cs := range tm.bot.CurrencySettings {
+		dbData, err := database.LoadData(
+			time.Now().Add(time.Minute*-300),
+			time.Now().Add(time.Minute*-30),
+			time.Minute,
+			cs.ExchangeName,
+			0,
+			cs.CurrencyPair,
+			cs.AssetType)
+
+		if err != nil {
+			fmt.Println("error loading db data", err)
+			// create a data history request if there isn't one already
+			os.Exit(123)
+		} else {
+			fmt.Println("loaded data for", len(dbData.Item.Candles), cs.CurrencyPair)
+		}
+
+		tm.Datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, dbData)
+		dbData.Load()
+	}
+
 	return err
 }
 
