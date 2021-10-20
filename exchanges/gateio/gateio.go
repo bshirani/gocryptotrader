@@ -238,6 +238,7 @@ func (g *Gateio) GetSpotKlineV4(ctx context.Context, arg KlinesRequestParamsV4) 
 
 	for _, k := range respData {
 		ot, err := convert.UnixTimestampStrToTime(k[0])
+		// fmt.Println("converted", k[0], "to", ot)
 		if err != nil {
 			return kline.Item{}, fmt.Errorf("cannot parse Kline.OpenTime. Err: %s", err)
 		}

@@ -73,7 +73,9 @@ func UnixTimestampStrToTime(timeStr string) (time.Time, error) {
 	if err != nil {
 		return time.Time{}, err
 	}
-	return time.Unix(i, 0), nil
+	t := time.Unix(i, 0).UTC()
+	// fmt.Println("converting", timeStr, t)
+	return t, nil
 }
 
 // UnixMillis converts a UnixNano timestamp to milliseconds

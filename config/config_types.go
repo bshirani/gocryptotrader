@@ -42,6 +42,7 @@ const (
 	defaultDataHistoryMonitorCheckTimer  = time.Minute
 	defaultCurrencyStateManagerDelay     = time.Minute
 	defaultMaxJobsPerCycle               = 50
+	defaultDaysBack                      = 2
 )
 
 // Constants here hold some messages
@@ -157,6 +158,7 @@ type DataHistoryManager struct {
 	CheckInterval       time.Duration `json:"checkInterval"`
 	MaxJobsPerCycle     int64         `json:"maxJobsPerCycle"`
 	MaxResultInsertions int64         `json:"maxResultInsertions"`
+	DaysBack            int64         `json:"daysBack"`
 }
 
 // CurrencyStateManager defines a set of configuration options for the currency

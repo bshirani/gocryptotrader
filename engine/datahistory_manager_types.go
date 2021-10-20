@@ -111,6 +111,7 @@ var (
 	// for a trade job
 	defaultDataHistoryTradeInterval          = kline.FifteenMin
 	defaultDataHistoryMaxJobsPerCycle  int64 = 50
+	defaultDataHistoryDaysBack         int64 = 2
 	defaultMaxResultInsertions         int64 = 10000
 	defaultDataHistoryBatchLimit       int64 = 3
 	defaultDataHistoryRetryAttempts    int64 = 3
@@ -123,6 +124,7 @@ var (
 // DataHistoryManager is responsible for synchronising,
 // retrieving and saving candle and trade data from loaded jobs
 type DataHistoryManager struct {
+	DaysBack                   int64
 	bot                        *Engine
 	exchangeManager            iExchangeManager
 	databaseConnectionInstance database.IDatabase

@@ -1348,6 +1348,9 @@ func (c *Config) CheckDataHistoryMonitorConfig() {
 	if c.DataHistoryManager.MaxJobsPerCycle == 0 {
 		c.DataHistoryManager.MaxJobsPerCycle = defaultMaxJobsPerCycle
 	}
+	if c.DataHistoryManager.DaysBack == 0 {
+		c.DataHistoryManager.DaysBack = defaultDaysBack
+	}
 }
 
 // CheckCurrencyStateManager ensures the currency state config is valid, or sets

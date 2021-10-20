@@ -45,6 +45,9 @@ func SetupDataHistoryManager(bot *Engine, em iExchangeManager, dcm iDatabaseConn
 	if cfg.MaxJobsPerCycle <= 0 {
 		cfg.MaxJobsPerCycle = defaultDataHistoryMaxJobsPerCycle
 	}
+	if cfg.DaysBack <= 0 {
+		cfg.DaysBack = defaultDataHistoryDaysBack
+	}
 	if cfg.MaxResultInsertions <= 0 {
 		cfg.MaxResultInsertions = defaultMaxResultInsertions
 	}
@@ -59,6 +62,7 @@ func SetupDataHistoryManager(bot *Engine, em iExchangeManager, dcm iDatabaseConn
 	}
 
 	return &DataHistoryManager{
+		DaysBack:                   cfg.DaysBack,
 		bot:                        bot,
 		exchangeManager:            em,
 		databaseConnectionInstance: db,
@@ -76,7 +80,7 @@ func SetupDataHistoryManager(bot *Engine, em iExchangeManager, dcm iDatabaseConn
 	}, nil
 }
 
-func (m *DataHistoryManager) CatchupDays(daysBack int) error {
+func (m *DataHistoryManager) CatchupDays(daysBack int64) error {
 	// if m.verbose {
 	// 	log.Debugln(log.DataHistory, "catchup days")
 	// }
@@ -84,7 +88,7 @@ func (m *DataHistoryManager) CatchupDays(daysBack int) error {
 	// start two months ago
 	t := time.Now().UTC()
 	dayTime := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
-	startDate := dayTime.AddDate(0, 0, daysBack*-1)
+	startDate := dayTime.AddDate(0, 0, int(daysBack)*-1)
 	syncDays := true
 	// badSymbols := GetBadSymbols()
 
@@ -191,7 +195,7 @@ func (m *DataHistoryManager) createCatchupJob(exchangeName string, a asset.Item,
 		EndDate:                end,
 		Interval:               kline.Interval(60000000000),
 		RunBatchLimit:          10,
-		RequestSizeLimit:       999,
+		RequestSizeLimit:       100,
 		DataType:               dataHistoryDataType(eventtypes.DataCandle),
 		MaxRetryAttempts:       1,
 		Status:                 dataHistoryStatusActive,

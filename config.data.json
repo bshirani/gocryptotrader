@@ -46,7 +46,7 @@
  "factorEngine": {
   "verbose": false
  },
- "name": "Full",
+ "name": "Data Catchup",
  "dataDirectory": "",
  "encryptConfig": -1,
  "globalHTTPTimeout": 15000000000,
@@ -104,7 +104,7 @@
   "checkInterval": 60000000000,
   "maxJobsPerCycle": 100,
   "maxResultInsertions": 10000,
-  "daysBack": 1
+  "daysBack": 2
  },
  "currencyStateManager": {
   "enabled": true,
