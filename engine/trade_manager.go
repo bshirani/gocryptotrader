@@ -358,12 +358,14 @@ func (tm *TradeManager) waitForDataCatchup() {
 
 	if tm.bot.dataHistoryManager.IsRunning() {
 		// names, err := tm.bot.dataHistoryManager.CatchupDays(func() { localWG.Done() })
-		_ = tm.bot.dataHistoryManager.CatchupToday(func() { localWG.Done() })
+		i := tm.bot.dataHistoryManager.CatchupToday(func() { fmt.Println("DONE"); localWG.Done() })
+		fmt.Println("created", i, "jobs")
 		// if len(names) > 0 {
 		// 	fmt.Println("created jobs", names, err)
 		// }
 	}
 
+	log.Infoln(log.TradeMgr, "Waiting for data catchup...")
 	localWG.Wait()
 
 	for {

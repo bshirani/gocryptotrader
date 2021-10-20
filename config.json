@@ -39,9 +39,9 @@
   "risk-free-rate": "0"
  },
  "tradeManager": {
-  "enabled": true,
+  "enabled": false,
   "verbose": true,
-  "tradingEnabled": true
+  "tradingEnabled": false
  },
  "factorEngine": {
   "verbose": false
@@ -106,7 +106,7 @@
   "verbose": false
  },
  "currencyStateManager": {
-  "enabled": false,
+  "enabled": true,
   "delay": 60000000000
  },
  "watcher": {
@@ -137,7 +137,7 @@
   "forexProviders": [
    {
     "name": "CurrencyConverter",
-    "enabled": true,
+    "enabled": false,
     "verbose": false,
     "restPollingDelay": 600,
     "apiKey": "Key",
@@ -192,7 +192,7 @@
   ],
   "cryptocurrencyProvider": {
    "name": "CoinMarketCap",
-   "enabled": true,
+   "enabled": false,
    "verbose": false,
    "apiKey": "3be249cb-0c44-44f2-8995-34fd4437fa23",
    "accountPlan": "basic"
@@ -356,7 +356,7 @@
   },
   {
    "name": "kraken",
-   "enabled": false,
+   "enabled": true,
    "verbose": false,
    "httpTimeout": 15000000000,
    "websocketResponseCheckTimeout": 30000000,
@@ -424,7 +424,7 @@
     },
     "enabled": {
      "autoPairUpdates": true,
-     "websocketAPI": false,
+     "websocketAPI": true,
      "saveTradeData": true
     }
    },
