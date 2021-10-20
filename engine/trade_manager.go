@@ -281,7 +281,6 @@ dataLoadingIssue:
 }
 
 func (tm *TradeManager) Start() error {
-	tm.bot.WaitForInitialCurrencySync()
 	if !atomic.CompareAndSwapInt32(&tm.started, 0, 1) {
 		return fmt.Errorf("backtester %w", ErrSubSystemAlreadyStarted)
 	}
@@ -354,7 +353,12 @@ func (tm *TradeManager) waitForDataCatchup() {
 
 	log.Infoln(log.TradeMgr, "Catching up days...")
 	// localWG.Add(1)
-	tm.bot.dataHistoryManager.CatchupDays(2)
+	N := make([]struct{}, 30)
+	for i := range N {
+		i += 1
+		fmt.Println("catchup days", i)
+		tm.bot.dataHistoryManager.CatchupDays(i)
+	}
 	// localWG.Add(1)
 	// localWG.Wait()
 
@@ -418,7 +422,7 @@ func (tm *TradeManager) waitForFactorEnginesWarmup() {
 			cs.CurrencyPair,
 			cs.AssetType)
 		if err != nil {
-			fmt.Println("error load db data", err)
+			fmt.Errorf("error load db data", err)
 		}
 		// fmt.Println(cs.CurrencyPair, "loaded", len(dbData.Item.Candles), "candles")
 		tm.Datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, dbData)
@@ -449,8 +453,12 @@ func (tm *TradeManager) waitForFactorEnginesWarmup() {
 }
 
 func (tm *TradeManager) runLive() error {
+	tm.bot.WaitForInitialCurrencySync()
+
 	processEventTicker := time.NewTicker(time.Second * 5)
-	tm.waitForDataCatchup()
+	if tm.bot.dataHistoryManager.IsRunning() {
+		tm.waitForDataCatchup()
+	}
 	tm.waitForFactorEnginesWarmup()
 	log.Infoln(log.TradeMgr, "Running Live!")
 

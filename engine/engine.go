@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
@@ -162,9 +163,9 @@ func validateSettings(b *Engine, s *Settings, flagSet map[string]bool) {
 	b.Settings.EnableTradeManager = (flagSet["trader"] && b.Settings.EnableTradeManager) || b.Config.TradeManager.Enabled
 	b.Settings.EnableTrading = (flagSet["trade"] && b.Settings.EnableTrading) || b.Config.TradeManager.TradingEnabled
 
-	if b.Settings.EnableTradeManager {
-		b.Settings.EnableDataHistoryManager = true
-	}
+	// if b.Settings.EnableTradeManager {
+	// 	b.Settings.EnableDataHistoryManager = true
+	// }
 
 	b.Settings.EnableCurrencyStateManager = (flagSet["currencystatemanager"] &&
 		b.Settings.EnableCurrencyStateManager) ||
@@ -467,9 +468,6 @@ func (bot *Engine) Start() error {
 
 	if bot.Settings.EnableGRPC {
 		go StartRPCServer(bot)
-	} else {
-		fmt.Println("not enabled")
-		os.Exit(2)
 	}
 
 	if bot.Settings.EnablePortfolioManager {
@@ -1038,9 +1036,16 @@ func (bot *Engine) WaitForInitialCurrencySync() error {
 }
 
 func (bot *Engine) setupExchangeSettings() error {
+	badList := GetBadSymbols()
 	for _, e := range bot.Config.GetEnabledExchanges() {
 		enabledPairs, _ := bot.Config.GetEnabledPairs(e, asset.Spot)
 		for _, pair := range enabledPairs {
+
+			if IsSymbolInList(pair, badList) {
+				fmt.Println("removed bad symbol", pair)
+				continue
+			}
+
 			// fmt.Println("enabledpairs", e, pair)
 			_, pair, a, err := bot.loadExchangePairAssetBase(e, pair.Base.String(), pair.Quote.String(), "spot")
 
@@ -1124,4 +1129,29 @@ func (bot *Engine) GetCurrencySettings(exch string, a asset.Item, cp currency.Pa
 		}
 	}
 	return &ExchangeAssetPairSettings{}, fmt.Errorf("no currency settings found for %v %v %v", exch, a, cp)
+}
+
+func GetBadSymbols() []string {
+	file, err := os.Open("./bad_symbols.txt")
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(123)
+	}
+	defer file.Close()
+
+	pairs := make([]string, 0)
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		pairs = append(pairs, scanner.Text())
+	}
+	return pairs
+}
+
+func IsSymbolInList(p currency.Pair, badSymbols []string) bool {
+	for _, bad := range badSymbols {
+		if strings.EqualFold(p.Upper().String(), bad) {
+			return true
+		}
+	}
+	return false
 }

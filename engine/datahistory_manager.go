@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"bufio"
 	"context"
 	"database/sql"
 	"errors"
@@ -87,7 +86,7 @@ func (m *DataHistoryManager) CatchupDays(daysBack int) error {
 	dayTime := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 	startDate := dayTime.AddDate(0, 0, daysBack*-1)
 	syncDays := true
-	badSymbols := getBadSymbols()
+	badSymbols := GetBadSymbols()
 
 	if syncDays {
 		for _, p := range m.bot.CurrencySettings {
@@ -499,7 +498,9 @@ ranges:
 		if skipProcessing {
 			_, ok := job.Results[job.rangeHolder.Ranges[i].Start.Time]
 			if !ok && !job.OverwriteExistingData {
-				fmt.Println("Does not have results in same range")
+				if m.verbose {
+					log.Warnf(log.DataHistory, "does not have results in same range")
+				}
 				// we have determined that data is there, however it is not reflected in
 				// this specific job's results, which is required for a job to be complete
 				var id uuid.UUID
@@ -1767,20 +1768,4 @@ func (m *DataHistoryManager) convertJobToDBModel(job *DataHistoryJob) *datahisto
 	}
 
 	return model
-}
-
-func getBadSymbols() []string {
-	file, err := os.Open("./bad_symbols.txt")
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(123)
-	}
-	defer file.Close()
-
-	pairs := make([]string, 0)
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		pairs = append(pairs, scanner.Text())
-	}
-	return pairs
 }
