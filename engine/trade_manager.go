@@ -354,7 +354,7 @@ func (tm *TradeManager) waitForDataCatchup() {
 
 	log.Infoln(log.TradeMgr, "Catching up days...")
 	// localWG.Add(1)
-	tm.bot.dataHistoryManager.CatchupDays(1)
+	tm.bot.dataHistoryManager.CatchupDays(10)
 	// localWG.Add(1)
 	// localWG.Wait()
 

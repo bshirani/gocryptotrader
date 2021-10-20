@@ -922,7 +922,7 @@ func (g *Gateio) GetHistoricCandles(ctx context.Context, pair currency.Pair, a a
 	// fmt.Println("before remove", len(klineData.Candles), start, end)
 	// klineData.RemoveOutsideRange(start, end)
 	// fmt.Println("after remove", len(klineData.Candles))
-	fmt.Println("first time", klineData.Candles[0].Time, klineData.Candles[len(klineData.Candles)-1].Time)
+	// fmt.Println("first time", klineData.Candles[0].Time, klineData.Candles[len(klineData.Candles)-1].Time)
 
 	// store in database
 	// kline.StoreInDatabase(&klineData, false)

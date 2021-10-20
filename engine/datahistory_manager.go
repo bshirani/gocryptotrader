@@ -108,7 +108,6 @@ func (m *DataHistoryManager) CatchupDays(daysBack int) error {
 						// fmt.Printf("%d-%d:%d, ", x.Month(), x.Day(), len(candles.Candles))
 						continue
 					}
-					fmt.Printf("!")
 					// log.Warnf(log.DataHistory, "Data history manager Syncing Days")
 					m.createCatchupJob(p.ExchangeName, p.AssetType, p.CurrencyPair, t1, t2)
 				}
@@ -802,14 +801,13 @@ func (m *DataHistoryManager) saveCandlesInBatches(job *DataHistoryJob, candles *
 				log.Errorln(log.DataHistory, "Candle saving failed", err)
 			}
 			// if m.verbose {
-			log.Infof(log.DataHistory,
-				"Saving %v candles. Inserted: %d. t1:%v tn:%v Range %v/%v",
+			log.Debugf(log.DataHistory,
+				"%8s Saving candles. s:%v e:%v in:%d/%d",
+				fmt.Sprintf("%s-%s", job.Pair.Upper().Base.String(), job.Pair.Upper().Quote.String()),
+				newCandle.Candles[0].Time.Format(common.SimpleTimeFormat),
+				newCandle.Candles[len(newCandle.Candles)-1].Time.Format(common.SimpleTimeFormat),
 				len(newCandle.Candles[i:]),
-				inserted,
-				newCandle.Candles[0].Time,
-				newCandle.Candles[len(newCandle.Candles)-1].Time,
-				i,
-				len(candles.Candles))
+				inserted)
 			// }
 			break
 		}
@@ -821,7 +819,7 @@ func (m *DataHistoryManager) saveCandlesInBatches(job *DataHistoryJob, candles *
 			r.Status = dataHistoryStatusFailed
 		}
 		// if m.verbose {
-		log.Infof(log.DataHistory, "POSTLIMIT Saving %v candles. Inserted: %d Range %v-%v/%v", m.maxResultInsertions, inserted, i, i+int(m.maxResultInsertions), len(candles.Candles))
+		log.Warnf(log.DataHistory, "POSTLIMIT Saving %v candles. Inserted: %d Range %v-%v/%v", m.maxResultInsertions, inserted, i, i+int(m.maxResultInsertions), len(candles.Candles))
 		// }
 	}
 	return nil
@@ -860,8 +858,8 @@ func (m *DataHistoryManager) processCandleData(job *DataHistoryJob, exch exchang
 	}
 
 	// fmt.Println("requesting candles", startRange, endRange, job.Interval)
+	// fmt.Println("process candle data", startRange, endRange)
 
-	fmt.Println("process candle data", startRange, endRange)
 	candles, err := exch.GetHistoricCandlesExtended(context.TODO(),
 		job.Pair,
 		job.Asset,
@@ -869,9 +867,9 @@ func (m *DataHistoryManager) processCandleData(job *DataHistoryJob, exch exchang
 		endRange,
 		job.Interval)
 
-	// if m.verbose {
-	// 	fmt.Println("process candle data for", job.Pair, startRange, endRange)
-	// }
+	if m.verbose {
+		fmt.Println("process candle data for", job.Pair, startRange, endRange)
+	}
 
 	if err != nil {
 		r.Result += "could not get candles: " + err.Error() + ". "
