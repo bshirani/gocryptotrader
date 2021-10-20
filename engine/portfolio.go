@@ -676,7 +676,6 @@ func (p *Portfolio) UpdatePositions(ev eventtypes.DataEventHandler) {
 	if !ok {
 		return
 		// return fmt.Errorf("%w for %v %v %v",
-		// 	errNoPortfolioSettings,
 		// 	ev.GetExchange(),
 		// 	ev.GetAssetType(),
 		// 	ev.Pair())
