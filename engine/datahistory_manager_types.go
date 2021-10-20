@@ -110,7 +110,7 @@ var (
 	// defaultDataHistoryTradeInterval is the default interval size used to verify whether there is any database data
 	// for a trade job
 	defaultDataHistoryTradeInterval          = kline.FifteenMin
-	defaultDataHistoryMaxJobsPerCycle  int64 = 5
+	defaultDataHistoryMaxJobsPerCycle  int64 = 50
 	defaultMaxResultInsertions         int64 = 10000
 	defaultDataHistoryBatchLimit       int64 = 3
 	defaultDataHistoryRetryAttempts    int64 = 3

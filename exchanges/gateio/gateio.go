@@ -419,6 +419,8 @@ func (g *Gateio) SendHTTPv4Request(ctx context.Context, ep exchange.URL, path st
 		return err
 	}
 
+	// fmt.Println("endpoint", endpoint+path)
+
 	item := &request.Item{
 		Method:        http.MethodGet,
 		Path:          endpoint + path,

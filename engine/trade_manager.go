@@ -354,9 +354,7 @@ func (tm *TradeManager) waitForDataCatchup() {
 
 	log.Infoln(log.TradeMgr, "Catching up days...")
 	// localWG.Add(1)
-	tm.bot.dataHistoryManager.CatchupDays(func() {})
-	log.Infoln(log.TradeMgr, "Done with catchup")
-	os.Exit(1123)
+	tm.bot.dataHistoryManager.CatchupDays(3)
 	// localWG.Add(1)
 	// localWG.Wait()
 
@@ -371,6 +369,9 @@ func (tm *TradeManager) waitForDataCatchup() {
 		}
 		time.Sleep(time.Millisecond * 500)
 	}
+
+	log.Infoln(log.TradeMgr, "Done with catchup")
+	os.Exit(1123)
 
 	// fmt.Println("validating...")
 	// rTotal := make(map[*ExchangeAssetPairSettings]int)

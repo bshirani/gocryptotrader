@@ -41,7 +41,7 @@ const (
 	DefaultAPIClientID                   = "ClientID"
 	defaultDataHistoryMonitorCheckTimer  = time.Minute
 	defaultCurrencyStateManagerDelay     = time.Minute
-	defaultMaxJobsPerCycle               = 5
+	defaultMaxJobsPerCycle               = 50
 )
 
 // Constants here hold some messages

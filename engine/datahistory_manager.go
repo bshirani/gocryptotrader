@@ -63,7 +63,7 @@ func SetupDataHistoryManager(bot *Engine, em iExchangeManager, dcm iDatabaseConn
 		exchangeManager:            em,
 		databaseConnectionInstance: db,
 		shutdown:                   make(chan struct{}),
-		interval:                   time.NewTicker(time.Second),
+		interval:                   time.NewTicker(time.Second * 5),
 		jobDB:                      dhj,
 		jobResultDB:                dhjr,
 		maxJobsPerCycle:            cfg.MaxJobsPerCycle,
@@ -76,28 +76,7 @@ func SetupDataHistoryManager(bot *Engine, em iExchangeManager, dcm iDatabaseConn
 	}, nil
 }
 
-// var activePair bool
-// for _, co := range counts {
-// 	p, _ := currency.NewPairFromString(fmt.Sprintf("%s_%s", co.Base, co.Quote))
-// 	for cs := range m.bot.CurrencySettings {
-// 		if strings.EqualFold(p.String(), cs.CurrencyPair.String()) {
-// 			activePair = true
-// 		}
-// 	}
-//
-// 	if activePair && co.Count < 1400 {
-// 		t1 := co.Date
-// 		t2 := co.Date.AddDate(0, 0, 1)
-// 		uid, _ := uuid.FromString(co.ExchangeID)
-// 		e, _ := exchangesql.OneByUUID(uid)
-// 		a, _ := asset.New(co.AssetType)
-// 		fmt.Println(p, co.ExchangeID, co.Base, co.Quote, co.Count, t1, t2)
-// 		m.createCatchupJob(e.Name, a, p, t1, t2)
-// 	}
-// 	activePair = false
-// }
-
-func (m *DataHistoryManager) CatchupDays(callback func()) error {
+func (m *DataHistoryManager) CatchupDays(daysBack int) error {
 	if m.verbose {
 		log.Debugln(log.DataHistory, "catchup days")
 	}
@@ -105,7 +84,7 @@ func (m *DataHistoryManager) CatchupDays(callback func()) error {
 	// start two months ago
 	t := time.Now()
 	dayTime := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
-	startDate := dayTime.AddDate(0, -2, 10)
+	startDate := dayTime.AddDate(0, 0, daysBack*-1)
 	syncDays := true
 
 	if syncDays {
@@ -119,31 +98,73 @@ func (m *DataHistoryManager) CatchupDays(callback func()) error {
 					// fmt.Printf("%d-%d:%d, ", x.Month(), x.Day(), len(candles.Candles))
 					continue
 				}
+				fmt.Printf("!")
 				// log.Warnf(log.DataHistory, "Data history manager Syncing Days")
-				// fmt.Printf(".")
 				m.createCatchupJob(p.ExchangeName, p.AssetType, p.CurrencyPair, t1, t2)
 			}
 		}
 	}
 
-	if m.verbose {
-		log.Debugln(log.DataHistory, "catchup today")
-	}
+	// var activePair bool
+	// counts, _ := candle.Counts()
+	// t := time.Now().UTC()
+	// dayTime := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+	//
+	// for _, co := range counts {
+	// 	p, _ := currency.NewPairFromString(fmt.Sprintf("%s_%s", co.Base, co.Quote))
+	// 	for _, cs := range m.bot.CurrencySettings {
+	// 		if strings.EqualFold(p.String(), cs.CurrencyPair.String()) {
+	// 			// fmt.Println("active", cs.CurrencyPair)
+	// 			activePair = true
+	// 		}
+	// 	}
+	// 	if !activePair {
+	// 		continue
+	// 	}
+	//
+	// 	if co.Date.Before(time.Now().AddDate(0, 0, -29)) {
+	// 		// fmt.Println("skipping")
+	// 		continue
+	// 	}
+	//
+	// 	isToday := co.Date.Year() == dayTime.Year() && co.Date.Month() == dayTime.Month() && co.Date.Day() == dayTime.Day()
+	// 	if isToday {
+	// 		// fmt.Println("is today", co.Count)
+	// 		continue
+	// 	}
+	//
+	// 	if co.Count < 1400 {
+	// 		t1 := co.Date
+	// 		t2 := co.Date.AddDate(0, 0, 1)
+	// 		uid, _ := uuid.FromString(co.ExchangeID)
+	// 		e, _ := exchangesql.OneByUUID(uid)
+	// 		a, _ := asset.New(co.AssetType)
+	// 		fmt.Println(p, "ONLY HAS", co.Count, t1, t2, e, a)
+	// 		// m.createCatchupJob(e.Name, a, p, t1, t2)
+	// 	}
+	// 	// else {
+	// 	// 	fmt.Printf(".")
+	// 	// }
+	// 	activePair = false
+	// }
 
-	for _, p := range m.bot.CurrencySettings {
-		t1 := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location()).UTC()
-		t2 := time.Now().UTC()
-		minPast := int(t2.Sub(t1).Minutes())
-		candles, _ := candle.Series(p.ExchangeName, p.CurrencyPair.Base.String(), p.CurrencyPair.Quote.String(), 60, p.AssetType.String(), t1, t2)
-		missing := minPast - len(candles.Candles)
-		if missing < 60 {
-			continue
-		}
-		log.Warnf(log.DataHistory, "Data history manager Syncing More Than 60 minutes of Data %v", MsgSubSystemStarted)
-		m.createCatchupJob(p.ExchangeName, p.AssetType, p.CurrencyPair, t1, t2)
-	}
+	// if m.verbose {
+	// 	log.Debugln(log.DataHistory, "catchup today")
+	// }
+	//
+	// for _, p := range m.bot.CurrencySettings {
+	// 	t1 := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location()).UTC()
+	// 	t2 := time.Now().UTC()
+	// 	minPast := int(t2.Sub(t1).Minutes())
+	// 	candles, _ := candle.Series(p.ExchangeName, p.CurrencyPair.Base.String(), p.CurrencyPair.Quote.String(), 60, p.AssetType.String(), t1, t2)
+	// 	missing := minPast - len(candles.Candles)
+	// 	if missing < 60 {
+	// 		continue
+	// 	}
+	// 	log.Warnf(log.DataHistory, "Data history manager Syncing More Than 60 minutes of Data %v", MsgSubSystemStarted)
+	// 	m.createCatchupJob(p.ExchangeName, p.AssetType, p.CurrencyPair, t1, t2)
+	// }
 
-	callback()
 	return nil
 }
 
@@ -387,7 +408,6 @@ func (m *DataHistoryManager) RunJobs() error {
 // runJob processes an active job, retrieves candle or trade data
 // for a given date range and saves all results to the database
 func (m *DataHistoryManager) runJob(job *DataHistoryJob) error {
-
 	if m == nil {
 		return ErrNilSubsystem
 	}
@@ -469,6 +489,7 @@ ranges:
 		if skipProcessing {
 			_, ok := job.Results[job.rangeHolder.Ranges[i].Start.Time]
 			if !ok && !job.OverwriteExistingData {
+				fmt.Println("NOT OK AND NOT OVERWRITE")
 				// we have determined that data is there, however it is not reflected in
 				// this specific job's results, which is required for a job to be complete
 				var id uuid.UUID
@@ -762,15 +783,23 @@ func (m *DataHistoryManager) saveCandlesInBatches(job *DataHistoryJob, candles *
 		newCandle := *candles
 		if i+int(m.maxResultInsertions) > len(newCandle.Candles) {
 			newCandle.Candles = newCandle.Candles[i:]
+			// fmt.Println("inserting candles 1")
 			inserted, err := m.candleSaver(&newCandle, job.OverwriteExistingData)
 			if err != nil {
 				r.Result += "could not save results: " + err.Error() + ". "
 				r.Status = dataHistoryStatusFailed
 				log.Errorln(log.DataHistory, "Candle saving failed", err)
 			}
-			if m.verbose {
-				log.Debugf(log.DataHistory, "Saving %v candles. Inserted: %d. Range %v-%v/%v", len(newCandle.Candles[i:]), inserted, i, len(candles.Candles), len(candles.Candles))
-			}
+			// if m.verbose {
+			log.Infof(log.DataHistory,
+				"Saving %v candles. Inserted: %d. t1:%v tn:%v Range %v/%v",
+				len(newCandle.Candles[i:]),
+				inserted,
+				newCandle.Candles[0].Time,
+				newCandle.Candles[len(newCandle.Candles)-1].Time,
+				i,
+				len(candles.Candles))
+			// }
 			break
 		}
 		newCandle.Candles = newCandle.Candles[i : i+int(m.maxResultInsertions)]
@@ -780,9 +809,9 @@ func (m *DataHistoryManager) saveCandlesInBatches(job *DataHistoryJob, candles *
 			r.Result += "could not save results: " + err.Error() + ". "
 			r.Status = dataHistoryStatusFailed
 		}
-		if m.verbose {
-			log.Debugf(log.DataHistory, "Saving %v candles. Inserted: %d Range %v-%v/%v", m.maxResultInsertions, inserted, i, i+int(m.maxResultInsertions), len(candles.Candles))
-		}
+		// if m.verbose {
+		log.Infof(log.DataHistory, "POSTLIMIT Saving %v candles. Inserted: %d Range %v-%v/%v", m.maxResultInsertions, inserted, i, i+int(m.maxResultInsertions), len(candles.Candles))
+		// }
 	}
 	return nil
 }
@@ -821,6 +850,7 @@ func (m *DataHistoryManager) processCandleData(job *DataHistoryJob, exch exchang
 
 	// fmt.Println("requesting candles", startRange, endRange, job.Interval)
 
+	fmt.Println("process candle data", startRange, endRange)
 	candles, err := exch.GetHistoricCandlesExtended(context.TODO(),
 		job.Pair,
 		job.Asset,

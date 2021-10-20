@@ -88,6 +88,8 @@ func StoreInDatabase(in *Item, force bool) (uint64, error) {
 		Asset:      in.Asset.String(),
 	}
 
+	// fmt.Println("kline storeindatabaseverwrite", force, in.Candles[0].Time, in.Candles[len(in.Candles)-1].Time)
+
 	for x := range in.Candles {
 		can := candle.Candle{
 			Timestamp: in.Candles[x].Time.Truncate(in.Interval.Duration()),
