@@ -113,6 +113,7 @@ func (m *DataHistoryManager) CatchupDays(daysBack int64) error {
 				}
 				log.Warnln(log.DataHistory, "Data history manager Syncing Days. Only have:", len(candles.Candles), "bars", p.CurrencyPair, t1, t2)
 				m.createCatchupJob(p.ExchangeName, p.AssetType, p.CurrencyPair, t1, t2)
+				time.Sleep(time.Second)
 			}
 			// }
 		}
@@ -502,9 +503,9 @@ ranges:
 		if skipProcessing {
 			_, ok := job.Results[job.rangeHolder.Ranges[i].Start.Time]
 			if !ok && !job.OverwriteExistingData {
-				if m.verbose {
-					log.Warnf(log.DataHistory, "does not have results in same range")
-				}
+				// if m.verbose {
+				// 	log.Warnf(log.DataHistory, "does not have results in same range")
+				// }
 				// we have determined that data is there, however it is not reflected in
 				// this specific job's results, which is required for a job to be complete
 				var id uuid.UUID

@@ -413,12 +413,18 @@ func (tm *TradeManager) waitForFactorEnginesWarmup() {
 			0,
 			cs.CurrencyPair,
 			cs.AssetType)
+
 		if err != nil {
 			fmt.Errorf("error load db data", err)
 		}
+
+		if dbData != nil {
+			tm.Datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, dbData)
+			dbData.Load()
+		}
+		// fmt.Println("dbData", dbData)
+		// fmt.Println("dbDataitem", dbData.Item)
 		// fmt.Println(cs.CurrencyPair, "loaded", len(dbData.Item.Candles), "candles")
-		tm.Datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, dbData)
-		dbData.Load()
 	}
 
 	tm.Run()
