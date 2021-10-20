@@ -10,6 +10,7 @@ import (
 	"gocryptotrader/config"
 	gctdatabase "gocryptotrader/database"
 	"gocryptotrader/engine"
+	"gocryptotrader/exchange/asset"
 	"gocryptotrader/log"
 )
 
@@ -76,7 +77,13 @@ func main() {
 		}
 	}
 
-	for _, cs := range bot.CurrencySettings {
-		fmt.Println("do something with", cs.CurrencyPair)
+	pairs, _ := bot.Config.GetAvailablePairs("gateio", asset.Spot)
+	for _, p := range pairs {
+		fmt.Println(p)
+		// upsert
 	}
+
+	// for _, cs := range bot.CurrencySettings {
+	// 	fmt.Println("do something with", cs.CurrencyPair)
+	// }
 }

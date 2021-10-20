@@ -115,9 +115,6 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	if !tm.bot.Config.LiveMode {
 		fmt.Println("starting offline services")
 		err = tm.startOfflineServices()
-	} else {
-		fmt.Println("is live")
-		os.Exit(11)
 	}
 	if err != nil {
 		fmt.Println("failed to setup bot", err)
