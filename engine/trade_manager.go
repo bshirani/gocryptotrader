@@ -751,6 +751,8 @@ func (tm *TradeManager) startOfflineServices() error {
 
 	tm.bot.SetupExchangeSettings()
 
+	return nil
+
 	// start fake order manager here since we don't start engine in live mode
 	var err error
 	tm.bot.FakeOrderManager, err = SetupFakeOrderManager(

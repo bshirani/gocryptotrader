@@ -1,12 +1,12 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
 
-	"gocryptotrader/common"
 	"gocryptotrader/config"
 	gctdatabase "gocryptotrader/database"
 	"gocryptotrader/engine"
@@ -32,10 +32,6 @@ func main() {
 	flag.BoolVar(&darkReport, "darkreport", false, "sets the initial rerport to use a dark theme")
 	flag.Parse()
 
-	if printLogo {
-		fmt.Print(common.ASCIILogo)
-	}
-
 	var bot *engine.Engine
 	flags := map[string]bool{
 		"tickersync":         false,
@@ -59,6 +55,17 @@ func main() {
 		os.Exit(-1)
 	}
 
+	err = bot.LoadExchange("gateio", nil)
+	if err != nil && !errors.Is(err, engine.ErrExchangeAlreadyLoaded) {
+		fmt.Println("error", err)
+		return
+	}
+
+	err = bot.SetupExchangeSettings()
+	if err != nil {
+		fmt.Println("error setting up exchange settings", err)
+	}
+
 	bot.DatabaseManager, err = engine.SetupDatabaseConnectionManager(gctdatabase.DB.GetConfig())
 	if err != nil {
 		return
@@ -69,11 +76,7 @@ func main() {
 		}
 	}
 
-	err = bot.SetupExchangeSettings()
-	if err != nil {
-		fmt.Println("error setting up exchange settings", err)
+	for _, cs := range bot.CurrencySettings {
+		fmt.Println("do something with", cs.CurrencyPair)
 	}
-
-	fmt.Println(bot.CurrencySettings)
-	fmt.Println(bot.GetAllCurrencySettings())
 }
