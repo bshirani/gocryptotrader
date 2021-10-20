@@ -345,7 +345,6 @@ func (e *Holder) NextEvent() (i eventtypes.EventHandler) {
 
 func (tm *TradeManager) waitForDataCatchup() {
 	var localWG sync.WaitGroup
-	localWG.Add(1)
 	// localWG.Add(1)
 
 	db := tm.bot.DatabaseManager.GetInstance()
@@ -356,10 +355,10 @@ func (tm *TradeManager) waitForDataCatchup() {
 
 	dhj.ClearJobs()
 
-	if tm.bot.dataHistoryManager.IsRunning() {
-		// names, err := tm.bot.dataHistoryManager.CatchupDays(func() { localWG.Done() })
-		tm.bot.dataHistoryManager.CatchupToday(func() { fmt.Println("DONE"); localWG.Done() })
-	}
+	localWG.Add(1)
+	tm.bot.dataHistoryManager.CatchupDays(func() { localWG.Done() })
+	localWG.Add(1)
+	tm.bot.dataHistoryManager.CatchupToday(func() { localWG.Done() })
 
 	log.Infoln(log.TradeMgr, "Waiting for data catchup...")
 	localWG.Wait()

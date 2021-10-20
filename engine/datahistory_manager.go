@@ -111,7 +111,7 @@ func (m *DataHistoryManager) CatchupDays(callback func()) error {
 		if missing > 60 {
 			continue
 		} else {
-			fmt.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!sync hour")
+			log.Warnf(log.DataHistory, "Data history manager Syncing More Than 60 minutes of Data %v", MsgSubSystemStarted)
 		}
 		m.createCatchupJob(p.ExchangeName, p.AssetType, p.CurrencyPair, t1, t2)
 	}

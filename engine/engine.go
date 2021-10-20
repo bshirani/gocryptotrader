@@ -162,6 +162,11 @@ func validateSettings(b *Engine, s *Settings, flagSet map[string]bool) {
 	b.Settings.EnableTradeManager = (flagSet["trader"] && b.Settings.EnableTradeManager) || b.Config.TradeManager.Enabled
 	b.Settings.EnableTrading = (flagSet["trade"] && b.Settings.EnableTrading) || b.Config.TradeManager.TradingEnabled
 
+	if b.Settings.EnableTradeManager {
+		b.Settings.EnableDataHistoryManager = true
+		b.Settings.EnableExchangeSyncManager = true
+	}
+
 	b.Settings.EnableCurrencyStateManager = (flagSet["currencystatemanager"] &&
 		b.Settings.EnableCurrencyStateManager) ||
 		b.Config.CurrencyStateManager.Enabled != nil &&
@@ -274,16 +279,15 @@ func engineLog(str string, args ...interface{}) {
 
 // PrintSettings returns the engine settings
 func PrintSettings(s *Settings) {
-	engineLog("\t live: %v", s.EnableLiveMode)
 	engineLog("\t dry run: %v", s.EnableDryRun)
 	engineLog("")
 
-	engineLog("\t sync: %v kline:%v ticker:%v trade:%v wsTimeout:%v", s.EnableExchangeSyncManager, s.EnableKlineSyncing, s.EnableTickerSyncing, s.EnableTradeSyncing, s.SyncTimeoutWebsocket)
-	engineLog("\t trademgr: %v", s.EnableTradeManager)
+	engineLog("\t trader: %v", s.EnableTradeManager)
 	engineLog("\t trading: %v", s.EnableTrading)
+	engineLog("\t sync: %v kline:%v ticker:%v trade:%v wsTimeout:%v", s.EnableExchangeSyncManager, s.EnableKlineSyncing, s.EnableTickerSyncing, s.EnableTradeSyncing, s.SyncTimeoutWebsocket)
+	engineLog("\t data history: %v", s.EnableDataHistoryManager)
 	engineLog("\t verbose: %v", s.Verbose)
 	engineLog("\t order manager: %v", s.EnableOrderManager)
-	engineLog("\t data history: %v", s.EnableDataHistoryManager)
 	// engineLog("\t coinmarketcap analaysis: %v", s.EnableCoinmarketcapAnalysis)
 	// engineLog("\t gPRC: %v", s.EnableGRPC)
 	// engineLog("\t database: %v", s.EnableDatabaseManager)
