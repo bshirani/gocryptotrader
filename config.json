@@ -100,7 +100,7 @@
  },
  "dataHistoryManager": {
   "enabled": true,
-  "verbose": true,
+  "verbose": false,
   "checkInterval": 60000000000,
   "maxJobsPerCycle": 100,
   "maxResultInsertions": 10000

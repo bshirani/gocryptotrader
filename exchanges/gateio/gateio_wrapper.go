@@ -911,7 +911,7 @@ func (g *Gateio) GetHistoricCandles(ctx context.Context, pair currency.Pair, a a
 
 	klineData, err := g.GetSpotKlineV4(ctx, params)
 	if err != nil {
-		log.Errorln(log.ExchangeSys, "error getting Kline data", err)
+		log.Errorln(log.ExchangeSys, "Kline.data", err)
 		return kline.Item{}, err
 	}
 	klineData.Interval = interval
