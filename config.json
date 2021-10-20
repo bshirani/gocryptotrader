@@ -39,7 +39,7 @@
   "risk-free-rate": "0"
  },
  "tradeManager": {
-  "enabled": false,
+  "enabled": true,
   "verbose": true,
   "tradingEnabled": false
  },
@@ -99,7 +99,7 @@
   "checkInterval": 1000000000
  },
  "dataHistoryManager": {
-  "enabled": false,
+  "enabled": true,
   "checkInterval": 60000000000,
   "maxJobsPerCycle": 5,
   "maxResultInsertions": 10000,
@@ -137,11 +137,11 @@
   "forexProviders": [
    {
     "name": "CurrencyConverter",
-    "enabled": false,
+    "enabled": true,
     "verbose": false,
     "restPollingDelay": 600,
-    "apiKey": "Key",
-    "apiKeyLvl": -1,
+    "apiKey": "818658e17fc5c7ccddcd",
+    "apiKeyLvl": 1,
     "primaryProvider": false
    },
    {
@@ -193,7 +193,7 @@
   "cryptocurrencyProvider": {
    "name": "CoinMarketCap",
    "enabled": false,
-   "verbose": false,
+   "verbose": true,
    "apiKey": "3be249cb-0c44-44f2-8995-34fd4437fa23",
    "accountPlan": "basic"
   },
@@ -356,7 +356,7 @@
   },
   {
    "name": "kraken",
-   "enabled": true,
+   "enabled": false,
    "verbose": false,
    "httpTimeout": 15000000000,
    "websocketResponseCheckTimeout": 30000000,
