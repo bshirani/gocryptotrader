@@ -280,8 +280,6 @@ func engineLog(str string, args ...interface{}) {
 // PrintSettings returns the engine settings
 func PrintSettings(s *Settings) {
 	engineLog("\t dry run: %v", s.EnableDryRun)
-	engineLog("")
-
 	engineLog("\t trader: %v", s.EnableTradeManager)
 	engineLog("\t trading: %v", s.EnableTrading)
 	engineLog("\t sync: %v kline:%v ticker:%v trade:%v wsTimeout:%v", s.EnableExchangeSyncManager, s.EnableKlineSyncing, s.EnableTickerSyncing, s.EnableTradeSyncing, s.SyncTimeoutWebsocket)
@@ -706,7 +704,7 @@ func (bot *Engine) Start() error {
 	// catchup data history to database
 	// can move this to trade manager setup
 	// end check
-	gctlog.Debugf(gctlog.Global, "Bot '%s' started.\n", bot.Config.Name)
+	gctlog.Debugf(gctlog.Global, "Engine '%s' started.\n", bot.Config.Name)
 
 	return nil
 }

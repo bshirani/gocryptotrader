@@ -108,7 +108,7 @@ func (m *DataHistoryManager) CatchupDays(callback func()) error {
 		minPast := int(t2.Sub(t1).Minutes())
 		candles, _ := candle.Series(p.ExchangeName, p.CurrencyPair.Base.String(), p.CurrencyPair.Quote.String(), 60, p.AssetType.String(), t1, t2)
 		missing := minPast - len(candles.Candles)
-		if missing > 60 {
+		if missing < 60 {
 			continue
 		} else {
 			log.Warnf(log.DataHistory, "Data history manager Syncing More Than 60 minutes of Data %v", MsgSubSystemStarted)

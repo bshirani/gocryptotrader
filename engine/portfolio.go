@@ -116,7 +116,7 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 	p.riskFreeRate = riskFreeRate
 	p.Strategies = st
 
-	fmt.Println("loaded strategies", len(st))
+	log.Infof(log.StrategiesMgr, "Started Portfolio w/ %d Strategies, %d Currencies", len(st), len(p.bot.CurrencySettings))
 
 	// set initial opentrade/positions
 	for _, s := range p.Strategies {
@@ -141,8 +141,7 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 	}
 
 	if !p.bot.Settings.EnableDryRun {
-		log.Infoln(log.StrategiesMgr, "Loaded Trades", len(activeTrades))
-		log.Infoln(log.StrategiesMgr, "Loaded Orders", len(activeOrders))
+		log.Infof(log.StrategiesMgr, "Loaded Trades %d Orders %d", len(activeTrades), len(activeOrders))
 	}
 
 	return p, nil

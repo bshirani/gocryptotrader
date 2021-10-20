@@ -43,7 +43,7 @@ func main() {
 	flag.BoolVar(&settings.EnableDryRun, "enabledryrun", false, "dry runs bot, doesn't use database for trades/orders")
 	flag.BoolVar(&settings.EnableEventManager, "eventmanager", true, "enables the event manager")
 	flag.BoolVar(&settings.EnableExchangeSyncManager, "sync", false, "enables to exchange sync manager")
-	flag.BoolVar(&settings.EnableGCTScriptManager, "gctscriptmanager", true, "enables gctscript manager")
+	flag.BoolVar(&settings.EnableGCTScriptManager, "gctscriptmanager", false, "enables gctscript manager")
 	flag.BoolVar(&settings.EnableGRPC, "grpc", true, "enables the grpc server")
 	flag.BoolVar(&settings.EnableGRPCProxy, "grpcproxy", false, "enables the grpc proxy server")
 	flag.BoolVar(&settings.EnableLiveMode, "livemode", false, "enables live mode")

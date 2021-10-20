@@ -46,7 +46,7 @@
  "factorEngine": {
   "verbose": false
  },
- "name": "TrendExploiter",
+ "name": "Full",
  "dataDirectory": "",
  "encryptConfig": -1,
  "globalHTTPTimeout": 15000000000,

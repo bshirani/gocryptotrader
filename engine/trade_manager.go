@@ -287,10 +287,8 @@ func (tm *TradeManager) Start() error {
 	if !atomic.CompareAndSwapInt32(&tm.started, 0, 1) {
 		return fmt.Errorf("backtester %w", ErrSubSystemAlreadyStarted)
 	}
-	log.Debugf(log.TradeMgr, "TradeManager  %s", MsgSubSystemStarting)
 	tm.shutdown = make(chan struct{})
 	// go tm.heartBeat()
-	log.Debugln(log.TradeMgr, "Running Live")
 	go tm.runLive()
 	return nil
 }
@@ -372,8 +370,7 @@ func (tm *TradeManager) waitForDataCatchup() {
 		if active == 0 {
 			break
 		}
-		fmt.Println("jobs still running")
-		time.Sleep(time.Second)
+		time.Sleep(time.Millisecond * 500)
 	}
 
 	// fmt.Println("validating...")
@@ -855,8 +852,6 @@ func (tm *TradeManager) initializePortfolio(strategyConfig *config.Config) error
 	// load from configuration into datastructure
 	// currencysettings returns the data from the config, exchangeassetpairsettings
 	// tm.Exchange = &e
-
-	log.Infoln(log.TradeMgr, "Loaded", len(tm.bot.CurrencySettings), "currencies")
 
 	tm.Portfolio = p
 	return err
