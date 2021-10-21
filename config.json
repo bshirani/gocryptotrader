@@ -1,5 +1,5 @@
 {
- "LiveMode": false,
+ "LiveMode": true,
  "DryRun": false,
  "nickname": "",
  "goal": "",
@@ -357,7 +357,7 @@
   },
   {
    "name": "kraken",
-   "enabled": true,
+   "enabled": false,
    "verbose": false,
    "httpTimeout": 15000000000,
    "websocketResponseCheckTimeout": 30000000,
