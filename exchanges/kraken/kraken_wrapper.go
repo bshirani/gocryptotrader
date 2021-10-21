@@ -1405,7 +1405,7 @@ func (k *Kraken) GetHistoricCandles(ctx context.Context, pair currency.Pair, a a
 		Asset:    a,
 		Interval: interval,
 	}
-	candles, err := k.GetOHLC(ctx, pair, k.FormatExchangeKlineInterval(interval))
+	candles, err := k.GetOHLC(ctx, pair, k.FormatExchangeKlineInterval(interval), start.Unix())
 	if err != nil {
 		return kline.Item{}, err
 	}
@@ -1434,6 +1434,7 @@ func (k *Kraken) GetHistoricCandles(ctx context.Context, pair currency.Pair, a a
 
 // GetHistoricCandlesExtended returns candles between a time period for a set time interval
 func (k *Kraken) GetHistoricCandlesExtended(ctx context.Context, pair currency.Pair, a asset.Item, start, end time.Time, interval kline.Interval) (kline.Item, error) {
+	// fmt.Println("Syncing candles for", pair)
 	if err := k.ValidateKline(pair, a, interval); err != nil {
 		return kline.Item{}, err
 	}
@@ -1443,18 +1444,22 @@ func (k *Kraken) GetHistoricCandlesExtended(ctx context.Context, pair currency.P
 		Asset:    a,
 		Interval: interval,
 	}
-	candles, err := k.GetOHLC(ctx, pair, k.FormatExchangeKlineInterval(interval))
+	candles, err := k.GetOHLC(ctx, pair, k.FormatExchangeKlineInterval(interval), start.Unix())
 	if err != nil {
-		fmt.Println("kraken candles", err)
+		fmt.Println("!kraken GETOHLC", err)
 		return kline.Item{}, err
 	}
 
+	// kt, err := k.GetServerTime(ctx)
+	// fmt.Println("kraken server time is", kt, err)
+
 	for i := range candles {
-		timeValue, err := convert.TimeFromUnixTimestampFloat(candles[i].Time * 1000)
+		timeValue, err := convert.TimeFromUnixTimestampFloat(candles[i].Time)
 		if err != nil {
 			return kline.Item{}, err
 		}
 		if timeValue.Before(start) || timeValue.After(end) {
+			fmt.Printf("time is out of range candleTime:%f parsed:%d start:%d end:%d\n", candles[i].Time, timeValue, start.Unix(), end.Unix())
 			continue
 		}
 		ret.Candles = append(ret.Candles, kline.Candle{
@@ -1469,18 +1474,20 @@ func (k *Kraken) GetHistoricCandlesExtended(ctx context.Context, pair currency.P
 	ret.SortCandlesByTimestamp(false)
 
 	minRequested := int(end.Sub(start).Minutes())
-	fmt.Println("minute requested", minRequested)
-	minReceived := int(ret.Candles[len(ret.Candles)-1].Time.Sub(ret.Candles[0].Time).Minutes())
+	fmt.Println("minute requested", minRequested, "starting", start, "ending", end, ". Only received", len(ret.Candles))
+
+	lastCandle := ret.Candles[len(ret.Candles)-1]
+	minReceived := int(lastCandle.Time.Sub(ret.Candles[0].Time).Minutes())
 	if minRequested > minReceived {
-		fmt.Println("ERROR", pair, "received", minReceived, "out of", minRequested, "startRequest", start, "startReceived", ret.Candles[0].Time)
+		fmt.Println("ERROR", pair, "received", minReceived, "out of", minRequested, "startRequest", start, "startReceived", ret.Candles[0].Time, "endReceived", lastCandle.Time)
 	}
 
-	fmt.Println(
-		"kraken received candles",
-		pair,
-		len(ret.Candles),
-		ret.Candles[0].Time,
-		ret.Candles[len(ret.Candles)-1])
+	// fmt.Println(
+	// 	"kraken received candles",
+	// 	pair,
+	// 	len(ret.Candles),
+	// 	ret.Candles[0].Time,
+	// 	lastCandle)
 	return ret, nil
 }
 

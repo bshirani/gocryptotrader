@@ -1,16 +1,19 @@
 package main
 
 import (
-	"errors"
+	"context"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"gocryptotrader/config"
 	"gocryptotrader/currency/coinmarketcap"
 	gctdatabase "gocryptotrader/database"
 	"gocryptotrader/engine"
+	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/kline"
 	"gocryptotrader/log"
 )
 
@@ -61,12 +64,16 @@ func main() {
 		os.Exit(-1)
 	}
 
-	err = bot.LoadExchange("kraken", nil)
-	if err != nil && !errors.Is(err, engine.ErrExchangeAlreadyLoaded) {
-		fmt.Println("error", err)
-		return
-	}
+	// err = bot.LoadExchange("kraken", nil)
+	// if err != nil && !errors.Is(err, engine.ErrExchangeAlreadyLoaded) {
+	// 	fmt.Println("error", err)
+	// 	return
+	// }
 
+	// load all the exchanges
+	bot.SetupExchanges()
+
+	// load exchange settings
 	err = bot.SetupExchangeSettings()
 	if err != nil {
 		fmt.Println("error setting up exchange settings", err)
@@ -81,7 +88,26 @@ func main() {
 			log.Errorf(log.Global, "Database manager unable to start: %v", err)
 		}
 	}
-	fmt.Println("bot", bot)
-	fmt.Println(bot.CurrencySettings)
+	// fmt.Println("bot", bot)
+	// fmt.Println(bot.CurrencySettings)
 
+	// k := bot.GetExchange("kraken")
+	k, _ := bot.ExchangeManager.GetExchangeByName("kraken")
+	// fmt.Println("k", k)
+
+	ep, err := k.GetEnabledPairs(asset.Spot)
+	// fmt.Println(ep, err)
+
+	t := time.Now()
+	thisMinute := time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location()).Add(time.Minute * -1)
+	start := thisMinute.Add(time.Minute * -10)
+
+	k.GetHistoricCandlesExtended(
+		context.TODO(),
+		ep[0],
+		asset.Spot,
+		start,
+		thisMinute,
+		kline.OneMin,
+	)
 }

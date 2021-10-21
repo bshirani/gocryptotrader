@@ -255,7 +255,7 @@ dataLoadingIssue:
 			tm.hasHandledEvent = true
 		}
 	}
-	fmt.Println("done running")
+	// fmt.Println("done running")
 
 	return nil
 }
@@ -737,7 +737,7 @@ func (tm *TradeManager) updateStatsForDataEvent(ev eventtypes.DataEventHandler) 
 }
 
 func (tm *TradeManager) startOfflineServices() error {
-	fmt.Println("TM start offline services")
+	// fmt.Println("TM start offline services")
 	for _, cs := range tm.cfg.CurrencySettings {
 		err := tm.bot.LoadExchange(cs.ExchangeName, nil)
 		if err != nil && !errors.Is(err, ErrExchangeAlreadyLoaded) {

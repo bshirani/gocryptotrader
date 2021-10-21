@@ -198,7 +198,7 @@ func (k *Kraken) GetTickers(ctx context.Context, pairList string) (map[string]Ti
 }
 
 // GetOHLC returns an array of open high low close values of a currency pair
-func (k *Kraken) GetOHLC(ctx context.Context, symbol currency.Pair, interval string) ([]OpenHighLowClose, error) {
+func (k *Kraken) GetOHLC(ctx context.Context, symbol currency.Pair, interval string, since int64) ([]OpenHighLowClose, error) {
 	values := url.Values{}
 	symbolValue, err := k.FormatSymbol(symbol, asset.Spot)
 	if err != nil {
@@ -210,6 +210,9 @@ func (k *Kraken) GetOHLC(ctx context.Context, symbol currency.Pair, interval str
 	}
 	values.Set("pair", translatedAsset)
 	values.Set("interval", interval)
+	sincestr := fmt.Sprintf("%d", since)
+	fmt.Println("since", sincestr)
+	values.Set("since", sincestr)
 	type Response struct {
 		Error []interface{}          `json:"error"`
 		Data  map[string]interface{} `json:"result"`
@@ -218,15 +221,18 @@ func (k *Kraken) GetOHLC(ctx context.Context, symbol currency.Pair, interval str
 	var OHLC []OpenHighLowClose
 	var result Response
 
+	fmt.Println("vohlcvalues", values.Encode())
+
 	path := fmt.Sprintf("/%s/public/%s?%s", krakenAPIVersion, krakenOHLC, values.Encode())
 
 	err = k.SendHTTPRequest(ctx, exchange.RestSpot, path, &result)
 	if err != nil {
+		fmt.Println("ERROR GETTING CANDLES", err)
 		return OHLC, err
 	}
 
 	if len(result.Error) != 0 {
-		return OHLC, fmt.Errorf("getOHLC error: %s", result.Error)
+		return OHLC, fmt.Errorf("getOHLC result has error: %s", result.Error)
 	}
 
 	_, ok := result.Data[translatedAsset].([]interface{})
@@ -956,6 +962,7 @@ func (k *Kraken) SendHTTPRequest(ctx context.Context, ep exchange.URL, path stri
 		return err
 	}
 
+	fmt.Println("path", endpoint, path)
 	item := &request.Item{
 		Method:        http.MethodGet,
 		Path:          endpoint + path,
