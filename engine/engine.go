@@ -160,7 +160,7 @@ func validateSettings(b *Engine, s *Settings, flagSet map[string]bool) {
 	b.Settings.EnableDataHistoryManager = (flagSet["datahistory"] && b.Settings.EnableDatabaseManager) || b.Config.DataHistoryManager.Enabled
 	// fmt.Println("enabled dhm?", b.Settings.EnableDataHistoryManager)
 	b.Settings.EnableTradeManager = (flagSet["trader"] && b.Settings.EnableTradeManager) || b.Config.TradeManager.Enabled
-	b.Settings.EnableTrading = (flagSet["trade"] && b.Settings.EnableTrading) || b.Config.TradeManager.TradingEnabled
+	b.Settings.EnableTrading = (flagSet["trade"] && b.Settings.EnableTrading) || b.Config.TradeManager.Trading
 
 	// if b.Settings.EnableTradeManager {
 	// 	b.Settings.EnableDataHistoryManager = true
