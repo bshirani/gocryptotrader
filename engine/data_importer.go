@@ -20,6 +20,8 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+
+	"github.com/fatih/color"
 )
 
 const (
@@ -57,14 +59,21 @@ func SetupDataImporter(bot *Engine) *DataImporter {
 	}
 }
 
+type DIResult struct {
+	StartCount int64
+	DidRun     bool
+	Base       string
+	Quote      string
+}
+
 func (d *DataImporter) Run(exchange string) {
 	log.SetFlags(log.Ltime)
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 
-	fmt.Println("running", d.workerCount, "workers")
+	fmt.Println("starting", d.workerCount, "workers")
 	wp := wpool.New(d.workerCount)
-	go wp.GenerateFrom(d.krakenJob())
+	go wp.GenerateFrom(d.createJobs())
 	go wp.Run(ctx)
 
 	sigs := make(chan os.Signal, 1)
@@ -87,13 +96,20 @@ func (d *DataImporter) Run(exchange string) {
 			if err != nil {
 				log.Fatalf("unexpected error: %v", err)
 			}
-			val := r.Value.(string)
-			fmt.Println("finished", val)
-			exCount, _ := candle.CountExchange("kraken", 60, "spot")
-			fmt.Println("exchange now has", (exCount / (1000)), "k candles")
+			res := r.Value.(DIResult)
+			// fmt.Println("finished", res)
+			pairCount, _ := candle.Count("kraken", res.Base, res.Quote, 60, "spot")
+			if res.DidRun {
+				color.Set(color.FgGreen, color.Bold)
+				fmt.Println("FINISHED", res.Base, res.Quote, "started at", res.StartCount, "now has", (pairCount - res.StartCount), "more candles", "total", pairCount)
+			} else {
+				color.Set(color.FgCyan, color.Bold)
+				fmt.Println("SKIPPED", res.Base, res.Quote, pairCount, "candles")
+			}
 			// if val != int(i)*2 {
 			// 	log.Fatalf("wrong value %v; expected %v", val, int(i)*2)
 			// }
+			color.Unset()
 		case <-done:
 			fmt.Println("signal interrupt")
 			return
@@ -124,6 +140,7 @@ func printOutput(outs []byte) {
 
 // func task(fileName string) {
 func (d *DataImporter) task(ctx context.Context, args interface{}) (interface{}, error) {
+
 	fileName := args.(string)
 	pairName := strings.Split(fileName, "_")[0]
 	c := currency.NewPairWithDelimiter(pairName[0:3], pairName[3:], "_")
@@ -137,13 +154,24 @@ func (d *DataImporter) task(ctx context.Context, args interface{}) (interface{},
 		}
 	}
 
-	if !d.shouldRun(fileName, c) {
-		return fileName, nil
+	res := DIResult{
+		Base:  c.Base.String(),
+		Quote: c.Quote.String(),
+		// StartCount: ,
+		// EndCount: ,
 	}
 
+	if !d.shouldRun(fileName, c, &res) {
+		res.DidRun = false
+		return res, nil
+	}
+
+	color.Set(color.FgYellow, color.Bold)
+	defer color.Unset()
+	fmt.Println("RUNNING", c.Base, c.Quote)
 	cmd := fmt.Sprintf(d.baseCmd, "kraken", c.Base.String(), c.Quote.String(), path.Join(d.baseDir, fileName))
 	command := exec.Command("bash", "-c", cmd)
-	printCommand(command)
+	// printCommand(command)
 
 	var waitStatus syscall.WaitStatus
 	if _, err := command.Output(); err != nil {
@@ -177,10 +205,11 @@ func (d *DataImporter) task(ctx context.Context, args interface{}) (interface{},
 			fmt.Println("last candle for", c, "is", lastCandle.Timestamp)
 		}
 	}
-	return fileName, nil
+
+	return res, nil
 }
 
-func (d *DataImporter) krakenJob() []wpool.Job {
+func (d *DataImporter) createJobs() []wpool.Job {
 	jobsCount := 0
 	jobs := make([]wpool.Job, 0)
 
@@ -206,13 +235,16 @@ func (d *DataImporter) krakenJob() []wpool.Job {
 			})
 			jobsCount += 1
 		}
+		// if jobsCount > 20 {
+		// 	break
+		// }
 	}
 	fmt.Println("returned", len(jobs), "jobs")
 
 	return jobs
 }
 
-func (d *DataImporter) shouldRun(fileName string, p currency.Pair) bool {
+func (d *DataImporter) shouldRun(fileName string, p currency.Pair, res *DIResult) bool {
 	filePath := path.Join(d.baseDir, fileName)
 	fileCount, _ := lineCounter(filePath)
 	// pairName := strings.Split(fileName, "_")[0]
@@ -226,6 +258,8 @@ func (d *DataImporter) shouldRun(fileName string, p currency.Pair) bool {
 		60,
 		"spot")
 
+	res.StartCount = dbCount
+
 	if err != nil {
 		fmt.Println("error", err)
 	}
@@ -235,10 +269,10 @@ func (d *DataImporter) shouldRun(fileName string, p currency.Pair) bool {
 		os.Exit(123)
 	}
 	if int(dbCount) >= fileCount {
-		fmt.Println("good", p, dbCount)
+		// fmt.Println("good", p, dbCount)
 		return false
 	} else {
-		fmt.Println(p, "has only", dbCount, "bars out of", fileCount)
+		// fmt.Println(p, "has only", dbCount, "bars out of", fileCount)
 		return true
 	}
 }
