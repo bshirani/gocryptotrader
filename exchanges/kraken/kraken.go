@@ -211,7 +211,7 @@ func (k *Kraken) GetOHLC(ctx context.Context, symbol currency.Pair, interval str
 	values.Set("pair", translatedAsset)
 	values.Set("interval", interval)
 	sincestr := fmt.Sprintf("%d", since)
-	fmt.Println("since", sincestr)
+	// fmt.Println("since", sincestr)
 	values.Set("since", sincestr)
 	type Response struct {
 		Error []interface{}          `json:"error"`
@@ -221,7 +221,7 @@ func (k *Kraken) GetOHLC(ctx context.Context, symbol currency.Pair, interval str
 	var OHLC []OpenHighLowClose
 	var result Response
 
-	fmt.Println("vohlcvalues", values.Encode())
+	// fmt.Println("Kraken-GETOHLC vohlcvalues", values.Encode())
 
 	path := fmt.Sprintf("/%s/public/%s?%s", krakenAPIVersion, krakenOHLC, values.Encode())
 
@@ -962,7 +962,7 @@ func (k *Kraken) SendHTTPRequest(ctx context.Context, ep exchange.URL, path stri
 		return err
 	}
 
-	fmt.Println("path", endpoint, path)
+	// fmt.Println("path", endpoint, path)
 	item := &request.Item{
 		Method:        http.MethodGet,
 		Path:          endpoint + path,

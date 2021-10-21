@@ -39,7 +39,6 @@ type Candle struct {
 	ValidationJobID  null.String `boil:"validation_job_id" json:"validation_job_id,omitempty" toml:"validation_job_id" yaml:"validation_job_id,omitempty"`
 	ValidationIssues null.String `boil:"validation_issues" json:"validation_issues,omitempty" toml:"validation_issues" yaml:"validation_issues,omitempty"`
 	ID               int         `boil:"id" json:"id" toml:"id" yaml:"id"`
-	ID2              int         `boil:"id2" json:"id2" toml:"id2" yaml:"id2"`
 
 	R *candleR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L candleL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -61,7 +60,6 @@ var CandleColumns = struct {
 	ValidationJobID  string
 	ValidationIssues string
 	ID               string
-	ID2              string
 }{
 	ExchangeNameID:   "exchange_name_id",
 	Base:             "base",
@@ -78,7 +76,6 @@ var CandleColumns = struct {
 	ValidationJobID:  "validation_job_id",
 	ValidationIssues: "validation_issues",
 	ID:               "id",
-	ID2:              "id2",
 }
 
 var CandleTableColumns = struct {
@@ -97,7 +94,6 @@ var CandleTableColumns = struct {
 	ValidationJobID  string
 	ValidationIssues string
 	ID               string
-	ID2              string
 }{
 	ExchangeNameID:   "candle.exchange_name_id",
 	Base:             "candle.base",
@@ -114,7 +110,6 @@ var CandleTableColumns = struct {
 	ValidationJobID:  "candle.validation_job_id",
 	ValidationIssues: "candle.validation_issues",
 	ID:               "candle.id",
-	ID2:              "candle.id2",
 }
 
 // Generated where
@@ -211,7 +206,6 @@ var CandleWhere = struct {
 	ValidationJobID  whereHelpernull_String
 	ValidationIssues whereHelpernull_String
 	ID               whereHelperint
-	ID2              whereHelperint
 }{
 	ExchangeNameID:   whereHelperstring{field: "\"candle\".\"exchange_name_id\""},
 	Base:             whereHelperstring{field: "\"candle\".\"base\""},
@@ -228,7 +222,6 @@ var CandleWhere = struct {
 	ValidationJobID:  whereHelpernull_String{field: "\"candle\".\"validation_job_id\""},
 	ValidationIssues: whereHelpernull_String{field: "\"candle\".\"validation_issues\""},
 	ID:               whereHelperint{field: "\"candle\".\"id\""},
-	ID2:              whereHelperint{field: "\"candle\".\"id2\""},
 }
 
 // CandleRels is where relationship names are stored.
@@ -248,10 +241,10 @@ func (*candleR) NewStruct() *candleR {
 type candleL struct{}
 
 var (
-	candleAllColumns            = []string{"exchange_name_id", "base", "quote", "interval", "timestamp", "open", "high", "low", "close", "volume", "asset", "source_job_id", "validation_job_id", "validation_issues", "id", "id2"}
-	candleColumnsWithoutDefault = []string{"exchange_name_id", "base", "quote", "interval", "timestamp", "open", "high", "low", "close", "volume", "asset", "source_job_id", "validation_job_id", "validation_issues", "id"}
-	candleColumnsWithDefault    = []string{"id2"}
-	candlePrimaryKeyColumns     = []string{"timestamp", "id2"}
+	candleAllColumns            = []string{"exchange_name_id", "base", "quote", "interval", "timestamp", "open", "high", "low", "close", "volume", "asset", "source_job_id", "validation_job_id", "validation_issues", "id"}
+	candleColumnsWithoutDefault = []string{"exchange_name_id", "base", "quote", "interval", "timestamp", "open", "high", "low", "close", "volume", "asset", "source_job_id", "validation_job_id", "validation_issues"}
+	candleColumnsWithDefault    = []string{"id"}
+	candlePrimaryKeyColumns     = []string{"timestamp", "id"}
 )
 
 type (
@@ -537,7 +530,7 @@ func Candles(mods ...qm.QueryMod) candleQuery {
 
 // FindCandle retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindCandle(ctx context.Context, exec boil.ContextExecutor, timestamp time.Time, iD2 int, selectCols ...string) (*Candle, error) {
+func FindCandle(ctx context.Context, exec boil.ContextExecutor, timestamp time.Time, iD int, selectCols ...string) (*Candle, error) {
 	candleObj := &Candle{}
 
 	sel := "*"
@@ -545,10 +538,10 @@ func FindCandle(ctx context.Context, exec boil.ContextExecutor, timestamp time.T
 		sel = strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, selectCols), ",")
 	}
 	query := fmt.Sprintf(
-		"select %s from \"candle\" where \"timestamp\"=$1 AND \"id2\"=$2", sel,
+		"select %s from \"candle\" where \"timestamp\"=$1 AND \"id\"=$2", sel,
 	)
 
-	q := queries.Raw(query, timestamp, iD2)
+	q := queries.Raw(query, timestamp, iD)
 
 	err := q.Bind(ctx, exec, candleObj)
 	if err != nil {
@@ -899,7 +892,7 @@ func (o *Candle) Delete(ctx context.Context, exec boil.ContextExecutor) (int64, 
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), candlePrimaryKeyMapping)
-	sql := "DELETE FROM \"candle\" WHERE \"timestamp\"=$1 AND \"id2\"=$2"
+	sql := "DELETE FROM \"candle\" WHERE \"timestamp\"=$1 AND \"id\"=$2"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -996,7 +989,7 @@ func (o CandleSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (
 // Reload refetches the object from the database
 // using the primary keys with an executor.
 func (o *Candle) Reload(ctx context.Context, exec boil.ContextExecutor) error {
-	ret, err := FindCandle(ctx, exec, o.Timestamp, o.ID2)
+	ret, err := FindCandle(ctx, exec, o.Timestamp, o.ID)
 	if err != nil {
 		return err
 	}
@@ -1035,16 +1028,16 @@ func (o *CandleSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) 
 }
 
 // CandleExists checks if the Candle row exists.
-func CandleExists(ctx context.Context, exec boil.ContextExecutor, timestamp time.Time, iD2 int) (bool, error) {
+func CandleExists(ctx context.Context, exec boil.ContextExecutor, timestamp time.Time, iD int) (bool, error) {
 	var exists bool
-	sql := "select exists(select 1 from \"candle\" where \"timestamp\"=$1 AND \"id2\"=$2 limit 1)"
+	sql := "select exists(select 1 from \"candle\" where \"timestamp\"=$1 AND \"id\"=$2 limit 1)"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
 		fmt.Fprintln(writer, sql)
-		fmt.Fprintln(writer, timestamp, iD2)
+		fmt.Fprintln(writer, timestamp, iD)
 	}
-	row := exec.QueryRowContext(ctx, sql, timestamp, iD2)
+	row := exec.QueryRowContext(ctx, sql, timestamp, iD)
 
 	err := row.Scan(&exists)
 	if err != nil {

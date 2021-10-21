@@ -837,7 +837,7 @@ func checkCerts(certDir string) error {
 		return genCert(certDir)
 	}
 
-	log.Infoln(log.Global, "gRPC TLS certificate and key files exist, will use them.")
+	// log.Infoln(log.Global, "gRPC TLS certificate and key files exist, will use them.")
 	return nil
 }
 

@@ -87,7 +87,8 @@ func Last(exchangeName, base, quote string, interval int64, asset string) (out C
 			return out, fmt.Errorf("%w: %s %s %s %v %s", ErrNoCandleDataFound, exchangeName, base, quote, interval, asset)
 		}
 	} else {
-		fmt.Println("candle.err no candle data")
+		fmt.Println("candle.Last: no candle data for", base, quote)
+		os.Exit(123)
 		return out, errNoCandleData
 	}
 

@@ -589,7 +589,7 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 				}
 			}
 		} else {
-			fmt.Println("only have", len(fe.Minute().M60Range), "close", len(fe.Minute().Close))
+			fmt.Println("only have last", len(fe.Minute().M60Range), "m60 range bars, closes' length ", len(fe.Minute().Close))
 		}
 	}
 

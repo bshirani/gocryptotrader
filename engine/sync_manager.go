@@ -868,18 +868,30 @@ func (m *syncManager) worker() {
 									c.Pair.Quote.String(),
 									60,
 									c.AssetType.String())
-								minMissing := int(time.Now().UTC().Sub(lastCandle.Timestamp).Minutes())
+
+								minSinceLast := int(time.Now().UTC().Sub(lastCandle.Timestamp).Minutes())
 								var err error
 								var newCandle kline.Item
-								if minMissing > 1000 {
-									st := time.Now().Add(time.Minute * -999)
-									newCandle, err = exchanges[x].GetHistoricCandles(context.TODO(), c.Pair, c.AssetType, st, time.Now(), kline.OneMin)
 
-								} else if minMissing > 0 {
+								if minSinceLast > 1000 {
+									log.Error(log.SyncMgr, "requesting more than 1000 candles. Last candle was", lastCandle.Timestamp)
+									st := time.Now().Add(time.Minute * -999)
+									os.Exit(123)
+									newCandle, err = exchanges[x].GetHistoricCandles(context.TODO(), c.Pair, c.AssetType, st, time.Now(), kline.OneMin)
+								} else if minSinceLast > 60 {
+									log.Warnln(log.SyncMgr, "BIGSYNC", minSinceLast, "candles", "last candle", c.Pair, lastCandle.Timestamp)
+								} else if minSinceLast > 0 {
+									// fmt.Println("syncmanager", "needs", minSinceLast, "candles", "last candle", c.Pair, lastCandle.Timestamp)
 									newCandle, err = exchanges[x].GetHistoricCandles(context.TODO(), c.Pair, c.AssetType, lastCandle.Timestamp, time.Now(), kline.OneMin)
+								} else if minSinceLast == 0 {
+									c.Kline.LastUpdated = time.Now()
+									m.setProcessing(c.Exchange, c.Pair, c.AssetType, SyncItemKline, false)
+									continue
 								}
 
+								// log.Warnln(log.SyncMgr, "requesting", minSinceLast, "candles from", c.Exchange, "for", c.Pair)
 								if len(newCandle.Candles) > 0 {
+									// fmt.Println("sync manager received", len(newCandle.Candles), "candles", "for", c.Pair)
 									_, err = m.candleSaver(&newCandle, false)
 									if err != nil {
 										log.Error(log.SyncMgr, err)
@@ -889,6 +901,8 @@ func (m *syncManager) worker() {
 									if updateErr != nil {
 										log.Error(log.SyncMgr, updateErr)
 									}
+								} else {
+									log.Error(log.SyncMgr, "did not receive candles", c.Pair)
 								}
 
 								c.Kline.LastUpdated = time.Now()
