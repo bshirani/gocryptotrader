@@ -4,129 +4,83 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"io"
+	"gocryptotrader/currency"
+	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
-	"os/signal"
-	"path/filepath"
-	"time"
+	"os/exec"
+	"path"
+	"strings"
 )
 
 const (
-	gateioDownloadURL = "https://download.gatedata.org"
-	// gateioPathFormat = "/${biz}/${type}/${year}${month}/${market}-${year}${month}.csv.gz"
-	gateioPathFormat = "/%s/%s/%s/%s-%s.csv.gz"
-	baseDir          = "/home/bijan/work/crypto/gateiodata"
-	colorReset       = "\033[0m"
-
-	colorRed    = "\033[31m"
-	colorGreen  = "\033[32m"
-	colorYellow = "\033[33m"
-	colorBlue   = "\033[34m"
-	colorPurple = "\033[35m"
-	colorCyan   = "\033[36m"
-	colorWhite  = "\033[37m"
+	baseDir          = "/home/bijan/work/crypto/kraken_data"
+	baseCmd          = "dbseed candle file --exchange %s --base %s --quote %s --interval 60 --asset spot --filename %s"
+	finishedFilename = "finished.log"
 )
 
 func main() {
-	start, _ := time.Parse("2006-01-02", "2021-08-01")
-	t1 := start.AddDate(-3, 0, 0)
-	finished := make(chan bool)
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
+	finished := finishedFiles()
 
-	signal.Notify(c, os.Interrupt)
-	go func() {
-		for range c {
-			<-finished
-			os.Exit(0)
+	files, err := ioutil.ReadDir(baseDir)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, f := range files {
+		if strings.HasSuffix(f.Name(), "_1.csv") {
+			for _, fin := range finished {
+				if strings.EqualFold(fin, f.Name()) {
+					continue
+				}
+			}
+			task(f.Name())
 		}
-	}()
-
-	for _, p := range symbols() {
-		fmt.Printf("%s%10s%s...", string(colorCyan), p, string(colorReset))
-		for d := start; d.After(t1); d = d.AddDate(0, -1, 0) {
-			go worker(d, p, finished)
-			<-finished
-		}
-		fmt.Println(string(colorReset))
 	}
 }
 
-func worker(d time.Time, p string, finished chan bool) {
-	defer func() {
-		finished <- true
-	}()
-	var monthYear string
-	if int(d.Month()) < 10 {
-		monthYear = fmt.Sprintf("%d0%d", d.Year(), d.Month())
-	} else {
-		monthYear = fmt.Sprintf("%d%-d", d.Year(), d.Month())
+func task(fileName string) {
+	// fmt.Println(fileName)
+	dirName := strings.Split(fileName, "-")[0]
+	c, err := currency.NewPairFromString(dirName)
+	if err != nil {
+		fmt.Println("cant find currency", err)
 	}
-
-	path := fmt.Sprintf(gateioDownloadURL+gateioPathFormat, "spot", "candlesticks_1m", monthYear, p, monthYear)
-
-	// only if file does not exist
-	// does file exist?
-
-	csvFilename := fmt.Sprintf("%s/%s/%s-%s.csv", baseDir, p, p, monthYear)
-	filename := fmt.Sprintf("%s/%s/%s-%s.csv.gz", baseDir, p, p, monthYear)
-	filename404 := fmt.Sprintf("%s/%s/%s-%s.404", baseDir, p, p, monthYear)
-
-	if _, err := os.Stat(csvFilename); !errors.Is(err, os.ErrNotExist) {
-		fmt.Printf("%s%s", string(colorGreen), "E")
-		return
-
-	} else if _, err := os.Stat(filename404); !errors.Is(err, os.ErrNotExist) {
-		// 404ed already
-		fmt.Printf("%s%s", string(colorRed), "4")
-		return
-	} else if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
-		// file does not exist
-
-		// create dir if necessary
-		// fmt.Println("wget", path, filename)
-		newpath := filepath.Join(baseDir, p)
-		os.MkdirAll(newpath, os.ModePerm)
+	cmd := fmt.Sprintf(baseCmd, "kraken", c.Base.String(), c.Quote.String(), path.Join(baseDir, fileName))
+	fmt.Println(cmd)
+	out, err := exec.Command("bash", "-c", cmd).Output()
+	if err != nil {
+		fmt.Println("err running cmd", cmd, out, err)
+		os.Exit(2)
 	} else {
-		// file exists
-
-		fmt.Printf("%s%s", string(colorGreen), "E")
-		return
+		fmt.Printf("%s", out)
 	}
+	markFileFinished(fileName)
+}
 
-	res, e := http.Get(path)
-	if res.StatusCode > 299 {
-		fmt.Printf("%s%s", string(colorRed), "F")
-		f, e := os.Create(filename404)
+func markFileFinished(symbol string) {
+	f, err := os.OpenFile(finishedFilename,
+		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Println(err)
+	}
+	defer f.Close()
+
+	output := fmt.Sprintf("%s\n", symbol)
+	if _, err := f.WriteString(output); err != nil {
+		log.Println(err)
+	}
+}
+
+func finishedFiles() []string {
+	if _, err := os.Stat(finishedFilename); errors.Is(err, os.ErrNotExist) {
+		f, e := os.Create(finishedFilename)
 		if e != nil {
 			panic(e)
 		}
 		f.Close()
-		return
-	} else {
-		fmt.Printf("%s%s", string(colorGreen), "S")
-	}
-	defer res.Body.Close()
-
-	f, e := os.Create(filename)
-	if e != nil {
-		panic(e)
-	}
-	defer f.Close()
-	io.Copy(f, res.Body)
-	// time.Sleep(time.Millisecond * 500)
-
-	if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
-		fmt.Println("FILE DOES NOT EXIST", filename)
-		os.Exit(123)
 	}
 
-}
-
-func symbols() []string {
-	file, err := os.Open("./symbols.txt")
+	file, err := os.Open(finishedFilename)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -137,6 +91,5 @@ func symbols() []string {
 	for scanner.Scan() {
 		pairs = append(pairs, scanner.Text())
 	}
-	fmt.Println("loaded", len(pairs))
 	return pairs
 }
