@@ -124,6 +124,8 @@ func (f *FactorEngine) OnBar(d data.Handler) error {
 	td := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, t.Nanosecond(), t.Location())
 
 	// logic to create a new daily dataframe
+	// fmt.Println("close length", d.Latest().Pair(), len(f.minute.Close))
+	// fmt.Println("history first", d.History()[0])
 	if len(d.History()) > 1 && td != f.minute.LastDate() {
 		// change date after checking for/creating new daily bar
 		f.minute.Date = append(f.minute.Date, td)

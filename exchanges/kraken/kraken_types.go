@@ -81,6 +81,12 @@ type GenericResponse struct {
 	Result    string `json:"result"`
 }
 
+// KrakenResponse wraps the Kraken API JSON response
+type KrakenResponse struct {
+	Error  []string    `json:"error"`
+	Result interface{} `json:"result"`
+}
+
 // AuthErrorData stores authenticated error messages
 type AuthErrorData struct {
 	Result     string `json:"result"`
@@ -162,16 +168,6 @@ type OpenHighLowClose struct {
 	VolumeWeightedAveragePrice float64
 	Volume                     float64
 	Count                      float64
-}
-
-// RecentTrades holds recent trade data
-type RecentTrades struct {
-	Price         float64
-	Volume        float64
-	Time          float64
-	BuyOrSell     string
-	MarketOrLimit string
-	Miscellaneous interface{}
 }
 
 // OrderbookBase stores the orderbook price and amount data
@@ -304,6 +300,19 @@ type TradeInfo struct {
 	ClosedPositionMargin       float64  `json:"cmargin,string"`
 	Trades                     []string `json:"trades"`
 	PosStatus                  string   `json:"posstatus"`
+}
+
+type PublicTradeInfo struct {
+	Price         string
+	PriceFloat    float64
+	Volume        string
+	VolumeFloat   float64
+	Time          int64
+	Buy           bool
+	Sell          bool
+	Market        bool
+	Limit         bool
+	Miscellaneous string
 }
 
 // Position holds the opened position
@@ -706,4 +715,40 @@ type OrderVars struct {
 	Status    order.Status
 	OrderType order.Type
 	Fee       float64
+}
+
+// TradesResponse represents a list of the last trades
+type TradesResponse struct {
+	Last   int64
+	Trades []PublicTradeInfo
+}
+
+type TradesHistoryResponse struct {
+	Trades map[string]TradeHistoryInfo `json:"trades"`
+	Count  int                         `json:"count"`
+}
+
+type TradeHistoryInfo struct {
+	TransactionID string  `json:"ordertxid"`
+	PostxID       string  `json:"postxid"`
+	AssetPair     string  `json:"pair"`
+	Time          float64 `json:"time"`
+	Type          string  `json:"type"`
+	OrderType     string  `json:"ordertype"`
+	Price         float64 `json:"price,string"`
+	Cost          float64 `json:"cost,string"`
+	Fee           float64 `json:"fee,string"`
+	Volume        float64 `json:"vol,string"`
+	Margin        float64 `json:"margin,string"`
+	Misc          string  `json:"misc"`
+}
+
+// RecentTrades holds recent trade data
+type RecentTrades struct {
+	Price         float64
+	Volume        float64
+	Time          float64
+	BuyOrSell     string
+	MarketOrLimit string
+	Miscellaneous interface{}
 }

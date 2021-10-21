@@ -691,9 +691,40 @@ func (k *Kraken) GetRecentTrades(ctx context.Context, p currency.Pair, assetType
 }
 
 // GetHistoricTrades returns historic trade data within the timeframe provided
-func (k *Kraken) GetHistoricTrades(_ context.Context, _ currency.Pair, _ asset.Item, _, _ time.Time) ([]trade.Data, error) {
-	fmt.Println("HERERERERER")
-	return nil, common.ErrFunctionNotSupported
+func (k *Kraken) GetHistoricTrades(ctx context.Context, p currency.Pair, assetType asset.Item, start time.Time, end time.Time) ([]trade.Data, error) {
+	var err error
+	tradeData, err := k.GetTradesExtended(ctx, p, start.Unix(), end.Unix())
+	if err != nil {
+		return nil, err
+	}
+	var resp []trade.Data
+	for _, t := range tradeData.Trades {
+		side := order.Buy
+		// if t.Buy {
+		// 	side = order.Buy
+		// } else if t.Sell {
+		// 	side = order.Sell
+		// } else {
+		// 	fmt.Println("kraken get historical neither sell or buy")
+		// }
+		resp = append(resp, trade.Data{
+			Exchange:     k.Name,
+			CurrencyPair: p,
+			AssetType:    assetType,
+			Side:         side,
+			Price:        t.Price,
+			Amount:       t.Volume,
+			Timestamp:    convert.TimeFromUnixTimestampDecimal(t.Time),
+		})
+	}
+
+	err = k.AddTradesToBuffer(resp...)
+	if err != nil {
+		return nil, err
+	}
+
+	sort.Sort(trade.ByDate(resp))
+	return resp, nil
 }
 
 // SubmitOrder submits a new order

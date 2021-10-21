@@ -783,8 +783,6 @@ func (tm *TradeManager) startOfflineServices() error {
 		}
 	}
 
-	tm.initializeFactorEngines()
-
 	for _, cs := range tm.bot.CurrencySettings {
 		dbData, err := database.LoadData(
 			time.Now().Add(time.Minute*-300),

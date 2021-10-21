@@ -186,7 +186,8 @@ func (m *DataHistoryManager) createCatchupJob(exchangeName string, a asset.Item,
 	endFmt := fmt.Sprintf("%d-%02d-%02d", end.Year(), end.Month(), end.Day())
 	name := fmt.Sprintf("%v-%s-%s--%d-catchup", c, startFmt, endFmt, time.Now().Unix())
 
-	dataType := dataHistoryConvertTradesDataType
+	// dataType := dataHistoryConvertTradesDataType
+	dataType := dataHistoryTradeDataType
 
 	job := DataHistoryJob{
 		Nickname:               name,
@@ -903,7 +904,6 @@ func (m *DataHistoryManager) processCandleData(job *DataHistoryJob, exch exchang
 }
 
 func (m *DataHistoryManager) processTradeData(job *DataHistoryJob, exch exchange.IBotExchange, startRange, endRange time.Time, intervalIndex int64) (*DataHistoryJobResult, error) {
-	fmt.Println("PROCESS TRADER DAATAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 	if !m.IsRunning() {
 		return nil, ErrSubSystemNotStarted
 	}
@@ -978,7 +978,6 @@ func (m *DataHistoryManager) processTradeData(job *DataHistoryJob, exch exchange
 }
 
 func (m *DataHistoryManager) convertTradesToCandles(job *DataHistoryJob, startRange, endRange time.Time) (*DataHistoryJobResult, error) {
-	fmt.Println("CONVERT TRADES TO CANDLES")
 	if !m.IsRunning() {
 		return nil, ErrSubSystemNotStarted
 	}
@@ -1002,6 +1001,7 @@ func (m *DataHistoryManager) convertTradesToCandles(job *DataHistoryJob, startRa
 	}
 	trades, err := m.tradeLoader(job.Exchange, job.Asset.String(), job.Pair.Base.String(), job.Pair.Quote.String(), startRange, endRange)
 	if err != nil {
+		fmt.Println("could not get trades in range")
 		r.Result = "could not get trades in range: " + err.Error()
 		r.Status = dataHistoryStatusFailed
 		return r, nil
@@ -1009,6 +1009,7 @@ func (m *DataHistoryManager) convertTradesToCandles(job *DataHistoryJob, startRa
 	candles, err := trade.ConvertTradesToCandles(job.Interval, trades...)
 	if err != nil {
 		r.Result = "could not convert trades in range: " + err.Error()
+		fmt.Println(r.Result)
 		r.Status = dataHistoryStatusFailed
 		return r, nil
 	}

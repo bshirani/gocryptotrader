@@ -215,7 +215,7 @@ func (k *Kraken) GetOHLC(ctx context.Context, symbol currency.Pair, interval str
 	ts := convert.UnixTimestampToTime(since)
 	sincestr := fmt.Sprintf("%d", since)
 	// fmt.Println("since", sincestr)
-	fmt.Println("kraken OHLC request from", ts, "since", sincestr)
+	// fmt.Println("kraken OHLC request for", symbol, "from", ts, "since", sincestr)
 	values.Set("since", sincestr)
 	type Response struct {
 		Error []interface{}          `json:"error"`
@@ -334,6 +334,58 @@ func (k *Kraken) GetDepth(ctx context.Context, symbol currency.Pair) (Orderbook,
 	return orderBook, err
 }
 
+// // Trades returns the recent trades for given pair
+// func (k *Kraken) Trades(pair string, since int64) (*TradesResponse, error) {
+// 	values := url.Values{"pair": {pair}}
+// 	if since > 0 {
+// 		values.Set("since", strconv.FormatInt(since, 10))
+// 	}
+// 	resp, err := api.queryPublic("Trades", values, nil)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	v := resp.(map[string]interface{})
+//
+// 	last, err := strconv.ParseInt(v["last"].(string), 10, 64)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	result := &TradesResponse{
+// 		Last:   last,
+// 		Trades: make([]TradeInfo, 0),
+// 	}
+//
+// 	trades := v[pair].([]interface{})
+// 	for _, v := range trades {
+// 		trade := v.([]interface{})
+//
+// 		priceString := trade[0].(string)
+// 		price, _ := strconv.ParseFloat(priceString, 64)
+//
+// 		volumeString := trade[1].(string)
+// 		volume, _ := strconv.ParseFloat(trade[1].(string), 64)
+//
+// 		tradeInfo := TradeInfo{
+// 			Price:         priceString,
+// 			PriceFloat:    price,
+// 			Volume:        volumeString,
+// 			VolumeFloat:   volume,
+// 			Time:          int64(trade[2].(float64)),
+// 			Buy:           trade[3].(string) == BUY,
+// 			Sell:          trade[3].(string) == SELL,
+// 			Market:        trade[4].(string) == MARKET,
+// 			Limit:         trade[4].(string) == LIMIT,
+// 			Miscellaneous: trade[5].(string),
+// 		}
+//
+// 		result.Trades = append(result.Trades, tradeInfo)
+// 	}
+//
+// 	return result, nil
+// }
+
 // GetTrades returns current trades on Kraken
 func (k *Kraken) GetTrades(ctx context.Context, symbol currency.Pair) ([]RecentTrades, error) {
 	values := url.Values{}
@@ -439,6 +491,38 @@ func (k *Kraken) GetTrades(ctx context.Context, symbol currency.Pair) ([]RecentT
 		recentTrades = append(recentTrades, r)
 	}
 	return recentTrades, nil
+}
+
+// TradesHistory returns the Trades History within a specified time frame (start to end).
+func (k *Kraken) GetTradesExtended(ctx context.Context, pair currency.Pair, start int64, end int64) (result *TradesHistoryResponse, err error) {
+	params := url.Values{}
+	if start > 0 {
+		params.Add("start", strconv.FormatInt(start, 10))
+	}
+	if end > 0 {
+		params.Add("end", strconv.FormatInt(end, 10))
+	}
+	// if value, ok := args["type"]; ok {
+	// 	params.Add("type", value)
+	// }
+	// if value, ok := args["trades"]; ok {
+	// 	params.Add("trades", value)
+	// }
+	// if value, ok := args["ofs"]; ok {
+	// 	params.Add("ofs", value)
+	// }
+
+	path := fmt.Sprintf("/%s/public/%s?%s", krakenAPIVersion, krakenTrades, params.Encode())
+	err = k.SendHTTPRequest(ctx, exchange.RestSpot, path, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 // GetSpread returns the full spread on Kraken
