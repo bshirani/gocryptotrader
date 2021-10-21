@@ -19,7 +19,6 @@ import (
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/log"
 
-	"github.com/shopspring/decimal"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
@@ -96,14 +95,13 @@ func main() {
 	// syncer.insertGateIOPairs()
 	// res, _ := syncer.downloadCMCMap()
 	syncer.saveCMCLatestListings()
-
 }
 
 func SetupSyncer(bot *engine.Engine) Syncer {
 	settings := coinmarketcap.Settings{
 		APIkey:      bot.Config.Currency.CryptocurrencyProvider.APIkey,
 		AccountPlan: bot.Config.Currency.CryptocurrencyProvider.AccountPlan,
-		Verbose:     false,
+		Verbose:     true,
 		Enabled:     true,
 	}
 
@@ -237,20 +235,42 @@ func (s *Syncer) insertCMCLatestListing(l coinmarketcap.CryptocurrencyLatestList
 		return err
 	}
 
+	USD := l.Quote.USD
+
 	var tempInsert = postgres.CMCLatestListing{
-		ID:                     l.ID,
-		Name:                   l.Name,
-		Symbol:                 l.Symbol,
-		Slug:                   l.Slug,
 		CMCRank:                l.CmcRank,
-		NumMarketPairs:         l.NumMarketPairs,
 		CirculatingSupply:      l.CirculatingSupply,
-		TotalSupply:            l.TotalSupply,
-		MarketCapByTotalSupply: decimal.NewFromFloat(l.MarketCapByTotalSupply),
-		MaxSupply:              l.MaxSupply,
-		LastUpdated:            l.LastUpdated,
 		DateAdded:              l.DateAdded,
-		LatestPrice:            l.Quote.USD,
+		FullyDilutedMarketCap:  USD.FullyDilutedMarketCap,
+		ID:                     l.ID,
+		LastUpdated:            l.LastUpdated,
+		MarketCap:              USD.MarketCap,
+		MarketCapByTotalSupply: l.MarketCapByTotalSupply,
+		MarketCapDominance:     USD.MarketCapDominance,
+		MaxSupply:              l.MaxSupply,
+		Name:                   l.Name,
+		NumMarketPairs:         l.NumMarketPairs,
+		PercentChange1H:        USD.PercentChange1H,
+		PercentChange24H:       USD.PercentChange24H,
+		PercentChange30D:       USD.PercentChange30D,
+		PercentChange60D:       USD.PercentChange60D,
+		PercentChange7D:        USD.PercentChange7D,
+		PercentChange90D:       USD.PercentChange90D,
+		PercentChangeVolume24H: USD.PercentChangeVolume24H,
+		PercentChangeVolume30D: USD.PercentChangeVolume30D,
+		PercentChangeVolume7D:  USD.PercentChangeVolume7D,
+		Price:                  USD.Price,
+		Slug:                   l.Slug,
+		Symbol:                 l.Symbol,
+		TotalMarketCap:         USD.TotalMarketCap,
+		TotalSupply:            l.TotalSupply,
+		Volume24H:              USD.Volume24H,
+		VolumeChange24H:        USD.VolumeChange24H,
+		// Volume7D:               USD.Volume7D,
+		// Volume30D:              USD.Volume30D,
+		// Volume24HReported:      USD.Volume24HReported,
+		// Volume30DReported:      USD.Volume30DReported,
+		// Volume7DReported:       USD.Volume7DReported,
 	}
 
 	err = tempInsert.Upsert(ctx, tx, true, []string{"id"}, boil.Infer(), boil.Infer())

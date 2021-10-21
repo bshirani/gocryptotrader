@@ -19,30 +19,47 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"github.com/volatiletech/sqlboiler/v4/queries/qmhelper"
-	"github.com/volatiletech/sqlboiler/v4/types"
 	"github.com/volatiletech/strmangle"
 )
 
 // CMCLatestListing is an object representing the database table.
 type CMCLatestListing struct {
-	ID                     int           `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Name                   string        `boil:"name" json:"name" toml:"name" yaml:"name"`
-	Symbol                 string        `boil:"symbol" json:"symbol" toml:"symbol" yaml:"symbol"`
-	Slug                   string        `boil:"slug" json:"slug" toml:"slug" yaml:"slug"`
-	CMCRank                int           `boil:"cmc_rank" json:"cmc_rank" toml:"cmc_rank" yaml:"cmc_rank"`
-	NumMarketPairs         int           `boil:"num_market_pairs" json:"num_market_pairs" toml:"num_market_pairs" yaml:"num_market_pairs"`
-	CirculatingSupply      types.Decimal `boil:"circulating_supply" json:"circulating_supply" toml:"circulating_supply" yaml:"circulating_supply"`
-	TotalSupply            float64       `boil:"total_supply" json:"total_supply" toml:"total_supply" yaml:"total_supply"`
-	MarketCapByTotalSupply float64       `boil:"market_cap_by_total_supply" json:"market_cap_by_total_supply" toml:"market_cap_by_total_supply" yaml:"market_cap_by_total_supply"`
-	MaxSupply              float64       `boil:"max_supply" json:"max_supply" toml:"max_supply" yaml:"max_supply"`
-	LastUpdated            time.Time     `boil:"last_updated" json:"last_updated" toml:"last_updated" yaml:"last_updated"`
-	DateAdded              time.Time     `boil:"date_added" json:"date_added" toml:"date_added" yaml:"date_added"`
-	Tags                   null.String   `boil:"tags" json:"tags,omitempty" toml:"tags" yaml:"tags,omitempty"`
-	Base                   string        `boil:"base" json:"base" toml:"base" yaml:"base"`
-	Quote                  string        `boil:"quote" json:"quote" toml:"quote" yaml:"quote"`
-	LatestPrice            float64       `boil:"latest_price" json:"latest_price" toml:"latest_price" yaml:"latest_price"`
-	CreatedAt              time.Time     `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt              time.Time     `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	ID                     int         `boil:"id" json:"id" toml:"id" yaml:"id"`
+	LastUpdated            time.Time   `boil:"last_updated" json:"last_updated" toml:"last_updated" yaml:"last_updated"`
+	MarketCap              float64     `boil:"market_cap" json:"market_cap" toml:"market_cap" yaml:"market_cap"`
+	MarketCapDominance     float64     `boil:"market_cap_dominance" json:"market_cap_dominance" toml:"market_cap_dominance" yaml:"market_cap_dominance"`
+	PercentChange1H        float64     `boil:"percent_change_1h" json:"percent_change_1h" toml:"percent_change_1h" yaml:"percent_change_1h"`
+	PercentChange24H       float64     `boil:"percent_change_24h" json:"percent_change_24h" toml:"percent_change_24h" yaml:"percent_change_24h"`
+	PercentChange7D        float64     `boil:"percent_change_7d" json:"percent_change_7d" toml:"percent_change_7d" yaml:"percent_change_7d"`
+	PercentChange30D       float64     `boil:"percent_change_30d" json:"percent_change_30d" toml:"percent_change_30d" yaml:"percent_change_30d"`
+	PercentChange60D       float64     `boil:"percent_change_60d" json:"percent_change_60d" toml:"percent_change_60d" yaml:"percent_change_60d"`
+	PercentChange90D       float64     `boil:"percent_change_90d" json:"percent_change_90d" toml:"percent_change_90d" yaml:"percent_change_90d"`
+	PercentChangeVolume24H float64     `boil:"percent_change_volume_24h" json:"percent_change_volume_24h" toml:"percent_change_volume_24h" yaml:"percent_change_volume_24h"`
+	PercentChangeVolume30D float64     `boil:"percent_change_volume_30d" json:"percent_change_volume_30d" toml:"percent_change_volume_30d" yaml:"percent_change_volume_30d"`
+	PercentChangeVolume7D  float64     `boil:"percent_change_volume_7d" json:"percent_change_volume_7d" toml:"percent_change_volume_7d" yaml:"percent_change_volume_7d"`
+	Price                  float64     `boil:"price" json:"price" toml:"price" yaml:"price"`
+	TotalMarketCap         float64     `boil:"total_market_cap" json:"total_market_cap" toml:"total_market_cap" yaml:"total_market_cap"`
+	Volume24H              float64     `boil:"volume_24h" json:"volume_24h" toml:"volume_24h" yaml:"volume_24h"`
+	Volume24HReported      float64     `boil:"volume_24h_reported" json:"volume_24h_reported" toml:"volume_24h_reported" yaml:"volume_24h_reported"`
+	Volume30D              float64     `boil:"volume_30d" json:"volume_30d" toml:"volume_30d" yaml:"volume_30d"`
+	Volume30DReported      float64     `boil:"volume_30d_reported" json:"volume_30d_reported" toml:"volume_30d_reported" yaml:"volume_30d_reported"`
+	Volume7D               float64     `boil:"volume_7d" json:"volume_7d" toml:"volume_7d" yaml:"volume_7d"`
+	Volume7DReported       float64     `boil:"volume_7d_reported" json:"volume_7d_reported" toml:"volume_7d_reported" yaml:"volume_7d_reported"`
+	CirculatingSupply      float64     `boil:"circulating_supply" json:"circulating_supply" toml:"circulating_supply" yaml:"circulating_supply"`
+	CMCRank                int         `boil:"cmc_rank" json:"cmc_rank" toml:"cmc_rank" yaml:"cmc_rank"`
+	DateAdded              time.Time   `boil:"date_added" json:"date_added" toml:"date_added" yaml:"date_added"`
+	FullyDilutedMarketCap  float64     `boil:"fully_diluted_market_cap" json:"fully_diluted_market_cap" toml:"fully_diluted_market_cap" yaml:"fully_diluted_market_cap"`
+	MarketCapByTotalSupply float64     `boil:"market_cap_by_total_supply" json:"market_cap_by_total_supply" toml:"market_cap_by_total_supply" yaml:"market_cap_by_total_supply"`
+	MaxSupply              float64     `boil:"max_supply" json:"max_supply" toml:"max_supply" yaml:"max_supply"`
+	Name                   string      `boil:"name" json:"name" toml:"name" yaml:"name"`
+	NumMarketPairs         int         `boil:"num_market_pairs" json:"num_market_pairs" toml:"num_market_pairs" yaml:"num_market_pairs"`
+	Slug                   string      `boil:"slug" json:"slug" toml:"slug" yaml:"slug"`
+	Symbol                 string      `boil:"symbol" json:"symbol" toml:"symbol" yaml:"symbol"`
+	Tags                   null.String `boil:"tags" json:"tags,omitempty" toml:"tags" yaml:"tags,omitempty"`
+	TotalSupply            float64     `boil:"total_supply" json:"total_supply" toml:"total_supply" yaml:"total_supply"`
+	VolumeChange24H        float64     `boil:"volume_change_24h" json:"volume_change_24h" toml:"volume_change_24h" yaml:"volume_change_24h"`
+	CreatedAt              time.Time   `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt              time.Time   `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
 	R *cmcLatestListingR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L cmcLatestListingL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -50,143 +67,230 @@ type CMCLatestListing struct {
 
 var CMCLatestListingColumns = struct {
 	ID                     string
-	Name                   string
-	Symbol                 string
-	Slug                   string
-	CMCRank                string
-	NumMarketPairs         string
+	LastUpdated            string
+	MarketCap              string
+	MarketCapDominance     string
+	PercentChange1H        string
+	PercentChange24H       string
+	PercentChange7D        string
+	PercentChange30D       string
+	PercentChange60D       string
+	PercentChange90D       string
+	PercentChangeVolume24H string
+	PercentChangeVolume30D string
+	PercentChangeVolume7D  string
+	Price                  string
+	TotalMarketCap         string
+	Volume24H              string
+	Volume24HReported      string
+	Volume30D              string
+	Volume30DReported      string
+	Volume7D               string
+	Volume7DReported       string
 	CirculatingSupply      string
-	TotalSupply            string
+	CMCRank                string
+	DateAdded              string
+	FullyDilutedMarketCap  string
 	MarketCapByTotalSupply string
 	MaxSupply              string
-	LastUpdated            string
-	DateAdded              string
+	Name                   string
+	NumMarketPairs         string
+	Slug                   string
+	Symbol                 string
 	Tags                   string
-	Base                   string
-	Quote                  string
-	LatestPrice            string
+	TotalSupply            string
+	VolumeChange24H        string
 	CreatedAt              string
 	UpdatedAt              string
 }{
 	ID:                     "id",
-	Name:                   "name",
-	Symbol:                 "symbol",
-	Slug:                   "slug",
-	CMCRank:                "cmc_rank",
-	NumMarketPairs:         "num_market_pairs",
+	LastUpdated:            "last_updated",
+	MarketCap:              "market_cap",
+	MarketCapDominance:     "market_cap_dominance",
+	PercentChange1H:        "percent_change_1h",
+	PercentChange24H:       "percent_change_24h",
+	PercentChange7D:        "percent_change_7d",
+	PercentChange30D:       "percent_change_30d",
+	PercentChange60D:       "percent_change_60d",
+	PercentChange90D:       "percent_change_90d",
+	PercentChangeVolume24H: "percent_change_volume_24h",
+	PercentChangeVolume30D: "percent_change_volume_30d",
+	PercentChangeVolume7D:  "percent_change_volume_7d",
+	Price:                  "price",
+	TotalMarketCap:         "total_market_cap",
+	Volume24H:              "volume_24h",
+	Volume24HReported:      "volume_24h_reported",
+	Volume30D:              "volume_30d",
+	Volume30DReported:      "volume_30d_reported",
+	Volume7D:               "volume_7d",
+	Volume7DReported:       "volume_7d_reported",
 	CirculatingSupply:      "circulating_supply",
-	TotalSupply:            "total_supply",
+	CMCRank:                "cmc_rank",
+	DateAdded:              "date_added",
+	FullyDilutedMarketCap:  "fully_diluted_market_cap",
 	MarketCapByTotalSupply: "market_cap_by_total_supply",
 	MaxSupply:              "max_supply",
-	LastUpdated:            "last_updated",
-	DateAdded:              "date_added",
+	Name:                   "name",
+	NumMarketPairs:         "num_market_pairs",
+	Slug:                   "slug",
+	Symbol:                 "symbol",
 	Tags:                   "tags",
-	Base:                   "base",
-	Quote:                  "quote",
-	LatestPrice:            "latest_price",
+	TotalSupply:            "total_supply",
+	VolumeChange24H:        "volume_change_24h",
 	CreatedAt:              "created_at",
 	UpdatedAt:              "updated_at",
 }
 
 var CMCLatestListingTableColumns = struct {
 	ID                     string
-	Name                   string
-	Symbol                 string
-	Slug                   string
-	CMCRank                string
-	NumMarketPairs         string
+	LastUpdated            string
+	MarketCap              string
+	MarketCapDominance     string
+	PercentChange1H        string
+	PercentChange24H       string
+	PercentChange7D        string
+	PercentChange30D       string
+	PercentChange60D       string
+	PercentChange90D       string
+	PercentChangeVolume24H string
+	PercentChangeVolume30D string
+	PercentChangeVolume7D  string
+	Price                  string
+	TotalMarketCap         string
+	Volume24H              string
+	Volume24HReported      string
+	Volume30D              string
+	Volume30DReported      string
+	Volume7D               string
+	Volume7DReported       string
 	CirculatingSupply      string
-	TotalSupply            string
+	CMCRank                string
+	DateAdded              string
+	FullyDilutedMarketCap  string
 	MarketCapByTotalSupply string
 	MaxSupply              string
-	LastUpdated            string
-	DateAdded              string
+	Name                   string
+	NumMarketPairs         string
+	Slug                   string
+	Symbol                 string
 	Tags                   string
-	Base                   string
-	Quote                  string
-	LatestPrice            string
+	TotalSupply            string
+	VolumeChange24H        string
 	CreatedAt              string
 	UpdatedAt              string
 }{
 	ID:                     "cmc_latest_listing.id",
-	Name:                   "cmc_latest_listing.name",
-	Symbol:                 "cmc_latest_listing.symbol",
-	Slug:                   "cmc_latest_listing.slug",
-	CMCRank:                "cmc_latest_listing.cmc_rank",
-	NumMarketPairs:         "cmc_latest_listing.num_market_pairs",
+	LastUpdated:            "cmc_latest_listing.last_updated",
+	MarketCap:              "cmc_latest_listing.market_cap",
+	MarketCapDominance:     "cmc_latest_listing.market_cap_dominance",
+	PercentChange1H:        "cmc_latest_listing.percent_change_1h",
+	PercentChange24H:       "cmc_latest_listing.percent_change_24h",
+	PercentChange7D:        "cmc_latest_listing.percent_change_7d",
+	PercentChange30D:       "cmc_latest_listing.percent_change_30d",
+	PercentChange60D:       "cmc_latest_listing.percent_change_60d",
+	PercentChange90D:       "cmc_latest_listing.percent_change_90d",
+	PercentChangeVolume24H: "cmc_latest_listing.percent_change_volume_24h",
+	PercentChangeVolume30D: "cmc_latest_listing.percent_change_volume_30d",
+	PercentChangeVolume7D:  "cmc_latest_listing.percent_change_volume_7d",
+	Price:                  "cmc_latest_listing.price",
+	TotalMarketCap:         "cmc_latest_listing.total_market_cap",
+	Volume24H:              "cmc_latest_listing.volume_24h",
+	Volume24HReported:      "cmc_latest_listing.volume_24h_reported",
+	Volume30D:              "cmc_latest_listing.volume_30d",
+	Volume30DReported:      "cmc_latest_listing.volume_30d_reported",
+	Volume7D:               "cmc_latest_listing.volume_7d",
+	Volume7DReported:       "cmc_latest_listing.volume_7d_reported",
 	CirculatingSupply:      "cmc_latest_listing.circulating_supply",
-	TotalSupply:            "cmc_latest_listing.total_supply",
+	CMCRank:                "cmc_latest_listing.cmc_rank",
+	DateAdded:              "cmc_latest_listing.date_added",
+	FullyDilutedMarketCap:  "cmc_latest_listing.fully_diluted_market_cap",
 	MarketCapByTotalSupply: "cmc_latest_listing.market_cap_by_total_supply",
 	MaxSupply:              "cmc_latest_listing.max_supply",
-	LastUpdated:            "cmc_latest_listing.last_updated",
-	DateAdded:              "cmc_latest_listing.date_added",
+	Name:                   "cmc_latest_listing.name",
+	NumMarketPairs:         "cmc_latest_listing.num_market_pairs",
+	Slug:                   "cmc_latest_listing.slug",
+	Symbol:                 "cmc_latest_listing.symbol",
 	Tags:                   "cmc_latest_listing.tags",
-	Base:                   "cmc_latest_listing.base",
-	Quote:                  "cmc_latest_listing.quote",
-	LatestPrice:            "cmc_latest_listing.latest_price",
+	TotalSupply:            "cmc_latest_listing.total_supply",
+	VolumeChange24H:        "cmc_latest_listing.volume_change_24h",
 	CreatedAt:              "cmc_latest_listing.created_at",
 	UpdatedAt:              "cmc_latest_listing.updated_at",
 }
 
 // Generated where
 
-type whereHelpertypes_Decimal struct{ field string }
-
-func (w whereHelpertypes_Decimal) EQ(x types.Decimal) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.EQ, x)
-}
-func (w whereHelpertypes_Decimal) NEQ(x types.Decimal) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.NEQ, x)
-}
-func (w whereHelpertypes_Decimal) LT(x types.Decimal) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LT, x)
-}
-func (w whereHelpertypes_Decimal) LTE(x types.Decimal) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LTE, x)
-}
-func (w whereHelpertypes_Decimal) GT(x types.Decimal) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GT, x)
-}
-func (w whereHelpertypes_Decimal) GTE(x types.Decimal) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GTE, x)
-}
-
 var CMCLatestListingWhere = struct {
 	ID                     whereHelperint
-	Name                   whereHelperstring
-	Symbol                 whereHelperstring
-	Slug                   whereHelperstring
+	LastUpdated            whereHelpertime_Time
+	MarketCap              whereHelperfloat64
+	MarketCapDominance     whereHelperfloat64
+	PercentChange1H        whereHelperfloat64
+	PercentChange24H       whereHelperfloat64
+	PercentChange7D        whereHelperfloat64
+	PercentChange30D       whereHelperfloat64
+	PercentChange60D       whereHelperfloat64
+	PercentChange90D       whereHelperfloat64
+	PercentChangeVolume24H whereHelperfloat64
+	PercentChangeVolume30D whereHelperfloat64
+	PercentChangeVolume7D  whereHelperfloat64
+	Price                  whereHelperfloat64
+	TotalMarketCap         whereHelperfloat64
+	Volume24H              whereHelperfloat64
+	Volume24HReported      whereHelperfloat64
+	Volume30D              whereHelperfloat64
+	Volume30DReported      whereHelperfloat64
+	Volume7D               whereHelperfloat64
+	Volume7DReported       whereHelperfloat64
+	CirculatingSupply      whereHelperfloat64
 	CMCRank                whereHelperint
-	NumMarketPairs         whereHelperint
-	CirculatingSupply      whereHelpertypes_Decimal
-	TotalSupply            whereHelperfloat64
+	DateAdded              whereHelpertime_Time
+	FullyDilutedMarketCap  whereHelperfloat64
 	MarketCapByTotalSupply whereHelperfloat64
 	MaxSupply              whereHelperfloat64
-	LastUpdated            whereHelpertime_Time
-	DateAdded              whereHelpertime_Time
+	Name                   whereHelperstring
+	NumMarketPairs         whereHelperint
+	Slug                   whereHelperstring
+	Symbol                 whereHelperstring
 	Tags                   whereHelpernull_String
-	Base                   whereHelperstring
-	Quote                  whereHelperstring
-	LatestPrice            whereHelperfloat64
+	TotalSupply            whereHelperfloat64
+	VolumeChange24H        whereHelperfloat64
 	CreatedAt              whereHelpertime_Time
 	UpdatedAt              whereHelpertime_Time
 }{
 	ID:                     whereHelperint{field: "\"cmc_latest_listing\".\"id\""},
-	Name:                   whereHelperstring{field: "\"cmc_latest_listing\".\"name\""},
-	Symbol:                 whereHelperstring{field: "\"cmc_latest_listing\".\"symbol\""},
-	Slug:                   whereHelperstring{field: "\"cmc_latest_listing\".\"slug\""},
+	LastUpdated:            whereHelpertime_Time{field: "\"cmc_latest_listing\".\"last_updated\""},
+	MarketCap:              whereHelperfloat64{field: "\"cmc_latest_listing\".\"market_cap\""},
+	MarketCapDominance:     whereHelperfloat64{field: "\"cmc_latest_listing\".\"market_cap_dominance\""},
+	PercentChange1H:        whereHelperfloat64{field: "\"cmc_latest_listing\".\"percent_change_1h\""},
+	PercentChange24H:       whereHelperfloat64{field: "\"cmc_latest_listing\".\"percent_change_24h\""},
+	PercentChange7D:        whereHelperfloat64{field: "\"cmc_latest_listing\".\"percent_change_7d\""},
+	PercentChange30D:       whereHelperfloat64{field: "\"cmc_latest_listing\".\"percent_change_30d\""},
+	PercentChange60D:       whereHelperfloat64{field: "\"cmc_latest_listing\".\"percent_change_60d\""},
+	PercentChange90D:       whereHelperfloat64{field: "\"cmc_latest_listing\".\"percent_change_90d\""},
+	PercentChangeVolume24H: whereHelperfloat64{field: "\"cmc_latest_listing\".\"percent_change_volume_24h\""},
+	PercentChangeVolume30D: whereHelperfloat64{field: "\"cmc_latest_listing\".\"percent_change_volume_30d\""},
+	PercentChangeVolume7D:  whereHelperfloat64{field: "\"cmc_latest_listing\".\"percent_change_volume_7d\""},
+	Price:                  whereHelperfloat64{field: "\"cmc_latest_listing\".\"price\""},
+	TotalMarketCap:         whereHelperfloat64{field: "\"cmc_latest_listing\".\"total_market_cap\""},
+	Volume24H:              whereHelperfloat64{field: "\"cmc_latest_listing\".\"volume_24h\""},
+	Volume24HReported:      whereHelperfloat64{field: "\"cmc_latest_listing\".\"volume_24h_reported\""},
+	Volume30D:              whereHelperfloat64{field: "\"cmc_latest_listing\".\"volume_30d\""},
+	Volume30DReported:      whereHelperfloat64{field: "\"cmc_latest_listing\".\"volume_30d_reported\""},
+	Volume7D:               whereHelperfloat64{field: "\"cmc_latest_listing\".\"volume_7d\""},
+	Volume7DReported:       whereHelperfloat64{field: "\"cmc_latest_listing\".\"volume_7d_reported\""},
+	CirculatingSupply:      whereHelperfloat64{field: "\"cmc_latest_listing\".\"circulating_supply\""},
 	CMCRank:                whereHelperint{field: "\"cmc_latest_listing\".\"cmc_rank\""},
-	NumMarketPairs:         whereHelperint{field: "\"cmc_latest_listing\".\"num_market_pairs\""},
-	CirculatingSupply:      whereHelpertypes_Decimal{field: "\"cmc_latest_listing\".\"circulating_supply\""},
-	TotalSupply:            whereHelperfloat64{field: "\"cmc_latest_listing\".\"total_supply\""},
+	DateAdded:              whereHelpertime_Time{field: "\"cmc_latest_listing\".\"date_added\""},
+	FullyDilutedMarketCap:  whereHelperfloat64{field: "\"cmc_latest_listing\".\"fully_diluted_market_cap\""},
 	MarketCapByTotalSupply: whereHelperfloat64{field: "\"cmc_latest_listing\".\"market_cap_by_total_supply\""},
 	MaxSupply:              whereHelperfloat64{field: "\"cmc_latest_listing\".\"max_supply\""},
-	LastUpdated:            whereHelpertime_Time{field: "\"cmc_latest_listing\".\"last_updated\""},
-	DateAdded:              whereHelpertime_Time{field: "\"cmc_latest_listing\".\"date_added\""},
+	Name:                   whereHelperstring{field: "\"cmc_latest_listing\".\"name\""},
+	NumMarketPairs:         whereHelperint{field: "\"cmc_latest_listing\".\"num_market_pairs\""},
+	Slug:                   whereHelperstring{field: "\"cmc_latest_listing\".\"slug\""},
+	Symbol:                 whereHelperstring{field: "\"cmc_latest_listing\".\"symbol\""},
 	Tags:                   whereHelpernull_String{field: "\"cmc_latest_listing\".\"tags\""},
-	Base:                   whereHelperstring{field: "\"cmc_latest_listing\".\"base\""},
-	Quote:                  whereHelperstring{field: "\"cmc_latest_listing\".\"quote\""},
-	LatestPrice:            whereHelperfloat64{field: "\"cmc_latest_listing\".\"latest_price\""},
+	TotalSupply:            whereHelperfloat64{field: "\"cmc_latest_listing\".\"total_supply\""},
+	VolumeChange24H:        whereHelperfloat64{field: "\"cmc_latest_listing\".\"volume_change_24h\""},
 	CreatedAt:              whereHelpertime_Time{field: "\"cmc_latest_listing\".\"created_at\""},
 	UpdatedAt:              whereHelpertime_Time{field: "\"cmc_latest_listing\".\"updated_at\""},
 }
@@ -208,8 +312,8 @@ func (*cmcLatestListingR) NewStruct() *cmcLatestListingR {
 type cmcLatestListingL struct{}
 
 var (
-	cmcLatestListingAllColumns            = []string{"id", "name", "symbol", "slug", "cmc_rank", "num_market_pairs", "circulating_supply", "total_supply", "market_cap_by_total_supply", "max_supply", "last_updated", "date_added", "tags", "base", "quote", "latest_price", "created_at", "updated_at"}
-	cmcLatestListingColumnsWithoutDefault = []string{"name", "symbol", "slug", "cmc_rank", "num_market_pairs", "circulating_supply", "total_supply", "market_cap_by_total_supply", "max_supply", "last_updated", "date_added", "tags", "base", "quote", "latest_price"}
+	cmcLatestListingAllColumns            = []string{"id", "last_updated", "market_cap", "market_cap_dominance", "percent_change_1h", "percent_change_24h", "percent_change_7d", "percent_change_30d", "percent_change_60d", "percent_change_90d", "percent_change_volume_24h", "percent_change_volume_30d", "percent_change_volume_7d", "price", "total_market_cap", "volume_24h", "volume_24h_reported", "volume_30d", "volume_30d_reported", "volume_7d", "volume_7d_reported", "circulating_supply", "cmc_rank", "date_added", "fully_diluted_market_cap", "market_cap_by_total_supply", "max_supply", "name", "num_market_pairs", "slug", "symbol", "tags", "total_supply", "volume_change_24h", "created_at", "updated_at"}
+	cmcLatestListingColumnsWithoutDefault = []string{"last_updated", "market_cap", "market_cap_dominance", "percent_change_1h", "percent_change_24h", "percent_change_7d", "percent_change_30d", "percent_change_60d", "percent_change_90d", "percent_change_volume_24h", "percent_change_volume_30d", "percent_change_volume_7d", "price", "total_market_cap", "volume_24h", "volume_24h_reported", "volume_30d", "volume_30d_reported", "volume_7d", "volume_7d_reported", "circulating_supply", "cmc_rank", "date_added", "fully_diluted_market_cap", "market_cap_by_total_supply", "max_supply", "name", "num_market_pairs", "slug", "symbol", "tags", "total_supply", "volume_change_24h"}
 	cmcLatestListingColumnsWithDefault    = []string{"id", "created_at", "updated_at"}
 	cmcLatestListingPrimaryKeyColumns     = []string{"id"}
 )

@@ -204,6 +204,8 @@ func (c *Coinmarketcap) GetCryptocurrencyLatestMarketPairs(currencyID, start, li
 		val.Set("limit", strconv.FormatInt(limit, 10))
 	}
 
+	val.Set("aux", "num_market_pairs,cmc_rank,date_added,tags,platform,max_supply,circulating_supply,total_supply,market_cap_by_total_supply,volume_24h_reported,volume_7d,volume_7d_reported,volume_30d,volume_30d_reported,is_market_cap_included_in_calc")
+
 	err = c.SendHTTPRequest(http.MethodGet, endpointCryptocurrencyMarketPairs, val, &resp)
 	if err != nil {
 		return resp.Data, err
@@ -679,6 +681,7 @@ func (c *Coinmarketcap) SendHTTPRequest(method, endpoint string, v url.Values, r
 	if v != nil {
 		path = path + "?" + v.Encode()
 	}
+	fmt.Println("path", path)
 	item := &request.Item{
 		Method:  method,
 		Path:    path,

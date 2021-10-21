@@ -928,7 +928,7 @@ func (g *Gateio) GetHistoricCandles(ctx context.Context, pair currency.Pair, a a
 		fmt.Println("Error did not receive all candles", pair, minReq, len(klineData.Candles))
 		fmt.Println("requested", start, end)
 		fmt.Println("received", t1, t2)
-		os.Exit(123)
+		// os.Exit(123)
 	}
 
 	// klineData.SortCandlesByTimestamp(false)
