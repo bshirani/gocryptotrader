@@ -1,6 +1,6 @@
 -- +goose Up
 -- SQL in this section is executed when the migration is applied.
-CREATE TABLE IF NOT EXISTS instrument
+CREATE TABLE IF NOT EXISTS jmc_coin
 (
     id SERIAL PRIMARY KEY,
     -- base varchar(30) NOT NULL,

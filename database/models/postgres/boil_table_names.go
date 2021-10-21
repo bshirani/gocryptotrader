@@ -6,10 +6,12 @@ package postgres
 var TableNames = struct {
 	AuditEvent              string
 	Candle                  string
+	CMCLatestListing        string
 	Datahistoryjob          string
 	Datahistoryjobrelations string
 	Datahistoryjobresult    string
 	Exchange                string
+	Gateiocoin              string
 	GooseDBVersion          string
 	Instrument              string
 	LiveOrder               string
@@ -23,10 +25,12 @@ var TableNames = struct {
 }{
 	AuditEvent:              "audit_event",
 	Candle:                  "candle",
+	CMCLatestListing:        "cmc_latest_listing",
 	Datahistoryjob:          "datahistoryjob",
 	Datahistoryjobrelations: "datahistoryjobrelations",
 	Datahistoryjobresult:    "datahistoryjobresult",
 	Exchange:                "exchange",
+	Gateiocoin:              "gateiocoin",
 	GooseDBVersion:          "goose_db_version",
 	Instrument:              "instrument",
 	LiveOrder:               "live_order",

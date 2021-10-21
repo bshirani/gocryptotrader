@@ -32,7 +32,6 @@ type Instrument struct {
 	FirstHistoricalData time.Time         `boil:"first_historical_data" json:"first_historical_data" toml:"first_historical_data" yaml:"first_historical_data"`
 	LastHistoricalData  time.Time         `boil:"last_historical_data" json:"last_historical_data" toml:"last_historical_data" yaml:"last_historical_data"`
 	MarketCap           types.NullDecimal `boil:"market_cap" json:"market_cap,omitempty" toml:"market_cap" yaml:"market_cap,omitempty"`
-	ListingStatus       string            `boil:"listing_status" json:"listing_status" toml:"listing_status" yaml:"listing_status"`
 	Active              bool              `boil:"active" json:"active" toml:"active" yaml:"active"`
 	Status              bool              `boil:"status" json:"status" toml:"status" yaml:"status"`
 	CreatedAt           time.Time         `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
@@ -51,7 +50,6 @@ var InstrumentColumns = struct {
 	FirstHistoricalData string
 	LastHistoricalData  string
 	MarketCap           string
-	ListingStatus       string
 	Active              string
 	Status              string
 	CreatedAt           string
@@ -65,7 +63,6 @@ var InstrumentColumns = struct {
 	FirstHistoricalData: "first_historical_data",
 	LastHistoricalData:  "last_historical_data",
 	MarketCap:           "market_cap",
-	ListingStatus:       "listing_status",
 	Active:              "active",
 	Status:              "status",
 	CreatedAt:           "created_at",
@@ -81,7 +78,6 @@ var InstrumentTableColumns = struct {
 	FirstHistoricalData string
 	LastHistoricalData  string
 	MarketCap           string
-	ListingStatus       string
 	Active              string
 	Status              string
 	CreatedAt           string
@@ -95,7 +91,6 @@ var InstrumentTableColumns = struct {
 	FirstHistoricalData: "instrument.first_historical_data",
 	LastHistoricalData:  "instrument.last_historical_data",
 	MarketCap:           "instrument.market_cap",
-	ListingStatus:       "instrument.listing_status",
 	Active:              "instrument.active",
 	Status:              "instrument.status",
 	CreatedAt:           "instrument.created_at",
@@ -139,7 +134,6 @@ var InstrumentWhere = struct {
 	FirstHistoricalData whereHelpertime_Time
 	LastHistoricalData  whereHelpertime_Time
 	MarketCap           whereHelpertypes_NullDecimal
-	ListingStatus       whereHelperstring
 	Active              whereHelperbool
 	Status              whereHelperbool
 	CreatedAt           whereHelpertime_Time
@@ -153,7 +147,6 @@ var InstrumentWhere = struct {
 	FirstHistoricalData: whereHelpertime_Time{field: "\"instrument\".\"first_historical_data\""},
 	LastHistoricalData:  whereHelpertime_Time{field: "\"instrument\".\"last_historical_data\""},
 	MarketCap:           whereHelpertypes_NullDecimal{field: "\"instrument\".\"market_cap\""},
-	ListingStatus:       whereHelperstring{field: "\"instrument\".\"listing_status\""},
 	Active:              whereHelperbool{field: "\"instrument\".\"active\""},
 	Status:              whereHelperbool{field: "\"instrument\".\"status\""},
 	CreatedAt:           whereHelpertime_Time{field: "\"instrument\".\"created_at\""},
@@ -177,8 +170,8 @@ func (*instrumentR) NewStruct() *instrumentR {
 type instrumentL struct{}
 
 var (
-	instrumentAllColumns            = []string{"id", "symbol", "cmc_id", "name", "slug", "first_historical_data", "last_historical_data", "market_cap", "listing_status", "active", "status", "created_at", "updated_at"}
-	instrumentColumnsWithoutDefault = []string{"symbol", "cmc_id", "name", "slug", "first_historical_data", "last_historical_data", "market_cap", "listing_status", "active", "status"}
+	instrumentAllColumns            = []string{"id", "symbol", "cmc_id", "name", "slug", "first_historical_data", "last_historical_data", "market_cap", "active", "status", "created_at", "updated_at"}
+	instrumentColumnsWithoutDefault = []string{"symbol", "cmc_id", "name", "slug", "first_historical_data", "last_historical_data", "market_cap", "active", "status"}
 	instrumentColumnsWithDefault    = []string{"id", "created_at", "updated_at"}
 	instrumentPrimaryKeyColumns     = []string{"id"}
 )

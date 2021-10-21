@@ -9,19 +9,24 @@ import (
 	"path/filepath"
 
 	"gocryptotrader/config"
+	"gocryptotrader/currency"
 	"gocryptotrader/currency/coinmarketcap"
 	"gocryptotrader/database"
 	gctdatabase "gocryptotrader/database"
-	modelPSQL "gocryptotrader/database/models/postgres"
+	"gocryptotrader/database/models/postgres"
 	"gocryptotrader/database/repository/instrument"
 	"gocryptotrader/engine"
+	"gocryptotrader/exchange/asset"
 	"gocryptotrader/log"
 
+	"github.com/shopspring/decimal"
+	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
 type Syncer struct {
 	bot *engine.Engine
+	cmc *coinmarketcap.Coinmarketcap
 }
 
 func main() {
@@ -87,14 +92,65 @@ func main() {
 		}
 	}
 
-	// insertGateIOPairs()
-
-	syncer := Syncer{
-		bot: bot,
-	}
+	syncer := SetupSyncer(bot)
 	// syncer.insertGateIOPairs()
-	res, _ := syncer.downloadCMCMap()
+	// res, _ := syncer.downloadCMCMap()
+	syncer.saveCMCLatestListings()
 
+}
+
+func SetupSyncer(bot *engine.Engine) Syncer {
+	settings := coinmarketcap.Settings{
+		APIkey:      bot.Config.Currency.CryptocurrencyProvider.APIkey,
+		AccountPlan: bot.Config.Currency.CryptocurrencyProvider.AccountPlan,
+		Verbose:     false,
+		Enabled:     true,
+	}
+
+	cmc := new(coinmarketcap.Coinmarketcap)
+	cmc.SetDefaults()
+	cmc.Setup(settings)
+
+	return Syncer{
+		bot: bot,
+		cmc: cmc,
+	}
+}
+
+func (s *Syncer) listAllInstruments() {
+	whereQM := qm.Where("1=1")
+	ins, _ := postgres.Instruments(whereQM).All(context.Background(), database.DB.SQL)
+	for _, i := range ins {
+		fmt.Println(i)
+		// pair, _ := currency.NewPairFromStrings(i.Base, i.Quote)
+		// fmt.Println(pair)
+	}
+}
+
+type GateIOCoin struct {
+	Base  currency.Code
+	Quote currency.Code
+}
+
+func (s *Syncer) insertGateIOPairs() {
+	pairs, _ := s.bot.Config.GetAvailablePairs("gateio", asset.Spot)
+	// pair := pair.NewPairFromString("BTC_USD")
+	for _, p := range pairs {
+		err := s.insertPair(p)
+		if err != nil {
+			fmt.Println("error", err)
+			os.Exit(123)
+		}
+		// upsert
+	}
+}
+
+func (s *Syncer) downloadCMCMap() ([]coinmarketcap.CryptoCurrencyMap, error) {
+
+	res, err := s.cmc.GetCryptocurrencyIDMap()
+	if err != nil {
+		fmt.Println("error getting map", err)
+	}
 	for _, coin := range res {
 		// p, err := currency.NewPairFromString(coin.Symbol)
 		// if err != nil {
@@ -118,51 +174,98 @@ func main() {
 		}
 		// instruments = append(instruments, details)
 	}
-
-}
-
-func (s *Syncer) listAllInstruments() {
-	whereQM := qm.Where("1=1")
-	ins, _ := modelPSQL.Instruments(whereQM).All(context.Background(), database.DB.SQL)
-	for _, i := range ins {
-		fmt.Println(i)
-		// pair, _ := currency.NewPairFromStrings(i.Base, i.Quote)
-		// fmt.Println(pair)
-	}
-}
-
-// func (s *Syncer) insertGateIOPairs() {
-// 	pairs, _ := s.bot.Config.GetAvailablePairs("gateio", asset.Spot)
-// 	// pair := pair.NewPairFromString("BTC_USD")
-// 	for _, p := range pairs {
-// 		details := instrument.Details{
-// 			Base:  p.Base,
-// 			Quote: p.Quote,
-// 		}
-// 		err := instrument.Insert(details)
-// 		if err != nil {
-// 			fmt.Println("error", err)
-// 			os.Exit(123)
-// 		}
-// 		// upsert
-// 	}
-// }
-
-func (s *Syncer) downloadCMCMap() ([]coinmarketcap.CryptoCurrencyMap, error) {
-	settings := coinmarketcap.Settings{
-		APIkey:      s.bot.Config.Currency.CryptocurrencyProvider.APIkey,
-		AccountPlan: s.bot.Config.Currency.CryptocurrencyProvider.AccountPlan,
-		Verbose:     false,
-		Enabled:     true,
-	}
-
-	cmc := new(coinmarketcap.Coinmarketcap)
-	cmc.SetDefaults()
-	cmc.Setup(settings)
-	return cmc.GetCryptocurrencyIDMap()
 	// f, _ := os.Create("cmcresponse.json")
 	// for _, l := range res {
 	// 	f.WriteString(l)
 	// }
 	// f.Close()
+	return res, nil
+}
+
+func (s *Syncer) insertPair(p currency.Pair) error {
+	if database.DB.SQL == nil {
+		return database.ErrDatabaseSupportDisabled
+	}
+
+	ctx := context.Background()
+	tx, err := database.DB.SQL.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	var tempInsert = postgres.Gateiocoin{
+		Quote: p.Quote.String(),
+		Base:  p.Base.String(),
+	}
+
+	err = tempInsert.Upsert(ctx, tx, true, []string{"quote", "base"}, boil.Infer(), boil.Infer())
+	if err != nil {
+		errRB := tx.Rollback()
+		if errRB != nil {
+			log.Errorln(log.DatabaseMgr, errRB)
+		}
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Syncer) saveCMCLatestListings() error {
+	listings, err := s.cmc.GetCryptocurrencyLatestListing(0, 1000)
+	if err != nil {
+		fmt.Println(err)
+	}
+	for _, l := range listings {
+		s.insertCMCLatestListing(l)
+	}
+	return nil
+}
+
+func (s *Syncer) insertCMCLatestListing(l coinmarketcap.CryptocurrencyLatestListings) error {
+	if database.DB.SQL == nil {
+		return database.ErrDatabaseSupportDisabled
+	}
+
+	ctx := context.Background()
+	tx, err := database.DB.SQL.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	var tempInsert = postgres.CMCLatestListing{
+		ID:                     l.ID,
+		Name:                   l.Name,
+		Symbol:                 l.Symbol,
+		Slug:                   l.Slug,
+		CMCRank:                l.CmcRank,
+		NumMarketPairs:         l.NumMarketPairs,
+		CirculatingSupply:      l.CirculatingSupply,
+		TotalSupply:            l.TotalSupply,
+		MarketCapByTotalSupply: decimal.NewFromFloat(l.MarketCapByTotalSupply),
+		MaxSupply:              l.MaxSupply,
+		LastUpdated:            l.LastUpdated,
+		DateAdded:              l.DateAdded,
+		LatestPrice:            l.Quote.USD,
+	}
+
+	err = tempInsert.Upsert(ctx, tx, true, []string{"id"}, boil.Infer(), boil.Infer())
+	if err != nil {
+		errRB := tx.Rollback()
+		if errRB != nil {
+			log.Errorln(log.DatabaseMgr, errRB)
+		}
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
