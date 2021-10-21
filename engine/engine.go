@@ -89,7 +89,6 @@ func NewFromSettings(settings *Settings, flagSet map[string]bool) (*Engine, erro
 
 	b.Config, err = loadConfigWithSettings(settings, flagSet)
 	if err != nil {
-		fmt.Println(22222)
 		return nil, fmt.Errorf("failed to load config. Err: %s", err)
 	}
 
@@ -705,7 +704,7 @@ func (bot *Engine) Start() error {
 	// handle script here
 
 	if bot.Settings.EnableDataImporter {
-		dataImporter := SetupDataImporter(bot)
+		dataImporter := SetupDataImporter(bot, &bot.Config.DataImporter)
 		dataImporter.Run("kraken")
 	}
 

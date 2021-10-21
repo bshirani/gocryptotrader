@@ -43,6 +43,56 @@ func CountExchange(exchangeName string, interval int64, asset string) (count int
 	return modelPSQL.Candles(queries...).Count(context.Background(), database.DB.SQL)
 }
 
+func CountTo(exchangeName, base, quote string, interval int64, asset string, to time.Time) (count int64, err error) {
+	// boil.DebugMode = true
+	// defer func() { boil.DebugMode = false }()
+	if exchangeName == "" || base == "" || quote == "" || asset == "" || interval <= 0 {
+		return count, errInvalidInput
+	}
+
+	queries := []qm.QueryMod{
+		qm.Where("base = ?", strings.ToUpper(base)),
+		qm.Where("quote = ?", strings.ToUpper(quote)),
+		qm.Where("interval = ?", interval),
+		qm.Where("asset = ?", strings.ToLower(asset)),
+		qm.Where("timestamp <= ?", to),
+	}
+
+	exchangeUUID, errS := exchange.UUIDByName(exchangeName)
+	if errS != nil {
+		return count, errS
+	}
+	queries = append(queries, qm.Where("exchange_name_id = ?", exchangeUUID.String()))
+	count, err = modelPSQL.Candles(queries...).Count(context.Background(), database.DB.SQL)
+	// fmt.Println("candlecount returning", count)
+	return count, err
+}
+
+func CountFrom(exchangeName, base, quote string, interval int64, asset string, from time.Time) (count int64, err error) {
+	// boil.DebugMode = true
+	// defer func() { boil.DebugMode = false }()
+	if exchangeName == "" || base == "" || quote == "" || asset == "" || interval <= 0 {
+		return count, errInvalidInput
+	}
+
+	queries := []qm.QueryMod{
+		qm.Where("base = ?", strings.ToUpper(base)),
+		qm.Where("quote = ?", strings.ToUpper(quote)),
+		qm.Where("interval = ?", interval),
+		qm.Where("asset = ?", strings.ToLower(asset)),
+		qm.Where("timestamp >= ?", from),
+	}
+
+	exchangeUUID, errS := exchange.UUIDByName(exchangeName)
+	if errS != nil {
+		return count, errS
+	}
+	queries = append(queries, qm.Where("exchange_name_id = ?", exchangeUUID.String()))
+	count, err = modelPSQL.Candles(queries...).Count(context.Background(), database.DB.SQL)
+	// fmt.Println("candlecount returning", count)
+	return count, err
+}
+
 func Count(exchangeName, base, quote string, interval int64, asset string) (count int64, err error) {
 	// boil.DebugMode = true
 	// defer func() { boil.DebugMode = false }()

@@ -139,10 +139,10 @@ func (m *syncManager) Start() error {
 		assetTypes := exchanges[x].GetAssetTypes(false)
 		for y := range assetTypes {
 			if exchanges[x].GetBase().CurrencyPairs.IsAssetEnabled(assetTypes[y]) != nil {
-				log.Warnf(log.SyncMgr,
-					"%s asset type %s is disabled, fetching enabled pairs is paused",
-					exchangeName,
-					assetTypes[y])
+				// log.Warnf(log.SyncMgr,
+				// 	"%s asset type %s is disabled, fetching enabled pairs is paused",
+				// 	exchangeName,
+				// 	assetTypes[y])
 				continue
 			}
 

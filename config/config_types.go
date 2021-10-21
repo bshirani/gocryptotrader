@@ -144,8 +144,12 @@ type Config struct {
 
 // DataHistoryManager holds all information required for the data history manager
 type DataImporterConfig struct {
-	Enabled bool `json:"enabled"`
-	Verbose bool `json:"verbose"`
+	Enabled       bool   `json:"enabled"`
+	Verbose       bool   `json:"verbose"`
+	DataDirectory string `json:"dataDirectory"`
+	FromDate      string `json:"fromDate"`
+	ToDate        string `json:"toDate"`
+	NumWorkers    int    `json:"numWorkers"`
 }
 
 // DataHistoryManager holds all information required for the data history manager

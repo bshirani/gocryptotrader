@@ -1,6 +1,7 @@
 {
  "LiveMode": true,
  "DryRun": false,
+ "Script": true,
  "nickname": "",
  "goal": "",
  "strategy-settings": {
@@ -46,8 +47,16 @@
  "factorEngine": {
   "verbose": false
  },
- "name": "Data Catchup",
- "dataDirectory": "",
+ "dataImporter": {
+  "enabled": false,
+  "verbose": false,
+  "dataDirectory": "/home/bijan/work/crypto/kraken_data",
+  "fromDate": "",
+  "toDate": "2021-06-30",
+  "numWorkers": 6
+ },
+ "name": "Script",
+ "dataDirectory": "/home/bijan/work/crypto/kraken_data",
  "encryptConfig": -1,
  "globalHTTPTimeout": 15000000000,
  "database": {
@@ -99,7 +108,7 @@
   "checkInterval": 1000000000
  },
  "dataHistoryManager": {
-  "enabled": true,
+  "enabled": false,
   "verbose": true,
   "checkInterval": 60000000000,
   "maxJobsPerCycle": 100,

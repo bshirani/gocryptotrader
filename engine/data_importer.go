@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/database/repository/candle"
 	"gocryptotrader/exchange/asset"
@@ -20,6 +21,7 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/fatih/color"
 )
@@ -28,7 +30,7 @@ const (
 	defaultDataImporterBaseDir     = "/home/bijan/work/crypto/kraken_data"
 	defaultDataImporterBaseCmd     = "dbseed candle file --exchange %s --base %s --quote %s --interval 60 --asset spot --filename %s"
 	finishedFilename               = "finished.log"
-	defaultDataImporterWorkercount = 4
+	defaultDataImporterWorkerCount = 1
 )
 
 var (
@@ -48,22 +50,38 @@ type DataImporter struct {
 	baseCmd     string
 	workerCount int
 	bot         *Engine
+	cfg         *config.DataImporterConfig
+	fromDate    time.Time
+	toDate      time.Time
 }
 
-func SetupDataImporter(bot *Engine) *DataImporter {
+func SetupDataImporter(bot *Engine, cfg *config.DataImporterConfig) *DataImporter {
+	layoutISO := "2006-01-02"
+	from, _ := time.Parse(layoutISO, cfg.FromDate)
+	to, _ := time.Parse(layoutISO, cfg.ToDate)
+	numWorkers := cfg.NumWorkers
+	if numWorkers == 0 {
+		numWorkers = defaultDataImporterWorkerCount
+	}
+
 	return &DataImporter{
-		baseDir:     defaultDataImporterBaseDir,
+		baseDir:     cfg.DataDirectory, //defaultDataImporterBaseDir,
+		fromDate:    from,
+		toDate:      to,
 		baseCmd:     defaultDataImporterBaseCmd,
-		workerCount: defaultDataImporterWorkercount,
+		workerCount: cfg.NumWorkers,
 		bot:         bot,
+		cfg:         cfg,
 	}
 }
 
 type DIResult struct {
-	StartCount int64
-	DidRun     bool
-	Base       string
-	Quote      string
+	StartCount  int64
+	Count       int64
+	DidRun      bool
+	Base        string
+	Quote       string
+	LinesInFile int64
 }
 
 func (d *DataImporter) Run(exchange string) {
@@ -98,13 +116,12 @@ func (d *DataImporter) Run(exchange string) {
 			}
 			res := r.Value.(DIResult)
 			// fmt.Println("finished", res)
-			pairCount, _ := candle.Count("kraken", res.Base, res.Quote, 60, "spot")
 			if res.DidRun {
 				color.Set(color.FgGreen, color.Bold)
-				fmt.Println("FINISHED", res.Base, res.Quote, "started at", res.StartCount, "now has", (pairCount - res.StartCount), "more candles", "total", pairCount)
+				fmt.Println("FINISHED", res.Base, res.Quote, "start:", res.StartCount, "current", (res.Count - res.StartCount), "diff", res.Count, "file:", res.LinesInFile)
 			} else {
 				color.Set(color.FgCyan, color.Bold)
-				fmt.Println("SKIPPED", res.Base, res.Quote, pairCount, "candles")
+				fmt.Println("SKIPPED", res.Base, res.Quote, "db:", res.Count, "file:", res.LinesInFile)
 			}
 			// if val != int(i)*2 {
 			// 	log.Fatalf("wrong value %v; expected %v", val, int(i)*2)
@@ -147,10 +164,20 @@ func (d *DataImporter) task(ctx context.Context, args interface{}) (interface{},
 
 	if !d.inAvailablePairs(c) {
 		// fmt.Println("bad pair", c, c.Quote, c.Base)
-		c = currency.NewPairWithDelimiter(pairName[0:4], pairName[4:], "_")
+		c = currency.NewPairWithDelimiter(pairName[0:2], pairName[2:], "_")
 		if !d.inAvailablePairs(c) {
-			fmt.Println("cannot resolve pair", c, c.Base, c.Quote)
-			os.Exit(123)
+			c = currency.NewPairWithDelimiter(pairName[0:4], pairName[4:], "_")
+			if !d.inAvailablePairs(c) {
+				c = currency.NewPairWithDelimiter(pairName[0:5], pairName[5:], "_")
+				if !d.inAvailablePairs(c) {
+					fmt.Println("trying 6 chars", pairName)
+					c = currency.NewPairWithDelimiter(pairName[0:6], pairName[6:], "_")
+					if !d.inAvailablePairs(c) {
+						fmt.Println("cannot resolve pair", c, c.Base, c.Quote)
+						os.Exit(123)
+					}
+				}
+			}
 		}
 	}
 
@@ -161,18 +188,24 @@ func (d *DataImporter) task(ctx context.Context, args interface{}) (interface{},
 		// EndCount: ,
 	}
 
+	pairCount, _ := candle.Count("kraken", c.Base.String(), c.Quote.String(), 60, "spot")
+	res.Count = pairCount
+
 	if !d.shouldRun(fileName, c, &res) {
-		res.DidRun = false
 		return res, nil
 	}
 
+	// return res, nil
+
 	color.Set(color.FgYellow, color.Bold)
-	defer color.Unset()
 	fmt.Println("RUNNING", c.Base, c.Quote)
+	color.Unset()
 	cmd := fmt.Sprintf(d.baseCmd, "kraken", c.Base.String(), c.Quote.String(), path.Join(d.baseDir, fileName))
 	command := exec.Command("bash", "-c", cmd)
+
 	// printCommand(command)
 
+	res.DidRun = true
 	var waitStatus syscall.WaitStatus
 	if _, err := command.Output(); err != nil {
 		fmt.Println("error")
@@ -201,9 +234,11 @@ func (d *DataImporter) task(ctx context.Context, args interface{}) (interface{},
 		if lastCandle.Timestamp.IsZero() {
 			fmt.Println("did not update correctly")
 			os.Exit(123)
-		} else {
-			fmt.Println("last candle for", c, "is", lastCandle.Timestamp)
 		}
+
+		// else {
+		// 	fmt.Println("last candle for", c, "is", lastCandle.Timestamp)
+		// }
 	}
 
 	return res, nil
@@ -252,11 +287,28 @@ func (d *DataImporter) shouldRun(fileName string, p currency.Pair, res *DIResult
 	// if err != nil {
 	// 	fmt.Println("cant find currency", err)
 	// }
-	dbCount, err := candle.Count("kraken",
-		p.Base.String(),
-		p.Quote.String(),
-		60,
-		"spot")
+	// count from
+	res.LinesInFile = int64(fileCount)
+
+	var dbCount int64
+	var err error
+	if d.fromDate.IsZero() {
+		dbCount, err = candle.CountTo("kraken",
+			p.Base.String(),
+			p.Quote.String(),
+			60,
+			"spot",
+			d.toDate,
+		)
+	} else {
+		dbCount, err = candle.CountFrom("kraken",
+			p.Base.String(),
+			p.Quote.String(),
+			60,
+			"spot",
+			d.fromDate,
+		)
+	}
 
 	res.StartCount = dbCount
 
@@ -264,12 +316,16 @@ func (d *DataImporter) shouldRun(fileName string, p currency.Pair, res *DIResult
 		fmt.Println("error", err)
 	}
 
-	// fmt.Println("lines in file", fileCount, "db", dbCount)
+	if d.toDate.IsZero() {
+		fmt.Println("lines in file", p, fileCount, "db count", dbCount, "from date", d.fromDate)
+	} else {
+		fmt.Println("lines in file", p, fileCount, "db count", dbCount, "up to date", d.toDate)
+	}
 	if fileCount == 0 {
 		os.Exit(123)
 	}
 	if int(dbCount) >= fileCount {
-		// fmt.Println("good", p, dbCount)
+		// fmt.Println("good", p, "db:", dbCount, "file:", fileCount)
 		return false
 	} else {
 		// fmt.Println(p, "has only", dbCount, "bars out of", fileCount)

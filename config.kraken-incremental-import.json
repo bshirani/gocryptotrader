@@ -1,7 +1,7 @@
 {
  "LiveMode": true,
  "DryRun": false,
- "Script": true,
+ "Script": false,
  "nickname": "",
  "goal": "",
  "strategy-settings": {
@@ -49,10 +49,14 @@
  },
  "dataImporter": {
   "enabled": false,
-  "verbose": false
+  "verbose": false,
+  "dataDirectory": "/home/bijan/work/crypto/kraken_incremental",
+  "fromDate": "2021-06-30",
+  "toDate": "",
+  "numWorkers": 5
  },
- "name": "Script",
- "dataDirectory": "/home/bijan/work/crypto/kraken_data",
+ "name": "Data Catchup",
+ "dataDirectory": "/home/bijan/work/crypto/kraken_incremental",
  "encryptConfig": -1,
  "globalHTTPTimeout": 15000000000,
  "database": {

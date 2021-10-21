@@ -1475,13 +1475,24 @@ func (k *Kraken) GetHistoricCandlesExtended(ctx context.Context, pair currency.P
 	// kt, err := k.GetServerTime(ctx)
 	// fmt.Println("kraken server time is", kt, err)
 
+	t1, err := convert.TimeFromUnixTimestampFloat(candles[0].Time * 1000)
+	t2, err := convert.TimeFromUnixTimestampFloat(candles[len(candles)-1].Time * 1000)
+	fmt.Println("candles received from kraken", t1, t2, "requested", start, end)
+
 	for i := range candles {
-		timeValue, err := convert.TimeFromUnixTimestampFloat(candles[i].Time)
+		timeValue, err := convert.TimeFromUnixTimestampFloat(candles[i].Time * 1000)
 		if err != nil {
 			return kline.Item{}, err
 		}
 		if timeValue.Before(start) || timeValue.After(end) {
-			fmt.Printf("time is out of range candleTime:%f parsed:%d start:%d end:%d\n", candles[i].Time, timeValue, start.Unix(), end.Unix())
+			// fmt.Printf(
+			// 	"time is out of range candleTime:%f start:%d end:%d start:%s end:%s parsed:%s \n",
+			// 	candles[i].Time,
+			// 	start.Unix(),
+			// 	end.Unix(),
+			// 	start,
+			// 	end,
+			// 	timeValue)
 			continue
 		}
 		ret.Candles = append(ret.Candles, kline.Candle{
@@ -1496,8 +1507,11 @@ func (k *Kraken) GetHistoricCandlesExtended(ctx context.Context, pair currency.P
 	ret.SortCandlesByTimestamp(false)
 
 	minRequested := int(end.Sub(start).Minutes())
-	fmt.Println("KRAKEN-OHLCEXTENDED: minute requested", minRequested, "starting", start, "ending", end, ". Only received", len(ret.Candles))
+	// fmt.Println("KRAKEN-OHLCEXTENDED: minute requested", minRequested, "starting", start, "ending", end, ". Only received", len(ret.Candles))
 
+	if len(ret.Candles) == 0 {
+		return ret, fmt.Errorf("no candles returned kraken")
+	}
 	lastCandle := ret.Candles[len(ret.Candles)-1]
 	minReceived := int(lastCandle.Time.Sub(ret.Candles[0].Time).Minutes())
 	if minRequested > minReceived {
