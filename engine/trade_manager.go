@@ -546,6 +546,11 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 		fmt.Printf("error updating factor engine for %v reason: %s", ev.Pair(), err)
 	}
 
+	// handle old events somehow
+	// we need to ignore them to not trick the order manager or factor engine
+	// while ensuring the factor engine has all the historical data
+	// old events should not come through here
+
 	if tm.tradingEnabled {
 		tm.bot.OrderManager.Update()
 

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"gocryptotrader/currency"
+	"gocryptotrader/database/repository/candle"
 	"gocryptotrader/wpool"
 	"io/ioutil"
 	"log"
@@ -21,7 +22,7 @@ const (
 	baseDir          = "/home/bijan/work/crypto/kraken_data"
 	baseCmd          = "dbseed candle file --exchange %s --base %s --quote %s --interval 60 --asset spot --filename %s"
 	finishedFilename = "finished.log"
-	workerCount      = 12
+	workerCount      = 1
 )
 
 func main() {
@@ -84,7 +85,7 @@ func task(ctx context.Context, args interface{}) (interface{}, error) {
 	printCommand(command)
 
 	var waitStatus syscall.WaitStatus
-	if err := command.Run(); err != nil {
+	if output, err := command.Output(); err != nil {
 		printError(err)
 		// Did the command fail because of an unsuccessful exit code
 		if exitError, ok := err.(*exec.ExitError); ok {
@@ -96,7 +97,18 @@ func task(ctx context.Context, args interface{}) (interface{}, error) {
 	} else {
 		// Command was successful
 		waitStatus = command.ProcessState.Sys().(syscall.WaitStatus)
-		printOutput([]byte(fmt.Sprintf("%d", waitStatus.ExitStatus())))
+		printOutput(output)
+		// check results
+		lastCandle, err := candle.Last("kraken",
+			c.Base.String(),
+			c.Quote.String(),
+			60,
+			"spot")
+		fmt.Println("error getting last candle", err)
+		if lastCandle.Timestamp.IsZero() {
+			fmt.Println("did not update correctly")
+			os.Exit(123)
+		}
 		markFileFinished(fileName)
 	}
 	return fileName, nil
@@ -170,6 +182,9 @@ func krakenJob() []wpool.Job {
 	}
 	for i, f := range files {
 		if strings.HasSuffix(f.Name(), "_1.csv") {
+			if !strings.EqualFold(f.Name(), "SRMGBP_1.csv") {
+				continue
+			}
 			if inFinished(f.Name()) {
 				// fmt.Println("skipping", f.Name())
 				continue

@@ -45,8 +45,8 @@ func Counts() (pairCounts []PairCandleCountResponse, err error) {
 }
 
 func Last(exchangeName, base, quote string, interval int64, asset string) (out Candle, err error) {
-	// boil.DebugMode = true
-	// defer func() { boil.DebugMode = false }()
+	boil.DebugMode = true
+	defer func() { boil.DebugMode = false }()
 	if exchangeName == "" || base == "" || quote == "" || asset == "" || interval <= 0 {
 		return out, errInvalidInput
 	}
