@@ -41,11 +41,14 @@
  },
  "tradeManager": {
   "enabled": true,
-  "verbose": true,
+  "verbose": false,
   "trading": false
  },
  "factorEngine": {
   "verbose": false
+ },
+ "orderManager": {
+  "verbose": true
  },
  "dataImporter": {
   "enabled": false,

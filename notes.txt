@@ -174,3 +174,6 @@ real trading
 analyze strategies
 improve results
 deploy portfolio
+
+sync the orders with the broker
+use a real order manager

@@ -109,6 +109,7 @@ type Config struct {
 	StatisticSettings StatisticSettings  `json:"statisticSettings"`
 	TradeManager      TradeManagerConfig `json:"tradeManager"`
 	FactorEngine      FactorEngineConfig `json:"factorEngine"`
+	OrderManager      OrderManagerConfig `json:"orderManager"`
 	DataImporter      DataImporterConfig `json:"dataImporter"`
 
 	Name                 string                    `json:"name"`
@@ -160,6 +161,10 @@ type TradeManagerConfig struct {
 }
 
 type FactorEngineConfig struct {
+	Verbose bool `json:"verbose"`
+}
+
+type OrderManagerConfig struct {
 	Verbose bool `json:"verbose"`
 }
 

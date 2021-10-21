@@ -12,7 +12,6 @@ import (
 	"sync"
 
 	"gocryptotrader/common"
-	"gocryptotrader/common/convert"
 	"gocryptotrader/common/crypto"
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange"
@@ -212,7 +211,7 @@ func (k *Kraken) GetOHLC(ctx context.Context, symbol currency.Pair, interval str
 	values.Set("pair", translatedAsset)
 	values.Set("interval", interval)
 
-	ts := convert.UnixTimestampToTime(since)
+	// ts := convert.UnixTimestampToTime(since)
 	sincestr := fmt.Sprintf("%d", since)
 	// fmt.Println("since", sincestr)
 	// fmt.Println("kraken OHLC request for", symbol, "from", ts, "since", sincestr)

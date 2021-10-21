@@ -48,7 +48,7 @@ func main() {
 	flag.BoolVar(&settings.EnableGRPCProxy, "grpcproxy", false, "enables the grpc proxy server")
 	flag.BoolVar(&settings.EnableLiveMode, "livemode", false, "enables live mode")
 	flag.BoolVar(&settings.EnableNTPClient, "ntpclient", true, "enables the NTP client to check system clock drift")
-	flag.BoolVar(&settings.EnableOrderManager, "ordermanager", false, "enables the order manager")
+	flag.BoolVar(&settings.EnableOrderManager, "orders", false, "enables the order manager")
 	flag.BoolVar(&settings.EnablePortfolioManager, "portfoliomanager", false, "enables the portfolio manager")
 	flag.BoolVar(&settings.EnableWebsocketRPC, "websocketrpc", false, "enables the websocket RPC server")
 	flag.BoolVar(&settings.EnableWebsocketRoutine, "websocketroutine", false, "enables the websocket routine for all loaded exchanges")
