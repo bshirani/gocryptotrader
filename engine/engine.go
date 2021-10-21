@@ -117,7 +117,6 @@ func NewFromSettings(settings *Settings, flagSet map[string]bool) (*Engine, erro
 
 	b.ExchangeManager = SetupExchangeManager()
 	exchanges, _ := b.ExchangeManager.GetExchanges()
-	fmt.Println("exchange manager", b.ExchangeManager, exchanges)
 
 	validateSettings(&b, settings, flagSet)
 

@@ -101,6 +101,18 @@ func (d *DataImporter) task(ctx context.Context, args interface{}) (interface{},
 	command := exec.Command("bash", "-c", cmd)
 	printCommand(command)
 
+	lastCandle, err := candle.Last("kraken",
+		c.Base.String(),
+		c.Quote.String(),
+		60,
+		"spot")
+
+	if !lastCandle.Timestamp.IsZero() {
+		fmt.Println("already have data for", c)
+		markFileFinished(fileName)
+		return fileName, nil
+	}
+
 	var waitStatus syscall.WaitStatus
 	if output, err := command.Output(); err != nil {
 		fmt.Println("error")
@@ -129,6 +141,8 @@ func (d *DataImporter) task(ctx context.Context, args interface{}) (interface{},
 		if lastCandle.Timestamp.IsZero() {
 			fmt.Println("did not update correctly")
 			os.Exit(123)
+		} else {
+			fmt.Println("last candle for", c, "is", lastCandle.Timestamp)
 		}
 		markFileFinished(fileName)
 	}
@@ -203,13 +217,13 @@ func (d *DataImporter) krakenJob() []wpool.Job {
 	}
 	for i, f := range files {
 		if strings.HasSuffix(f.Name(), "_1.csv") {
-			if !strings.EqualFold(f.Name(), "SRMGBP_1.csv") {
-				continue
-			}
-			// if inFinished(f.Name()) {
-			// 	// fmt.Println("skipping", f.Name())
+			// if !strings.EqualFold(f.Name(), "SRMGBP_1.csv") {
 			// 	continue
 			// }
+			if inFinished(f.Name()) {
+				// fmt.Println("skipping", f.Name())
+				continue
+			}
 			jobs = append(jobs, wpool.Job{
 				Descriptor: wpool.JobDescriptor{
 					ID:       wpool.JobID(fmt.Sprintf("%v", i)),
