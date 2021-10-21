@@ -232,7 +232,6 @@ dataLoadingIssue:
 					tm.hasHandledEvent = false
 					for _, dataHandler := range assetMap {
 						d := dataHandler.Next()
-						fmt.Println("d", d)
 						if d == nil {
 							// if !tm.hasHandledEvent {
 							// 	log.Errorf(log.TradeMgr, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
@@ -337,6 +336,8 @@ func (tm *TradeManager) waitForDataCatchup() {
 
 	for i := range daysBack {
 		i += 1
+		tm.bot.dataHistoryManager.CatchupDays(int64(i))
+
 		for {
 			active, err := dhj.CountActive()
 			if err != nil {
@@ -348,8 +349,6 @@ func (tm *TradeManager) waitForDataCatchup() {
 			}
 			time.Sleep(time.Second)
 		}
-
-		tm.bot.dataHistoryManager.CatchupDays(int64(i))
 	}
 
 	// time.Sleep(time.Millisecond * 500)

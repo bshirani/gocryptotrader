@@ -104,7 +104,7 @@
   "checkInterval": 60000000000,
   "maxJobsPerCycle": 100,
   "maxResultInsertions": 10000,
-  "daysBack": 30
+  "daysBack": 1
  },
  "currencyStateManager": {
   "enabled": true,
@@ -278,7 +278,7 @@
  "exchanges": [
   {
    "name": "gateio",
-   "enabled": true,
+   "enabled": false,
    "verbose": false,
    "httpTimeout": 15000000000,
    "websocketResponseCheckTimeout": 30000000,
@@ -357,7 +357,7 @@
   },
   {
    "name": "kraken",
-   "enabled": false,
+   "enabled": true,
    "verbose": false,
    "httpTimeout": 15000000000,
    "websocketResponseCheckTimeout": 30000000,

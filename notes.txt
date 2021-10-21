@@ -168,3 +168,9 @@ data wise, we can receive:
 ticker.Price
 stream.KlineData
 
+deploy strategies
+deploy portfolio
+real trading
+analyze strategies
+improve results
+deploy portfolio

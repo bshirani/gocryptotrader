@@ -111,7 +111,7 @@ func (m *DataHistoryManager) CatchupDays(daysBack int64) error {
 					// fmt.Printf("%d-%d:%d, ", x.Month(), x.Day(), len(candles.Candles))
 					continue
 				}
-				log.Warnln(log.DataHistory, "Data history manager Syncing Days. Only have:", len(candles.Candles), "bars", p.CurrencyPair, t1, t2)
+				log.Warnln(log.DataHistory, "Data history manager Syncing Days. Only have:", len(candles.Candles), "bars", p.ExchangeName, p.CurrencyPair, t1, t2)
 				m.createCatchupJob(p.ExchangeName, p.AssetType, p.CurrencyPair, t1, t2)
 				time.Sleep(time.Second)
 			}
@@ -832,6 +832,7 @@ func (m *DataHistoryManager) saveCandlesInBatches(job *DataHistoryJob, candles *
 }
 
 func (m *DataHistoryManager) processCandleData(job *DataHistoryJob, exch exchange.IBotExchange, startRange, endRange time.Time, intervalIndex int64) (*DataHistoryJobResult, error) {
+	// fmt.Println("datahim")
 	if !m.IsRunning() {
 		return nil, ErrSubSystemNotStarted
 	}
