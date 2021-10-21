@@ -38,6 +38,7 @@ type Settings struct {
 	EnableTradeManager          bool
 	EnableTrading               bool
 	EnableWatcher               bool
+	EnableDataImporter          bool
 	EnableWebsocketRPC          bool
 	EnableWebsocketRoutine      bool
 	EventManagerDelay           time.Duration

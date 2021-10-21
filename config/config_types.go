@@ -93,6 +93,7 @@ var (
 type Config struct {
 	LiveMode bool
 	DryRun   bool
+	Script   bool
 
 	Nickname                 string                     `json:"nickname"`
 	Goal                     string                     `json:"goal"`
@@ -108,6 +109,7 @@ type Config struct {
 	StatisticSettings StatisticSettings  `json:"statisticSettings"`
 	TradeManager      TradeManagerConfig `json:"tradeManager"`
 	FactorEngine      FactorEngineConfig `json:"factorEngine"`
+	DataImporter      DataImporterConfig `json:"dataImporter"`
 
 	Name                 string                    `json:"name"`
 	DataDirectory        string                    `json:"dataDirectory"`
@@ -141,9 +143,15 @@ type Config struct {
 }
 
 // DataHistoryManager holds all information required for the data history manager
+type DataImporterConfig struct {
+	Enabled bool `json:"enabled"`
+	Verbose bool `json:"verbose"`
+}
+
+// DataHistoryManager holds all information required for the data history manager
 type TradeManagerConfig struct {
-	Enabled        bool `json:"enabled"`
-	Verbose        bool `json:"verbose"`
+	Enabled bool `json:"enabled"`
+	Verbose bool `json:"verbose"`
 	Trading bool `json:"trading"`
 }
 

@@ -158,7 +158,6 @@ func validateSettings(b *Engine, s *Settings, flagSet map[string]bool) {
 	b.Settings = *s
 
 	b.Settings.EnableDataHistoryManager = (flagSet["datahistory"] && b.Settings.EnableDatabaseManager) || b.Config.DataHistoryManager.Enabled
-	// fmt.Println("enabled dhm?", b.Settings.EnableDataHistoryManager)
 	b.Settings.EnableTradeManager = (flagSet["trader"] && b.Settings.EnableTradeManager) || b.Config.TradeManager.Enabled
 	b.Settings.EnableTrading = (flagSet["trade"] && b.Settings.EnableTrading) || b.Config.TradeManager.Trading
 
@@ -175,6 +174,9 @@ func validateSettings(b *Engine, s *Settings, flagSet map[string]bool) {
 		b.Settings.EnableWatcher) ||
 		b.Config.Watcher.Enabled != nil &&
 			*b.Config.Watcher.Enabled
+
+	b.Settings.EnableDataImporter = (flagSet["dataimporter"] &&
+		b.Settings.EnableDataImporter) || b.Config.DataImporter.Enabled
 
 	b.Settings.EnableGCTScriptManager = b.Settings.EnableGCTScriptManager &&
 		(flagSet["gctscriptmanager"] || b.Config.GCTScript.Enabled)
@@ -701,6 +703,22 @@ func (bot *Engine) Start() error {
 	// can move this to trade manager setup
 	// end check
 	gctlog.Debugf(gctlog.Global, "Engine '%s' started.\n", bot.Config.Name)
+
+	// handle script here
+
+	if bot.Settings.EnableDataImporter {
+		dataImporter := SetupDataImporter()
+		dataImporter.Run("kraken")
+	}
+
+	if bot.Config.Script {
+		go func() {
+			// fmt.Println("is script, stopping")
+			time.Sleep(time.Second)
+			bot.Stop()
+			os.Exit(0)
+		}()
+	}
 
 	return nil
 }

@@ -59,6 +59,9 @@ func main() {
 	flag.IntVar(&settings.DispatchMaxWorkerAmount, "dispatchworkers", dispatch.DefaultMaxWorkers, "sets the dispatch package max worker generation limit")
 	flag.IntVar(&settings.GoMaxProcs, "gomaxprocs", runtime.GOMAXPROCS(-1), "sets the runtime GOMAXPROCS value")
 
+	// data importer
+	flag.BoolVar(&settings.EnableDataImporter, "dataimporter", true, "enables data importer")
+
 	// trading settings
 	flag.BoolVar(&settings.EnableWatcher, "watcher", true, "enables the system watcher")
 	flag.BoolVar(&settings.EnableTradeManager, "trader", false, "enables trading manager")

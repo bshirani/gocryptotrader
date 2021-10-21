@@ -1,6 +1,7 @@
 {
  "LiveMode": true,
  "DryRun": false,
+ "Script": true,
  "nickname": "",
  "goal": "",
  "strategy-settings": {
@@ -46,7 +47,11 @@
  "factorEngine": {
   "verbose": false
  },
- "name": "Data Catchup",
+ "dataImporter": {
+  "enabled": false,
+  "verbose": false
+ },
+ "name": "Script",
  "dataDirectory": "",
  "encryptConfig": -1,
  "globalHTTPTimeout": 15000000000,
@@ -99,7 +104,7 @@
   "checkInterval": 1000000000
  },
  "dataHistoryManager": {
-  "enabled": true,
+  "enabled": false,
   "verbose": true,
   "checkInterval": 60000000000,
   "maxJobsPerCycle": 100,
