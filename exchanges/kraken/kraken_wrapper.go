@@ -692,6 +692,7 @@ func (k *Kraken) GetRecentTrades(ctx context.Context, p currency.Pair, assetType
 
 // GetHistoricTrades returns historic trade data within the timeframe provided
 func (k *Kraken) GetHistoricTrades(_ context.Context, _ currency.Pair, _ asset.Item, _, _ time.Time) ([]trade.Data, error) {
+	fmt.Println("HERERERERER")
 	return nil, common.ErrFunctionNotSupported
 }
 

@@ -132,6 +132,7 @@ func (d *DataImporter) Run(exchange string) {
 			return
 		case <-wp.Done:
 			fmt.Println("calling wp.done")
+			done <- true
 			return
 		default:
 		}

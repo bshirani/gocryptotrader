@@ -18,7 +18,6 @@ import (
 	"gocryptotrader/database/repository/candle"
 	"gocryptotrader/database/repository/datahistoryjob"
 	"gocryptotrader/database/repository/datahistoryjobresult"
-	"gocryptotrader/eventtypes"
 	"gocryptotrader/exchange"
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/kline"
@@ -187,6 +186,8 @@ func (m *DataHistoryManager) createCatchupJob(exchangeName string, a asset.Item,
 	endFmt := fmt.Sprintf("%d-%02d-%02d", end.Year(), end.Month(), end.Day())
 	name := fmt.Sprintf("%v-%s-%s--%d-catchup", c, startFmt, endFmt, time.Now().Unix())
 
+	dataType := dataHistoryConvertTradesDataType
+
 	job := DataHistoryJob{
 		Nickname:               name,
 		Exchange:               exchangeName,
@@ -197,7 +198,7 @@ func (m *DataHistoryManager) createCatchupJob(exchangeName string, a asset.Item,
 		Interval:               kline.Interval(60000000000),
 		RunBatchLimit:          10,
 		RequestSizeLimit:       999,
-		DataType:               dataHistoryDataType(eventtypes.DataCandle),
+		DataType:               dataType,
 		MaxRetryAttempts:       1,
 		Status:                 dataHistoryStatusActive,
 		OverwriteExistingData:  false,
@@ -902,6 +903,7 @@ func (m *DataHistoryManager) processCandleData(job *DataHistoryJob, exch exchang
 }
 
 func (m *DataHistoryManager) processTradeData(job *DataHistoryJob, exch exchange.IBotExchange, startRange, endRange time.Time, intervalIndex int64) (*DataHistoryJobResult, error) {
+	fmt.Println("PROCESS TRADER DAATAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 	if !m.IsRunning() {
 		return nil, ErrSubSystemNotStarted
 	}
@@ -976,6 +978,7 @@ func (m *DataHistoryManager) processTradeData(job *DataHistoryJob, exch exchange
 }
 
 func (m *DataHistoryManager) convertTradesToCandles(job *DataHistoryJob, startRange, endRange time.Time) (*DataHistoryJobResult, error) {
+	fmt.Println("CONVERT TRADES TO CANDLES")
 	if !m.IsRunning() {
 		return nil, ErrSubSystemNotStarted
 	}
