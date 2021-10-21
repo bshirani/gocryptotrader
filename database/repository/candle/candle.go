@@ -23,6 +23,50 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
+func CountExchange(exchangeName string, interval int64, asset string) (count int64, err error) {
+	// boil.DebugMode = true
+	// defer func() { boil.DebugMode = false }()
+	if exchangeName == "" || asset == "" || interval <= 0 {
+		return count, errInvalidInput
+	}
+
+	queries := []qm.QueryMod{
+		qm.Where("interval = ?", interval),
+		qm.Where("asset = ?", strings.ToLower(asset)),
+	}
+
+	exchangeUUID, errS := exchange.UUIDByName(exchangeName)
+	if errS != nil {
+		return count, errS
+	}
+	queries = append(queries, qm.Where("exchange_name_id = ?", exchangeUUID.String()))
+	return modelPSQL.Candles(queries...).Count(context.Background(), database.DB.SQL)
+}
+
+func Count(exchangeName, base, quote string, interval int64, asset string) (count int64, err error) {
+	// boil.DebugMode = true
+	// defer func() { boil.DebugMode = false }()
+	if exchangeName == "" || base == "" || quote == "" || asset == "" || interval <= 0 {
+		return count, errInvalidInput
+	}
+
+	queries := []qm.QueryMod{
+		qm.Where("base = ?", strings.ToUpper(base)),
+		qm.Where("quote = ?", strings.ToUpper(quote)),
+		qm.Where("interval = ?", interval),
+		qm.Where("asset = ?", strings.ToLower(asset)),
+	}
+
+	exchangeUUID, errS := exchange.UUIDByName(exchangeName)
+	if errS != nil {
+		return count, errS
+	}
+	queries = append(queries, qm.Where("exchange_name_id = ?", exchangeUUID.String()))
+	count, err = modelPSQL.Candles(queries...).Count(context.Background(), database.DB.SQL)
+	// fmt.Println("candlecount returning", count)
+	return count, err
+}
+
 func Counts() (pairCounts []PairCandleCountResponse, err error) {
 	queries.Raw(`
 		select t.date, base, quote, exchange_name_id as exchange_id, asset as asset_type, count(c.*) as "count"
@@ -45,8 +89,8 @@ func Counts() (pairCounts []PairCandleCountResponse, err error) {
 }
 
 func Last(exchangeName, base, quote string, interval int64, asset string) (out Candle, err error) {
-	boil.DebugMode = true
-	defer func() { boil.DebugMode = false }()
+	// boil.DebugMode = true
+	// defer func() { boil.DebugMode = false }()
 	if exchangeName == "" || base == "" || quote == "" || asset == "" || interval <= 0 {
 		return out, errInvalidInput
 	}
@@ -87,8 +131,8 @@ func Last(exchangeName, base, quote string, interval int64, asset string) (out C
 			return out, fmt.Errorf("%w: %s %s %s %v %s", ErrNoCandleDataFound, exchangeName, base, quote, interval, asset)
 		}
 	} else {
-		fmt.Println("candle.Last: no candle data for", base, quote)
-		os.Exit(123)
+		// fmt.Println("candle.Last: no candle data for", base, quote)
+		// os.Exit(123)
 		return out, errNoCandleData
 	}
 
