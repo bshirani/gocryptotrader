@@ -4,30 +4,27 @@ import (
 	"context"
 	"database/sql"
 
-	"gocryptotrader/currency"
 	"gocryptotrader/database"
 	modelPSQL "gocryptotrader/database/models/postgres"
-	"gocryptotrader/database/repository/exchange"
 	"gocryptotrader/log"
 
 	"github.com/volatiletech/sqlboiler/v4/boil"
-	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
-func OneByPair(pair currency.Pair) (Details, error) {
-	out := Details{}
-	if database.DB.SQL == nil {
-		return out, database.ErrDatabaseSupportDisabled
-	}
-
-	exchange.One("gateio")
-	whereQM := qm.Where("base = ?", pair.Base)
-	ret, err := modelPSQL.Instruments(whereQM).One(context.Background(), database.DB.SQL)
-	out.Base = currency.NewCode(ret.Base)
-	out.Quote = currency.NewCode(ret.Quote)
-
-	return out, err
-}
+// func OneByPair(pair currency.Pair) (Details, error) {
+// 	out := Details{}
+// 	if database.DB.SQL == nil {
+// 		return out, database.ErrDatabaseSupportDisabled
+// 	}
+//
+// 	exchange.One("gateio")
+// 	whereQM := qm.Where("base = ?", pair.Base)
+// 	ret, err := modelPSQL.Instruments(whereQM).One(context.Background(), database.DB.SQL)
+// 	// out.Base = currency.NewCode(ret.Base)
+// 	// out.Quote = currency.NewCode(ret.Quote)
+//
+// 	return out, err
+// }
 
 // // Upsert inserts or updates jobs into the database
 // func (db *DBService) Upsert(jobs ...*DataHistoryJob) error {
@@ -52,6 +49,34 @@ func OneByPair(pair currency.Pair) (Details, error) {
 // 	}
 //
 // 	return tx.Commit()
+// }
+
+// func InsertCMC(in CryptoCurrencyMap) error {
+// 	if database.DB.SQL == nil {
+// 		return database.ErrDatabaseSupportDisabled
+// 	}
+//
+// 	ctx := context.Background()
+// 	tx, err := database.DB.SQL.BeginTx(ctx, nil)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	err = insertPostgresql(ctx, tx, []Details{in})
+//
+// 	if err != nil {
+// 		errRB := tx.Rollback()
+// 		if errRB != nil {
+// 			log.Errorln(log.DatabaseMgr, errRB)
+// 		}
+// 		return err
+// 	}
+//
+// 	err = tx.Commit()
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	return nil
 // }
 
 // Insert writes a single entry into database
@@ -118,10 +143,20 @@ func InsertMany(in []Details) error {
 
 func insertPostgresql(ctx context.Context, tx *sql.Tx, in []Details) (err error) {
 	for x := range in {
+		// fmt.Println("inserting base", in[x].Base)
 		var tempInsert = modelPSQL.Instrument{
-			ID:    in[x].ID,
-			Base:  in[x].Base.Upper().String(),
-			Quote: in[x].Quote.Upper().String(),
+			ID:                  in[x].ID,
+			Symbol:              in[x].Symbol,
+			CMCID:               in[x].CMCID,
+			FirstHistoricalData: in[x].FirstHistoricalData,
+			LastHistoricalData:  in[x].LastHistoricalData,
+			Name:                in[x].Name,
+			Active:              in[x].Active,
+			Status:              in[x].Status,
+			// Quote:               in[x].Quote.String(),
+			// Base:                in[x].Base.String(),
+			UpdatedAt: in[x].UpdatedAt,
+			CreatedAt: in[x].CreatedAt,
 		}
 
 		err = tempInsert.Upsert(ctx, tx, true, []string{"id"}, boil.Infer(), boil.Infer())

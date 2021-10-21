@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"gocryptotrader/common/cache"
-	"gocryptotrader/currency"
 
 	"github.com/shopspring/decimal"
 )
@@ -17,9 +16,19 @@ var (
 )
 
 type Details struct {
-	ID        int
-	Base      currency.Code
-	Quote     currency.Code
+	ID                  int
+	CMCID               int
+	FirstHistoricalData time.Time
+	LastHistoricalData  time.Time
+	Name                string
+	Slug                string
+	Symbol              string
+	Active              bool
+	Status              bool
+	// Base                currency.Code
+	// Quote               currency.Code
 	MarketCap decimal.Decimal
 	DataFrom  time.Time
+	UpdatedAt time.Time
+	CreatedAt time.Time
 }

@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/friendsofgo/errors"
-	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -25,52 +24,82 @@ import (
 
 // Instrument is an object representing the database table.
 type Instrument struct {
-	ID        int               `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Base      string            `boil:"base" json:"base" toml:"base" yaml:"base"`
-	Quote     string            `boil:"quote" json:"quote" toml:"quote" yaml:"quote"`
-	MarketCap types.NullDecimal `boil:"market_cap" json:"market_cap,omitempty" toml:"market_cap" yaml:"market_cap,omitempty"`
-	DataFrom  null.Time         `boil:"data_from" json:"data_from,omitempty" toml:"data_from" yaml:"data_from,omitempty"`
-	CreatedAt time.Time         `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt time.Time         `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	ID                  int               `boil:"id" json:"id" toml:"id" yaml:"id"`
+	Symbol              string            `boil:"symbol" json:"symbol" toml:"symbol" yaml:"symbol"`
+	CMCID               int               `boil:"cmc_id" json:"cmc_id" toml:"cmc_id" yaml:"cmc_id"`
+	Name                string            `boil:"name" json:"name" toml:"name" yaml:"name"`
+	Slug                string            `boil:"slug" json:"slug" toml:"slug" yaml:"slug"`
+	FirstHistoricalData time.Time         `boil:"first_historical_data" json:"first_historical_data" toml:"first_historical_data" yaml:"first_historical_data"`
+	LastHistoricalData  time.Time         `boil:"last_historical_data" json:"last_historical_data" toml:"last_historical_data" yaml:"last_historical_data"`
+	MarketCap           types.NullDecimal `boil:"market_cap" json:"market_cap,omitempty" toml:"market_cap" yaml:"market_cap,omitempty"`
+	ListingStatus       string            `boil:"listing_status" json:"listing_status" toml:"listing_status" yaml:"listing_status"`
+	Active              bool              `boil:"active" json:"active" toml:"active" yaml:"active"`
+	Status              bool              `boil:"status" json:"status" toml:"status" yaml:"status"`
+	CreatedAt           time.Time         `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt           time.Time         `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
 	R *instrumentR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L instrumentL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var InstrumentColumns = struct {
-	ID        string
-	Base      string
-	Quote     string
-	MarketCap string
-	DataFrom  string
-	CreatedAt string
-	UpdatedAt string
+	ID                  string
+	Symbol              string
+	CMCID               string
+	Name                string
+	Slug                string
+	FirstHistoricalData string
+	LastHistoricalData  string
+	MarketCap           string
+	ListingStatus       string
+	Active              string
+	Status              string
+	CreatedAt           string
+	UpdatedAt           string
 }{
-	ID:        "id",
-	Base:      "base",
-	Quote:     "quote",
-	MarketCap: "market_cap",
-	DataFrom:  "data_from",
-	CreatedAt: "created_at",
-	UpdatedAt: "updated_at",
+	ID:                  "id",
+	Symbol:              "symbol",
+	CMCID:               "cmc_id",
+	Name:                "name",
+	Slug:                "slug",
+	FirstHistoricalData: "first_historical_data",
+	LastHistoricalData:  "last_historical_data",
+	MarketCap:           "market_cap",
+	ListingStatus:       "listing_status",
+	Active:              "active",
+	Status:              "status",
+	CreatedAt:           "created_at",
+	UpdatedAt:           "updated_at",
 }
 
 var InstrumentTableColumns = struct {
-	ID        string
-	Base      string
-	Quote     string
-	MarketCap string
-	DataFrom  string
-	CreatedAt string
-	UpdatedAt string
+	ID                  string
+	Symbol              string
+	CMCID               string
+	Name                string
+	Slug                string
+	FirstHistoricalData string
+	LastHistoricalData  string
+	MarketCap           string
+	ListingStatus       string
+	Active              string
+	Status              string
+	CreatedAt           string
+	UpdatedAt           string
 }{
-	ID:        "instrument.id",
-	Base:      "instrument.base",
-	Quote:     "instrument.quote",
-	MarketCap: "instrument.market_cap",
-	DataFrom:  "instrument.data_from",
-	CreatedAt: "instrument.created_at",
-	UpdatedAt: "instrument.updated_at",
+	ID:                  "instrument.id",
+	Symbol:              "instrument.symbol",
+	CMCID:               "instrument.cmc_id",
+	Name:                "instrument.name",
+	Slug:                "instrument.slug",
+	FirstHistoricalData: "instrument.first_historical_data",
+	LastHistoricalData:  "instrument.last_historical_data",
+	MarketCap:           "instrument.market_cap",
+	ListingStatus:       "instrument.listing_status",
+	Active:              "instrument.active",
+	Status:              "instrument.status",
+	CreatedAt:           "instrument.created_at",
+	UpdatedAt:           "instrument.updated_at",
 }
 
 // Generated where
@@ -102,21 +131,33 @@ func (w whereHelpertypes_NullDecimal) IsNotNull() qm.QueryMod {
 }
 
 var InstrumentWhere = struct {
-	ID        whereHelperint
-	Base      whereHelperstring
-	Quote     whereHelperstring
-	MarketCap whereHelpertypes_NullDecimal
-	DataFrom  whereHelpernull_Time
-	CreatedAt whereHelpertime_Time
-	UpdatedAt whereHelpertime_Time
+	ID                  whereHelperint
+	Symbol              whereHelperstring
+	CMCID               whereHelperint
+	Name                whereHelperstring
+	Slug                whereHelperstring
+	FirstHistoricalData whereHelpertime_Time
+	LastHistoricalData  whereHelpertime_Time
+	MarketCap           whereHelpertypes_NullDecimal
+	ListingStatus       whereHelperstring
+	Active              whereHelperbool
+	Status              whereHelperbool
+	CreatedAt           whereHelpertime_Time
+	UpdatedAt           whereHelpertime_Time
 }{
-	ID:        whereHelperint{field: "\"instrument\".\"id\""},
-	Base:      whereHelperstring{field: "\"instrument\".\"base\""},
-	Quote:     whereHelperstring{field: "\"instrument\".\"quote\""},
-	MarketCap: whereHelpertypes_NullDecimal{field: "\"instrument\".\"market_cap\""},
-	DataFrom:  whereHelpernull_Time{field: "\"instrument\".\"data_from\""},
-	CreatedAt: whereHelpertime_Time{field: "\"instrument\".\"created_at\""},
-	UpdatedAt: whereHelpertime_Time{field: "\"instrument\".\"updated_at\""},
+	ID:                  whereHelperint{field: "\"instrument\".\"id\""},
+	Symbol:              whereHelperstring{field: "\"instrument\".\"symbol\""},
+	CMCID:               whereHelperint{field: "\"instrument\".\"cmc_id\""},
+	Name:                whereHelperstring{field: "\"instrument\".\"name\""},
+	Slug:                whereHelperstring{field: "\"instrument\".\"slug\""},
+	FirstHistoricalData: whereHelpertime_Time{field: "\"instrument\".\"first_historical_data\""},
+	LastHistoricalData:  whereHelpertime_Time{field: "\"instrument\".\"last_historical_data\""},
+	MarketCap:           whereHelpertypes_NullDecimal{field: "\"instrument\".\"market_cap\""},
+	ListingStatus:       whereHelperstring{field: "\"instrument\".\"listing_status\""},
+	Active:              whereHelperbool{field: "\"instrument\".\"active\""},
+	Status:              whereHelperbool{field: "\"instrument\".\"status\""},
+	CreatedAt:           whereHelpertime_Time{field: "\"instrument\".\"created_at\""},
+	UpdatedAt:           whereHelpertime_Time{field: "\"instrument\".\"updated_at\""},
 }
 
 // InstrumentRels is where relationship names are stored.
@@ -136,8 +177,8 @@ func (*instrumentR) NewStruct() *instrumentR {
 type instrumentL struct{}
 
 var (
-	instrumentAllColumns            = []string{"id", "base", "quote", "market_cap", "data_from", "created_at", "updated_at"}
-	instrumentColumnsWithoutDefault = []string{"base", "quote", "market_cap", "data_from"}
+	instrumentAllColumns            = []string{"id", "symbol", "cmc_id", "name", "slug", "first_historical_data", "last_historical_data", "market_cap", "listing_status", "active", "status", "created_at", "updated_at"}
+	instrumentColumnsWithoutDefault = []string{"symbol", "cmc_id", "name", "slug", "first_historical_data", "last_historical_data", "market_cap", "listing_status", "active", "status"}
 	instrumentColumnsWithDefault    = []string{"id", "created_at", "updated_at"}
 	instrumentPrimaryKeyColumns     = []string{"id"}
 )

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -8,12 +9,20 @@ import (
 	"path/filepath"
 
 	"gocryptotrader/config"
+	"gocryptotrader/currency/coinmarketcap"
+	"gocryptotrader/database"
 	gctdatabase "gocryptotrader/database"
+	modelPSQL "gocryptotrader/database/models/postgres"
 	"gocryptotrader/database/repository/instrument"
 	"gocryptotrader/engine"
-	"gocryptotrader/exchange/asset"
 	"gocryptotrader/log"
+
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
+
+type Syncer struct {
+	bot *engine.Engine
+}
 
 func main() {
 	var configPath, templatePath, reportOutput, strategiesArg, pairsArg string
@@ -78,22 +87,82 @@ func main() {
 		}
 	}
 
-	pairs, _ := bot.Config.GetAvailablePairs("gateio", asset.Spot)
-	// pair := pair.NewPairFromString("BTC_USD")
-	for _, p := range pairs {
+	// insertGateIOPairs()
+
+	syncer := Syncer{
+		bot: bot,
+	}
+	// syncer.insertGateIOPairs()
+	res, _ := syncer.downloadCMCMap()
+
+	for _, coin := range res {
+		// p, err := currency.NewPairFromString(coin.Symbol)
+		// if err != nil {
+		// 	fmt.Println("error creating pair from string", err, coin.Symbol)
+		// }
 		details := instrument.Details{
-			Base:  p.Base,
-			Quote: p.Quote,
+			CMCID: coin.ID,
+			// Base:                p.Base,
+			// Quote:               p.Quote,
+			Name:                coin.Name,
+			Symbol:              coin.Symbol,
+			Slug:                coin.Slug,
+			FirstHistoricalData: coin.FirstHistoricalData,
+			LastHistoricalData:  coin.LastHistoricalData,
+			Active:              coin.IsActive == 1,
 		}
-		err := instrument.Insert(details)
+		err = instrument.Insert(details)
 		if err != nil {
-			fmt.Println("error", err)
+			// fmt.Println(err)
 			os.Exit(123)
 		}
-		// upsert
+		// instruments = append(instruments, details)
 	}
 
-	// for _, cs := range bot.CurrencySettings {
-	// 	fmt.Println("do something with", cs.CurrencyPair)
+}
+
+func (s *Syncer) listAllInstruments() {
+	whereQM := qm.Where("1=1")
+	ins, _ := modelPSQL.Instruments(whereQM).All(context.Background(), database.DB.SQL)
+	for _, i := range ins {
+		fmt.Println(i)
+		// pair, _ := currency.NewPairFromStrings(i.Base, i.Quote)
+		// fmt.Println(pair)
+	}
+}
+
+// func (s *Syncer) insertGateIOPairs() {
+// 	pairs, _ := s.bot.Config.GetAvailablePairs("gateio", asset.Spot)
+// 	// pair := pair.NewPairFromString("BTC_USD")
+// 	for _, p := range pairs {
+// 		details := instrument.Details{
+// 			Base:  p.Base,
+// 			Quote: p.Quote,
+// 		}
+// 		err := instrument.Insert(details)
+// 		if err != nil {
+// 			fmt.Println("error", err)
+// 			os.Exit(123)
+// 		}
+// 		// upsert
+// 	}
+// }
+
+func (s *Syncer) downloadCMCMap() ([]coinmarketcap.CryptoCurrencyMap, error) {
+	settings := coinmarketcap.Settings{
+		APIkey:      s.bot.Config.Currency.CryptocurrencyProvider.APIkey,
+		AccountPlan: s.bot.Config.Currency.CryptocurrencyProvider.AccountPlan,
+		Verbose:     false,
+		Enabled:     true,
+	}
+
+	cmc := new(coinmarketcap.Coinmarketcap)
+	cmc.SetDefaults()
+	cmc.Setup(settings)
+	return cmc.GetCryptocurrencyIDMap()
+	// f, _ := os.Create("cmcresponse.json")
+	// for _, l := range res {
+	// 	f.WriteString(l)
 	// }
+	// f.Close()
 }

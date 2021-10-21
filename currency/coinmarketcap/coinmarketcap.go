@@ -8,6 +8,7 @@ package coinmarketcap
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -42,6 +43,7 @@ func (c *Coinmarketcap) Setup(conf Settings) error {
 	c.Enabled = true
 	c.Verbose = conf.Verbose
 	c.APIkey = conf.APIkey
+	fmt.Println("setting api", c.APIkey)
 	return c.SetAccountPlan(conf.AccountPlan)
 }
 
