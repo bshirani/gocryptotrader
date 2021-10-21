@@ -8,12 +8,14 @@ import (
 	"fmt"
 	"gocryptotrader/currency"
 	"gocryptotrader/database/repository/candle"
+	"gocryptotrader/exchange/asset"
 	"gocryptotrader/wpool"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path"
 	"strconv"
 	"strings"
@@ -24,7 +26,7 @@ const (
 	defaultDataImporterBaseDir     = "/home/bijan/work/crypto/kraken_data"
 	defaultDataImporterBaseCmd     = "dbseed candle file --exchange %s --base %s --quote %s --interval 60 --asset spot --filename %s"
 	finishedFilename               = "finished.log"
-	defaultDataImporterWorkercount = 12
+	defaultDataImporterWorkercount = 4
 )
 
 var (
@@ -43,13 +45,15 @@ type DataImporter struct {
 	baseDir     string
 	baseCmd     string
 	workerCount int
+	bot         *Engine
 }
 
-func SetupDataImporter() *DataImporter {
+func SetupDataImporter(bot *Engine) *DataImporter {
 	return &DataImporter{
 		baseDir:     defaultDataImporterBaseDir,
 		baseCmd:     defaultDataImporterBaseCmd,
 		workerCount: defaultDataImporterWorkercount,
+		bot:         bot,
 	}
 }
 
@@ -62,6 +66,16 @@ func (d *DataImporter) Run(exchange string) {
 	wp := wpool.New(d.workerCount)
 	go wp.GenerateFrom(d.krakenJob())
 	go wp.Run(ctx)
+
+	sigs := make(chan os.Signal, 1)
+	done := make(chan bool, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		sig := <-sigs
+		fmt.Println()
+		fmt.Println(sig)
+		done <- true
+	}()
 
 	for {
 		select {
@@ -80,6 +94,9 @@ func (d *DataImporter) Run(exchange string) {
 			// if val != int(i)*2 {
 			// 	log.Fatalf("wrong value %v; expected %v", val, int(i)*2)
 			// }
+		case <-done:
+			fmt.Println("signal interrupt")
+			return
 		case <-wp.Done:
 			fmt.Println("calling wp.done")
 			return
@@ -109,17 +126,20 @@ func printOutput(outs []byte) {
 func (d *DataImporter) task(ctx context.Context, args interface{}) (interface{}, error) {
 	fileName := args.(string)
 	pairName := strings.Split(fileName, "_")[0]
-	c, err := currency.NewPairFromString(pairName)
-	if err != nil {
-		fmt.Println("cant find currency", err)
+	c := currency.NewPairWithDelimiter(pairName[0:3], pairName[3:], "_")
+
+	if !d.inAvailablePairs(c) {
+		// fmt.Println("bad pair", c, c.Quote, c.Base)
+		c = currency.NewPairWithDelimiter(pairName[0:4], pairName[4:], "_")
+		if !d.inAvailablePairs(c) {
+			fmt.Println("cannot resolve pair", c, c.Base, c.Quote)
+			os.Exit(123)
+		}
 	}
 
-	// os.Exit(123)
-
-	// if !lastCandle.Timestamp.IsZero() {
-	// 	// fmt.Println("already have data for", c)
-	// 	return fileName, nil
-	// }
+	if !d.shouldRun(fileName, c) {
+		return fileName, nil
+	}
 
 	cmd := fmt.Sprintf(d.baseCmd, "kraken", c.Base.String(), c.Quote.String(), path.Join(d.baseDir, fileName))
 	command := exec.Command("bash", "-c", cmd)
@@ -170,38 +190,10 @@ func (d *DataImporter) krakenJob() []wpool.Job {
 	}
 
 	for i, f := range files {
-
 		if strings.HasSuffix(f.Name(), "_1.csv") {
 			// if !strings.EqualFold(f.Name(), "SRMGBP_1.csv") {
 			// 	continue
 			// }
-
-			filePath := path.Join(d.baseDir, f.Name())
-			fileCount, _ := lineCounter(filePath)
-			fileName := f.Name()
-			pairName := strings.Split(fileName, "_")[0]
-			c, err := currency.NewPairFromString(pairName)
-			if err != nil {
-				fmt.Println("cant find currency", err)
-			}
-			dbCount, err := candle.Count("kraken",
-				c.Base.String(),
-				c.Quote.String(),
-				60,
-				"spot")
-
-			// fmt.Println("lines in file", fileCount, "db", dbCount)
-			if fileCount == 0 {
-				os.Exit(123)
-			}
-			if int(dbCount) >= fileCount {
-				fmt.Printf(".")
-				// fmt.Println("good", c, dbCount)
-				continue
-			} else {
-				fmt.Println(c, "has only", dbCount, "bars out of", fileCount)
-			}
-			// time.Sleep(time.Second * 5)
 
 			jobs = append(jobs, wpool.Job{
 				Descriptor: wpool.JobDescriptor{
@@ -218,6 +210,37 @@ func (d *DataImporter) krakenJob() []wpool.Job {
 	fmt.Println("returned", len(jobs), "jobs")
 
 	return jobs
+}
+
+func (d *DataImporter) shouldRun(fileName string, p currency.Pair) bool {
+	filePath := path.Join(d.baseDir, fileName)
+	fileCount, _ := lineCounter(filePath)
+	// pairName := strings.Split(fileName, "_")[0]
+	// c, err := currency.NewPairFromString(pairName)
+	// if err != nil {
+	// 	fmt.Println("cant find currency", err)
+	// }
+	dbCount, err := candle.Count("kraken",
+		p.Base.String(),
+		p.Quote.String(),
+		60,
+		"spot")
+
+	if err != nil {
+		fmt.Println("error", err)
+	}
+
+	// fmt.Println("lines in file", fileCount, "db", dbCount)
+	if fileCount == 0 {
+		os.Exit(123)
+	}
+	if int(dbCount) >= fileCount {
+		fmt.Println("good", p, dbCount)
+		return false
+	} else {
+		fmt.Println(p, "has only", dbCount, "bars out of", fileCount)
+		return true
+	}
 }
 
 func lineCounter(filepath string) (int, error) {
@@ -239,4 +262,17 @@ func lineCounter(filepath string) (int, error) {
 			return count, err
 		}
 	}
+}
+
+func (d *DataImporter) inAvailablePairs(p currency.Pair) bool {
+	// fmt.Println("checking", p.Base, p.Quote)
+	ex, _ := d.bot.GetExchangeByName("kraken")
+	availablePairs, _ := ex.GetAvailablePairs(asset.Spot)
+	for _, ap := range availablePairs {
+		if strings.EqualFold(ap.Base.String(), p.Base.String()) && strings.EqualFold(ap.Quote.String(), p.Quote.String()) {
+			return true
+		}
+	}
+	// fmt.Println(p, "not in")
+	return false
 }

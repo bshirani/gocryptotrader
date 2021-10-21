@@ -863,18 +863,22 @@ func (m *syncManager) worker() {
 							} else if time.Now().Sub(c.Kline.LastUpdated).Seconds() > 5 {
 								m.setProcessing(exchangeName, c.Pair, c.AssetType, SyncItemKline, true)
 
-								lastCandle, _ := candle.Last(c.Exchange,
+								lastCandle, err := candle.Last(
+									c.Exchange,
 									c.Pair.Base.String(),
 									c.Pair.Quote.String(),
 									60,
 									c.AssetType.String())
 
+								if err != nil {
+									fmt.Println("sync manager candle, error retrieving last candle", err)
+								}
+
 								minSinceLast := int(time.Now().UTC().Sub(lastCandle.Timestamp).Minutes())
-								var err error
 								var newCandle kline.Item
 
 								if minSinceLast > 1000 {
-									log.Error(log.SyncMgr, "requesting more than 1000 candles. Last candle was", lastCandle.Timestamp)
+									log.Error(log.SyncMgr, "requesting more than 1000 candles. Last candle was ", lastCandle.Timestamp, "for", c.Pair)
 									st := time.Now().Add(time.Minute * -999)
 									os.Exit(123)
 									newCandle, err = exchanges[x].GetHistoricCandles(context.TODO(), c.Pair, c.AssetType, st, time.Now(), kline.OneMin)

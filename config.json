@@ -1,6 +1,7 @@
 {
  "LiveMode": true,
  "DryRun": false,
+ "Script": false,
  "nickname": "",
  "goal": "",
  "strategy-settings": {
@@ -44,6 +45,10 @@
   "trading": false
  },
  "factorEngine": {
+  "verbose": false
+ },
+ "dataImporter": {
+  "enabled": false,
   "verbose": false
  },
  "name": "Full",

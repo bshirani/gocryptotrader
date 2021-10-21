@@ -705,7 +705,7 @@ func (bot *Engine) Start() error {
 	// handle script here
 
 	if bot.Settings.EnableDataImporter {
-		dataImporter := SetupDataImporter()
+		dataImporter := SetupDataImporter(bot)
 		dataImporter.Run("kraken")
 	}
 
