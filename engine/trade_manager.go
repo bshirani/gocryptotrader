@@ -247,7 +247,14 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 }
 
 func (tm *TradeManager) Run() error {
+	count := 0
 	log.Debugf(log.TradeMgr, "TradeManager Running")
+	if !tm.bot.Config.LiveMode {
+		err := tm.loadBacktestData()
+		if err != nil {
+			fmt.Println("error loadBacktestData:", err)
+		}
+	}
 dataLoadingIssue:
 	for ev := tm.EventQueue.NextEvent(); ; ev = tm.EventQueue.NextEvent() {
 		if ev == nil {
@@ -265,6 +272,7 @@ dataLoadingIssue:
 							break dataLoadingIssue
 						}
 						tm.hasHandledEvent = true
+						count += 1
 						tm.EventQueue.AppendEvent(d)
 					}
 				}
@@ -283,7 +291,7 @@ dataLoadingIssue:
 		}
 	}
 
-	fmt.Println("done running")
+	fmt.Println("done running", count, "data events")
 
 	return nil
 }
@@ -415,7 +423,6 @@ func (tm *TradeManager) waitForFactorEnginesWarmup() {
 	tm.initializeFactorEngines()
 
 	// load all candles for instrument
-
 	for _, cs := range tm.bot.CurrencySettings {
 		startDate := time.Now().Add(time.Minute * -120)
 		// candles, _ := CandleSeriesForSettings(cs, 60, startDate, time.Now())
@@ -442,7 +449,7 @@ func (tm *TradeManager) waitForFactorEnginesWarmup() {
 	}
 
 	tm.Run()
-	tm.tradingEnabled = true
+	tm.bot.Settings.EnableTrading = true
 
 	// dbm := tm.bot.DatabaseManager.GetInstance()
 	// if err != nil {
@@ -492,7 +499,7 @@ func (tm *TradeManager) runLive() error {
 
 			for _, cs := range tm.bot.CurrencySettings {
 				if lup[cs] != thisMinute {
-					dbData, err := tm.loadCandlesFromDatabase(cs)
+					dbData, err := tm.loadLatestCandleFromDatabase(cs)
 
 					// dont have a bar for this minute yet
 					// TODO handle specific error
@@ -570,6 +577,7 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 	// fmt.Println("tm processing event at", ev.GetTime(), time.Now().UTC(), "minutes old", int(minutesOld))
 	err := tm.updateStatsForDataEvent(ev)
 	if err != nil {
+		fmt.Println("error updating stats for data event")
 		return err
 	}
 
@@ -589,12 +597,11 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 	// while ensuring the factor engine has all the historical data
 	// old events should not come through here
 
-	if tm.tradingEnabled {
+	if tm.bot.Settings.EnableTrading {
 		if tm.bot.OrderManager != nil {
 			tm.bot.OrderManager.Update()
 		}
 
-		fmt.Println(1)
 		if len(fe.Minute().M60Range) > 0 {
 			if tm.bot.Config.LiveMode {
 				if tm.verbose {
@@ -624,10 +631,8 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 				}
 			}
 
-			fmt.Println(2)
 			for _, strategy := range tm.Strategies {
 				if strategy.GetPair() == ev.Pair() {
-					fmt.Println(3)
 					s, err := strategy.OnData(d, tm.Portfolio, fe)
 					if err != nil {
 						fmt.Println("error processing data event", err)
@@ -637,7 +642,9 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 				}
 			}
 		} else {
-			fmt.Println("only have last", len(fe.Minute().M60Range), "m60 range bars, closes' length ", len(fe.Minute().Close))
+			if tm.bot.Settings.EnableLiveMode {
+				fmt.Println("only have last", len(fe.Minute().M60Range), "m60 range bars, closes' length ", len(fe.Minute().Close))
+			}
 		}
 	}
 
@@ -666,7 +673,7 @@ func (tm *TradeManager) processSimultaneousDataEvents() error {
 }
 
 func (tm *TradeManager) processSignalEvent(ev signal.Event) {
-	fmt.Println("process signal", ev.GetReason())
+	// fmt.Println("process signal", ev.GetReason())
 	cs, err := tm.bot.GetCurrencySettings(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 	if err != nil {
 		log.Error(log.TradeMgr, "error", err)
@@ -901,26 +908,14 @@ func (tm *TradeManager) initializeFactorEngines() error {
 				0,
 				cs.CurrencyPair,
 				cs.AssetType)
-		} else {
-			fmt.Println("loading backtest data")
-			// load data for backtest
-			dbData, err = database.LoadData(
-				time.Now().Add(time.Minute*-3000),
-				time.Now().Add(time.Minute*-300),
-				time.Minute,
-				cs.ExchangeName,
-				0,
-				cs.CurrencyPair,
-				cs.AssetType)
+			tm.Datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, dbData)
+			dbData.Load()
+			if err != nil {
+				fmt.Println("error loading db data", err)
+				// create a data history request if there isn't one already
+				os.Exit(123)
+			}
 		}
-
-		if err != nil {
-			fmt.Println("error loading db data", err)
-			// create a data history request if there isn't one already
-			os.Exit(123)
-		}
-		tm.Datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, dbData)
-		dbData.Load()
 	}
 	return nil
 }
@@ -937,7 +932,48 @@ func CandleSeriesForSettings(e *ExchangeAssetPairSettings, interval int64, start
 	return candle.Series(e.ExchangeName, e.CurrencyPair.Base.String(), e.CurrencyPair.Quote.String(), 60, e.AssetType.String(), start, end)
 }
 
-func (tm *TradeManager) loadCandlesFromDatabase(eap *ExchangeAssetPairSettings) (*datakline.DataFromKline, error) {
+func (tm *TradeManager) loadBacktestData() (err error) {
+	for _, eap := range tm.bot.CurrencySettings {
+		e := eap.ExchangeName
+		a := eap.AssetType
+		p := eap.CurrencyPair
+		thisMinute := common.ThisMinute()
+		startTime := thisMinute.Add(time.Minute * -1000)
+		endTime := thisMinute.Add(time.Minute * -900)
+		fmt.Println(1, startTime, endTime)
+		dbData, err := database.LoadData(
+			startTime,
+			endTime,
+			time.Minute,
+			e,
+			0,
+			p,
+			a)
+		if err != nil {
+			fmt.Println("loaddata err", err)
+			return err
+		}
+
+		tm.Datas.SetDataForCurrency(e, a, p, dbData)
+		dbData.RangeHolder, err = kline.CalculateCandleDateRanges(startTime, time.Now(), kline.Interval(kline.OneMin), 0)
+		dbData.Load()
+
+		if err != nil {
+			return fmt.Errorf("error creating range holder. error: %s", err)
+		}
+
+		for i := range dbData.RangeHolder.Ranges {
+			for j := range dbData.RangeHolder.Ranges[i].Intervals {
+				dbData.RangeHolder.Ranges[i].Intervals[j].HasData = true
+			}
+		}
+	}
+	fmt.Println("done loading bt data")
+
+	return err
+}
+
+func (tm *TradeManager) loadLatestCandleFromDatabase(eap *ExchangeAssetPairSettings) (*datakline.DataFromKline, error) {
 	e := eap.ExchangeName
 	a := eap.AssetType
 	p := eap.CurrencyPair

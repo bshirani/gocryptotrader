@@ -247,7 +247,9 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		return nil, errStrategyIDUnset
 	}
 	p.lastUpdate = ev.GetTime()
-	fmt.Println("UPDATE STRATEGY TRADES", ev.GetStrategyID())
+	if p.GetLiveMode() {
+		fmt.Println("UPDATE STRATEGY TRADES", ev.GetStrategyID())
+	}
 	p.updateStrategyTrades(ev)
 
 	// validate and prepare the event
