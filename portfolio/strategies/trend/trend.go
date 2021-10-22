@@ -38,7 +38,7 @@ func (s *Strategy) Description() string {
 
 func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe base.FactorEngineHandler) (signal.Event, error) {
 	// if p.GetLiveMode() {
-	fmt.Println("trend ONDATA", d.Latest().GetTime(), s.Strategy.GetDirection(), d.Latest().Pair())
+	log.Infoln(log.Global, "trend ONDATA", d.Latest().GetTime(), s.Strategy.GetDirection(), d.Latest().Pair())
 	// }
 	if d == nil {
 		return nil, eventtypes.ErrNilEvent

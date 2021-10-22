@@ -9,6 +9,7 @@ import (
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/data"
+	datakline "gocryptotrader/data/kline"
 	"gocryptotrader/data/kline/database"
 	"gocryptotrader/database/repository/candle"
 	"gocryptotrader/database/repository/datahistoryjob"
@@ -491,63 +492,25 @@ func (tm *TradeManager) runLive() error {
 
 			for _, cs := range tm.bot.CurrencySettings {
 				if lup[cs] != thisMinute {
-					dbData, err := database.LoadData(
-						thisMinute.Add(time.Minute*-1),
-						time.Now(),
-						time.Minute,
-						cs.ExchangeName,
-						0,
-						cs.CurrencyPair,
-						cs.AssetType)
-
+					dbData, err := tm.loadCandlesFromDatabase(cs)
 					if err != nil {
-						// fmt.Println(err)
+						fmt.Println("error", err)
 						continue
 					}
-					lastCandle := dbData.Item.Candles[len(dbData.Item.Candles)-1]
-					t1 := lastCandle.Time
-					t2 := thisMinute
-					sameTime := (t1.Year() == t2.Year() && t1.Month() == t2.Month() && t1.Day() == t2.Day() && t1.Hour() == t2.Hour() && t1.Minute() == t2.Minute())
 
-					if !sameTime {
-						// fmt.Println("don't have bar yet", lastCandle.Time, thisMinute)
-						continue
-					}
-					dbData.Load()
-
-					// dbData.RemoveDuplicates()
-					// dbData.SortCandlesByTimestamp(false)
-
-					to := common.ThisMinute()
-					from := to.Add(time.Minute * -1)
-
-					dbData.RangeHolder, err = kline.CalculateCandleDateRanges(
-						from,
-						to,
-						kline.Interval(kline.OneMin),
-						0,
-					)
-					if err != nil {
-						fmt.Println("error creating range holder. error:", err)
-
-					}
-
-					dbData.RangeHolder.SetHasDataFromCandles(dbData.Item.Candles)
-
-					// fmt.Println("requested bars from/to", from, to)
-					// fmt.Println("dbdata has bars", len(dbData.Item.Candles), dbData.Item.Candles[0].Time)
-					// fmt.Println("does have in ", dbData.HasDataAtTime(dbData.Item.Candles[0].Time))
+					fmt.Println("requested bars until", thisMinute)
+					fmt.Println("dbdata has bars", len(dbData.Item.Candles), dbData.Item.Candles[0].Time, dbData.Item.Candles[len(dbData.Item.Candles)-1].Time)
 					// dbData.AppendResults()
 
 					for dataEvent := dbData.Next(); ; dataEvent = dbData.Next() {
+						// fmt.Println("got data event from database", dataEvent.GetTime())
 						if dataEvent != nil {
-							// fmt.Println("got data event from database", dataEvent.GetTime())
-							dataEvent := dbData.Latest()
+							fmt.Println("does have in ", dbData.HasDataAtTime(dataEvent.GetTime()))
 							tm.EventQueue.AppendEvent(dataEvent)
-							lup[cs] = thisMinute
+							lup[cs] = dataEvent.GetTime().UTC()
 							// fmt.Println(cs.CurrencyPair, "seen", thisMinute, "loadedbars", t1, len(dbData.Item.Candles))
 							// fmt.Println("sending event", dataEvent.GetTime())
-							tm.Datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, dbData)
+						} else {
 							break
 						}
 					}
@@ -931,4 +894,44 @@ func (tm *TradeManager) setOrderManagerCallbacks() {
 // Series returns candle data
 func CandleSeriesForSettings(e *ExchangeAssetPairSettings, interval int64, start, end time.Time) (out candle.Item, err error) {
 	return candle.Series(e.ExchangeName, e.CurrencyPair.Base.String(), e.CurrencyPair.Quote.String(), 60, e.AssetType.String(), start, end)
+}
+
+func (tm *TradeManager) loadCandlesFromDatabase(eap *ExchangeAssetPairSettings) (*datakline.DataFromKline, error) {
+	e := eap.ExchangeName
+	a := eap.AssetType
+	p := eap.CurrencyPair
+	thisMinute := common.ThisMinute()
+	// startTime := thisMinute.Add(time.Minute * -1)
+	dbData, err := database.LoadData(
+		thisMinute,
+		thisMinute,
+		time.Minute,
+		e,
+		0,
+		p,
+		a)
+	if err != nil {
+		return nil, err
+	}
+
+	// validate results
+	lastCandle := dbData.Item.Candles[len(dbData.Item.Candles)-1]
+	t1 := lastCandle.Time
+	t2 := common.ThisMinute()
+	sameTime := (t1.Year() == t2.Year() && t1.Month() == t2.Month() && t1.Day() == t2.Day() && t1.Hour() == t2.Hour() && t1.Minute() == t2.Minute())
+	if !sameTime {
+		// fmt.Println("don't have bar yet", lastCandle.Time, thisMinute)
+		return nil, fmt.Errorf("don't have bar yet", lastCandle.Time, thisMinute)
+	}
+	dbData.Load()
+
+	to := common.ThisMinute()
+	from := to.Add(time.Minute * -1)
+	dbData.RangeHolder, err = kline.CalculateCandleDateRanges(from, to, kline.Interval(kline.OneMin), 0)
+	if err != nil {
+		return nil, fmt.Errorf("error creating range holder. error: %s", err)
+	}
+	dbData.RangeHolder.SetHasDataFromCandles(dbData.Item.Candles)
+	tm.Datas.SetDataForCurrency(e, a, p, dbData)
+	return dbData, err
 }
