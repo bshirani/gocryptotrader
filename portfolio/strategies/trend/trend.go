@@ -96,10 +96,10 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 			if s.Strategy.GetDirection() == order.Buy {
 				if fe.Minute().M60PctChange.Last(1).LessThan(decimal.NewFromFloat(0)) {
 					es.SetDecision(signal.Exit)
-					es.AppendReason(fmt.Sprintf("Trend.go says: M60PctChange is negative (%d).", minutesInTrade))
+					es.AppendReason(fmt.Sprintf("Strategy: t >. %d min and M60PctChange is negative.", minutesInTrade))
 				} else {
 					es.SetDecision(signal.DoNothing)
-					es.AppendReason(fmt.Sprintf("Trend.go says: DONOTHING. Stay in long. M60PctChange is positive. (%d).", minutesInTrade))
+					es.AppendReason(fmt.Sprintf("Strategy: Stay in long. M60PctChange is positive. (%d).", minutesInTrade))
 				}
 			}
 
@@ -107,16 +107,16 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 			if s.Strategy.GetDirection() == order.Sell {
 				if fe.Minute().M60PctChange.Last(1).GreaterThan(decimal.NewFromFloat(0)) {
 					es.SetDecision(signal.Exit)
-					es.AppendReason(fmt.Sprintf("Trend.go says: exiting t > (%d) min and M60PctChange is positive.", minutesInTrade))
+					es.AppendReason(fmt.Sprintf("Strategy.go says: exiting t > (%d) min and M60PctChange is positive.", minutesInTrade))
 				} else {
 					es.SetDecision(signal.DoNothing)
-					es.AppendReason(fmt.Sprintf("Trend.go says: DONOTHING. Stay in short. M60PctChange is negative. (%d).", minutesInTrade))
+					es.AppendReason(fmt.Sprintf("Strategy.go says: Stay in short. M60PctChange is negative. (%d).", minutesInTrade))
 				}
 			}
 
 		} else {
 			es.SetDecision(signal.DoNothing)
-			es.AppendReason(fmt.Sprintf("Trend.go says: DONOTHING. trade age %d minutes.", minutesInTrade))
+			es.AppendReason(fmt.Sprintf("Strategy: trade age %d minutes.", minutesInTrade))
 		}
 
 	}
@@ -124,7 +124,7 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	if es.GetDecision() == "" {
 		es.SetDecision(signal.DoNothing)
 		es.SetDirection(eventtypes.DoNothing)
-		es.AppendReason("no response")
+		es.AppendReason("null")
 	}
 
 	return &es, nil

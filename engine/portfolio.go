@@ -327,7 +327,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		} else if len(activeTrades) >= maxTradeCount {
 			ev.SetDirection(eventtypes.DoNothing)
 			ev.SetDecision(signal.DoNothing)
-			ev.AppendReason(fmt.Sprintf("Mgr: NOGO. DoNothing. Has Active Trade", len(activeTrades)))
+			ev.AppendReason(fmt.Sprintf("Mgr: NOGO. DoNothing. Has Active Trades %d", len(activeTrades)))
 		} else {
 			ev.AppendReason(fmt.Sprintf("Mgr: GO. global_max_trades=1 cur=%d", len(activeTrades)))
 		}
