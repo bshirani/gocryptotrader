@@ -118,6 +118,8 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 		log.Infof(log.Portfolio, "Loaded Trades %d Orders %d", len(activeTrades), len(activeOrders))
 	}
 
+	// p.SetupCurrencySettingsMap(exch string, a asset.Item, cp currency.Pair) (*PortfolioSettings, error) {
+
 	return p, nil
 }
 
@@ -529,6 +531,7 @@ func (p *Portfolio) UpdateHoldings(ev eventtypes.DataEventHandler) error {
 	lookup, ok := p.exchangeAssetPairSettings[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
 	if !ok {
 		fmt.Println("updateholdings")
+		panic("give me the stack")
 		return fmt.Errorf("%w for %v %v %v",
 			errNoPortfolioSettings,
 			ev.GetExchange(),
@@ -811,13 +814,13 @@ func (p *Portfolio) recordTrade(ev signal.Event) {
 }
 
 func (p *Portfolio) evaluateOrder(d eventtypes.Directioner, originalOrderSignal, sizedOrder *order.Order) (*order.Order, error) {
-	// var evaluatedOrder *order.Order
-	// cm, err := p.GetComplianceManager(originalOrderSignal.GetExchange(), originalOrderSignal.GetAssetType(), originalOrderSignal.Pair())
-	// if err != nil {
-	// 	return nil, err
-	// }
+	var evaluatedOrder *order.Order
+	cm, err := p.GetComplianceManager(originalOrderSignal.GetExchange(), originalOrderSignal.GetAssetType(), originalOrderSignal.Pair())
+	if err != nil {
+		return nil, err
+	}
 
-	evaluatedOrder, err := p.riskManager.EvaluateOrder(sizedOrder, p.GetLatestHoldingsForAllCurrencies(), cm.GetLatestSnapshot())
+	evaluatedOrder, err = p.riskManager.EvaluateOrder(sizedOrder, p.GetLatestHoldingsForAllCurrencies(), cm.GetLatestSnapshot())
 	if err != nil {
 		originalOrderSignal.AppendReason(err.Error())
 		switch d.GetDirection() {
