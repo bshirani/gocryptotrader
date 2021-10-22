@@ -159,7 +159,6 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 	}
 
 	if !p.bot.Settings.EnableDryRun {
-		panic("123")
 		activeTrades, _ := livetrade.Active()
 		for _, t := range activeTrades {
 			// p.getStrategyTrade(t.StrategyID)
