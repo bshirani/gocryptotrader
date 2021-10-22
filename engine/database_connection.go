@@ -84,11 +84,11 @@ func (m *DatabaseConnectionManager) Start(wg *sync.WaitGroup) (err error) {
 
 	if m.cfg.Enabled {
 		m.shutdown = make(chan struct{})
-		log.Debugf(log.DatabaseMgr,
-			"Attempting to establish database connection to host %s/%s utilising %s driver\n",
-			m.cfg.Host,
-			m.cfg.Database,
-			m.cfg.Driver)
+		// log.Debugf(log.DatabaseMgr,
+		// 	"Attempting to establish database connection to host %s/%s utilising %s driver\n",
+		// 	m.cfg.Host,
+		// 	m.cfg.Database,
+		// 	m.cfg.Driver)
 		m.dbConn, err = dbpsql.Connect(&m.cfg)
 		if err != nil {
 			return fmt.Errorf("%w: %v Some features that utilise a database will be unavailable", database.ErrFailedToConnect, err)

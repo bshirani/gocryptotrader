@@ -70,6 +70,10 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 	}
 	p := &Portfolio{}
 	p.verbose = cfg.PortfolioSettings.Verbose
+	if !p.verbose {
+		fmt.Println("pf not verbose")
+		os.Exit(123)
+	}
 
 	// create position for every strategy
 	// create open trades array for every strategy
@@ -87,7 +91,7 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 	p.riskFreeRate = riskFreeRate
 	p.Strategies = st
 
-	log.Infof(log.StrategiesMgr, "Started Portfolio w/ %d Strategies, %d Currencies", len(st), len(p.bot.CurrencySettings))
+	log.Infof(log.Portfolio, "Started Portfolio w/ %d Strategies, %d Currencies", len(st), len(p.bot.CurrencySettings))
 
 	// set initial opentrade/positions
 	for _, s := range p.Strategies {
@@ -111,7 +115,7 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 	}
 
 	if !p.bot.Settings.EnableDryRun {
-		log.Infof(log.StrategiesMgr, "Loaded Trades %d Orders %d", len(activeTrades), len(activeOrders))
+		log.Infof(log.Portfolio, "Loaded Trades %d Orders %d", len(activeTrades), len(activeOrders))
 	}
 
 	return p, nil
@@ -138,7 +142,7 @@ func (p *Portfolio) OnCancel(cancel cancel.Event) {
 // the portfolio manager's recommendations
 func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*order.Order, error) {
 	if p.verbose {
-		fmt.Println("PORTFOLIO ON SIGNAL", ev.GetTime())
+		fmt.Println("PORTFOLIO ON SIGNAL", ev.GetStrategyID(), ev.GetTime(), ev.GetReason())
 	}
 	if ev == nil || cs == nil {
 		return nil, eventtypes.ErrNilArguments
@@ -227,8 +231,10 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		return o, errInvalidDirection
 	}
 
-	lookup := p.exchangeAssetPairSettings[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
+	// lookup := p.bot.exchangeAssetPairSettings[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
+	lookup, _ := p.bot.GetCurrencySettings(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 	if lookup == nil {
+		fmt.Println("pf on signal, lookup nil")
 		return nil, fmt.Errorf("%w for %v %v %v",
 			errNoPortfolioSettings,
 			ev.GetExchange(),
@@ -442,12 +448,12 @@ func (p *Portfolio) OnFill(f fill.Event) {
 	// 	err = p.setHoldingsForOffset(&h, false)
 	// }
 	// if err != nil {
-	// 	log.Error(log.StrategiesMgr, err)
+	// 	log.Error(log.Portfolio, err)
 	// }
 
 	// err = p.addComplianceSnapshot(f)
 	// if err != nil {
-	// 	log.Error(log.StrategiesMgr, err)
+	// 	log.Error(log.Portfolio, err)
 	// }
 
 	// direction := f.GetDirection()
@@ -522,6 +528,7 @@ func (p *Portfolio) UpdateHoldings(ev eventtypes.DataEventHandler) error {
 	}
 	lookup, ok := p.exchangeAssetPairSettings[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
 	if !ok {
+		fmt.Println("updateholdings")
 		return fmt.Errorf("%w for %v %v %v",
 			errNoPortfolioSettings,
 			ev.GetExchange(),
@@ -804,13 +811,13 @@ func (p *Portfolio) recordTrade(ev signal.Event) {
 }
 
 func (p *Portfolio) evaluateOrder(d eventtypes.Directioner, originalOrderSignal, sizedOrder *order.Order) (*order.Order, error) {
-	var evaluatedOrder *order.Order
-	cm, err := p.GetComplianceManager(originalOrderSignal.GetExchange(), originalOrderSignal.GetAssetType(), originalOrderSignal.Pair())
-	if err != nil {
-		return nil, err
-	}
+	// var evaluatedOrder *order.Order
+	// cm, err := p.GetComplianceManager(originalOrderSignal.GetExchange(), originalOrderSignal.GetAssetType(), originalOrderSignal.Pair())
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	evaluatedOrder, err = p.riskManager.EvaluateOrder(sizedOrder, p.GetLatestHoldingsForAllCurrencies(), cm.GetLatestSnapshot())
+	evaluatedOrder, err := p.riskManager.EvaluateOrder(sizedOrder, p.GetLatestHoldingsForAllCurrencies(), cm.GetLatestSnapshot())
 	if err != nil {
 		originalOrderSignal.AppendReason(err.Error())
 		switch d.GetDirection() {
@@ -980,12 +987,12 @@ func verifyOrderWithinLimits(f *fill.Fill, limitReducedAmount decimal.Decimal, c
 
 func (p *Portfolio) printTradeDetails(t *livetrade.Details) {
 	secondsInTrade := int64(p.lastUpdate.Sub(t.EntryTime).Seconds())
-	log.Infof(log.StrategiesMgr, "%s trade: pl:%v time:%d\n", t.StrategyID, t.ProfitLossPoints, secondsInTrade)
+	log.Infof(log.Portfolio, "%s trade: pl:%v time:%d\n", t.StrategyID, t.ProfitLossPoints, secondsInTrade)
 	return
 }
 
 func (p *Portfolio) PrintPortfolioDetails() {
-	log.Infoln(log.StrategiesMgr, "portfolio details", p.lastUpdate)
+	log.Infoln(log.Portfolio, "portfolio details", p.lastUpdate)
 	active, _ := livetrade.Active()
 	activeOrders, _ := liveorder.Active()
 	closed, _ := livetrade.Closed()
@@ -993,7 +1000,7 @@ func (p *Portfolio) PrintPortfolioDetails() {
 	for _, t := range active {
 		p.printTradeDetails(&t)
 	}
-	log.Infof(log.StrategiesMgr, "orders:%d open_trades:%d closed_trades:%d", len(activeOrders), len(active), len(closed))
+	log.Infof(log.Portfolio, "orders:%d open_trades:%d closed_trades:%d", len(activeOrders), len(active), len(closed))
 
 	// get strategy last updated time
 	// get factor engine last updated time for each pair
@@ -1004,8 +1011,8 @@ func (p *Portfolio) PrintPortfolioDetails() {
 
 	// current positions and their stats
 
-	// log.Infoln(log.StrategiesMgr, "active strategies")
-	// log.Infoln(log.StrategiesMgr, "active pairs")
+	// log.Infoln(log.Portfolio, "active strategies")
+	// log.Infoln(log.Portfolio, "active pairs")
 	return
 }
 
@@ -1023,7 +1030,7 @@ func getFees(ctx context.Context, exch exchange.IBotExchange, fPair currency.Pai
 			Amount:        1,
 		})
 	if err != nil {
-		log.Errorf(log.StrategiesMgr, "Could not retrieve taker fee for %v. %v", exch.GetName(), err)
+		log.Errorf(log.Portfolio, "Could not retrieve taker fee for %v. %v", exch.GetName(), err)
 	}
 
 	fMakerFee, err := exch.GetFeeByType(ctx,
@@ -1035,7 +1042,7 @@ func getFees(ctx context.Context, exch exchange.IBotExchange, fPair currency.Pai
 			Amount:        1,
 		})
 	if err != nil {
-		log.Errorf(log.StrategiesMgr, "Could not retrieve maker fee for %v. %v", exch.GetName(), err)
+		log.Errorf(log.Portfolio, "Could not retrieve maker fee for %v. %v", exch.GetName(), err)
 	}
 
 	return decimal.NewFromFloat(fMakerFee), decimal.NewFromFloat(fTakerFee)
@@ -1190,7 +1197,7 @@ func (p *Portfolio) heartBeat() {
 	// 		exchanges, err := p.bot.ExchangeManager.GetExchanges()
 	// 		for _, ex := range exchanges {
 	// 			if err != nil {
-	// 				log.Infoln(log.StrategiesMgr, "error getting tick", err)
+	// 				log.Infoln(log.Portfolio, "error getting tick", err)
 	// 			}
 	//
 	// 			for _, cp := range p.bot.CurrencySettings {
@@ -1199,9 +1206,9 @@ func (p *Portfolio) heartBeat() {
 	// 				// ticker := m.currencyPairs[x].Ticker
 	// 				secondsAgo := int(t1.Sub(tick.LastUpdated).Seconds())
 	// 				if secondsAgo > 10 {
-	// 					log.Warnln(log.StrategiesMgr, cp.CurrencyPair, tick.Last, secondsAgo)
+	// 					log.Warnln(log.Portfolio, cp.CurrencyPair, tick.Last, secondsAgo)
 	// 				} else {
-	// 					log.Infoln(log.StrategiesMgr, cp.CurrencyPair, tick.Last, secondsAgo)
+	// 					log.Infoln(log.Portfolio, cp.CurrencyPair, tick.Last, secondsAgo)
 	// 				}
 	// 			}
 	// 		}
@@ -1212,7 +1219,7 @@ func (p *Portfolio) heartBeat() {
 
 func (p *Portfolio) PrintTradingDetails() {
 	// fmt.Println("strategies running", len(p.Strategies))
-	log.Infoln(log.StrategiesMgr, len(p.Strategies), "strategies running")
+	log.Infoln(log.Portfolio, len(p.Strategies), "strategies running")
 
 	for _, cs := range p.bot.CurrencySettings {
 		// fmt.Println("currency", cs)
@@ -1225,7 +1232,7 @@ func (p *Portfolio) PrintTradingDetails() {
 		}
 		secondsAgo := int(time.Now().Sub(lastCandle.Timestamp).Seconds())
 		if secondsAgo > 60 {
-			log.Infoln(log.StrategiesMgr, cs.CurrencyPair, "last updated", secondsAgo, "seconds ago")
+			log.Infoln(log.Portfolio, cs.CurrencyPair, "last updated", secondsAgo, "seconds ago")
 		}
 		// else {
 		// 	log.Debugln(log.StrategyMgr, cs.CurrencyPair, "last updated", secondsAgo, "seconds ago")

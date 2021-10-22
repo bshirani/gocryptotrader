@@ -41,7 +41,7 @@ func main() {
 	flag.BoolVar(&settings.EnableDepositAddressManager, "depositaddressmanager", false, "enables the deposit address manager")
 	flag.BoolVar(&settings.EnableDispatcher, "dispatch", true, "enables the dispatch system")
 	flag.BoolVar(&settings.EnableDryRun, "enabledryrun", false, "dry runs bot, doesn't use database for trades/orders")
-	flag.BoolVar(&settings.EnableEventManager, "eventmanager", true, "enables the event manager")
+	flag.BoolVar(&settings.EnableEventManager, "eventmanager", false, "enables the event manager")
 	flag.BoolVar(&settings.EnableExchangeSyncManager, "sync", false, "enables to exchange sync manager")
 	flag.BoolVar(&settings.EnableGCTScriptManager, "gctscriptmanager", false, "enables gctscript manager")
 	flag.BoolVar(&settings.EnableGRPC, "grpc", true, "enables the grpc server")

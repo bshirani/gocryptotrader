@@ -1013,7 +1013,7 @@ func (bot *Engine) SetupExchanges() error {
 				log.Errorf(log.ExchangeSys, "LoadExchange %s failed: %s\n", c.Name, err)
 				return
 			}
-			log.Debugf(log.ExchangeSys,
+			log.Infof(log.ExchangeSys,
 				"%s: Exchange support: Enabled (Authenticated API support: %s - Verbose mode: %s).\n",
 				c.Name,
 				common.IsEnabled(c.API.AuthenticatedSupport),

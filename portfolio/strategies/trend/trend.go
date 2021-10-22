@@ -37,7 +37,7 @@ func (s *Strategy) Description() string {
 
 func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe base.FactorEngineHandler) (signal.Event, error) {
 	// if p.GetLiveMode() {
-	// 	fmt.Println("trend.go ON DATA", d.Latest().Pair())
+	fmt.Println("trend.go ON DATA", d.Latest().Pair(), d.Latest().GetTime(), d.HasDataAtTime(d.Latest().GetTime()))
 	// }
 	if d == nil {
 		return nil, eventtypes.ErrNilEvent
@@ -83,11 +83,13 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	orders := p.GetOpenOrdersForStrategy(s.GetID())
 	trade := p.GetTradeForStrategy(s.GetID())
 	if trade == nil && len(orders) == 0 {
+		fmt.Println("HERE")
 		if p.GetLiveMode() {
 			log.Debugln(log.TradeMgr, s.GetID(), "can trade")
 		}
 		es.SetDecision(signal.Enter)
 	} else {
+		fmt.Println("ALREADY IN TRADE")
 		secondsInTrade := currentTime.Sub(trade.EntryTime).Seconds()
 		if secondsInTrade < -120 {
 			fmt.Println("ERROR negative seconds in trade", currentTime, trade.EntryTime)

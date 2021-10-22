@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gocryptotrader/common"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/data"
@@ -26,6 +27,7 @@ import (
 	"gocryptotrader/eventtypes/signal"
 	"gocryptotrader/eventtypes/submit"
 	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/kline"
 
 	gctorder "gocryptotrader/exchange/order"
 	"gocryptotrader/log"
@@ -461,7 +463,7 @@ func (tm *TradeManager) runLive() error {
 	lup := make(map[*ExchangeAssetPairSettings]time.Time)
 
 	var thisMinute, lastMinute time.Time
-	loc, _ := time.LoadLocation("GMT")
+	loc, _ := time.LoadLocation("UTC")
 
 	for {
 		select {
@@ -501,8 +503,33 @@ func (tm *TradeManager) runLive() error {
 					}
 					dbData.Load()
 
+					// dbData.RemoveDuplicates()
+					// dbData.SortCandlesByTimestamp(false)
+
+					to := common.ThisMinute()
+					from := to.Add(time.Minute * -1)
+
+					dbData.RangeHolder, err = kline.CalculateCandleDateRanges(
+						from,
+						to,
+						kline.Interval(kline.OneMin),
+						0,
+					)
+					if err != nil {
+						fmt.Println("error creating range holder. error:", err)
+
+					}
+
+					dbData.RangeHolder.SetHasDataFromCandles(dbData.Item.Candles)
+
+					// fmt.Println("requested bars from/to", from, to)
+					// fmt.Println("dbdata has bars", len(dbData.Item.Candles), dbData.Item.Candles[0].Time)
+					// fmt.Println("does have in ", dbData.HasDataAtTime(dbData.Item.Candles[0].Time))
+					// dbData.AppendResults()
+
 					for dataEvent := dbData.Next(); ; dataEvent = dbData.Next() {
-						if dataEvent == nil {
+						if dataEvent != nil {
+							// fmt.Println("got data event from database", dataEvent.GetTime())
 							dataEvent := dbData.Latest()
 							tm.EventQueue.AppendEvent(dataEvent)
 							lup[cs] = thisMinute
@@ -862,14 +889,13 @@ func (tm *TradeManager) initializePortfolio(strategyConfig *config.Config) error
 	// for i := range strategyConfig.Strategy
 	tm.initializeStrategies(strategyConfig)
 
-	if tm.verbose {
-		log.Infof(log.TradeMgr, "Running %d strategies %d currencies", len(tm.Strategies), len(tm.bot.CurrencySettings))
-	}
+	// if tm.verbose {
+	// 	log.Infof(log.TradeMgr, "Running %d strategies %d currencies", len(tm.Strategies), len(tm.bot.CurrencySettings))
+	// }
 
 	// setup portfolio with strategies
 	var p *Portfolio
-	p, err := SetupPortfolio(tm.Strategies, tm.bot, strategyConfig)
-	// p.SetVerbose(false)
+	p, err := SetupPortfolio(tm.Strategies, tm.bot, tm.bot.Config)
 	if err != nil {
 		return err
 	}

@@ -82,6 +82,7 @@ func (b *Base) AppendStream(s ...eventtypes.DataEventHandler) {
 // Next will return the next event in the list and also shift the offset one
 func (b *Base) Next() (dh eventtypes.DataEventHandler) {
 	if len(b.stream) <= b.offset {
+		// fmt.Println("out of stream, length:", len(b.stream), "offset", b.offset)
 		return nil
 	}
 

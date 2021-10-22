@@ -91,6 +91,11 @@ func SetHTTPClient(client *http.Client) error {
 	return nil
 }
 
+func ThisMinute() time.Time {
+	t := time.Now().UTC()
+	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location())
+}
+
 // NewHTTPClientWithTimeout initialises a new HTTP client and its underlying
 // transport IdleConnTimeout with the specified timeout duration
 func NewHTTPClientWithTimeout(t time.Duration) *http.Client {

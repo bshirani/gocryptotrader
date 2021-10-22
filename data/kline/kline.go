@@ -1,6 +1,7 @@
 package kline
 
 import (
+	"fmt"
 	"time"
 
 	"gocryptotrader/eventtypes"
@@ -16,6 +17,7 @@ import (
 // To determine whether there is any candle data present at the time provided
 func (d *DataFromKline) HasDataAtTime(t time.Time) bool {
 	if d.RangeHolder == nil {
+		fmt.Println("no range holder")
 		return false
 	}
 	return d.RangeHolder.HasDataAtDate(t)
