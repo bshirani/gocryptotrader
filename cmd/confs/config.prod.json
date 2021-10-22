@@ -48,14 +48,15 @@
  "tradeManager": {
   "enabled": true,
   "verbose": true,
-  "trading": true
+  "trading": true,
+  "clearDB": false
  },
  "factorEngine": {
   "verbose": false
  },
  "orderManager": {
   "verbose": false,
-  "enabled": false
+  "enabled": true
  },
  "dataImporter": {
   "enabled": false,
@@ -272,7 +273,7 @@
   "username": "admin",
   "password": "Password",
   "gRPC": {
-   "enabled": false,
+   "enabled": true,
    "listenAddress": "localhost:9052",
    "grpcProxyEnabled": false,
    "grpcProxyListenAddress": "localhost:9053",

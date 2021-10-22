@@ -80,7 +80,7 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 		} else if s.Strategy.GetDirection() == order.Sell { // check sell strategy
 			es.SetDecision(signal.Enter)
 		}
-		es.AppendReason("Trend.Go says: enter because no trades, no orders, so trade")
+		es.AppendReason("Strategy: no trades/orders")
 
 	} else {
 		minutesInTrade := int(currentTime.Sub(trade.EntryTime).Minutes())
