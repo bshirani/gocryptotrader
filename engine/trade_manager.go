@@ -672,7 +672,7 @@ func (tm *TradeManager) processSignalEvent(ev signal.Event) {
 	}
 	var o *order.Order
 	o, err = tm.Portfolio.OnSignal(ev, cs)
-	fmt.Println("received order", o)
+	fmt.Println("tm received order from pf", o, err)
 	if err != nil {
 		log.Error(log.TradeMgr, err)
 		return
