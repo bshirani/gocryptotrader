@@ -15,7 +15,7 @@ import (
 )
 
 // SetupOrderManager will boot up the OrderManager
-func SetupFakeOrderManager(bot *Engine, exchangeManager iExchangeManager, communicationsManager iCommsManager, wg *sync.WaitGroup, verbose bool) (*FakeOrderManager, error) {
+func SetupFakeOrderManager(exchangeManager iExchangeManager, communicationsManager iCommsManager, wg *sync.WaitGroup, verbose bool) (*FakeOrderManager, error) {
 	// log.Debugln(log.FakeOrderMgr, "...")
 
 	if exchangeManager == nil {
@@ -30,7 +30,6 @@ func SetupFakeOrderManager(bot *Engine, exchangeManager iExchangeManager, commun
 
 	return &FakeOrderManager{
 		OrderManager{
-			bot:      bot,
 			shutdown: make(chan struct{}),
 			orderStore: store{
 				Orders:          make(map[string][]*order.Detail),
@@ -48,9 +47,9 @@ func SetupFakeOrderManager(bot *Engine, exchangeManager iExchangeManager, commun
 // Kraken Order Status
 // Enum: "pending" "open" "closed" "canceled" "expired"
 func (m *FakeOrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*OrderSubmitResponse, error) {
-	if m.bot.Config.LiveMode {
-		log.Infoln(log.FakeOrderMgr, "Order manager: Order", newOrder.Side, newOrder.Date, newOrder.StrategyID, newOrder.ID)
-	}
+	// if m.bot.Config.LiveMode {
+	// 	log.Infoln(log.FakeOrderMgr, "Order manager: Order", newOrder.Side, newOrder.Date, newOrder.StrategyID, newOrder.ID)
+	// }
 
 	if m == nil {
 		return nil, fmt.Errorf("fake order manager %w", ErrNilSubsystem)
@@ -126,7 +125,7 @@ func (m *FakeOrderManager) processSubmittedOrder(newOrder *order.Submit, result 
 
 	id, err := uuid.NewV4()
 	if err != nil {
-		log.Warnf(log.OrderMgr,
+		log.Warnf(log.FakeOrderMgr,
 			"Order manager: Unable to generate UUID. Err: %s",
 			err)
 	}
@@ -157,7 +156,7 @@ func (m *FakeOrderManager) processSubmittedOrder(newOrder *order.Submit, result 
 	// 	newOrder.Side,
 	// 	newOrder.Type,
 	// 	newOrder.Date)
-	// log.Debugln(log.OrderMgr, msgInfo)
+	// log.Debugln(log.FakeOrderMgr, msgInfo)
 
 	m.orderStore.commsManager.PushEvent(base.Event{
 		Type:    "order",

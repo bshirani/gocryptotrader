@@ -58,25 +58,6 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 		CurrencySettings: make(map[string]map[asset.Item]map[currency.Pair]*risk.CurrencySettings),
 	}
 
-	//moved from trademanager
-	// for i := range p.CurrencySettings {
-	// 	var lookup *PortfolioSettings
-	// 	lookup, err = p.SetupCurrencySettingsMap(p.CurrencySettings[i].ExchangeName, p.CurrencySettings[i].AssetType, p.CurrencySettings[i].CurrencyPair)
-	// 	if err != nil {
-	// 		fmt.Println("ERROR SETTING UP PORTFOLIO", err)
-	// 		return err
-	// 	}
-	// 	lookup.Fee = p.CurrencySettings[i].TakerFee
-	// 	lookup.Leverage = p.CurrencySettings[i].Leverage
-	// 	lookup.BuySideSizing = p.CurrencySettings[i].BuySide
-	// 	lookup.SellSideSizing = p.CurrencySettings[i].SellSide
-	// 	lookup.ComplianceManager = compliance.Manager{
-	// 		Snapshots: []compliance.Snapshot{},
-	// 	}
-	// 	// this needs to be per currency
-	// 	// log.Debugf(log.StrategyMgr, "Initialize Factor Engine for %v\n", p.CurrencySettings[i].CurrencyPair)
-	// }
-	// log.Infof(log.StrategyMgr, "Setting up Portfolio")
 	if sizeManager == nil {
 		return nil, errSizeManagerUnset
 	}
@@ -99,16 +80,6 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 	p.store.closedOrders = make(map[string][]*liveorder.Details)
 	p.store.closedTrades = make(map[string][]*livetrade.Details)
 
-	// load open trade from the database
-	// only in live mode do we  do this, so portfolio must be live aware unless it has a callback
-	// handle this in the trademanger
-	// log.Infof(log.StrategyMgr, "there are %d trades running", livetrade.Count())
-
-	// load all pending and open trades from the database into positions and trades
-
-	// what does this do?
-	// bot.Backtest.Datas.Setup()
-
 	p.orderManager = bot.OrderManager
 	p.bot = bot
 	p.sizeManager = sizeManager
@@ -124,7 +95,6 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 		p.store.closedTrades[s.GetID()] = make([]*livetrade.Details, 0)
 		p.store.openOrders[s.GetID()] = make([]*liveorder.Details, 0)
 		s.SetWeight(decimal.NewFromFloat(1.5))
-
 	}
 
 	activeTrades, _ := livetrade.Active()

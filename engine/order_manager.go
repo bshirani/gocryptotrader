@@ -22,7 +22,7 @@ import (
 )
 
 // SetupOrderManager will boot up the OrderManager
-func SetupOrderManager(exchangeManager iExchangeManager, communicationsManager iCommsManager, wg *sync.WaitGroup, verbose bool) (*OrderManager, error) {
+func SetupOrderManager(exchangeManager iExchangeManager, communicationsManager iCommsManager, wg *sync.WaitGroup, verbose bool) (*RealOrderManager, error) {
 	if exchangeManager == nil {
 		return nil, errNilExchangeManager
 	}
@@ -33,15 +33,17 @@ func SetupOrderManager(exchangeManager iExchangeManager, communicationsManager i
 		return nil, errNilWaitGroup
 	}
 
-	return &OrderManager{
-		shutdown: make(chan struct{}),
-		orderStore: store{
-			Orders:          make(map[string][]*order.Detail),
-			exchangeManager: exchangeManager,
-			commsManager:    communicationsManager,
-			wg:              wg,
+	return &RealOrderManager{
+		OrderManager{
+			shutdown: make(chan struct{}),
+			orderStore: store{
+				Orders:          make(map[string][]*order.Detail),
+				exchangeManager: exchangeManager,
+				commsManager:    communicationsManager,
+				wg:              wg,
+			},
+			verbose: verbose,
 		},
-		verbose: verbose,
 	}, nil
 }
 
@@ -602,9 +604,11 @@ func (m *OrderManager) processOrders() {
 		if !exchanges[i].GetAuthenticatedAPISupport(exchange.RestAuthentication) {
 			continue
 		}
-		log.Debugf(log.OrderMgr,
-			"Order manager: Processing orders for exchange %v.",
-			exchanges[i].GetName())
+		if m.verbose {
+			log.Debugf(log.OrderMgr,
+				"Order manager: Processing orders for exchange %v.",
+				exchanges[i].GetName())
+		}
 
 		supportedAssets := exchanges[i].GetAssetTypes(true)
 		for y := range supportedAssets {
@@ -653,6 +657,7 @@ func (m *OrderManager) processOrders() {
 					err)
 				continue
 			}
+			log.Infoln(log.OrderMgr, "open orders in store:", len(orders), "from broker:", len(result))
 			if len(orders) == 0 && len(result) == 0 {
 				continue
 			}

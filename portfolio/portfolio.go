@@ -468,6 +468,7 @@ func (b *Base) GetPortfolioGroupedCoin() map[currency.Code][]string {
 		if strings.EqualFold(b.Addresses[i].Description, ExchangeAddress) {
 			continue
 		}
+		fmt.Println("appending", b.Addresses[i].Address)
 		result[b.Addresses[i].CoinType] = append(result[b.Addresses[i].CoinType], b.Addresses[i].Address)
 	}
 	return result

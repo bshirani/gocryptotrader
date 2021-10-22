@@ -14,12 +14,11 @@ import (
 	"gocryptotrader/portfolio"
 )
 
-// PortfolioManagerName is an exported subsystem name
 const PortfolioManagerName = "portfolio"
 
 var (
 	// PortfolioSleepDelay defines the default sleep time between portfolio manager runs
-	PortfolioSleepDelay = time.Minute
+	PortfolioSleepDelay = time.Second * 5
 )
 
 // portfolioManager routinely retrieves a user's holdings through exchange APIs as well
@@ -64,7 +63,6 @@ func (m *portfolioManager) IsRunning() bool {
 	return atomic.LoadInt32(&m.started) == 1
 }
 
-// Start runs the subsystem
 func (m *portfolioManager) Start(wg *sync.WaitGroup) error {
 	if m == nil {
 		return fmt.Errorf("portfolio manager %w", ErrNilSubsystem)
@@ -82,7 +80,6 @@ func (m *portfolioManager) Start(wg *sync.WaitGroup) error {
 	return nil
 }
 
-// Stop attempts to shutdown the subsystem
 func (m *portfolioManager) Stop() error {
 	if m == nil {
 		return fmt.Errorf("portfolio manager %w", ErrNilSubsystem)
@@ -151,7 +148,16 @@ func (m *portfolioManager) processPortfolio() {
 		log.Errorf(log.PortfolioMgr, "Portfolio manager cannot get exchanges: %v", err)
 	}
 	d := m.getExchangeAccountInfo(exchanges)
-	m.seedExchangeAccountInfo(d)
+	currencies := d[0].Accounts[0].Currencies
+	var balance float64
+	for _, cur := range currencies {
+		// fmt.Println(cur.CurrencyName, cur.TotalValue)
+		if cur.CurrencyName == currency.NewCode("XBT") {
+			balance = cur.TotalValue
+		}
+	}
+
+	log.Infoln(log.PortfolioMgr, "Bitcoin Balance", balance)
 	atomic.CompareAndSwapInt32(&m.processing, 1, 0)
 }
 
@@ -251,7 +257,7 @@ func (m *portfolioManager) getExchangeAccountInfo(exchanges []exchange.IBotExcha
 			}
 			continue
 		}
-		assetTypes := exchanges[x].GetAssetTypes(false) // left as available for now, to sync the full spectrum
+		assetTypes := exchanges[x].GetAssetTypes(true) // left as available for now, to sync the full spectrum
 		var exchangeHoldings account.Holdings
 		for y := range assetTypes {
 			accountHoldings, err := exchanges[x].FetchAccountInfo(context.TODO(), assetTypes[y])

@@ -325,7 +325,7 @@ func (d *DataImporter) shouldRun(fileName string, p currency.Pair, res *DIResult
 	if fileCount == 0 {
 		os.Exit(123)
 	}
-	if int(dbCount) >= fileCount {
+	if int(dbCount) >= int(float64(fileCount)*0.9) {
 		// fmt.Println("good", p, "db:", dbCount, "file:", fileCount)
 		return false
 	} else {

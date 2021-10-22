@@ -78,7 +78,8 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	}
 
 	tm.cfg = *cfg
-	tm.verbose = cfg.TradeManager.Verbose
+	tm.verbose = bot.Config.TradeManager.Verbose
+	// fmt.Println("tmconfig", cfg.TradeManager, cfg.TradeManager.Verbose, cfg.TradeManager.Trading, cfg.TradeManager.Enabled)
 
 	tm.EventQueue = &Holder{}
 	reports := &report.Data{
@@ -89,18 +90,28 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	tm.Reports = reports
 	tm.bot = bot
 	var err error
-	if bot.OrderManager == nil {
-		bot.FakeOrderManager, err = SetupFakeOrderManager(
-			bot,
-			bot.ExchangeManager,
-			bot.CommunicationsManager,
-			&bot.ServicesWG,
-			bot.Settings.Verbose)
+	if bot.OrderManager == nil && bot.Settings.EnableOrderManager {
+		if bot.Config.RealOrders {
+			log.Warnln(log.TradeMgr, "Enabling REAL order manager")
+			bot.RealOrderManager, err = SetupOrderManager(
+				bot.ExchangeManager,
+				bot.CommunicationsManager,
+				&bot.ServicesWG,
+				bot.Settings.Verbose)
+		} else {
+			bot.FakeOrderManager, err = SetupFakeOrderManager(
+				bot.ExchangeManager,
+				bot.CommunicationsManager,
+				&bot.ServicesWG,
+				bot.Settings.Verbose)
+		}
+
+		bot.OrderManager = bot.FakeOrderManager
+
 		if err != nil {
 			log.Errorf(log.Global, "Fake Order manager unable to setup: %s", err)
 		} else {
-			err = bot.FakeOrderManager.Start()
-			bot.OrderManager = bot.FakeOrderManager
+			err = bot.OrderManager.Start()
 
 			if err != nil {
 				log.Errorf(log.Global, "Fake Order manager unable to start: %s", err)
@@ -245,6 +256,7 @@ dataLoadingIssue:
 			}
 		}
 		if ev != nil {
+			// fmt.Println("handle event", ev)
 			err := tm.handleEvent(ev)
 			if err != nil {
 				fmt.Println("error handling event", err)
@@ -278,8 +290,8 @@ func (tm *TradeManager) Stop() error {
 		return ErrSubSystemNotStarted
 	}
 
-	log.Debugln(log.TradeMgr, "Backtester Stopping...")
-	if tm.bot.OrderManager.IsRunning() {
+	log.Debugln(log.TradeMgr, "TradeManager Stopping...")
+	if tm.bot.OrderManager != nil && tm.bot.OrderManager.IsRunning() {
 		tm.bot.OrderManager.Stop()
 	}
 	for _, s := range tm.Strategies {
@@ -288,7 +300,7 @@ func (tm *TradeManager) Stop() error {
 	close(tm.shutdown)
 	tm.bot.TradeManager = nil
 	tm.wg.Wait()
-	log.Debugln(log.TradeMgr, "Backtester Stopped.")
+	log.Debugln(log.TradeMgr, "TradeManager Stopped.")
 	return nil
 }
 
@@ -552,7 +564,9 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 	// old events should not come through here
 
 	if tm.tradingEnabled {
-		tm.bot.OrderManager.Update()
+		if tm.bot.OrderManager != nil {
+			tm.bot.OrderManager.Update()
+		}
 
 		if len(fe.Minute().M60Range) > 0 {
 			if tm.bot.Config.LiveMode {
@@ -752,12 +766,9 @@ func (tm *TradeManager) startOfflineServices() error {
 
 	tm.bot.SetupExchangeSettings()
 
-	return nil
-
 	// start fake order manager here since we don't start engine in live mode
 	var err error
 	tm.bot.FakeOrderManager, err = SetupFakeOrderManager(
-		tm.bot,
 		tm.bot.ExchangeManager,
 		tm.bot.CommunicationsManager,
 		&tm.bot.ServicesWG,
@@ -858,7 +869,7 @@ func (tm *TradeManager) initializePortfolio(strategyConfig *config.Config) error
 	// setup portfolio with strategies
 	var p *Portfolio
 	p, err := SetupPortfolio(tm.Strategies, tm.bot, strategyConfig)
-	p.SetVerbose(false)
+	// p.SetVerbose(false)
 	if err != nil {
 		return err
 	}
@@ -896,9 +907,11 @@ func (tm *TradeManager) initializeFactorEngines() error {
 	return nil
 }
 func (tm *TradeManager) setOrderManagerCallbacks() {
-	// tm.bot.OrderManager.SetOnSubmit(tm.onSubmit)
-	tm.OrderManager.SetOnFill(tm.onFill)
-	tm.OrderManager.SetOnCancel(tm.onCancel)
+	if tm.OrderManager != nil {
+		// tm.bot.OrderManager.SetOnSubmit(tm.onSubmit)
+		tm.OrderManager.SetOnFill(tm.onFill)
+		tm.OrderManager.SetOnCancel(tm.onCancel)
+	}
 }
 
 // Series returns candle data

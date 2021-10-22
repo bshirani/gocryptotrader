@@ -95,6 +95,7 @@ type Config struct {
 	DryRun   bool
 	Script   bool
 
+	RealOrders               bool                       `json:"realOrders"`
 	Nickname                 string                     `json:"nickname"`
 	Goal                     string                     `json:"goal"`
 	StrategySettings         StrategySettings           `json:"strategy-settings"`
@@ -166,6 +167,7 @@ type FactorEngineConfig struct {
 
 type OrderManagerConfig struct {
 	Verbose bool `json:"verbose"`
+	Enabled bool `json:"enabled"`
 }
 
 // DataHistoryManager holds all information required for the data history manager

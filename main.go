@@ -49,7 +49,7 @@ func main() {
 	flag.BoolVar(&settings.EnableLiveMode, "livemode", false, "enables live mode")
 	flag.BoolVar(&settings.EnableNTPClient, "ntpclient", true, "enables the NTP client to check system clock drift")
 	flag.BoolVar(&settings.EnableOrderManager, "orders", false, "enables the order manager")
-	flag.BoolVar(&settings.EnablePortfolioManager, "portfoliomanager", false, "enables the portfolio manager")
+	flag.BoolVar(&settings.EnablePortfolioManager, "account", false, "enables the portfolio manager")
 	flag.BoolVar(&settings.EnableWebsocketRPC, "websocketrpc", false, "enables the websocket RPC server")
 	flag.BoolVar(&settings.EnableWebsocketRoutine, "websocketroutine", false, "enables the websocket routine for all loaded exchanges")
 	flag.BoolVar(&settings.Verbose, "verbose", false, "increases logging verbosity for GoCryptoTrader")
@@ -64,8 +64,8 @@ func main() {
 
 	// trading settings
 	flag.BoolVar(&settings.EnableWatcher, "watcher", true, "enables the system watcher")
-	flag.BoolVar(&settings.EnableTradeManager, "trader", false, "enables trading manager")
-	flag.BoolVar(&settings.EnableTrading, "trade", false, "enables trading")
+	flag.BoolVar(&settings.EnableTradeManager, "trade", false, "enables trading manager")
+	flag.BoolVar(&settings.EnableTrading, "strategies", false, "enables trading")
 
 	// Exchange syncer settings
 	flag.BoolVar(&settings.EnableKlineSyncing, "klinesync", true, "enables kline syncing for all enabled exchanges")
@@ -133,6 +133,11 @@ func main() {
 	if !flagSet["config"] {
 		// If config file is not explicitly set, fall back to default path resolution
 		settings.ConfigFile = ""
+	}
+
+	if flagSet["trade"] {
+		// If config file is not explicitly set, fall back to default path resolution
+		settings.EnableExchangeSyncManager = true
 	}
 
 	engine.Bot, err = engine.NewFromSettings(&settings, flagSet)

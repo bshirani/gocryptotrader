@@ -2,6 +2,7 @@
  "LiveMode": true,
  "DryRun": false,
  "Script": false,
+ "realOrders": true,
  "nickname": "",
  "goal": "",
  "strategy-settings": {
@@ -41,14 +42,15 @@
  },
  "tradeManager": {
   "enabled": true,
-  "verbose": false,
-  "trading": false
+  "verbose": true,
+  "trading": true
  },
  "factorEngine": {
   "verbose": false
  },
  "orderManager": {
-  "verbose": true
+  "verbose": true,
+  "enabled": false
  },
  "dataImporter": {
   "enabled": false,
@@ -265,7 +267,7 @@
   "username": "admin",
   "password": "Password",
   "gRPC": {
-   "enabled": true,
+   "enabled": false,
    "listenAddress": "localhost:9052",
    "grpcProxyEnabled": false,
    "grpcProxyListenAddress": "localhost:9053",
@@ -284,7 +286,17 @@
   }
  },
  "portfolioAddresses": {
-  "addresses": null,
+  "addresses": [
+   {
+    "Address": "Kraken",
+    "CoinType": "XBT",
+    "Balance": 0.10000523,
+    "Description": "Exchange",
+    "WhiteListed": false,
+    "ColdStorage": false,
+    "SupportedExchanges": ""
+   }
+  ],
   "Verbose": false
  },
  "exchanges": [
@@ -408,7 +420,7 @@
     }
    },
    "api": {
-    "authenticatedSupport": false,
+    "authenticatedSupport": true,
     "authenticatedWebsocketApiSupport": false,
     "credentials": {
      "key": "a0FqPRca7h1cd1hUu8lBa7UjCdHs/NQ7X5ORa+9sgwSn2mEJM9uLfKki",
@@ -438,7 +450,7 @@
     "enabled": {
      "autoPairUpdates": true,
      "websocketAPI": true,
-     "saveTradeData": true
+     "saveTradeData": false
     }
    },
    "bankAccounts": [

@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gofrs/uuid"
 	"gocryptotrader/dispatch"
 	"gocryptotrader/exchange/asset"
+
+	"github.com/gofrs/uuid"
 )
 
 func init() {

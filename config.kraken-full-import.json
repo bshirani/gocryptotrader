@@ -47,6 +47,10 @@
  "factorEngine": {
   "verbose": false
  },
+ "orderManager": {
+  "verbose": false,
+  "enabled": false
+ },
  "dataImporter": {
   "enabled": false,
   "verbose": false,

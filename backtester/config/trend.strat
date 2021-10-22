@@ -2,7 +2,7 @@
  "nickname": "TrendStrategy",
  "goal": "Trend Exploit",
  "tradeManager" : {
-     "verbose": true
+     "verbose": false
  },
  "strategy-settings": {
   "name": "trend"
