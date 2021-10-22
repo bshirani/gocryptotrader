@@ -1,8 +1,0 @@
-{
- "postgresql": {
-  "dbname": "gct-dev",
-  "blacklist": [
-   "goose_db_version"
-  ]
- }
-}

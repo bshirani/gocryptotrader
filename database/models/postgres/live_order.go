@@ -24,7 +24,7 @@ import (
 
 // LiveOrder is an object representing the database table.
 type LiveOrder struct {
-	ID            int          `boil:"id" json:"id" toml:"id" yaml:"id"`
+	ID            string       `boil:"id" json:"id" toml:"id" yaml:"id"`
 	Status        string       `boil:"status" json:"status" toml:"status" yaml:"status"`
 	OrderType     string       `boil:"order_type" json:"order_type" toml:"order_type" yaml:"order_type"`
 	Exchange      string       `boil:"exchange" json:"exchange" toml:"exchange" yaml:"exchange"`
@@ -159,7 +159,7 @@ func (w whereHelpernull_Float32) IsNull() qm.QueryMod    { return qmhelper.Where
 func (w whereHelpernull_Float32) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
 
 var LiveOrderWhere = struct {
-	ID            whereHelperint
+	ID            whereHelperstring
 	Status        whereHelperstring
 	OrderType     whereHelperstring
 	Exchange      whereHelperstring
@@ -179,7 +179,7 @@ var LiveOrderWhere = struct {
 	CreatedAt     whereHelpertime_Time
 	UpdatedAt     whereHelpertime_Time
 }{
-	ID:            whereHelperint{field: "\"live_order\".\"id\""},
+	ID:            whereHelperstring{field: "\"live_order\".\"id\""},
 	Status:        whereHelperstring{field: "\"live_order\".\"status\""},
 	OrderType:     whereHelperstring{field: "\"live_order\".\"order_type\""},
 	Exchange:      whereHelperstring{field: "\"live_order\".\"exchange\""},
@@ -506,7 +506,7 @@ func LiveOrders(mods ...qm.QueryMod) liveOrderQuery {
 
 // FindLiveOrder retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindLiveOrder(ctx context.Context, exec boil.ContextExecutor, iD int, selectCols ...string) (*LiveOrder, error) {
+func FindLiveOrder(ctx context.Context, exec boil.ContextExecutor, iD string, selectCols ...string) (*LiveOrder, error) {
 	liveOrderObj := &LiveOrder{}
 
 	sel := "*"
@@ -1028,7 +1028,7 @@ func (o *LiveOrderSlice) ReloadAll(ctx context.Context, exec boil.ContextExecuto
 }
 
 // LiveOrderExists checks if the LiveOrder row exists.
-func LiveOrderExists(ctx context.Context, exec boil.ContextExecutor, iD int) (bool, error) {
+func LiveOrderExists(ctx context.Context, exec boil.ContextExecutor, iD string) (bool, error) {
 	var exists bool
 	sql := "select exists(select 1 from \"live_order\" where \"id\"=$1 limit 1)"
 
