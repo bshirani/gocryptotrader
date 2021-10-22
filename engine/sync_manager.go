@@ -878,7 +878,7 @@ func (m *syncManager) worker() {
 								var newCandle kline.Item
 
 								if minSinceLast > 1000 {
-									log.Error(log.SyncMgr, "requesting more than 1000 candles. Last candle was ", lastCandle.Timestamp, "for", c.Pair)
+									log.Warnln(log.SyncMgr, "requesting more than 1000 candles. Last candle was ", lastCandle.Timestamp, "for", c.Pair)
 									st := time.Now().Add(time.Minute * -720)
 									// os.Exit(123)
 									newCandle, err = exchanges[x].GetHistoricCandles(context.TODO(), c.Pair, c.AssetType, st, time.Now(), kline.OneMin)

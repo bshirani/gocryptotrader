@@ -2,7 +2,7 @@
  "LiveMode": true,
  "DryRun": false,
  "Script": false,
- "realOrders": false,
+ "realOrders": true,
  "nickname": "",
  "goal": "",
  "strategy-settings": {
@@ -73,7 +73,7 @@
    "port": 5432,
    "username": "bijan",
    "password": "",
-   "database": "gct-dev",
+   "database": "gct_prod",
    "sslmode": ""
   }
  },

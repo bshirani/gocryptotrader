@@ -85,19 +85,19 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 			es.AppendReason("no trades, no orders, so trade")
 		}
 	} else {
-		secondsInTrade := currentTime.Sub(trade.EntryTime).Seconds()
-		if secondsInTrade < -120 {
+		minutesInTrade := currentTime.Sub(trade.EntryTime).Minutes()
+		if minutesInTrade < -2 {
 			fmt.Println("ERROR negative seconds in trade", currentTime, trade.EntryTime)
-			reason := fmt.Sprintf("negative %f seconds in trade", secondsInTrade)
+			reason := fmt.Sprintf("negative %f seconds in trade", minutesInTrade)
 			es.AppendReason(reason)
 			os.Exit(2)
-		} else if secondsInTrade > 60 {
+		} else if minutesInTrade > 60 {
 			es.SetDecision(signal.Exit)
-			reason := fmt.Sprintf("%f seconds in trade", secondsInTrade)
+			reason := fmt.Sprintf("%f seconds in trade", minutesInTrade)
 			es.AppendReason(reason)
 		} else {
 			es.SetDecision(signal.DoNothing)
-			es.AppendReason(fmt.Sprintf("Already in Trade. Only %f seconds in trade", secondsInTrade))
+			es.AppendReason(fmt.Sprintf("Already Trading. Trade created %f minutes ago", minutesInTrade))
 		}
 
 	}
