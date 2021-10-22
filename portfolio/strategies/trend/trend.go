@@ -8,6 +8,7 @@ import (
 	"gocryptotrader/data"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/signal"
+	"gocryptotrader/exchange/order"
 	"gocryptotrader/log"
 	"gocryptotrader/portfolio/strategies/base"
 
@@ -88,6 +89,7 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 			log.Debugln(log.TradeMgr, s.GetID(), "can trade")
 		}
 		es.SetDecision(signal.Enter)
+		es.SetDirection(order.Buy)
 	} else {
 		fmt.Println("ALREADY IN TRADE")
 		secondsInTrade := currentTime.Sub(trade.EntryTime).Seconds()
@@ -98,10 +100,12 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 			os.Exit(2)
 		} else if secondsInTrade > 30 {
 			es.SetDecision(signal.Exit)
+			es.SetDirection(order.Sell)
 			reason := fmt.Sprintf("%f seconds in trade", secondsInTrade)
 			es.AppendReason(reason)
 		} else {
 			es.SetDecision(signal.DoNothing)
+			// es.SetDirection(signal.DoNothing)
 			es.AppendReason("Less than 30 seconds in trade")
 			fmt.Printf("skipping exit, only %f seconds in trade\n", secondsInTrade)
 		}

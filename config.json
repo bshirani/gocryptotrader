@@ -2,7 +2,7 @@
  "LiveMode": true,
  "DryRun": false,
  "Script": false,
- "realOrders": true,
+ "realOrders": false,
  "nickname": "",
  "goal": "",
  "strategy-settings": {
@@ -50,7 +50,7 @@
  },
  "orderManager": {
   "verbose": true,
-  "enabled": false
+  "enabled": true
  },
  "dataImporter": {
   "enabled": false,

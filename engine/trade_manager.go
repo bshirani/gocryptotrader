@@ -181,15 +181,10 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	}
 
 	// fmt.Println("tm: order manager response", omr)
-
 	// if order is placed, update the status of the order to Open
-
 	// update order event order_id, status
-
 	// add the submission to the store
-
 	// we can call on submit manually here
-
 	// if o.GetStrategyID() == "" {
 	// 	return nil, fmt.Errorf("exchange: order has no strategyid")
 	// }
@@ -208,6 +203,7 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 		ords[i].LastUpdated = o.GetTime()
 		ords[i].CloseTime = o.GetTime()
 	}
+	fmt.Println("omr", omr)
 
 	ev := &submit.Submit{
 		IsOrderPlaced:   omr.IsOrderPlaced,
@@ -676,6 +672,7 @@ func (tm *TradeManager) processSignalEvent(ev signal.Event) {
 	}
 	var o *order.Order
 	o, err = tm.Portfolio.OnSignal(ev, cs)
+	fmt.Println("received order", o)
 	if err != nil {
 		log.Error(log.TradeMgr, err)
 		return
@@ -798,7 +795,7 @@ func (tm *TradeManager) startOfflineServices() error {
 
 	tm.bot.SetupExchangeSettings()
 
-	// start fake order manager here since we don't start engine in live mode
+	// start fake order manager here since we don't start engine in backtest mode
 	var err error
 	tm.bot.FakeOrderManager, err = SetupFakeOrderManager(
 		tm.bot.ExchangeManager,

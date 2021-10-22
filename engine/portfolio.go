@@ -118,6 +118,13 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 		log.Infof(log.Portfolio, "Loaded Trades %d Orders %d", len(activeTrades), len(activeOrders))
 	}
 
+	for _, cs := range p.bot.CurrencySettings {
+		_, err := p.SetupCurrencySettingsMap(cs.ExchangeName, cs.AssetType, cs.CurrencyPair)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	// p.SetupCurrencySettingsMap(exch string, a asset.Item, cp currency.Pair) (*PortfolioSettings, error) {
 
 	return p, nil
