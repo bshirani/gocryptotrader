@@ -73,31 +73,51 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	currentTime := d.Latest().GetTime()
 	orders := p.GetOpenOrdersForStrategy(s.GetID())
 	trade := p.GetTradeForStrategy(s.GetID())
+
 	if trade == nil && len(orders) == 0 {
 
 		if s.Strategy.GetDirection() == order.Buy { // check for buy strategy
-			fmt.Println("check buy")
 			es.SetDecision(signal.Enter)
-			es.AppendReason("no trades, no orders, so trade")
 		} else if s.Strategy.GetDirection() == order.Sell { // check sell strategy
-			fmt.Println("check sell ")
 			es.SetDecision(signal.Enter)
-			es.AppendReason("no trades, no orders, so trade")
 		}
+		es.AppendReason("Trend.Go says: enter because no trades, no orders, so trade")
+
 	} else {
-		minutesInTrade := currentTime.Sub(trade.EntryTime).Minutes()
+		minutesInTrade := int(currentTime.Sub(trade.EntryTime).Minutes())
 		if minutesInTrade < -2 {
 			fmt.Println("ERROR negative seconds in trade", currentTime, trade.EntryTime)
-			reason := fmt.Sprintf("negative %f seconds in trade", minutesInTrade)
+			reason := fmt.Sprintf("negative %d minutes in trade", minutesInTrade)
 			es.AppendReason(reason)
 			os.Exit(2)
 		} else if minutesInTrade > 60 {
-			es.SetDecision(signal.Exit)
-			reason := fmt.Sprintf("%f seconds in trade", minutesInTrade)
-			es.AppendReason(reason)
+			// handle exit
+
+			// CHECK EXIT BUY
+			if s.Strategy.GetDirection() == order.Buy {
+				if fe.Minute().M60PctChange.Last(1).LessThan(decimal.NewFromFloat(0)) {
+					es.SetDecision(signal.Exit)
+					es.AppendReason(fmt.Sprintf("Trend.go says: exiting because trade created more than 60 minutes ago (%d).", minutesInTrade))
+				} else {
+					es.SetDecision(signal.DoNothing)
+					es.AppendReason(fmt.Sprintf("Trend.go says: DONOTHING. Stay in long. M60PctChange is positive. (%d).", minutesInTrade))
+				}
+			}
+
+			// CHECK EXIT SELL
+			if s.Strategy.GetDirection() == order.Sell {
+				if fe.Minute().M60PctChange.Last(1).GreaterThan(decimal.NewFromFloat(0)) {
+					es.SetDecision(signal.Exit)
+					es.AppendReason(fmt.Sprintf("Trend.go says: exiting t > (%d) min and M60PctChange is positive.", minutesInTrade))
+				} else {
+					es.SetDecision(signal.DoNothing)
+					es.AppendReason(fmt.Sprintf("Trend.go says: DONOTHING. Stay in short. M60PctChange is negative. (%d).", minutesInTrade))
+				}
+			}
+
 		} else {
 			es.SetDecision(signal.DoNothing)
-			es.AppendReason(fmt.Sprintf("Already Trading. Trade created %f minutes ago", minutesInTrade))
+			es.AppendReason(fmt.Sprintf("Trend.go says: DONOTHING. trade age %d minutes.", minutesInTrade))
 		}
 
 	}

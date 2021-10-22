@@ -36,7 +36,7 @@ func main() {
 	flag.BoolVar(&settings.EnableCommsRelayer, "enablecommsrelayer", false, "enables available communications relayer")
 	flag.BoolVar(&settings.EnableConnectivityMonitor, "connectivitymonitor", true, "enables the connectivity monitor")
 	flag.BoolVar(&settings.EnableCurrencyStateManager, "currencystatemanager", true, "enables the currency state manager")
-	flag.BoolVar(&settings.EnableDataHistoryManager, "datahistory", true, "enables the data history manager")
+	flag.BoolVar(&settings.EnableDataHistoryManager, "datahistory", false, "enables the data history manager")
 	flag.BoolVar(&settings.EnableDatabaseManager, "databasemanager", true, "enables database manager")
 	flag.BoolVar(&settings.EnableDepositAddressManager, "depositaddressmanager", false, "enables the deposit address manager")
 	flag.BoolVar(&settings.EnableDispatcher, "dispatch", true, "enables the dispatch system")
@@ -44,7 +44,7 @@ func main() {
 	flag.BoolVar(&settings.EnableEventManager, "eventmanager", false, "enables the event manager")
 	flag.BoolVar(&settings.EnableExchangeSyncManager, "sync", false, "enables to exchange sync manager")
 	flag.BoolVar(&settings.EnableGCTScriptManager, "gctscriptmanager", false, "enables gctscript manager")
-	flag.BoolVar(&settings.EnableGRPC, "grpc", true, "enables the grpc server")
+	flag.BoolVar(&settings.EnableGRPC, "grpc", false, "enables the grpc server")
 	flag.BoolVar(&settings.EnableGRPCProxy, "grpcproxy", false, "enables the grpc proxy server")
 	flag.BoolVar(&settings.EnableLiveMode, "livemode", false, "enables live mode")
 	flag.BoolVar(&settings.EnableNTPClient, "ntpclient", true, "enables the NTP client to check system clock drift")
@@ -60,10 +60,10 @@ func main() {
 	flag.IntVar(&settings.GoMaxProcs, "gomaxprocs", runtime.GOMAXPROCS(-1), "sets the runtime GOMAXPROCS value")
 
 	// data importer
-	flag.BoolVar(&settings.EnableDataImporter, "dataimporter", true, "enables data importer")
+	flag.BoolVar(&settings.EnableDataImporter, "dataimporter", false, "enables data importer")
 
 	// trading settings
-	flag.BoolVar(&settings.EnableWatcher, "watcher", true, "enables the system watcher")
+	flag.BoolVar(&settings.EnableWatcher, "watcher", false, "enables the system watcher")
 	flag.BoolVar(&settings.EnableTradeManager, "trade", false, "enables trading manager")
 	flag.BoolVar(&settings.EnableTrading, "strategies", false, "enables trading")
 

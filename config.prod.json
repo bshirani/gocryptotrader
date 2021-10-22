@@ -41,16 +41,16 @@
   "risk-free-rate": "0"
  },
  "tradeManager": {
-  "enabled": true,
+  "enabled": false,
   "verbose": true,
-  "trading": true
+  "trading": false
  },
  "factorEngine": {
   "verbose": false
  },
  "orderManager": {
   "verbose": false,
-  "enabled": true
+  "enabled": false
  },
  "dataImporter": {
   "enabled": false,

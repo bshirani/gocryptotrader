@@ -132,6 +132,9 @@ func (m *FakeOrderManager) processSubmittedOrder(newOrder *order.Submit, result 
 	if newOrder.Date.IsZero() {
 		newOrder.Date = time.Now()
 	}
+	if newOrder.StrategyID == "" {
+		return nil, errors.New("order must have a strategy")
+	}
 
 	// formatting for backtest only
 	odate := newOrder.Date
@@ -200,11 +203,6 @@ func (m *FakeOrderManager) processSubmittedOrder(newOrder *order.Submit, result 
 	if err != nil {
 		return nil, fmt.Errorf("unable to add %v order %v to orderStore: %s", newOrder.Exchange, result.OrderID, err)
 	}
-
-	// // // custom on submit callback
-	// if m.onSubmit != nil {
-	// 	m.onSubmit(resp)
-	// }
 
 	return &OrderSubmitResponse{
 		SubmitResponse: order.SubmitResponse{

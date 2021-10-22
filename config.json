@@ -423,8 +423,8 @@
     "authenticatedSupport": true,
     "authenticatedWebsocketApiSupport": false,
     "credentials": {
-     "key": "a0FqPRca7h1cd1hUu8lBa7UjCdHs/NQ7X5ORa+9sgwSn2mEJM9uLfKki",
-     "secret": "mGKwJk0j5l77rbQJUJH7iXFD4wIk0PKU7TgICUfJPjwmSyvYcx5FeNKbBABxqbCJE+pCgoiapP9xaRva5xLKUg=="
+     "key": "KLGuuakGelNmTFQ/K2L/EX3ybR6HlB+JXjHc3Ewois1lfMUfl2i3akCL",
+     "secret": "QaL9fVO1F932qQ1sa46iSNJG012FBVUP6Av+wTTzAsWRSXM5yR0b0m1NgaMseaV5V0OGT/IRvsc3Jxh6Apy3eg=="
     },
     "credentialsValidator": {
      "requiresKey": true,
@@ -442,7 +442,7 @@
      "restAPI": true,
      "restCapabilities": {
       "tickerBatching": true,
-      "autoPairUpdates": true
+      "autoPairUpdates": false
      },
      "websocketAPI": true,
      "websocketCapabilities": {}

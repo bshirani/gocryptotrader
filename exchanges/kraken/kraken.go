@@ -994,9 +994,9 @@ func (k *Kraken) AddOrder(ctx context.Context, symbol currency.Pair, side, order
 		params.Set("close[price2]", strconv.FormatFloat(args.ClosePrice2, 'f', -1, 64))
 	}
 
-	params.Set("validate", "true")
-	// if args.Validate {
-	// }
+	if args.Validate {
+		params.Set("validate", "true")
+	}
 
 	if err := k.SendAuthenticatedHTTPRequest(ctx, exchange.RestSpot, krakenOrderPlace, params, &response); err != nil {
 		return response.Result, err

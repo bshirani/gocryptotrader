@@ -61,7 +61,7 @@ func (l *Logger) newLogEvent(data, header, slName string, w io.Writer) error {
 	e.data = append(e.data, []byte(header)...)
 	if l.Timestamp != "" {
 		e.data = append(e.data, l.Spacer...)
-		e.data = time.Now().AppendFormat(e.data, l.Timestamp)
+		e.data = time.Now().UTC().AppendFormat(e.data, l.Timestamp)
 	}
 	if l.ShowLogSystemName {
 		e.data = append(e.data, l.Spacer...)

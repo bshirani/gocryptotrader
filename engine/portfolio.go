@@ -22,7 +22,6 @@ import (
 	"gocryptotrader/exchange"
 	"gocryptotrader/exchange/asset"
 	gctorder "gocryptotrader/exchange/order"
-	"gocryptotrader/exchange/ticker"
 	"gocryptotrader/log"
 	"gocryptotrader/portfolio/compliance"
 	"gocryptotrader/portfolio/holdings"
@@ -182,6 +181,8 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 		}
 	}
 
+	// go p.heartBeat()
+
 	// p.SetupCurrencySettingsMap(exch string, a asset.Item, cp currency.Pair) (*PortfolioSettings, error) {
 
 	return p, nil
@@ -200,6 +201,26 @@ func (p *Portfolio) OnSubmit(submit submit.Event) {
 
 func (p *Portfolio) OnCancel(cancel cancel.Event) {
 	// fmt.Println("portfolio received cancelled order", cancel)
+}
+
+func (p *Portfolio) updateStrategyTrades(ev signal.Event) {
+	// update the Profit and loss of the strategy
+	// move this
+	trade := p.GetTradeForStrategy(ev.GetStrategyID())
+	// fmt.Println("got trade for strategy", trade)
+	if trade != nil {
+		if trade.Side == gctorder.Buy {
+			trade.ProfitLossPoints = ev.GetPrice().Sub(trade.EntryPrice)
+		} else if trade.Side == gctorder.Sell {
+			trade.ProfitLossPoints = trade.EntryPrice.Sub(ev.GetPrice())
+		} else {
+			fmt.Println("trade is not sell or buy")
+			os.Exit(2)
+		}
+		if p.bot.Config.LiveMode {
+			p.printTradeDetails(trade)
+		}
+	}
 }
 
 // OnSignal receives the event from the strategy on whether it has signalled to buy, do nothing or sell
@@ -222,52 +243,11 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	if ev.GetStrategyID() == "" {
 		return nil, errStrategyIDUnset
 	}
-
 	p.lastUpdate = ev.GetTime()
+	// fmt.Println("UPDATE STRATEGY TRADES", ev.GetStrategyID())
+	p.updateStrategyTrades(ev)
 
-	trade := p.GetTradeForStrategy(ev.GetStrategyID())
-	if trade != nil {
-		if trade.Side == gctorder.Buy {
-			trade.ProfitLossPoints = ev.GetPrice().Sub(trade.EntryPrice)
-		} else if trade.Side == gctorder.Sell {
-			trade.ProfitLossPoints = trade.EntryPrice.Sub(ev.GetPrice())
-		} else {
-			fmt.Println("trade is not sell or buy")
-			os.Exit(2)
-		}
-		// if p.bot.Config.LiveMode {
-		// 	p.printTradeDetails(trade)
-		// }
-	}
-
-	id, _ := uuid.NewV4()
-
-	// ev.SetDirection(gctorder.Buy) // FIXME
-
-	o := &order.Order{
-		Base: event.Base{
-			Offset:       ev.GetOffset(),
-			Exchange:     ev.GetExchange(),
-			Time:         ev.GetTime(),
-			CurrencyPair: ev.Pair(),
-			AssetType:    ev.GetAssetType(),
-			Interval:     ev.GetInterval(),
-			Reason:       ev.GetReason(),
-			StrategyID:   ev.GetStrategyID(),
-		},
-		ID:         id.String(),
-		Amount:     ev.GetAmount(),
-		StrategyID: ev.GetStrategyID(),
-	}
-
-	lo := liveorder.Details{
-		Status:     gctorder.New,
-		OrderType:  gctorder.Market,
-		Exchange:   ev.GetExchange(),
-		InternalID: id.String(),
-		StrategyID: ev.GetStrategyID(),
-	}
-
+	// validate and prepare the event
 	strategyDirection, err := p.getStrategyDirection(ev.GetStrategyID())
 	if err != nil {
 		fmt.Println("error getting strategy direction", err)
@@ -295,32 +275,66 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	default:
 		return nil, errNoDecision
 	}
-
 	if ev.GetDirection() == "" {
-		return o, errInvalidDirection
+		return nil, errInvalidDirection
+	}
+	activeTrades, _ := livetrade.Active()
+	maxTradeCount := 1
+	if len(activeTrades) >= maxTradeCount && ev.GetDecision() == signal.Enter {
+		ev.SetDirection(eventtypes.DoNothing)
+		ev.SetDecision(signal.DoNothing)
+		ev.AppendReason(fmt.Sprintf("PF Says: NOGO. DoNothing. global_max_trades=1/(%d)", len(activeTrades)))
 	}
 
-	if ev.GetDirection() == eventtypes.DoNothing {
-		log.Debugf(
-			log.Portfolio,
-			"%s %s-%s at %s reason: %s",
-			ev.GetDecision(),
-			s.GetPair(),
-			s.GetDirection(),
-			ev.GetTime(),
-			ev.GetReason())
-	} else {
-		log.Infof(
-			log.Portfolio,
-			"%s %s-%s at %s reason: %s",
-			ev.GetDecision(),
-			s.GetPair(),
-			s.GetDirection(),
-			ev.GetTime(),
-			ev.GetReason())
+	// logging
+	if p.verbose {
+		if ev.GetDirection() == eventtypes.DoNothing {
+			log.Debugf(
+				log.Portfolio,
+				"%s %s-%s at %s reason: %s",
+				ev.GetDecision(),
+				s.GetPair(),
+				s.GetDirection(),
+				ev.GetTime(),
+				ev.GetReason())
+		} else {
+			log.Infof(
+				log.Portfolio,
+				"%s %s-%s at %s reason: %s",
+				ev.GetDecision(),
+				s.GetPair(),
+				s.GetDirection(),
+				ev.GetTime(),
+				ev.GetReason())
+		}
 	}
 
-	// lookup := p.bot.exchangeAssetPairSettings[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
+	id, _ := uuid.NewV4()
+
+	o := &order.Order{
+		Base: event.Base{
+			Offset:       ev.GetOffset(),
+			Exchange:     ev.GetExchange(),
+			Time:         ev.GetTime(),
+			CurrencyPair: ev.Pair(),
+			AssetType:    ev.GetAssetType(),
+			Interval:     ev.GetInterval(),
+			Reason:       ev.GetReason(),
+			StrategyID:   ev.GetStrategyID(),
+		},
+		ID:         id.String(),
+		Amount:     ev.GetAmount(),
+		StrategyID: ev.GetStrategyID(),
+	}
+
+	lo := liveorder.Details{
+		Status:     gctorder.New,
+		OrderType:  gctorder.Market,
+		Exchange:   ev.GetExchange(),
+		InternalID: id.String(),
+		StrategyID: ev.GetStrategyID(),
+	}
+
 	lookup, _ := p.bot.GetCurrencySettings(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 	if lookup == nil {
 		return nil, fmt.Errorf("%w for %v %v %v",
@@ -347,7 +361,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	p.store.openOrders[ev.GetStrategyID()] = append(p.store.openOrders[ev.GetStrategyID()], &lo)
 
 	if !p.bot.Settings.EnableDryRun {
-		fmt.Println("recording the order")
+		// fmt.Println("recording the order")
 		id, err := liveorder.Insert(lo)
 		if err != nil {
 			log.Errorln(log.Portfolio, "Unable to store order in database", err)
@@ -364,15 +378,24 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	o.BuyLimit = ev.GetBuyLimit()
 	o.SellLimit = ev.GetSellLimit()
 	o.StrategyID = ev.GetStrategyID()
-	var sizingFunds decimal.Decimal
-	if ev.GetDirection() == gctorder.Sell {
-		sizingFunds = funds.BaseAvailable()
-	} else {
-		sizingFunds = funds.QuoteAvailable()
-	}
-	sizedOrder := p.sizeOrder(ev, cs, o, sizingFunds, funds)
-	sizedOrder.Amount = ev.GetAmount()
 
+	// var sizingFunds decimal.Decimal
+	// if ev.GetDirection() == gctorder.Sell {
+	// 	sizingFunds = funds.BaseAvailable()
+	// } else {
+	// 	sizingFunds = funds.QuoteAvailable()
+	// }
+	// sizedOrder := p.sizeOrder(ev, cs, o, sizingFunds, funds)
+
+	// // Get the holding from the previous iteration, create it if it doesn't yet have a timestamp
+	lookup2 := p.exchangeAssetPairSettings[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
+	h := lookup2.GetHoldingsForTime(o.GetTime())
+	fmt.Println("holdings", h)
+
+	// sizedOrder.Amount = ev.GetAmount()
+	// fmt.Println("sized order", sizedOrder.Amount)
+	o = p.sizeOrder(ev, cs, o, decimal.NewFromFloat(1.1))
+	o.Amount = decimal.NewFromFloat(0.0001)
 	p.recordTrade(ev)
 
 	// fmt.Println("PORTFOLIO", ev.GetDirection(), ev.GetStrategyID(), ev.GetReason())
@@ -394,7 +417,7 @@ func (p *Portfolio) GetOrderFromStore(orderid string) *gctorder.Detail {
 		foundOrd = &ord
 	}
 	if foundOrd.ID == "" {
-		fmt.Println("ERROR order has no ID")
+		fmt.Println("Portfolio ERROR order has no ID", foundOrd)
 	}
 
 	if foundOrd.Price == 0 {
@@ -405,7 +428,7 @@ func (p *Portfolio) GetOrderFromStore(orderid string) *gctorder.Detail {
 }
 
 func (p *Portfolio) createTrade(ev fill.Event, order *liveorder.Details) {
-	// fmt.Println("found order", foundOrd.ID)
+	fmt.Println("look up order", ev.GetOrderID())
 	foundOrd := p.GetOrderFromStore(ev.GetOrderID())
 	stopLossPrice := decimal.NewFromFloat(foundOrd.Price).Mul(decimal.NewFromFloat(0.9))
 
@@ -476,6 +499,14 @@ func (p *Portfolio) OnFill(f fill.Event) {
 		fmt.Println("fill has no strategy ID")
 		os.Exit(2)
 	}
+	if f.GetOrderID() == "" {
+		fmt.Println("fill has no order ID")
+		os.Exit(2)
+	}
+	// if f.GetInternalOrderID() == "" {
+	// 	fmt.Println("fill has no internal order ID")
+	// 	os.Exit(2)
+	// }
 
 	fmt.Println("PF ONFILL", f.GetStrategyID())
 
@@ -537,8 +568,6 @@ func (p *Portfolio) OnFill(f fill.Event) {
 	// t.Status = trades.Open
 	// whats the strategy id of this fill?
 
-	// // Get the holding from the previous iteration, create it if it doesn't yet have a timestamp
-	// h := lookup.GetHoldingsForTime(f.GetTime().Add(-f.GetInterval().Duration()))
 	// if !h.Timestamp.IsZero() {
 	// 	h.Update(f)
 	// } else {
@@ -648,7 +677,7 @@ func (p *Portfolio) UpdateHoldings(ev eventtypes.DataEventHandler) error {
 	h := lookup.GetLatestHoldings()
 	if h.Timestamp.IsZero() {
 		var err error
-		h, err = holdings.Create(ev, decimal.NewFromFloat(1000.0), p.riskFreeRate)
+		h, err = holdings.Create(ev, decimal.NewFromFloat(7.0), p.riskFreeRate)
 		if err != nil {
 			return err
 		}
@@ -662,20 +691,20 @@ func (p *Portfolio) UpdateHoldings(ev eventtypes.DataEventHandler) error {
 }
 
 // UpdateTrades updates the portfolio trades for the data event
-func (p *Portfolio) UpdateTrades(ev eventtypes.DataEventHandler) {
+func (p *Portfolio) UpdateTrades(ev eventtypes.DataEventHandler) error {
 	if ev == nil {
-		return
+		return fmt.Errorf("UPDATETRADES no event")
 	}
-	// return nil
+
 	_, ok := p.exchangeAssetPairSettings[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
 	if !ok {
-		return
-		// return fmt.Errorf("%w for %v %v %v",
-		// 	errNoPortfolioSettings,
-		// 	ev.GetExchange(),
-		// 	ev.GetAssetType(),
-		// 	ev.Pair())
+		return fmt.Errorf("%w for %v %v %v",
+			errNoPortfolioSettings,
+			ev.GetExchange(),
+			ev.GetAssetType(),
+			ev.Pair())
 	}
+	return nil
 	// t, _ := p.GetOpenTrade()
 
 	// if err != nil {
@@ -1239,91 +1268,100 @@ func reduceAmountToFitPortfolioLimit(adjustedPrice, amount, sizedPortfolioTotal 
 }
 
 func (p *Portfolio) heartBeat() {
-	time.Sleep(time.Second * 10)
-	fmt.Println("........................HEARTBEAT")
-	exchanges, _ := p.bot.ExchangeManager.GetExchanges()
-	ex := exchanges[0]
-	fmt.Println("subscribing to ", p.bot.CurrencySettings[0])
-	pipe, err := ticker.SubscribeToExchangeTickers(ex.GetName())
-	if err != nil {
-		fmt.Println(".........error subscribing to ticker", err)
-		// wait and retry
-	}
-
-	// defer func() {
-	// }()
-
+	tick := time.NewTicker(time.Second * 5)
 	for {
 		select {
 		case <-p.shutdown:
-			pipeErr := pipe.Release()
-			if pipeErr != nil {
-				log.Error(log.DispatchMgr, pipeErr)
-			}
 			return
-		case data, ok := <-pipe.C:
-			if !ok {
-				fmt.Println("error dispatch system")
-				return
-			}
-			t := (*data.(*interface{})).(ticker.Price)
-			fmt.Println(t.Pair.String(), t.High, t.Low)
+		case <-tick.C:
+			p.PrintPortfolioDetails()
 		}
-		// err := stream.Send(&gctrpc.TickerResponse{
-		// 	Pair: &gctrpc.CurrencyPair{
-		// 		Base:      t.Pair.Base.String(),
-		// 		Quote:     t.Pair.Quote.String(),
-		// 		Delimiter: t.Pair.Delimiter},
-		// 	LastUpdated: s.unixTimestamp(t.LastUpdated),
-		// 	Last:        t.Last,
-		// 	High:        t.High,
-		// 	Low:         t.Low,
-		// 	Bid:         t.Bid,
-		// 	Ask:         t.Ask,
-		// 	Volume:      t.Volume,
-		// 	PriceAth:    t.PriceATH,
-		// })
-		// if err != nil {
-		// 	return err
-		// }
 	}
-	fmt.Println("finished")
+	// time.Sleep(time.Second * 10)
+	// // fmt.Println("........................HEARTBEAT")
+	// exchanges, _ := p.bot.ExchangeManager.GetExchanges()
+	// ex := exchanges[0]
+	// fmt.Println("subscribing to ", p.bot.CurrencySettings[0])
+	// pipe, err := ticker.SubscribeToExchangeTickers(ex.GetName())
 	// if err != nil {
-	// 	return err
+	// 	fmt.Println(".........error subscribing to ticker", err)
+	// 	// wait and retry
 	// }
-
-	// p.wg.Add(1)
-	// tick := time.NewTicker(time.Second * 5)
-	// defer func() {
-	// 	tick.Stop()
-	// 	p.wg.Done()
-	// }()
+	//
+	// // defer func() {
+	// // }()
+	//
 	// for {
 	// 	select {
 	// 	case <-p.shutdown:
-	// 		return
-	// 	case <-tick.C:
-	// 		exchanges, err := p.bot.ExchangeManager.GetExchanges()
-	// 		for _, ex := range exchanges {
-	// 			if err != nil {
-	// 				log.Infoln(log.Portfolio, "error getting tick", err)
-	// 			}
-	//
-	// 			for _, cp := range p.bot.CurrencySettings {
-	// 				tick, _ := ex.FetchTicker(context.Background(), cp.CurrencyPair, asset.Spot)
-	// 				t1 := time.Now()
-	// 				// ticker := m.currencyPairs[x].Ticker
-	// 				secondsAgo := int(t1.Sub(tick.LastUpdated).Seconds())
-	// 				if secondsAgo > 10 {
-	// 					log.Warnln(log.Portfolio, cp.CurrencyPair, tick.Last, secondsAgo)
-	// 				} else {
-	// 					log.Infoln(log.Portfolio, cp.CurrencyPair, tick.Last, secondsAgo)
-	// 				}
-	// 			}
+	// 		pipeErr := pipe.Release()
+	// 		if pipeErr != nil {
+	// 			log.Error(log.DispatchMgr, pipeErr)
 	// 		}
-	// 		// p.PrintTradingDetails()
+	// 		return
+	// 	case data, ok := <-pipe.C:
+	// 		if !ok {
+	// 			fmt.Println("error dispatch system")
+	// 			return
+	// 		}
+	// 		t := (*data.(*interface{})).(ticker.Price)
+	// 		fmt.Println(t.Pair.String(), t.High, t.Low)
 	// 	}
+	// 	// err := stream.Send(&gctrpc.TickerResponse{
+	// 	// 	Pair: &gctrpc.CurrencyPair{
+	// 	// 		Base:      t.Pair.Base.String(),
+	// 	// 		Quote:     t.Pair.Quote.String(),
+	// 	// 		Delimiter: t.Pair.Delimiter},
+	// 	// 	LastUpdated: s.unixTimestamp(t.LastUpdated),
+	// 	// 	Last:        t.Last,
+	// 	// 	High:        t.High,
+	// 	// 	Low:         t.Low,
+	// 	// 	Bid:         t.Bid,
+	// 	// 	Ask:         t.Ask,
+	// 	// 	Volume:      t.Volume,
+	// 	// 	PriceAth:    t.PriceATH,
+	// 	// })
+	// 	// if err != nil {
+	// 	// 	return err
+	// 	// }
 	// }
+	// fmt.Println("finished")
+	// // if err != nil {
+	// // 	return err
+	// // }
+	//
+	// // p.wg.Add(1)
+	// // tick := time.NewTicker(time.Second * 5)
+	// // defer func() {
+	// // 	tick.Stop()
+	// // 	p.wg.Done()
+	// // }()
+	// // for {
+	// // 	select {
+	// // 	case <-p.shutdown:
+	// // 		return
+	// // 	case <-tick.C:
+	// // 		exchanges, err := p.bot.ExchangeManager.GetExchanges()
+	// // 		for _, ex := range exchanges {
+	// // 			if err != nil {
+	// // 				log.Infoln(log.Portfolio, "error getting tick", err)
+	// // 			}
+	// //
+	// // 			for _, cp := range p.bot.CurrencySettings {
+	// // 				tick, _ := ex.FetchTicker(context.Background(), cp.CurrencyPair, asset.Spot)
+	// // 				t1 := time.Now()
+	// // 				// ticker := m.currencyPairs[x].Ticker
+	// // 				secondsAgo := int(t1.Sub(tick.LastUpdated).Seconds())
+	// // 				if secondsAgo > 10 {
+	// // 					log.Warnln(log.Portfolio, cp.CurrencyPair, tick.Last, secondsAgo)
+	// // 				} else {
+	// // 					log.Infoln(log.Portfolio, cp.CurrencyPair, tick.Last, secondsAgo)
+	// // 				}
+	// // 			}
+	// // 		}
+	// // 		// p.PrintTradingDetails()
+	// // 	}
+	// // }
 }
 
 func (p *Portfolio) PrintTradingDetails() {

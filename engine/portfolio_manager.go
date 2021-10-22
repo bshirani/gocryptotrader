@@ -156,8 +156,9 @@ func (m *portfolioManager) processPortfolio() {
 			balance = cur.TotalValue
 		}
 	}
-
-	log.Infoln(log.PortfolioMgr, "Bitcoin Balance", balance)
+	if m.base.Verbose {
+		log.Infoln(log.PortfolioMgr, "Bitcoin Balance", balance)
+	}
 	atomic.CompareAndSwapInt32(&m.processing, 1, 0)
 }
 

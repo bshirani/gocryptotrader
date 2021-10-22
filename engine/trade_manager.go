@@ -192,12 +192,15 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 		StrategyID:  o.GetStrategyID(),
 	}
 
+	if om == nil {
+		panic("there is no order manager and trying to execute order")
+	}
 	omr, err := om.Submit(context.TODO(), submission)
 	if err != nil {
 		fmt.Println("tm: ERROR order manager submission", err, submission.Side, omr)
 	}
 
-	// fmt.Println("tm: order manager response", omr)
+	fmt.Println("tm: order manager response", omr)
 	// if order is placed, update the status of the order to Open
 	// update order event order_id, status
 	// add the submission to the store
@@ -213,7 +216,7 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 		if ords[i].ID != o.GetID() {
 			continue
 		}
-		internalOrderID = ords[i].InternalOrderID
+		fmt.Println("found order")
 		internalOrderID = ords[i].InternalOrderID
 		ords[i].StrategyID = o.GetStrategyID()
 		ords[i].Date = o.GetTime()
@@ -228,9 +231,9 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 		StrategyID:      o.GetStrategyID(),
 	} // transform into submit event
 
-	if ev.GetInternalOrderID() == "" {
-		log.Errorln(log.TradeMgr, "error: order has no internal order id")
-	}
+	// if ev.GetInternalOrderID() == "" {
+	// 	log.Errorln(log.TradeMgr, "error: order has no internal order id")
+	// }
 
 	if ev.IsOrderPlaced {
 		fmt.Println("TM ORDERPLACED, create fill event", ev.Pair(), ev.GetStrategyID())
@@ -689,6 +692,14 @@ func (tm *TradeManager) onFill(o *OrderSubmitResponse) {
 		fmt.Println("order submit response has no strategyID")
 		os.Exit(2)
 	}
+	if o.InternalOrderID == "" {
+		fmt.Println("order submit response has internal order id")
+		os.Exit(2)
+	}
+	if o.SubmitResponse.OrderID == "" {
+		fmt.Println("order submit response has no order id")
+		os.Exit(2)
+	}
 	// return &OrderSubmitResponse{
 	// 	SubmitResponse: order.SubmitResponse{
 	// 		IsOrderPlaced: result.IsOrderPlaced,
@@ -850,8 +861,8 @@ func (tm *TradeManager) initializeStrategies(cfg *config.Config) {
 	var s strategies.Handler
 	count := 0
 	for _, strat := range cfg.StrategiesSettings {
-		// for _, dir := range []gctorder.Side{gctorder.Buy, gctorder.Sell} {
-		for _, dir := range []gctorder.Side{gctorder.Buy} {
+		for _, dir := range []gctorder.Side{gctorder.Buy, gctorder.Sell} {
+			// for _, dir := range []gctorder.Side{gctorder.Buy} {
 			for _, c := range tm.bot.CurrencySettings {
 				// fmt.Println("c", c)
 				// _, pair, _, _ := tm.loadExchangePairAssetBase(c.ExchangeName, c.Base, c.Quote, c.Asset)

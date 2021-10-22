@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -397,7 +396,7 @@ func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*Ord
 	fmt.Println("stop price", newOrder.StopPrice)
 	fmt.Println("price", newOrder.Price)
 
-	os.Exit(123)
+	// os.Exit(123)
 
 	if m == nil {
 		return nil, fmt.Errorf("order manager %w", ErrNilSubsystem)
@@ -439,7 +438,11 @@ func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*Ord
 			err)
 	}
 
+	exch.GetBase().Verbose = true
 	result, err := exch.SubmitOrder(ctx, newOrder)
+	exch.GetBase().Verbose = false
+	// exch.Verbose = false
+
 	if err != nil {
 		return nil, err
 	}
@@ -533,18 +536,18 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 		newOrder.Price)
 	// fmt.Println(msgInfo)
 
-	// msg := fmt.Sprintf("Order manager: Strategy=%s Exchange=%s submitted order ID=%v [Ours: %v] pair=%v price=%v amount=%v side=%v type=%v for time %v.",
-	// 	newOrder.StrategyID,
-	// 	newOrder.Exchange,
-	// 	result.OrderID,
-	// 	id.String(),
-	// 	newOrder.Pair,
-	// 	newOrder.Price,
-	// 	newOrder.Amount,
-	// 	newOrder.Side,
-	// 	newOrder.Type,
-	// 	newOrder.Date)
-	// log.Debugln(log.OrderMgr, msgInfo)
+	msg := fmt.Sprintf("Order manager: Strategy=%s Exchange=%s submitted order ID=%v [Ours: %v] pair=%v price=%v amount=%v side=%v type=%v for time %v.",
+		newOrder.StrategyID,
+		newOrder.Exchange,
+		result.OrderID,
+		id.String(),
+		newOrder.Pair,
+		newOrder.Price,
+		newOrder.Amount,
+		newOrder.Side,
+		newOrder.Type,
+		newOrder.Date)
+	log.Debugln(log.OrderMgr, msg)
 
 	m.orderStore.commsManager.PushEvent(base.Event{
 		Type:    "order",
@@ -588,12 +591,15 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 		return nil, fmt.Errorf("unable to add %v order %v to orderStore: %s", newOrder.Exchange, result.OrderID, err)
 	}
 
+	fmt.Println("returning order id", id, "for strategy", newOrder.StrategyID)
+
 	return &OrderSubmitResponse{
 		SubmitResponse: order.SubmitResponse{
 			IsOrderPlaced: result.IsOrderPlaced,
 			OrderID:       result.OrderID,
 		},
 		InternalOrderID: id.String(),
+		StrategyID:      newOrder.StrategyID,
 	}, nil
 }
 

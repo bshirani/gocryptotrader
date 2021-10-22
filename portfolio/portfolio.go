@@ -249,6 +249,7 @@ func (b *Base) RemoveAddress(address, description string, coinType currency.Code
 
 // UpdatePortfolio adds to the portfolio addresses by coin type
 func (b *Base) UpdatePortfolio(addresses []string, coinType currency.Code) error {
+	fmt.Println("updating portfolio")
 	if strings.Contains(strings.Join(addresses, ","), ExchangeAddress) ||
 		strings.Contains(strings.Join(addresses, ","), PersonalAddress) {
 		return nil
