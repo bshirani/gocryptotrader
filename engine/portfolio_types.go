@@ -111,7 +111,6 @@ type ExchangeAssetPairSettings struct {
 // Handler contains all functions expected to operate a portfolio manager
 type PortfolioHandler interface {
 	GetVerbose() bool
-	SetVerbose(bool)
 	OnSignal(signal.Event, *ExchangeAssetPairSettings) (*order.Order, error)
 	GetOpenOrdersForStrategy(string) []*liveorder.Details
 

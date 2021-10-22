@@ -14,6 +14,7 @@ import (
 	"gocryptotrader/database/repository/candle"
 	"gocryptotrader/database/repository/datahistoryjob"
 	"gocryptotrader/database/repository/liveorder"
+	"gocryptotrader/database/repository/livetrade"
 	"os"
 	"path/filepath"
 	"strings"
@@ -157,7 +158,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 			fmt.Println("clear database of orders and trades here")
 
 			liveorder.DeleteAll()
-			// postgres.LiveTrades.DeleteAll()
+			livetrade.DeleteAll()
 		}
 
 		p, err := SetupPortfolio(tm.Strategies, tm.bot, tm.bot.Config)

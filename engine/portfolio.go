@@ -262,6 +262,9 @@ func (p *Portfolio) updateStrategyTrades(ev signal.Event) {
 // if successful, it will pass on an order.Order to be used by the exchange event handler to place an order based on
 // the portfolio manager's recommendations
 func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*order.Order, error) {
+	// if p.GetLiveMode() {
+	// 	fmt.Println("UPDATE STRATEGY TRADES", ev.GetStrategyID())
+	// }
 	// if p.verbose {
 	s, _ := p.getStrategy(ev.GetStrategyID())
 	// }
@@ -278,9 +281,6 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		return nil, errStrategyIDUnset
 	}
 	p.lastUpdate = ev.GetTime()
-	// if p.GetLiveMode() {
-	// 	fmt.Println("UPDATE STRATEGY TRADES", ev.GetStrategyID())
-	// }
 	p.updateStrategyTrades(ev)
 
 	// validate and prepare the event
@@ -620,10 +620,6 @@ func (p *Portfolio) SetFee(exch string, a asset.Item, cp currency.Pair, fee deci
 
 func (p *Portfolio) GetVerbose() bool {
 	return p.verbose
-}
-
-func (p *Portfolio) SetVerbose(verbose bool) {
-	p.verbose = verbose
 }
 
 // GetFee can panic for bad requests, but why are you getting things that don't exist?
