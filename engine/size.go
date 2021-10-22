@@ -74,7 +74,6 @@ func (s *Size) SizeOrder(o order.Event, amountAvailable decimal.Decimal, cs *Exc
 // As fee calculation occurs during the actual ordering process
 // this can only attempt to factor the potential fee to remain under the max rules
 func (s *Size) calculateBuySize(price, availableFunds, feeRate, buyLimit decimal.Decimal, minMaxSettings config.MinMax) (decimal.Decimal, error) {
-	fmt.Println("available funds", availableFunds)
 	if availableFunds.LessThanOrEqual(decimal.Zero) {
 		return decimal.Zero, errNoFunds
 	}

@@ -244,7 +244,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		return nil, errStrategyIDUnset
 	}
 	p.lastUpdate = ev.GetTime()
-	// fmt.Println("UPDATE STRATEGY TRADES", ev.GetStrategyID())
+	fmt.Println("UPDATE STRATEGY TRADES", ev.GetStrategyID())
 	p.updateStrategyTrades(ev)
 
 	// validate and prepare the event
@@ -284,6 +284,9 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		ev.SetDirection(eventtypes.DoNothing)
 		ev.SetDecision(signal.DoNothing)
 		ev.AppendReason(fmt.Sprintf("PF Says: NOGO. DoNothing. global_max_trades=1/(%d)", len(activeTrades)))
+	} else {
+		fmt.Println("active trades", activeTrades)
+		ev.AppendReason(fmt.Sprintf("PF: GO. global_max_trades=1 cur=%d", len(activeTrades)))
 	}
 
 	// logging

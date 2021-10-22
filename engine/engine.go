@@ -281,6 +281,7 @@ func engineLog(str string, args ...interface{}) {
 // PrintSettings returns the engine settings
 func PrintSettings(s *Settings) {
 	engineLog("\t $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ REAL MONIES $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$: %v", s.EnableRealOrders)
+	engineLog("\t live:%v", s.EnableLiveMode)
 	engineLog("\t save_db: %v", !s.EnableDryRun)
 	engineLog("\t trader: %v", s.EnableTradeManager)
 	engineLog("\t trading: %v", s.EnableTrading)

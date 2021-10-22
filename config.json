@@ -73,7 +73,7 @@
    "port": 5432,
    "username": "bijan",
    "password": "",
-   "database": "gct-dev",
+   "database": "gct_dev",
    "sslmode": ""
   }
  },
@@ -442,7 +442,7 @@
      "restAPI": true,
      "restCapabilities": {
       "tickerBatching": true,
-      "autoPairUpdates": false
+      "autoPairUpdates": true
      },
      "websocketAPI": true,
      "websocketCapabilities": {}

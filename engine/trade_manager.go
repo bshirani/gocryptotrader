@@ -877,7 +877,7 @@ func (tm *TradeManager) initializeStrategies(cfg *config.Config) {
 				// strategy = reflect.New(reflect.ValueOf(s).Elem().Type()).Interface().(strategy.Handler)
 				// fmt.Println("loaded", strategy)
 
-				id := fmt.Sprintf("%d_%s_%s_%v", count, s.Name(), string(gctorder.Buy), c.CurrencyPair)
+				id := fmt.Sprintf("%d_%s_%s_%v", count, s.Name(), string(dir), c.CurrencyPair)
 				s.SetID(id)
 				s.SetNumID(count)
 				s.SetPair(c.CurrencyPair)
