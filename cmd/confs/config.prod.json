@@ -1,4 +1,5 @@
 {
+ "productionMode": false,
  "LiveMode": true,
  "DryRun": false,
  "Script": false,
@@ -39,6 +40,10 @@
  "gocryptotrader-config-path": "",
  "statisticSettings": {
   "risk-free-rate": "0"
+ },
+ "syncManager": {
+  "verbose": false,
+  "enabled": false
  },
  "tradeManager": {
   "enabled": false,

@@ -154,12 +154,14 @@ func validateSettings(b *Engine, s *Settings, flagSet map[string]bool) {
 	b.Settings = *s
 
 	b.Settings.EnableDataHistoryManager = (flagSet["datahistory"] && b.Settings.EnableDatabaseManager) || b.Config.DataHistoryManager.Enabled
+	fmt.Println("config trade manager", b.Config.TradeManager.Enabled, b.Config.TradeManager)
 	b.Settings.EnableTradeManager = (flagSet["trade"] && b.Settings.EnableTradeManager) || b.Config.TradeManager.Enabled
 	b.Settings.EnableTrading = (flagSet["strategies"] && b.Settings.EnableTrading) || b.Config.TradeManager.Trading
 	b.Settings.EnableOrderManager = flagSet["orders"] && b.Settings.EnableOrderManager || b.Config.OrderManager.Enabled
 	b.Settings.EnableRealOrders = flagSet["real"] && b.Settings.EnableRealOrders || b.Config.RealOrders
 	b.Settings.EnableExchangeSyncManager = flagSet["sync"] && b.Settings.EnableExchangeSyncManager || b.Config.SyncManager.Enabled
 	b.Settings.EnableDryRun = flagSet["dryrun"] && b.Settings.EnableDryRun || b.Config.DryRun
+	b.Settings.EnableLiveMode = b.Config.LiveMode
 
 	// if b.Settings.EnableTradeManager {
 	// 	b.Settings.EnableDataHistoryManager = true
@@ -288,8 +290,8 @@ func PrintSettings(s *Settings) {
 	engineLog("\t trader: %v", s.EnableTradeManager)
 	engineLog("\t trading: %v", s.EnableTrading)
 	engineLog("\t sync: %v kline:%v ticker:%v trade:%v wsTimeout:%v", s.EnableExchangeSyncManager, s.EnableKlineSyncing, s.EnableTickerSyncing, s.EnableTradeSyncing, s.SyncTimeoutWebsocket)
-	engineLog("\t real order manager: %v", s.EnableRealOrderManager)
-	engineLog("\t fake order manager: %v", s.EnableFakeOrderManager)
+	// engineLog("\t real order manager: %v", s.EnableRealOrderManager)
+	// engineLog("\t fake order manager: %v", s.EnableFakeOrderManager)
 	engineLog("\t verbose: %v", s.Verbose)
 	// engineLog("\t data history: %v", s.EnableDataHistoryManager)
 	// engineLog("\t coinmarketcap analaysis: %v", s.EnableCoinmarketcapAnalysis)

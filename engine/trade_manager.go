@@ -448,6 +448,7 @@ func (tm *TradeManager) waitForFactorEnginesWarmup() {
 		// fmt.Println(cs.CurrencyPair, "loaded", len(dbData.Item.Candles), "candles")
 	}
 
+	tm.bot.Settings.EnableTrading = false
 	tm.Run()
 	tm.bot.Settings.EnableTrading = true
 
@@ -472,6 +473,7 @@ func (tm *TradeManager) waitForFactorEnginesWarmup() {
 }
 
 func (tm *TradeManager) runLive() error {
+	log.Infoln(log.TradeMgr, "Waiting for initial currency sync...")
 	tm.bot.WaitForInitialCurrencySync()
 
 	processEventTicker := time.NewTicker(time.Second * 5)

@@ -212,6 +212,7 @@ func (p *Portfolio) updateStrategyTrades(ev signal.Event) {
 	// fmt.Println("got trade for strategy", trade)
 	if trade != nil {
 		if trade.Side == gctorder.Buy {
+			fmt.Println("current price", ev.GetPrice(), "trade price", trade.EntryPrice, ev.GetPrice().Sub(trade.EntryPrice))
 			trade.ProfitLossPoints = ev.GetPrice().Sub(trade.EntryPrice)
 		} else if trade.Side == gctorder.Sell {
 			trade.ProfitLossPoints = trade.EntryPrice.Sub(ev.GetPrice())
@@ -246,9 +247,9 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		return nil, errStrategyIDUnset
 	}
 	p.lastUpdate = ev.GetTime()
-	if p.GetLiveMode() {
-		fmt.Println("UPDATE STRATEGY TRADES", ev.GetStrategyID())
-	}
+	// if p.GetLiveMode() {
+	// 	fmt.Println("UPDATE STRATEGY TRADES", ev.GetStrategyID())
+	// }
 	p.updateStrategyTrades(ev)
 
 	// validate and prepare the event
@@ -283,13 +284,23 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		return nil, errInvalidDirection
 	}
 	activeTrades, _ := livetrade.Active()
+	activeOrders, _ := liveorder.Active()
 	maxTradeCount := 1
-	if len(activeTrades) >= maxTradeCount && ev.GetDecision() == signal.Enter {
-		ev.SetDirection(eventtypes.DoNothing)
-		ev.SetDecision(signal.DoNothing)
-		ev.AppendReason(fmt.Sprintf("PF Says: NOGO. DoNothing. global_max_trades=1/(%d)", len(activeTrades)))
-	} else {
-		ev.AppendReason(fmt.Sprintf("PF: GO. global_max_trades=1 cur=%d", len(activeTrades)))
+
+	// validate new entry order
+	if ev.GetDecision() == signal.Enter {
+
+		if len(activeOrders) >= maxTradeCount {
+			ev.SetDirection(eventtypes.DoNothing)
+			ev.SetDecision(signal.DoNothing)
+			ev.AppendReason(fmt.Sprintf("PF Says: NOGO. DoNothing. Has %d new orders", len(activeOrders)))
+		} else if len(activeTrades) >= maxTradeCount {
+			ev.SetDirection(eventtypes.DoNothing)
+			ev.SetDecision(signal.DoNothing)
+			ev.AppendReason(fmt.Sprintf("PF Says: NOGO. DoNothing. Has Active Trade", len(activeTrades)))
+		} else {
+			ev.AppendReason(fmt.Sprintf("PF: GO. global_max_trades=1 cur=%d", len(activeTrades)))
+		}
 	}
 
 	// logging
@@ -367,8 +378,6 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	p.store.openOrders[ev.GetStrategyID()] = append(p.store.openOrders[ev.GetStrategyID()], &lo)
 
 	if !p.bot.Config.DryRun {
-		panic("wtf")
-		// fmt.Println("recording the order")
 		id, err := liveorder.Insert(lo)
 		if err != nil {
 			log.Errorln(log.Portfolio, "Unable to store order in database", err)
@@ -385,6 +394,10 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	o.BuyLimit = ev.GetBuyLimit()
 	o.SellLimit = ev.GetSellLimit()
 	o.StrategyID = ev.GetStrategyID()
+	o = p.sizeOrder(ev, cs, o, decimal.NewFromFloat(1.1))
+	o.Amount = decimal.NewFromFloat(0.0001)
+	p.recordTrade(ev)
+	return o, nil
 
 	// var sizingFunds decimal.Decimal
 	// if ev.GetDirection() == gctorder.Sell {
@@ -395,19 +408,15 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	// sizedOrder := p.sizeOrder(ev, cs, o, sizingFunds, funds)
 
 	// // Get the holding from the previous iteration, create it if it doesn't yet have a timestamp
-	lookup2 := p.exchangeAssetPairSettings[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
-	h := lookup2.GetHoldingsForTime(o.GetTime())
-	fmt.Println("holdings", h)
+	// lookup2 := p.exchangeAssetPairSettings[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
+	// h := lookup2.GetHoldingsForTime(o.GetTime())
+	// fmt.Println("holdings", h)
 
 	// sizedOrder.Amount = ev.GetAmount()
 	// fmt.Println("sized order", sizedOrder.Amount)
-	o = p.sizeOrder(ev, cs, o, decimal.NewFromFloat(1.1))
-	o.Amount = decimal.NewFromFloat(0.0001)
-	p.recordTrade(ev)
 
 	// fmt.Println("PORTFOLIO", ev.GetDirection(), ev.GetStrategyID(), ev.GetReason())
 	// return p.evaluateOrder(ev, o, sizedOrder)
-	return o, nil
 }
 
 func (p *Portfolio) updatePosition(pos *positions.Position, amount decimal.Decimal) {

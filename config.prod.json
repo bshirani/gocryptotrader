@@ -1,4 +1,5 @@
 {
+ "productionMode": false,
  "LiveMode": true,
  "DryRun": false,
  "Script": false,
@@ -40,17 +41,21 @@
  "statisticSettings": {
   "risk-free-rate": "0"
  },
- "tradeManager": {
-  "enabled": false,
+ "syncManager": {
   "verbose": true,
-  "trading": false
+  "enabled": true
+ },
+ "tradeManager": {
+  "enabled": true,
+  "verbose": true,
+  "trading": true
  },
  "factorEngine": {
   "verbose": false
  },
  "orderManager": {
   "verbose": false,
-  "enabled": false
+  "enabled": true
  },
  "dataImporter": {
   "enabled": false,

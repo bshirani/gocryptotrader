@@ -75,7 +75,6 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	trade := p.GetTradeForStrategy(s.GetID())
 
 	if trade == nil && len(orders) == 0 {
-
 		if s.Strategy.GetDirection() == order.Buy { // check for buy strategy
 			es.SetDecision(signal.Enter)
 		} else if s.Strategy.GetDirection() == order.Sell { // check sell strategy
@@ -97,7 +96,7 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 			if s.Strategy.GetDirection() == order.Buy {
 				if fe.Minute().M60PctChange.Last(1).LessThan(decimal.NewFromFloat(0)) {
 					es.SetDecision(signal.Exit)
-					es.AppendReason(fmt.Sprintf("Trend.go says: exiting because trade created more than 60 minutes ago (%d).", minutesInTrade))
+					es.AppendReason(fmt.Sprintf("Trend.go says: M60PctChange is negative (%d).", minutesInTrade))
 				} else {
 					es.SetDecision(signal.DoNothing)
 					es.AppendReason(fmt.Sprintf("Trend.go says: DONOTHING. Stay in long. M60PctChange is positive. (%d).", minutesInTrade))
