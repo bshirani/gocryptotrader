@@ -196,9 +196,48 @@ func (p *Portfolio) Reset() {
 }
 
 func (p *Portfolio) OnSubmit(submit submit.Event) {
-	// fmt.Println(submit.GetStrategyID(), "portfolio.OnSubmit", submit.GetInternalOrderID())
-	// p.store.closedOrders[submit.GetStrategyID()] = append(p.store.closedOrders[submit.GetStrategyID()], ord)
-	// p.store.openOrders[submit.GetStrategyID()] = make([]*liveorder.Details, 0)
+	fmt.Println("portfolio.OnSubmit", submit.GetStrategyID(), submit.GetInternalOrderID(), "orderID", submit.GetOrderID())
+	var openOrder *liveorder.Details
+	// fmt.Println("count open orders", len(p.store.openOrders[submit.GetStrategyID()]))
+	for _, ord := range p.store.openOrders[submit.GetStrategyID()] {
+		// fmt.Println("checking against", ord.InternalID)
+		if ord.ID == submit.GetOrderID() {
+			openOrder = ord
+			break
+		}
+	}
+	if openOrder == nil {
+		fmt.Println("error !!!!!! no interal openOrder id")
+		return
+	}
+
+	fmt.Println("open order", openOrder)
+
+	openOrder.Status = gctorder.Closed
+
+	if !p.bot.Settings.EnableDryRun {
+		// update orders table
+		// update trades table
+
+		// p.store.closedTrades[f.GetStrategyID()] = append(p.store.closedTrades[f.GetStrategyID()], t)
+		// p.store.openTrade[f.GetStrategyID()] = nil
+		// p.store.positions[f.GetStrategyID()] = &positions.Position{Active: false}
+
+		if !p.bot.Settings.EnableDryRun {
+			id, err := liveorder.Update(openOrder)
+			if err != nil || id == 0 {
+				fmt.Println("error saving to db")
+				os.Exit(2)
+			}
+		}
+		// Velse if t.Status == livetrade.Pending {
+		// 	ot := *p.store.openTrade[f.GetStrategyID()]
+		// 	ot.Status = livetrade.Open
+		// 	p.store.openTrade[f.GetStrategyID()] = &ot
+		// }
+	}
+	p.store.closedOrders[submit.GetStrategyID()] = append(p.store.closedOrders[submit.GetStrategyID()], openOrder)
+	p.store.openOrders[submit.GetStrategyID()] = make([]*liveorder.Details, 0)
 }
 
 func (p *Portfolio) OnCancel(cancel cancel.Event) {
