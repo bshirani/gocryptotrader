@@ -147,8 +147,6 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 	p.riskFreeRate = riskFreeRate
 	p.Strategies = st
 
-	log.Infof(log.Portfolio, "Started Portfolio w/ %d Strategies, %d Currencies", len(st), len(p.bot.CurrencySettings))
-
 	// set initial opentrade/positions
 	for _, s := range p.Strategies {
 		p.store.positions[s.GetID()] = &positions.Position{}
@@ -172,7 +170,8 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 		for _, t := range activeOrders {
 			p.store.openOrders[t.StrategyID] = append(p.store.openOrders[t.StrategyID], &t)
 		}
-		log.Infof(log.Portfolio, "Loaded Trades %d Orders %d", len(activeTrades), len(activeOrders))
+
+		log.Infof(log.Portfolio, "Started Portfolio w/ %d Strategies, %d Currencies. Loaded Trades %d Orders %d", len(st), len(p.bot.CurrencySettings), len(activeTrades), len(activeOrders))
 	}
 
 	for _, cs := range p.bot.CurrencySettings {
@@ -252,9 +251,9 @@ func (p *Portfolio) updateStrategyTrades(ev signal.Event) {
 			fmt.Println("trade is not sell or buy")
 			os.Exit(2)
 		}
-		if p.bot.Config.LiveMode {
-			p.printTradeDetails(trade)
-		}
+		// if p.bot.Config.LiveMode {
+		// 	p.printTradeDetails(trade)
+		// }
 	}
 }
 
@@ -484,6 +483,9 @@ func (p *Portfolio) GetOrderFromStore(orderid string) *gctorder.Detail {
 }
 
 func (p *Portfolio) createTrade(ev fill.Event) {
+	if p.bot.Settings.EnableLiveMode {
+		log.Warnf(log.Portfolio, "created trade for %s %v %s", ev.GetStrategyID(), ev.GetAmount(), ev.GetDirection())
+	}
 	// fmt.Println("look up order", ev.GetOrderID())
 	foundOrd := p.GetOrderFromStore(ev.GetOrderID())
 	stopLossPrice := decimal.NewFromFloat(foundOrd.Price).Mul(decimal.NewFromFloat(0.9))

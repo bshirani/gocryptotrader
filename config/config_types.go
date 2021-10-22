@@ -161,6 +161,7 @@ type TradeManagerConfig struct {
 	Enabled bool `json:"enabled"`
 	Verbose bool `json:"verbose"`
 	Trading bool `json:"trading"`
+	ClearDB bool `json:"clearDB"`
 }
 
 type FactorEngineConfig struct {

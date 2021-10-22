@@ -47,8 +47,9 @@
  },
  "tradeManager": {
   "enabled": true,
-  "verbose": false,
-  "trading": true
+  "verbose": true,
+  "trading": true,
+  "clearDB": true
  },
  "factorEngine": {
   "verbose": false

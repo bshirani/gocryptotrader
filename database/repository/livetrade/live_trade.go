@@ -131,6 +131,31 @@ func Insert(in Details) (id int, err error) {
 	return id, nil
 }
 
+func DeleteAll() error {
+	ctx := context.Background()
+
+	tx, err := database.DB.SQL.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("beginTx %w", err)
+	}
+	defer func() {
+		if err != nil {
+			errRB := tx.Rollback()
+			if errRB != nil {
+				log.Errorf(log.DatabaseMgr, "DeleteTrades tx.Rollback %v", errRB)
+			}
+		}
+	}()
+
+	query := postgres.LiveTrades(qm.Where(`1=1`))
+	_, err = query.DeleteAll(ctx, tx)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
 // Insert writes a single entry into database
 func Update(in *Details) (int64, error) {
 	if database.DB.SQL == nil {

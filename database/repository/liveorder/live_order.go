@@ -3,6 +3,7 @@ package liveorder
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"gocryptotrader/database"
 	"gocryptotrader/database/models/postgres"
@@ -23,6 +24,31 @@ func OneByStrategyID(in string) (Details, error) {
 
 func OneByID(in string) (Details, error) {
 	return one(in, "id")
+}
+
+func DeleteAll() error {
+	ctx := context.Background()
+
+	tx, err := database.DB.SQL.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("beginTx %w", err)
+	}
+	defer func() {
+		if err != nil {
+			errRB := tx.Rollback()
+			if errRB != nil {
+				log.Errorf(log.DatabaseMgr, "DeleteOrders tx.Rollback %v", errRB)
+			}
+		}
+	}()
+
+	query := postgres.LiveOrders(qm.Where(`1=1`))
+	_, err = query.DeleteAll(ctx, tx)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func one(in, clause string) (out Details, err error) {

@@ -13,6 +13,7 @@ import (
 	"gocryptotrader/data/kline/database"
 	"gocryptotrader/database/repository/candle"
 	"gocryptotrader/database/repository/datahistoryjob"
+	"gocryptotrader/database/repository/liveorder"
 	"os"
 	"path/filepath"
 	"strings"
@@ -147,6 +148,18 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 
 	if tm.bot.Settings.EnableTrading {
 		tm.initializeStrategies(cfg)
+
+		if tm.bot.Config.TradeManager.ClearDB {
+			if tm.bot.Config.ProductionMode {
+				// check database name to ensure we don't delete anything
+				panic("trying to delete production")
+			}
+			fmt.Println("clear database of orders and trades here")
+
+			liveorder.DeleteAll()
+			// postgres.LiveTrades.DeleteAll()
+		}
+
 		p, err := SetupPortfolio(tm.Strategies, tm.bot, tm.bot.Config)
 		if err != nil {
 			return nil, fmt.Errorf("could not setup portfolio", err)
@@ -158,7 +171,6 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 		fmt.Println("error setting up tm", err)
 		os.Exit(123)
 	}
-	fmt.Println("trade manager has", len(bot.CurrencySettings), "cs")
 
 	// fmt.Println("done setting up bot with", len(tm.bot.CurrencySettings), "currencies")
 	if len(tm.bot.CurrencySettings) < 1 {
@@ -172,6 +184,9 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 }
 
 func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om ExecutionHandler) (submit.Event, error) {
+	// if tm.bot.Settings.EnableLiveMode {
+	// 	log.Debugf(log.TradeMgr, "Executing order!!!!!")
+	// }
 	priceFloat, _ := o.GetPrice().Float64()
 	a, _ := o.GetAmount().Float64()
 	fee, _ := o.GetExchangeFee().Float64()
