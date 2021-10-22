@@ -105,7 +105,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	var err error
 	if bot.OrderManager == nil && bot.Settings.EnableOrderManager {
 		if bot.Config.RealOrders {
-			log.Warnln(log.TradeMgr, "Enabling REAL order manager")
+			log.Warnln(log.TradeMgr, "!!!!!!!!!!!!!!!!!!!!!!!! Enabling REAL $$$$$$$$ order manager!!!!!!!!!!!!!!!!!!!!")
 			bot.RealOrderManager, err = SetupOrderManager(
 				bot.ExchangeManager,
 				bot.CommunicationsManager,
@@ -746,10 +746,9 @@ func (tm *TradeManager) processOrderEvent(o order.Event) {
 	// 	// gctlog.Debugln(log.TradeMgr, "creating order for", o.GetStrategyID())
 	// }
 	d := tm.Datas.GetDataForCurrency(o.GetExchange(), o.GetAssetType(), o.Pair())
-	// this blocks and returns a submission event
-	submitEvent, err := tm.ExecuteOrder(o, d, tm.bot.FakeOrderManager)
 
-	// call on submit here
+	// this blocks and returns a submission event
+	submitEvent, err := tm.ExecuteOrder(o, d, tm.bot.OrderManager)
 
 	if err != nil {
 		log.Error(log.TradeMgr, err)

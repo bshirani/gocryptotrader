@@ -15,6 +15,7 @@ type Settings struct {
 	CheckParamInteraction bool
 
 	// Core Settings
+	EnableRealOrders            bool
 	EnableAllExchanges          bool
 	EnableAllPairs              bool
 	EnableCoinmarketcapAnalysis bool

@@ -157,6 +157,7 @@ func validateSettings(b *Engine, s *Settings, flagSet map[string]bool) {
 	b.Settings.EnableTradeManager = (flagSet["trade"] && b.Settings.EnableTradeManager) || b.Config.TradeManager.Enabled
 	b.Settings.EnableTrading = (flagSet["strategies"] && b.Settings.EnableTrading) || b.Config.TradeManager.Trading
 	b.Settings.EnableOrderManager = flagSet["orders"] && b.Settings.EnableOrderManager || b.Config.OrderManager.Enabled
+	b.Settings.EnableRealOrders = flagSet["real"] && b.Settings.EnableRealOrders || b.Config.RealOrders
 
 	// if b.Settings.EnableTradeManager {
 	// 	b.Settings.EnableDataHistoryManager = true
@@ -279,7 +280,8 @@ func engineLog(str string, args ...interface{}) {
 
 // PrintSettings returns the engine settings
 func PrintSettings(s *Settings) {
-	engineLog("\t dry run: %v", s.EnableDryRun)
+	engineLog("\t REAL MONIES: %v", s.EnableRealOrders)
+	engineLog("\t save_db: %v", !s.EnableDryRun)
 	engineLog("\t trader: %v", s.EnableTradeManager)
 	engineLog("\t trading: %v", s.EnableTrading)
 	engineLog("\t sync: %v kline:%v ticker:%v trade:%v wsTimeout:%v", s.EnableExchangeSyncManager, s.EnableKlineSyncing, s.EnableTickerSyncing, s.EnableTradeSyncing, s.SyncTimeoutWebsocket)
@@ -537,6 +539,9 @@ func (bot *Engine) Start() error {
 				log.Errorf(log.Global, "Order manager unable to start: %s", err)
 			}
 		}
+	} else {
+		fmt.Println(bot.Settings.EnableOrderManager)
+		os.Exit(111)
 	}
 
 	if bot.Settings.EnableExchangeSyncManager {

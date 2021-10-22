@@ -28,39 +28,44 @@ var (
 // Each exchange has their own requirements, so not all fields
 // are required to be populated
 type Submit struct {
+	AssetType  asset.Item
+	Side       Side
+	Exchange   string
+	Pair       currency.Pair
+	StrategyID string
+	Type       Type
+	Status     Status
+
+	Price     float64
+	Amount    float64
+	StopPrice float64
+
+	LimitPriceUpper float64
+	LimitPriceLower float64
+	TriggerPrice    float64
+	TargetAmount    float64
+	ExecutedAmount  float64
+	RemainingAmount float64
+	Fee             float64
+
 	ImmediateOrCancel bool
 	HiddenOrder       bool
 	FillOrKill        bool
 	PostOnly          bool
 	ReduceOnly        bool
 	Leverage          float64
-	Price             float64
-	Amount            float64
-	StopPrice         float64
-	LimitPriceUpper   float64
-	LimitPriceLower   float64
-	TriggerPrice      float64
-	TargetAmount      float64
-	ExecutedAmount    float64
-	RemainingAmount   float64
-	Fee               float64
-	Exchange          string
-	InternalOrderID   string
-	ID                string
-	AccountID         string
-	ClientID          string
-	ClientOrderID     string
-	WalletAddress     string
-	Offset            string
-	Type              Type
-	Side              Side
-	Status            Status
-	AssetType         asset.Item
-	StrategyID        string
-	Date              time.Time
-	LastUpdated       time.Time
-	Pair              currency.Pair
-	Trades            []TradeHistory
+
+	InternalOrderID string
+	ID              string
+	AccountID       string
+	ClientID        string
+	ClientOrderID   string
+
+	WalletAddress string
+	Offset        string
+	Date          time.Time
+	LastUpdated   time.Time
+	Trades        []TradeHistory
 }
 
 // SubmitResponse is what is returned after submitting an order to an exchange

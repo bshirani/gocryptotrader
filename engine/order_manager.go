@@ -385,6 +385,18 @@ func (m *OrderManager) Modify(ctx context.Context, mod *order.Modify) (*order.Mo
 // populate it in the OrderManager if successful
 func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*OrderSubmitResponse, error) {
 	fmt.Println("trying to submit real order.")
+
+	// fmt.Println("order", newOrder)
+
+	fmt.Println("exchange", newOrder.Exchange)
+	fmt.Println("pair", newOrder.Pair)
+	fmt.Println("type", newOrder.Type)
+	fmt.Println("side", newOrder.Side)
+	fmt.Println("amount", newOrder.Amount)
+
+	fmt.Println("stop price", newOrder.StopPrice)
+	fmt.Println("price", newOrder.Price)
+
 	os.Exit(123)
 
 	if m == nil {
