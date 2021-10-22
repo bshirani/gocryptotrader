@@ -18,7 +18,7 @@ type Status string
 
 // Item generic candle holder for modelPSQL
 type Details struct {
-	ID         int64
+	ID         string
 	Side       order.Side
 	Status     order.Status
 	Pair       currency.Pair

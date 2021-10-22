@@ -33,7 +33,7 @@ func one(in, clause string) (out Details, err error) {
 
 	whereQM := qm.Where(clause+"= ?", in)
 	ret, errS := postgres.LiveOrders(whereQM).One(context.Background(), database.DB.SQL)
-	out.ID = int64(ret.ID)
+	out.ID = ret.ID
 	if errS != nil {
 		return out, errS
 	}
