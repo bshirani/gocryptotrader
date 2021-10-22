@@ -56,13 +56,49 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 	portfolioRisk := &risk.Risk{
 		CurrencySettings: make(map[string]map[asset.Item]map[currency.Pair]*risk.CurrencySettings),
 	}
-
 	for i := range cfg.CurrencySettings {
 		if portfolioRisk.CurrencySettings[cfg.CurrencySettings[i].ExchangeName] == nil {
 			portfolioRisk.CurrencySettings[cfg.CurrencySettings[i].ExchangeName] = make(map[asset.Item]map[currency.Pair]*risk.CurrencySettings)
 		}
+		var a asset.Item
+		a, err := asset.New(cfg.CurrencySettings[i].Asset)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"%w for %v %v %v. Err %v",
+				errInvalidConfigAsset,
+				cfg.CurrencySettings[i].ExchangeName,
+				cfg.CurrencySettings[i].Asset,
+				cfg.CurrencySettings[i].Base+cfg.CurrencySettings[i].Quote,
+				err)
+		}
 		if portfolioRisk.CurrencySettings[cfg.CurrencySettings[i].ExchangeName][a] == nil {
 			portfolioRisk.CurrencySettings[cfg.CurrencySettings[i].ExchangeName][a] = make(map[currency.Pair]*risk.CurrencySettings)
+		}
+		var curr currency.Pair
+		var b, q currency.Code
+		b = currency.NewCode(cfg.CurrencySettings[i].Base)
+		q = currency.NewCode(cfg.CurrencySettings[i].Quote)
+		curr = currency.NewPair(b, q)
+		var exch exchange.IBotExchange
+		exch, err = bot.ExchangeManager.GetExchangeByName(cfg.CurrencySettings[i].ExchangeName)
+		if err != nil {
+			return nil, err
+		}
+		exchBase := exch.GetBase()
+		var requestFormat currency.PairFormat
+		requestFormat, err = exchBase.GetPairFormat(a, true)
+		if err != nil {
+			return nil, fmt.Errorf("could not format currency %v, %w", curr, err)
+		}
+		curr = curr.Format(requestFormat.Delimiter, requestFormat.Uppercase)
+		err = exchBase.CurrencyPairs.EnablePair(a, curr)
+		if err != nil && !errors.Is(err, currency.ErrPairAlreadyEnabled) {
+			return nil, fmt.Errorf(
+				"could not enable currency %v %v %v. Err %w",
+				cfg.CurrencySettings[i].ExchangeName,
+				cfg.CurrencySettings[i].Asset,
+				cfg.CurrencySettings[i].Base+cfg.CurrencySettings[i].Quote,
+				err)
 		}
 		portfolioRisk.CurrencySettings[cfg.CurrencySettings[i].ExchangeName][a][curr] = &risk.CurrencySettings{
 			MaximumOrdersWithLeverageRatio: cfg.CurrencySettings[i].Leverage.MaximumOrdersWithLeverageRatio,
@@ -70,7 +106,7 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 			MaximumHoldingRatio:            cfg.CurrencySettings[i].MaximumHoldingsRatio,
 		}
 		if cfg.CurrencySettings[i].MakerFee.GreaterThan(cfg.CurrencySettings[i].TakerFee) {
-			log.Warnf(log.TradeManager, "maker fee '%v' should not exceed taker fee '%v'. Please review config",
+			log.Warnf(log.Portfolio, "maker fee '%v' should not exceed taker fee '%v'. Please review config",
 				cfg.CurrencySettings[i].MakerFee,
 				cfg.CurrencySettings[i].TakerFee)
 		}
