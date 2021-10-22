@@ -364,7 +364,13 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	o.BuyLimit = ev.GetBuyLimit()
 	o.SellLimit = ev.GetSellLimit()
 	o.StrategyID = ev.GetStrategyID()
-	sizedOrder := p.sizeOrder(ev, cs, o, decimal.NewFromFloat(100))
+	var sizingFunds decimal.Decimal
+	if ev.GetDirection() == gctorder.Sell {
+		sizingFunds = funds.BaseAvailable()
+	} else {
+		sizingFunds = funds.QuoteAvailable()
+	}
+	sizedOrder := p.sizeOrder(ev, cs, o, sizingFunds, funds)
 	sizedOrder.Amount = ev.GetAmount()
 
 	p.recordTrade(ev)
