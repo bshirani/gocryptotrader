@@ -657,7 +657,9 @@ func (m *OrderManager) processOrders() {
 					err)
 				continue
 			}
-			log.Infoln(log.OrderMgr, "open orders in store:", len(orders), "from broker:", len(result))
+			if m.verbose {
+				log.Infoln(log.OrderMgr, "open orders in store:", len(orders), "from broker:", len(result))
+			}
 			if len(orders) == 0 && len(result) == 0 {
 				continue
 			}

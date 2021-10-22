@@ -884,10 +884,13 @@ func (m *syncManager) worker() {
 									newCandle, err = exchanges[x].GetHistoricCandles(context.TODO(), c.Pair, c.AssetType, st, time.Now(), kline.OneMin)
 								} else if minSinceLast > 60 {
 									log.Warnln(log.SyncMgr, "BIGSYNC", minSinceLast, "candles", "last candle", c.Pair, lastCandle.Timestamp)
+									// fmt.Println("syncmanager", "needs", minSinceLast, "candles", "last candle", c.Pair, lastCandle.Timestamp)
+									newCandle, err = exchanges[x].GetHistoricCandles(context.TODO(), c.Pair, c.AssetType, lastCandle.Timestamp, time.Now(), kline.OneMin)
 								} else if minSinceLast > 0 {
 									// fmt.Println("syncmanager", "needs", minSinceLast, "candles", "last candle", c.Pair, lastCandle.Timestamp)
 									newCandle, err = exchanges[x].GetHistoricCandles(context.TODO(), c.Pair, c.AssetType, lastCandle.Timestamp, time.Now(), kline.OneMin)
 								} else if minSinceLast == 0 {
+									// already updated, skip
 									c.Kline.LastUpdated = time.Now()
 									m.setProcessing(c.Exchange, c.Pair, c.AssetType, SyncItemKline, false)
 									continue

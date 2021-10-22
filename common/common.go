@@ -96,6 +96,14 @@ func ThisMinute() time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location())
 }
 
+func IsSameMinute(t1, t2 time.Time) bool {
+	return (t2.Year() == t1.Year() &&
+		t2.Month() == t1.Month() &&
+		t2.Day() == t1.Day() &&
+		t2.Hour() == t1.Hour() &&
+		t2.Day() == t1.Day())
+}
+
 // NewHTTPClientWithTimeout initialises a new HTTP client and its underlying
 // transport IdleConnTimeout with the specified timeout duration
 func NewHTTPClientWithTimeout(t time.Duration) *http.Client {

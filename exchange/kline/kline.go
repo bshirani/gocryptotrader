@@ -456,16 +456,25 @@ func CalculateCandleDateRanges(start, end time.Time, interval Interval, limit ui
 func (h *IntervalRangeHolder) HasDataAtDate(t time.Time) bool {
 	tu := t.Unix()
 	if tu < h.Start.Ticks || tu > h.End.Ticks {
+		// fmt.Println("here0")
 		return false
 	}
 	for i := range h.Ranges {
+		// fmt.Println("checking range ", i)
 		if tu >= h.Ranges[i].Start.Ticks && tu <= h.Ranges[i].End.Ticks {
+			// fmt.Println("tu is inside range", tu, h.Ranges[i].Start.Ticks, h.Ranges[i].End.Ticks)
+
 			for j := range h.Ranges[i].Intervals {
-				if tu >= h.Ranges[i].Intervals[j].Start.Ticks && tu < h.Ranges[i].Intervals[j].End.Ticks {
+				// fmt.Println("checking range", i, "interval", j)
+
+				if tu >= h.Ranges[i].Intervals[j].Start.Ticks && tu <= h.Ranges[i].Intervals[j].End.Ticks {
+					// fmt.Println("in interval", i, j, "returning", h.Ranges[i].Intervals[j].HasData)
 					return h.Ranges[i].Intervals[j].HasData
 				}
 				if j == len(h.Ranges[i].Intervals)-1 {
+					// fmt.Println("rangexx", i, "interval", j)
 					if tu == h.Ranges[i].Start.Ticks {
+						// fmt.Println("l3")
 						return h.Ranges[i].Intervals[j].HasData
 					}
 				}

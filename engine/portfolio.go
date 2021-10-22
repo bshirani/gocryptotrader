@@ -314,7 +314,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		return o, errInvalidDirection
 	}
 
-	log.Infof(log.Portfolio, "pf on signal t:%s %s-%s decide:%s reason:%s", ev.GetTime(), s.GetPair(), s.GetDirection(), ev.GetDirection(), ev.GetReason())
+	log.Infof(log.Portfolio, "pf on signal t:%s %s-%s decide:%s reason:%s", ev.GetTime(), s.GetPair(), s.GetDirection(), ev.GetDecision(), ev.GetReason())
 
 	// lookup := p.bot.exchangeAssetPairSettings[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
 	lookup, _ := p.bot.GetCurrencySettings(ev.GetExchange(), ev.GetAssetType(), ev.Pair())

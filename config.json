@@ -49,7 +49,7 @@
   "verbose": false
  },
  "orderManager": {
-  "verbose": true,
+  "verbose": false,
   "enabled": true
  },
  "dataImporter": {

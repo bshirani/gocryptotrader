@@ -488,6 +488,7 @@ func (tm *TradeManager) runLive() error {
 			if thisMinute != lastMinute {
 				lup = make(map[*ExchangeAssetPairSettings]time.Time)
 				lastMinute = thisMinute
+				fmt.Println("handling new minute", thisMinute)
 			}
 
 			for _, cs := range tm.bot.CurrencySettings {
@@ -498,24 +499,38 @@ func (tm *TradeManager) runLive() error {
 						continue
 					}
 
-					fmt.Println("requested bars until", thisMinute)
-					fmt.Println("dbdata has bars", len(dbData.Item.Candles), dbData.Item.Candles[0].Time, dbData.Item.Candles[len(dbData.Item.Candles)-1].Time)
-					// dbData.AppendResults()
-
-					for dataEvent := dbData.Next(); ; dataEvent = dbData.Next() {
-						// fmt.Println("got data event from database", dataEvent.GetTime())
-						if dataEvent != nil {
-							fmt.Println("does have in ", dbData.HasDataAtTime(dataEvent.GetTime()))
-							tm.EventQueue.AppendEvent(dataEvent)
-							lup[cs] = dataEvent.GetTime().UTC()
-							// fmt.Println(cs.CurrencyPair, "seen", thisMinute, "loadedbars", t1, len(dbData.Item.Candles))
-							// fmt.Println("sending event", dataEvent.GetTime())
-						} else {
+					dataEvent := dbData.Next()
+					for ; ; dataEvent = dbData.Next() {
+						if dataEvent == nil {
 							break
 						}
 					}
+					dataEvent = dbData.Latest()
+
+					// if same this as this minute
+					if !common.IsSameMinute(thisMinute, dataEvent.GetTime()) {
+						fmt.Println("skipping already seen bar", dataEvent.GetTime(), thisMinute)
+						continue
+					}
+
+					fmt.Println("Handle this minute", thisMinute)
+					if !dbData.HasDataAtTime(dataEvent.GetTime()) {
+						fmt.Println("doesnt have data in range")
+						os.Exit(123)
+					}
+					fmt.Println("got data event from database", dataEvent.GetTime())
+					lup[cs] = dataEvent.GetTime().UTC()
+					tm.EventQueue.AppendEvent(dataEvent)
+					// fmt.Println(cs.CurrencyPair, "seen", thisMinute, "loadedbars", t1, len(dbData.Item.Candles))
+					// fmt.Println("sending event", dataEvent.GetTime())
+					// else {
+					// 	break
+					// }
 
 				}
+				// else {
+				// 	fmt.Println("lastupdate", cs.CurrencyPair, lup[cs], "now", thisMinute)
+				// }
 			}
 
 			err := tm.processEvents()
@@ -901,9 +916,9 @@ func (tm *TradeManager) loadCandlesFromDatabase(eap *ExchangeAssetPairSettings) 
 	a := eap.AssetType
 	p := eap.CurrencyPair
 	thisMinute := common.ThisMinute()
-	// startTime := thisMinute.Add(time.Minute * -1)
+	startTime := thisMinute.Add(time.Minute * -1)
 	dbData, err := database.LoadData(
-		thisMinute,
+		startTime,
 		thisMinute,
 		time.Minute,
 		e,
@@ -917,21 +932,33 @@ func (tm *TradeManager) loadCandlesFromDatabase(eap *ExchangeAssetPairSettings) 
 	// validate results
 	lastCandle := dbData.Item.Candles[len(dbData.Item.Candles)-1]
 	t1 := lastCandle.Time
-	t2 := common.ThisMinute()
-	sameTime := (t1.Year() == t2.Year() && t1.Month() == t2.Month() && t1.Day() == t2.Day() && t1.Hour() == t2.Hour() && t1.Minute() == t2.Minute())
-	if !sameTime {
+	// sameTime := (t1.Year() == t2.Year() && t1.Month() == t2.Month() && t1.Day() == t2.Day() && t1.Hour() == t2.Hour() && t1.Minute() == t2.Minute())
+	if !common.IsSameMinute(t1, thisMinute) {
 		// fmt.Println("don't have bar yet", lastCandle.Time, thisMinute)
 		return nil, fmt.Errorf("don't have bar yet", lastCandle.Time, thisMinute)
 	}
+	fmt.Println("db load data", p, thisMinute)
 	dbData.Load()
 
-	to := common.ThisMinute()
-	from := to.Add(time.Minute * -1)
-	dbData.RangeHolder, err = kline.CalculateCandleDateRanges(from, to, kline.Interval(kline.OneMin), 0)
+	tm.Datas.SetDataForCurrency(e, a, p, dbData)
+	// dbData.RangeHolder.SetHasDataFromCandles(dbData.Item.Candles)
+	fmt.Println("calculate data in range", startTime, thisMinute, "lasttime", lastCandle.Time)
+	dbData.RangeHolder, err = kline.CalculateCandleDateRanges(startTime, time.Now(), kline.Interval(kline.OneMin), 0)
+
 	if err != nil {
 		return nil, fmt.Errorf("error creating range holder. error: %s", err)
 	}
-	dbData.RangeHolder.SetHasDataFromCandles(dbData.Item.Candles)
-	tm.Datas.SetDataForCurrency(e, a, p, dbData)
+
+	for i := range dbData.RangeHolder.Ranges {
+		for j := range dbData.RangeHolder.Ranges[i].Intervals {
+			dbData.RangeHolder.Ranges[i].Intervals[j].HasData = true
+		}
+	}
+
+	if !dbData.HasDataAtTime(lastCandle.Time) {
+		fmt.Println("doesnt have data in range", lastCandle.Time)
+		os.Exit(123)
+	}
+
 	return dbData, err
 }

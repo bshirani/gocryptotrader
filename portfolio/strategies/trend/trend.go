@@ -89,6 +89,7 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 		}
 		es.SetDecision(signal.Enter)
 		es.SetDirection(order.Buy)
+		es.AppendReason("no trades, no orders, so trade")
 	} else {
 		// fmt.Println("ALREADY IN TRADE")
 		secondsInTrade := currentTime.Sub(trade.EntryTime).Seconds()
