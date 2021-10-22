@@ -158,6 +158,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 		fmt.Println("error setting up tm", err)
 		os.Exit(123)
 	}
+	fmt.Println("trade manager has", len(bot.CurrencySettings), "cs")
 
 	// fmt.Println("done setting up bot with", len(tm.bot.CurrencySettings), "currencies")
 	if len(tm.bot.CurrencySettings) < 1 {
@@ -245,10 +246,6 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	return ev, nil
 }
 
-// load data if necessary
-// in backtest mode...
-// in live mode...
-
 func (tm *TradeManager) Run() error {
 	log.Debugf(log.TradeMgr, "TradeManager Running")
 dataLoadingIssue:
@@ -285,7 +282,8 @@ dataLoadingIssue:
 			tm.hasHandledEvent = true
 		}
 	}
-	// fmt.Println("done running")
+
+	fmt.Println("done running")
 
 	return nil
 }
@@ -596,6 +594,7 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 			tm.bot.OrderManager.Update()
 		}
 
+		fmt.Println(1)
 		if len(fe.Minute().M60Range) > 0 {
 			if tm.bot.Config.LiveMode {
 				if tm.verbose {
@@ -625,8 +624,10 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 				}
 			}
 
+			fmt.Println(2)
 			for _, strategy := range tm.Strategies {
 				if strategy.GetPair() == ev.Pair() {
+					fmt.Println(3)
 					s, err := strategy.OnData(d, tm.Portfolio, fe)
 					if err != nil {
 						fmt.Println("error processing data event", err)
@@ -665,6 +666,7 @@ func (tm *TradeManager) processSimultaneousDataEvents() error {
 }
 
 func (tm *TradeManager) processSignalEvent(ev signal.Event) {
+	fmt.Println("process signal", ev.GetReason())
 	cs, err := tm.bot.GetCurrencySettings(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 	if err != nil {
 		log.Error(log.TradeMgr, "error", err)
@@ -831,27 +833,7 @@ func (tm *TradeManager) startOfflineServices() error {
 		}
 	}
 
-	for _, cs := range tm.bot.CurrencySettings {
-		dbData, err := database.LoadData(
-			time.Now().Add(time.Minute*-300),
-			time.Now().Add(time.Minute*-30),
-			time.Minute,
-			cs.ExchangeName,
-			0,
-			cs.CurrencyPair,
-			cs.AssetType)
-
-		if err != nil {
-			fmt.Println("error loading db data", err)
-			// create a data history request if there isn't one already
-			os.Exit(123)
-		} else {
-			fmt.Println("loaded data for", len(dbData.Item.Candles), cs.CurrencyPair)
-		}
-
-		tm.Datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, dbData)
-		dbData.Load()
-	}
+	tm.initializeFactorEngines()
 
 	return err
 }
@@ -907,6 +889,38 @@ func (tm *TradeManager) initializeFactorEngines() error {
 		}
 		fe, _ := SetupFactorEngine(cs, &tm.bot.Config.FactorEngine)
 		tm.FactorEngines[cs.ExchangeName][cs.AssetType][cs.CurrencyPair] = fe
+
+		var dbData *datakline.DataFromKline
+		var err error
+		if tm.bot.Settings.EnableLiveMode {
+			dbData, err = database.LoadData(
+				time.Now().Add(time.Minute*-300),
+				time.Now().Add(time.Minute*-30),
+				time.Minute,
+				cs.ExchangeName,
+				0,
+				cs.CurrencyPair,
+				cs.AssetType)
+		} else {
+			fmt.Println("loading backtest data")
+			// load data for backtest
+			dbData, err = database.LoadData(
+				time.Now().Add(time.Minute*-3000),
+				time.Now().Add(time.Minute*-300),
+				time.Minute,
+				cs.ExchangeName,
+				0,
+				cs.CurrencyPair,
+				cs.AssetType)
+		}
+
+		if err != nil {
+			fmt.Println("error loading db data", err)
+			// create a data history request if there isn't one already
+			os.Exit(123)
+		}
+		tm.Datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, dbData)
+		dbData.Load()
 	}
 	return nil
 }

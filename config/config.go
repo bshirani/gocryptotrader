@@ -1809,10 +1809,10 @@ func (c *Config) Validate() error {
 	if err != nil {
 		return err
 	}
-	err = c.validateStrategySettings()
-	if err != nil {
-		return err
-	}
+	// err = c.validateStrategySettings()
+	// if err != nil {
+	// 	return err
+	// }
 	err = c.validateCurrencySettings()
 	if err != nil {
 		return err
@@ -1868,41 +1868,41 @@ func (c *Config) validateMinMaxes() (err error) {
 	return nil
 }
 
-func (c *Config) validateStrategySettings() error {
-	for _, settings := range c.StrategiesSettings {
-		if settings.UseExchangeLevelFunding && !settings.SimultaneousSignalProcessing {
-			return errSimultaneousProcessingRequired
-		}
-		if len(settings.ExchangeLevelFunding) > 0 && !settings.UseExchangeLevelFunding {
-			return errExchangeLevelFundingRequired
-		}
-		if settings.UseExchangeLevelFunding && len(settings.ExchangeLevelFunding) == 0 {
-			return errExchangeLevelFundingDataRequired
-		}
-		if settings.UseExchangeLevelFunding {
-			for i := range settings.ExchangeLevelFunding {
-				if settings.ExchangeLevelFunding[i].InitialFunds.IsNegative() {
-					return fmt.Errorf("%w for %v %v %v",
-						errBadInitialFunds,
-						settings.ExchangeLevelFunding[i].ExchangeName,
-						settings.ExchangeLevelFunding[i].Asset,
-						settings.ExchangeLevelFunding[i].Currency,
-					)
-				}
-			}
-		}
-	}
-
-	// strats := strategies.GetStrategies()
-	// for i := range strats {
-	// 	if strings.EqualFold(strats[i].Name(), settings.Name) {
-	// 		return nil
-	// 	}
-	// }
-
-	return nil
-	// return fmt.Errorf("non-nil quote %w", errBadInitialFunds)
-}
+// func (c *Config) validateStrategySettings() error {
+// 	for _, settings := range c.StrategiesSettings {
+// 		if settings.UseExchangeLevelFunding && !settings.SimultaneousSignalProcessing {
+// 			return errSimultaneousProcessingRequired
+// 		}
+// 		if len(settings.ExchangeLevelFunding) > 0 && !settings.UseExchangeLevelFunding {
+// 			return errExchangeLevelFundingRequired
+// 		}
+// 		if settings.UseExchangeLevelFunding && len(settings.ExchangeLevelFunding) == 0 {
+// 			return errExchangeLevelFundingDataRequired
+// 		}
+// 		if settings.UseExchangeLevelFunding {
+// 			for i := range settings.ExchangeLevelFunding {
+// 				if settings.ExchangeLevelFunding[i].InitialFunds.IsNegative() {
+// 					return fmt.Errorf("%w for %v %v %v",
+// 						errBadInitialFunds,
+// 						settings.ExchangeLevelFunding[i].ExchangeName,
+// 						settings.ExchangeLevelFunding[i].Asset,
+// 						settings.ExchangeLevelFunding[i].Currency,
+// 					)
+// 				}
+// 			}
+// 		}
+// 	}
+//
+// 	// strats := strategies.GetStrategies()
+// 	// for i := range strats {
+// 	// 	if strings.EqualFold(strats[i].Name(), settings.Name) {
+// 	// 		return nil
+// 	// 	}
+// 	// }
+//
+// 	return nil
+// 	// return fmt.Errorf("non-nil quote %w", errBadInitialFunds)
+// }
 
 // validateDate checks whether someone has set a date poorly in their config
 func (c *Config) validateDate() error {
@@ -1942,33 +1942,33 @@ func (c *Config) validateCurrencySettings() error {
 			iqf := decimal.NewFromFloat(c.CurrencySettings[i].InitialLegacyFunds)
 			c.CurrencySettings[i].InitialQuoteFunds = &iqf
 		}
-		if c.StrategySettings.UseExchangeLevelFunding {
-			if c.CurrencySettings[i].InitialQuoteFunds != nil &&
-				c.CurrencySettings[i].InitialQuoteFunds.GreaterThan(decimal.Zero) {
-				return fmt.Errorf("non-nil quote %w", errBadInitialFunds)
-			}
-			if c.CurrencySettings[i].InitialBaseFunds != nil &&
-				c.CurrencySettings[i].InitialBaseFunds.GreaterThan(decimal.Zero) {
-				return fmt.Errorf("non-nil base %w", errBadInitialFunds)
-			}
-		} else {
-			if c.CurrencySettings[i].InitialQuoteFunds == nil &&
-				c.CurrencySettings[i].InitialBaseFunds == nil {
-				return fmt.Errorf("nil base and quote %w", errBadInitialFunds)
-			}
-			if c.CurrencySettings[i].InitialQuoteFunds != nil &&
-				c.CurrencySettings[i].InitialBaseFunds != nil &&
-				c.CurrencySettings[i].InitialBaseFunds.IsZero() &&
-				c.CurrencySettings[i].InitialQuoteFunds.IsZero() {
-				return fmt.Errorf("base or quote funds set to zero %w", errBadInitialFunds)
-			}
-			if c.CurrencySettings[i].InitialQuoteFunds == nil {
-				c.CurrencySettings[i].InitialQuoteFunds = &decimal.Zero
-			}
-			if c.CurrencySettings[i].InitialBaseFunds == nil {
-				c.CurrencySettings[i].InitialBaseFunds = &decimal.Zero
-			}
-		}
+		// if c.StrategySettings.UseExchangeLevelFunding {
+		// 	if c.CurrencySettings[i].InitialQuoteFunds != nil &&
+		// 		c.CurrencySettings[i].InitialQuoteFunds.GreaterThan(decimal.Zero) {
+		// 		return fmt.Errorf("non-nil quote %w", errBadInitialFunds)
+		// 	}
+		// 	if c.CurrencySettings[i].InitialBaseFunds != nil &&
+		// 		c.CurrencySettings[i].InitialBaseFunds.GreaterThan(decimal.Zero) {
+		// 		return fmt.Errorf("non-nil base %w", errBadInitialFunds)
+		// 	}
+		// } else {
+		// 	if c.CurrencySettings[i].InitialQuoteFunds == nil &&
+		// 		c.CurrencySettings[i].InitialBaseFunds == nil {
+		// 		return fmt.Errorf("nil base and quote %w", errBadInitialFunds)
+		// 	}
+		// 	if c.CurrencySettings[i].InitialQuoteFunds != nil &&
+		// 		c.CurrencySettings[i].InitialBaseFunds != nil &&
+		// 		c.CurrencySettings[i].InitialBaseFunds.IsZero() &&
+		// 		c.CurrencySettings[i].InitialQuoteFunds.IsZero() {
+		// 		return fmt.Errorf("base or quote funds set to zero %w", errBadInitialFunds)
+		// 	}
+		// 	if c.CurrencySettings[i].InitialQuoteFunds == nil {
+		// 		c.CurrencySettings[i].InitialQuoteFunds = &decimal.Zero
+		// 	}
+		// 	if c.CurrencySettings[i].InitialBaseFunds == nil {
+		// 		c.CurrencySettings[i].InitialBaseFunds = &decimal.Zero
+		// 	}
+		// }
 
 		if c.CurrencySettings[i].Base == "" {
 			return errUnsetCurrency

@@ -1,6 +1,7 @@
 {
- "LiveMode": true,
- "DryRun": false,
+ "productionMode": false,
+ "LiveMode": false,
+ "DryRun": true,
  "Script": false,
  "realOrders": false,
  "nickname": "",
@@ -39,6 +40,10 @@
  "gocryptotrader-config-path": "",
  "statisticSettings": {
   "risk-free-rate": "0"
+ },
+ "syncManager": {
+  "verbose": false,
+  "enabled": true
  },
  "tradeManager": {
   "enabled": true,

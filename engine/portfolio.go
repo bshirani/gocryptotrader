@@ -158,19 +158,22 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 		s.SetWeight(decimal.NewFromFloat(1.5))
 	}
 
-	activeTrades, _ := livetrade.Active()
-	for _, t := range activeTrades {
-		p.store.openTrade[t.StrategyID] = &t
-		pos := p.store.positions[t.StrategyID]
-		pos.Active = true
-	}
-
-	activeOrders, _ := liveorder.Active()
-	for _, t := range activeOrders {
-		p.store.openOrders[t.StrategyID] = append(p.store.openOrders[t.StrategyID], &t)
-	}
-
 	if !p.bot.Settings.EnableDryRun {
+		panic("123")
+		activeTrades, _ := livetrade.Active()
+		for _, t := range activeTrades {
+			// p.getStrategyTrade(t.StrategyID)
+			// set open trade
+			// set position
+			fmt.Println("looking for", t.StrategyID)
+			p.store.openTrade[t.StrategyID] = &t
+			pos := p.store.positions[t.StrategyID]
+			pos.Active = true
+		}
+		activeOrders, _ := liveorder.Active()
+		for _, t := range activeOrders {
+			p.store.openOrders[t.StrategyID] = append(p.store.openOrders[t.StrategyID], &t)
+		}
 		log.Infof(log.Portfolio, "Loaded Trades %d Orders %d", len(activeTrades), len(activeOrders))
 	}
 
@@ -285,7 +288,6 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		ev.SetDecision(signal.DoNothing)
 		ev.AppendReason(fmt.Sprintf("PF Says: NOGO. DoNothing. global_max_trades=1/(%d)", len(activeTrades)))
 	} else {
-		fmt.Println("active trades", activeTrades)
 		ev.AppendReason(fmt.Sprintf("PF: GO. global_max_trades=1 cur=%d", len(activeTrades)))
 	}
 
@@ -363,7 +365,8 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 
 	p.store.openOrders[ev.GetStrategyID()] = append(p.store.openOrders[ev.GetStrategyID()], &lo)
 
-	if !p.bot.Settings.EnableDryRun {
+	if !p.bot.Config.DryRun {
+		panic("wtf")
 		// fmt.Println("recording the order")
 		id, err := liveorder.Insert(lo)
 		if err != nil {
@@ -434,6 +437,7 @@ func (p *Portfolio) createTrade(ev fill.Event, order *liveorder.Details) {
 	fmt.Println("look up order", ev.GetOrderID())
 	foundOrd := p.GetOrderFromStore(ev.GetOrderID())
 	stopLossPrice := decimal.NewFromFloat(foundOrd.Price).Mul(decimal.NewFromFloat(0.9))
+	p.store.positions[ev.GetStrategyID()] = &positions.Position{Active: true}
 
 	lt := livetrade.Details{
 		Status:        gctorder.Open,
@@ -472,10 +476,12 @@ func (p *Portfolio) createTrade(ev fill.Event, order *liveorder.Details) {
 }
 
 func (p *Portfolio) closeTrade(f fill.Event, t *livetrade.Details) {
+
 	if t.Status == gctorder.Open {
 		t.Status = gctorder.Closed
 		p.store.closedTrades[f.GetStrategyID()] = append(p.store.closedTrades[f.GetStrategyID()], t)
 		p.store.openTrade[f.GetStrategyID()] = nil
+		p.store.positions[f.GetStrategyID()] = &positions.Position{Active: false}
 
 		if !p.bot.Settings.EnableDryRun {
 			id, err := livetrade.Update(t)
@@ -545,7 +551,6 @@ func (p *Portfolio) OnFill(f fill.Event) {
 	} else if t.Status == gctorder.Open {
 		fmt.Println("CLOSING TRADE")
 		p.closeTrade(f, t)
-
 	}
 
 	// if f == nil {

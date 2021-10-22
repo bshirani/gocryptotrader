@@ -91,9 +91,10 @@ var (
 // prestart management of Portfolio, Communications, Webserver and Enabled
 // Exchanges
 type Config struct {
-	LiveMode bool
-	DryRun   bool
-	Script   bool
+	ProductionMode bool `json:"productionMode"`
+	LiveMode       bool
+	DryRun         bool
+	Script         bool
 
 	RealOrders               bool                       `json:"realOrders"`
 	Nickname                 string                     `json:"nickname"`
@@ -108,6 +109,7 @@ type Config struct {
 	GoCryptoTraderConfigPath string `json:"gocryptotrader-config-path"`
 
 	StatisticSettings StatisticSettings  `json:"statisticSettings"`
+	SyncManager       SyncManagerConfig  `json:"syncManager"`
 	TradeManager      TradeManagerConfig `json:"tradeManager"`
 	FactorEngine      FactorEngineConfig `json:"factorEngine"`
 	OrderManager      OrderManagerConfig `json:"orderManager"`
@@ -163,6 +165,11 @@ type TradeManagerConfig struct {
 
 type FactorEngineConfig struct {
 	Verbose bool `json:"verbose"`
+}
+
+type SyncManagerConfig struct {
+	Verbose bool `json:"verbose"`
+	Enabled bool `json:"enabled"`
 }
 
 type OrderManagerConfig struct {

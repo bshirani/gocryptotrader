@@ -158,6 +158,8 @@ func validateSettings(b *Engine, s *Settings, flagSet map[string]bool) {
 	b.Settings.EnableTrading = (flagSet["strategies"] && b.Settings.EnableTrading) || b.Config.TradeManager.Trading
 	b.Settings.EnableOrderManager = flagSet["orders"] && b.Settings.EnableOrderManager || b.Config.OrderManager.Enabled
 	b.Settings.EnableRealOrders = flagSet["real"] && b.Settings.EnableRealOrders || b.Config.RealOrders
+	b.Settings.EnableExchangeSyncManager = flagSet["sync"] && b.Settings.EnableExchangeSyncManager || b.Config.SyncManager.Enabled
+	b.Settings.EnableDryRun = flagSet["dryrun"] && b.Settings.EnableDryRun || b.Config.DryRun
 
 	// if b.Settings.EnableTradeManager {
 	// 	b.Settings.EnableDataHistoryManager = true
@@ -282,7 +284,7 @@ func engineLog(str string, args ...interface{}) {
 func PrintSettings(s *Settings) {
 	engineLog("\t $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ REAL MONIES $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$: %v", s.EnableRealOrders)
 	engineLog("\t live:%v", s.EnableLiveMode)
-	engineLog("\t save_db: %v", !s.EnableDryRun)
+	engineLog("\t save_db: %v", s.EnableDryRun)
 	engineLog("\t trader: %v", s.EnableTradeManager)
 	engineLog("\t trading: %v", s.EnableTrading)
 	engineLog("\t sync: %v kline:%v ticker:%v trade:%v wsTimeout:%v", s.EnableExchangeSyncManager, s.EnableKlineSyncing, s.EnableTickerSyncing, s.EnableTradeSyncing, s.SyncTimeoutWebsocket)

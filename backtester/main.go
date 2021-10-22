@@ -10,6 +10,7 @@ import (
 	"gocryptotrader/config"
 	gctconfig "gocryptotrader/config"
 	"gocryptotrader/engine"
+	"gocryptotrader/log"
 )
 
 func main() {
@@ -44,7 +45,6 @@ func main() {
 	}
 	path := gctconfig.DefaultFilePath()
 	if cfg.GoCryptoTraderConfigPath != "" {
-		fmt.Println("using custom config", path)
 		path = cfg.GoCryptoTraderConfigPath
 	}
 
@@ -81,49 +81,33 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("cs0", len(bot.CurrencySettings))
-	os.Exit(2)
-
 	err = tm.Run()
 	if err != nil {
 		fmt.Printf("Could not complete run. Error: %v.\n", err)
 		os.Exit(1)
 	}
 
-	// keys := make(map[currency.Pair]bool)
-	// pairs := []currency.Pair{}
-	// for _, s := range tm.Strategies {
-	// 	if _, value := keys[s.GetPair()]; !value {
-	// 		keys[s.GetPair()] = true
-	// 		pairs = append(pairs, s.GetPair())
-	// 	}
+	// print range of backtest
+	// print all symbols in backtest
+	// print all strategies in backtest
+	log.Infof(
+		log.Global,
+		"%d trades, %d strategies",
+		len(tm.Portfolio.GetAllClosedTrades()),
+	)
+	for _, t := range tm.Portfolio.GetAllClosedTrades() {
+		if t != nil {
+			fmt.Println("trade:", t)
+		}
+	}
+	tm.Stop()
+
+	// err = tm.Statistic.CalculateAllResults()
+	// if err != nil {
+	// 	gctlog.Error(gctlog.Global, err)
+	// 	os.Exit(1)
 	// }
-	//
-	// // print range of backtest
-	// // print all symbols in backtest
-	// // print all strategies in backtest
-	// log.Infof(
-	// 	log.Global,
-	// 	"%d trades, %d strategies, %d pairs",
-	// 	len(tm.Portfolio.GetAllClosedTrades()),
-	// 	len(bot.Config.StrategiesSettings),
-	// 	len(pairs),
-	// )
-	//
-	// // for _, t := range tm.Portfolio.GetAllClosedTrades() {
-	// // 	if t != nil {
-	// // 		fmt.Println("trade:", t)
-	// // 	}
-	// // }
-	//
-	// tm.Stop()
-	//
-	// // err = tm.Statistic.CalculateAllResults()
-	// // if err != nil {
-	// // 	gctlog.Error(gctlog.Global, err)
-	// // 	os.Exit(1)
-	// // }
-	//
+
 	// if generateReport {
 	// 	tm.Reports.UseDarkMode(darkReport)
 	// 	err = tm.Reports.GenerateReport()
