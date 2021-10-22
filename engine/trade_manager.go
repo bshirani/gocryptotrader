@@ -137,7 +137,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	tm.Datas = &data.HandlerPerCurrency{}
 	tm.Datas.Setup()
 	if !tm.bot.Config.LiveMode {
-		fmt.Println("starting offline services")
+		log.Info(log.TradeMgr, "starting offline services")
 		err = tm.startOfflineServices()
 	}
 	if err != nil {
@@ -161,7 +161,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 
 	// fmt.Println("done setting up bot with", len(tm.bot.CurrencySettings), "currencies")
 	if len(tm.bot.CurrencySettings) < 1 {
-		fmt.Println("!!no currency settings")
+		log.Error(log.TradeMgr, "!!no currency settings")
 		os.Exit(123)
 	}
 
@@ -513,12 +513,12 @@ func (tm *TradeManager) runLive() error {
 						continue
 					}
 
-					fmt.Println("Handle this minute", thisMinute)
+					// fmt.Println("Handle this minute", thisMinute)
 					if !dbData.HasDataAtTime(dataEvent.GetTime()) {
-						fmt.Println("doesnt have data in range")
+						log.Error(log.TradeMgr, "doesnt have data in range")
 						os.Exit(123)
 					}
-					fmt.Println("got data event from database", dataEvent.GetTime())
+					// fmt.Println("got data event from database", dataEvent.GetTime())
 					lup[cs] = dataEvent.GetTime().UTC()
 					tm.EventQueue.AppendEvent(dataEvent)
 					// fmt.Println(cs.CurrencyPair, "seen", thisMinute, "loadedbars", t1, len(dbData.Item.Candles))
@@ -937,12 +937,12 @@ func (tm *TradeManager) loadCandlesFromDatabase(eap *ExchangeAssetPairSettings) 
 		// fmt.Println("don't have bar yet", lastCandle.Time, thisMinute)
 		return nil, fmt.Errorf("don't have bar yet", lastCandle.Time, thisMinute)
 	}
-	fmt.Println("db load data", p, thisMinute)
+	// fmt.Println("db load data", p, thisMinute)
 	dbData.Load()
 
 	tm.Datas.SetDataForCurrency(e, a, p, dbData)
 	// dbData.RangeHolder.SetHasDataFromCandles(dbData.Item.Candles)
-	fmt.Println("calculate data in range", startTime, thisMinute, "lasttime", lastCandle.Time)
+	// fmt.Println("calculate data in range", startTime, thisMinute, "lasttime", lastCandle.Time)
 	dbData.RangeHolder, err = kline.CalculateCandleDateRanges(startTime, time.Now(), kline.Interval(kline.OneMin), 0)
 
 	if err != nil {
