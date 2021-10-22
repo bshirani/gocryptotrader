@@ -83,6 +83,16 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	tm.verbose = bot.Config.TradeManager.Verbose
 	// fmt.Println("tmconfig", cfg.TradeManager, cfg.TradeManager.Verbose, cfg.TradeManager.Trading, cfg.TradeManager.Enabled)
 
+	stats := &statistics.Statistic{
+		StrategyName:                "ok",
+		StrategyNickname:            cfg.Nickname,
+		StrategyDescription:         "ok",
+		StrategyGoal:                cfg.Goal,
+		ExchangeAssetPairStatistics: make(map[string]map[asset.Item]map[currency.Pair]*currencystatistics.CurrencyStatistic),
+		RiskFreeRate:                cfg.StatisticSettings.RiskFreeRate,
+	}
+	tm.Statistic = stats
+
 	tm.EventQueue = &Holder{}
 	reports := &report.Data{
 		Config:       cfg,
@@ -135,8 +145,14 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	}
 
 	if tm.bot.Settings.EnableTrading {
-		tm.initializePortfolio(cfg)
+		tm.initializeStrategies(cfg)
+		p, err := SetupPortfolio(tm.Strategies, tm.bot, tm.bot.Config)
+		if err != nil {
+			return nil, fmt.Errorf("could not setup portfolio", err)
+		}
+		tm.Portfolio = p
 	}
+
 	if err != nil {
 		fmt.Println("error setting up tm", err)
 		os.Exit(123)
@@ -203,7 +219,7 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 		ords[i].LastUpdated = o.GetTime()
 		ords[i].CloseTime = o.GetTime()
 	}
-	fmt.Println("omr", omr)
+	// fmt.Println("omr", omr)
 
 	ev := &submit.Submit{
 		IsOrderPlaced:   omr.IsOrderPlaced,
@@ -216,7 +232,7 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	}
 
 	if ev.IsOrderPlaced {
-		// fmt.Println("TM ORDERPLACED, create fill event")
+		fmt.Println("TM ORDERPLACED, create fill event", ev.Pair(), ev.GetStrategyID())
 		tm.onFill(omr)
 	} else {
 		fmt.Println("TM ERROR: ORDERPLACED NOT")
@@ -570,6 +586,8 @@ func (tm *TradeManager) handleEvent(ev eventtypes.EventHandler) error {
 }
 
 func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) error {
+	// minutesOld := time.Now().UTC().Sub(ev.GetTime()).Minutes()
+	// fmt.Println("tm processing event at", ev.GetTime(), time.Now().UTC(), "minutes old", int(minutesOld))
 	err := tm.updateStatsForDataEvent(ev)
 	if err != nil {
 		return err
@@ -667,12 +685,12 @@ func (tm *TradeManager) processSimultaneousDataEvents() error {
 func (tm *TradeManager) processSignalEvent(ev signal.Event) {
 	cs, err := tm.bot.GetCurrencySettings(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 	if err != nil {
-		log.Error(log.TradeMgr, err)
+		log.Error(log.TradeMgr, "error", err)
 		return
 	}
 	var o *order.Order
 	o, err = tm.Portfolio.OnSignal(ev, cs)
-	fmt.Println("tm received order from pf", o, err)
+	// fmt.Println("tm received order from pf", o, err)
 	if err != nil {
 		log.Error(log.TradeMgr, err)
 		return
@@ -777,6 +795,7 @@ func (tm *TradeManager) updateStatsForDataEvent(ev eventtypes.DataEventHandler) 
 		log.Error(log.TradeMgr, err)
 	}
 	// update portfolio manager with the latest price
+	// fmt.Println("portfolio", tm.Portfolio)
 	err = tm.Portfolio.UpdateHoldings(ev)
 	if err != nil {
 		log.Error(log.TradeMgr, err)
@@ -885,39 +904,6 @@ func (tm *TradeManager) initializeStrategies(cfg *config.Config) {
 		}
 	}
 	tm.Strategies = slit
-}
-
-func (tm *TradeManager) initializePortfolio(strategyConfig *config.Config) error {
-	// for i := range strategyConfig.Strategy
-	tm.initializeStrategies(strategyConfig)
-
-	// if tm.verbose {
-	// 	log.Infof(log.TradeMgr, "Running %d strategies %d currencies", len(tm.Strategies), len(tm.bot.CurrencySettings))
-	// }
-
-	// setup portfolio with strategies
-	var p *Portfolio
-	p, err := SetupPortfolio(tm.Strategies, tm.bot, strategyConfig)
-	if err != nil {
-		return err
-	}
-
-	stats := &statistics.Statistic{
-		StrategyName:                "ok",
-		StrategyNickname:            strategyConfig.Nickname,
-		StrategyDescription:         "ok",
-		StrategyGoal:                strategyConfig.Goal,
-		ExchangeAssetPairStatistics: make(map[string]map[asset.Item]map[currency.Pair]*currencystatistics.CurrencyStatistic),
-		RiskFreeRate:                strategyConfig.StatisticSettings.RiskFreeRate,
-	}
-	tm.Statistic = stats
-
-	// load from configuration into datastructure
-	// currencysettings returns the data from the config, exchangeassetpairsettings
-	// tm.Exchange = &e
-
-	tm.Portfolio = p
-	return err
 }
 
 func (tm *TradeManager) initializeFactorEngines() error {

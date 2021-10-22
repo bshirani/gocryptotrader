@@ -36,6 +36,10 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+// var (
+// 	errStrategyNotFound = errors.New("Strategy Not found")
+// )
+
 // Setup creates a portfolio manager instance and sets private fields
 func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*Portfolio, error) {
 	buyRule := config.MinMax{
@@ -124,10 +128,10 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 	}
 	p := &Portfolio{}
 	p.verbose = cfg.PortfolioSettings.Verbose
-	if !p.verbose {
-		fmt.Println("pf not verbose")
-		os.Exit(123)
-	}
+	// if !p.verbose {
+	// 	fmt.Println("pf not verbose")
+	// 	os.Exit(123)
+	// }
 
 	// create position for every strategy
 	// create open trades array for every strategy
@@ -158,7 +162,6 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 	activeTrades, _ := livetrade.Active()
 	for _, t := range activeTrades {
 		p.store.openTrade[t.StrategyID] = &t
-		fmt.Println("id", t.StrategyID)
 		pos := p.store.positions[t.StrategyID]
 		pos.Active = true
 	}
@@ -204,9 +207,10 @@ func (p *Portfolio) OnCancel(cancel cancel.Event) {
 // if successful, it will pass on an order.Order to be used by the exchange event handler to place an order based on
 // the portfolio manager's recommendations
 func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*order.Order, error) {
-	if p.verbose {
-		fmt.Println("PORTFOLIO ON SIGNAL", ev.GetStrategyID(), ev.GetTime(), ev.GetReason())
-	}
+	// if p.verbose {
+	s, _ := p.getStrategy(ev.GetStrategyID())
+	log.Infof(log.Portfolio, "pf on signal t:%s %s-%s decide:%s reason:%s", ev.GetTime(), s.GetPair(), s.GetDirection(), ev.GetDirection(), ev.GetReason())
+	// }
 	if ev == nil || cs == nil {
 		return nil, eventtypes.ErrNilArguments
 	}
@@ -232,15 +236,14 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 			fmt.Println("trade is not sell or buy")
 			os.Exit(2)
 		}
-
-		if p.bot.Config.LiveMode {
-			p.printTradeDetails(trade)
-		}
+		// if p.bot.Config.LiveMode {
+		// 	p.printTradeDetails(trade)
+		// }
 	}
 
 	id, _ := uuid.NewV4()
 
-	ev.SetDirection(gctorder.Buy) // FIXME
+	// ev.SetDirection(gctorder.Buy) // FIXME
 
 	o := &order.Order{
 		Base: event.Base{
@@ -265,29 +268,37 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		Exchange:   ev.GetExchange(),
 		InternalID: id.String(),
 		StrategyID: ev.GetStrategyID(),
-		Side:       ev.GetDirection(),
 	}
 
+	strategyDirection, err := p.getStrategyDirection(ev.GetStrategyID())
+	if err != nil {
+		fmt.Println("error getting strategy direction", err)
+	}
 	switch ev.GetDecision() {
 	case signal.Enter:
-		lo.Side = gctorder.Buy
-		if !p.bot.Settings.EnableDryRun {
-			id, _ := liveorder.Insert(lo)
-			lo.ID = id
+		if strategyDirection == gctorder.Sell {
+			ev.SetDirection(gctorder.Sell)
+		} else {
+			ev.SetDirection(gctorder.Buy)
 		}
-
-		p.store.openOrders[ev.GetStrategyID()] = append(p.store.openOrders[ev.GetStrategyID()], &lo)
-
 	case signal.Exit:
-		ev.SetDirection(gctorder.Sell) // FIXME
-		lo.Side = gctorder.Sell
-		p.store.openOrders[ev.GetStrategyID()] = append(p.store.openOrders[ev.GetStrategyID()], &lo)
-
+		if strategyDirection == gctorder.Sell {
+			ev.SetDirection(gctorder.Buy)
+		} else {
+			ev.SetDirection(gctorder.Sell)
+		}
 	case signal.DoNothing:
 		return nil, nil
 
 	default:
 		return nil, errNoDecision
+	}
+
+	lo.Side = gctorder.Sell
+	p.store.openOrders[ev.GetStrategyID()] = append(p.store.openOrders[ev.GetStrategyID()], &lo)
+	if !p.bot.Settings.EnableDryRun {
+		id, _ := liveorder.Insert(lo)
+		lo.ID = id
 	}
 
 	if ev.GetDirection() == "" {
@@ -332,8 +343,8 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	p.recordTrade(ev)
 
 	// fmt.Println("PORTFOLIO", ev.GetDirection(), ev.GetStrategyID(), ev.GetReason())
-
-	return p.evaluateOrder(ev, o, sizedOrder)
+	// return p.evaluateOrder(ev, o, sizedOrder)
+	return o, nil
 }
 
 func (p *Portfolio) updatePosition(pos *positions.Position, amount decimal.Decimal) {
@@ -818,7 +829,6 @@ func (p *Portfolio) SetupCurrencySettingsMap(exch string, a asset.Item, cp curre
 		p.exchangeAssetPairSettings[exch][a][cp] = &PortfolioSettings{}
 	}
 
-	fmt.Println("done setup currency settings map", exch, a, cp)
 	return p.exchangeAssetPairSettings[exch][a][cp], nil
 }
 
@@ -1302,4 +1312,18 @@ func (p *Portfolio) PrintTradingDetails() {
 		// 	log.Debugln(log.StrategyMgr, cs.CurrencyPair, "last updated", secondsAgo, "seconds ago")
 		// }
 	}
+}
+
+func (p *Portfolio) getStrategyDirection(strategyID string) (gctorder.Side, error) {
+	strategy, err := p.getStrategy(strategyID)
+	return strategy.GetDirection(), err
+}
+
+func (p *Portfolio) getStrategy(strategyID string) (strategies.Handler, error) {
+	for _, s := range p.Strategies {
+		if s.GetID() == strategyID {
+			return s, nil
+		}
+	}
+	return nil, fmt.Errorf("strategy not found")
 }

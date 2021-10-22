@@ -38,7 +38,7 @@ func (s *Strategy) Description() string {
 
 func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe base.FactorEngineHandler) (signal.Event, error) {
 	// if p.GetLiveMode() {
-	fmt.Println("trend.go ON DATA", d.Latest().Pair(), d.Latest().GetTime(), d.HasDataAtTime(d.Latest().GetTime()))
+	fmt.Println("trend ONDATA", d.Latest().GetTime(), s.Strategy.GetDirection(), d.Latest().Pair())
 	// }
 	if d == nil {
 		return nil, eventtypes.ErrNilEvent
@@ -84,30 +84,27 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	orders := p.GetOpenOrdersForStrategy(s.GetID())
 	trade := p.GetTradeForStrategy(s.GetID())
 	if trade == nil && len(orders) == 0 {
-		fmt.Println("HERE")
 		if p.GetLiveMode() {
 			log.Debugln(log.TradeMgr, s.GetID(), "can trade")
 		}
 		es.SetDecision(signal.Enter)
 		es.SetDirection(order.Buy)
 	} else {
-		fmt.Println("ALREADY IN TRADE")
+		// fmt.Println("ALREADY IN TRADE")
 		secondsInTrade := currentTime.Sub(trade.EntryTime).Seconds()
 		if secondsInTrade < -120 {
 			fmt.Println("ERROR negative seconds in trade", currentTime, trade.EntryTime)
 			reason := fmt.Sprintf("negative %f seconds in trade", secondsInTrade)
 			es.AppendReason(reason)
 			os.Exit(2)
-		} else if secondsInTrade > 30 {
+		} else if secondsInTrade > 1200 {
 			es.SetDecision(signal.Exit)
 			es.SetDirection(order.Sell)
 			reason := fmt.Sprintf("%f seconds in trade", secondsInTrade)
 			es.AppendReason(reason)
 		} else {
 			es.SetDecision(signal.DoNothing)
-			// es.SetDirection(signal.DoNothing)
-			es.AppendReason("Less than 30 seconds in trade")
-			fmt.Printf("skipping exit, only %f seconds in trade\n", secondsInTrade)
+			es.AppendReason(fmt.Sprintf("only %f seconds in trade", secondsInTrade))
 		}
 
 		// fmt.Println(s.GetID(), "")
@@ -133,20 +130,20 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	// 	// get the current bar from the factor engine
 	// 	// bar := fe.Minute().LatestClose()
 
-	if p.GetVerbose() {
-		m := fe.Minute()
-		daily := fe.Daily()
-		factors := fmt.Sprintf(
-			"%s,%d,%v,%v,%v,%v",
-			s.ID,
-			m.GetCurrentTime().Unix(),
-			m.GetCurrentDateOpen(),
-			m.GetCurrentDateHigh(),
-			m.GetCurrentDateLow(),
-			len(daily.Open))
-
-		log.Debugf(log.TradeMgr, "%s trend factors %s", es.CurrencyPair, factors)
-	}
+	// if p.GetVerbose() {
+	// 	m := fe.Minute()
+	// 	daily := fe.Daily()
+	// 	factors := fmt.Sprintf(
+	// 		"%s,%d,%v,%v,%v,%v",
+	// 		s.ID,
+	// 		m.GetCurrentTime().Unix(),
+	// 		m.GetCurrentDateOpen(),
+	// 		m.GetCurrentDateHigh(),
+	// 		m.GetCurrentDateLow(),
+	// 		len(daily.Open))
+	//
+	// 	log.Debugf(log.TradeMgr, "%s trend factors %s", es.CurrencyPair, factors)
+	// }
 
 	// 	// fmt.Println("bar", m.LatestClose(), m.LastUpdate, d.Latest().GetTime())
 	// 	// what was the open of the day
@@ -158,6 +155,7 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	if es.GetDecision() == "" {
 		es.SetDecision(signal.DoNothing)
 		es.SetDirection(eventtypes.DoNothing)
+		es.AppendReason("no response")
 	}
 
 	// fmt.Println(s.GetPosition())

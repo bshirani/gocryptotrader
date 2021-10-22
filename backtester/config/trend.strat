@@ -15,10 +15,10 @@
  ],
  "currency-settings": [
   {
-   "exchange-name": "gateio",
+   "exchange-name": "kraken",
    "asset": "spot",
-   "base": "UNI",
-   "quote": "ETH",
+   "base": "XBT",
+   "quote": "USDT",
    "initial-quote-funds": "1000"
   }
  ],
