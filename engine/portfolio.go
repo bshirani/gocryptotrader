@@ -289,17 +289,16 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 
 	// validate new entry order
 	if ev.GetDecision() == signal.Enter {
-
 		if len(activeOrders) >= maxTradeCount {
 			ev.SetDirection(eventtypes.DoNothing)
 			ev.SetDecision(signal.DoNothing)
-			ev.AppendReason(fmt.Sprintf("PF Says: NOGO. DoNothing. Has %d new orders", len(activeOrders)))
+			ev.AppendReason(fmt.Sprintf("Mgr: NOGO. DoNothing. Has %d new orders", len(activeOrders)))
 		} else if len(activeTrades) >= maxTradeCount {
 			ev.SetDirection(eventtypes.DoNothing)
 			ev.SetDecision(signal.DoNothing)
-			ev.AppendReason(fmt.Sprintf("PF Says: NOGO. DoNothing. Has Active Trade", len(activeTrades)))
+			ev.AppendReason(fmt.Sprintf("Mgr: NOGO. DoNothing. Has Active Trade", len(activeTrades)))
 		} else {
-			ev.AppendReason(fmt.Sprintf("PF: GO. global_max_trades=1 cur=%d", len(activeTrades)))
+			ev.AppendReason(fmt.Sprintf("Mgr: GO. global_max_trades=1 cur=%d", len(activeTrades)))
 		}
 	}
 
@@ -375,8 +374,6 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		return nil, nil
 	}
 
-	p.store.openOrders[ev.GetStrategyID()] = append(p.store.openOrders[ev.GetStrategyID()], &lo)
-
 	if !p.bot.Config.DryRun {
 		id, err := liveorder.Insert(lo)
 		if err != nil {
@@ -385,8 +382,12 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 			// ev.AppendReason(fmt.Sprintf("unable to store in database. err: %s", err))
 			return nil, fmt.Errorf("unable to store in database. %v", err)
 		}
+		fmt.Println("setting live order id", id)
 		lo.ID = id
 	}
+
+	// ADD LIVE ORDER TO PORTFOLIO STORE
+	p.store.openOrders[ev.GetStrategyID()] = append(p.store.openOrders[ev.GetStrategyID()], &lo)
 
 	o.Price = ev.GetPrice()
 	o.Direction = ev.GetDirection()
@@ -555,11 +556,11 @@ func (p *Portfolio) OnFill(f fill.Event) {
 	// update trades and orders here
 	t := p.store.openTrade[f.GetStrategyID()]
 	if t == nil {
-		fmt.Println("NEW TRADE")
+		fmt.Println("PF ON fILL creating NEW TRADE")
 		p.createTrade(f, order)
 
 	} else if t.Status == gctorder.Open {
-		fmt.Println("CLOSING TRADE")
+		fmt.Println("PF ONFILL CLOSING TRADE")
 		p.closeTrade(f, t)
 	}
 

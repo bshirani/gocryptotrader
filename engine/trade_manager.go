@@ -217,7 +217,6 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 		if ords[i].ID != o.GetID() {
 			continue
 		}
-		fmt.Println("found order")
 		internalOrderID = ords[i].InternalOrderID
 		ords[i].StrategyID = o.GetStrategyID()
 		ords[i].Date = o.GetTime()
@@ -227,10 +226,11 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	// fmt.Println("omr", omr)
 
 	ev := &submit.Submit{
+		OrderID:         o.GetID(),
 		IsOrderPlaced:   omr.IsOrderPlaced,
 		InternalOrderID: internalOrderID,
 		StrategyID:      o.GetStrategyID(),
-	} // transform into submit event
+	}
 
 	// if ev.GetInternalOrderID() == "" {
 	// 	log.Errorln(log.TradeMgr, "error: order has no internal order id")
@@ -748,7 +748,10 @@ func (tm *TradeManager) processSubmitEvent(ev submit.Event) {
 		log.Error(log.TradeMgr, "submit event has no strategy ID")
 		return
 	}
-	// convert order submit response to submit.Event here
+	if ev.GetOrderID() == "" {
+		log.Error(log.TradeMgr, "submit event has no order ID")
+		return
+	}
 	tm.Portfolio.OnSubmit(ev)
 }
 

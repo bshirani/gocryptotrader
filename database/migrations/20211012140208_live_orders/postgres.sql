@@ -1,6 +1,6 @@
 -- +goose Up
 CREATE TABLE live_order (
-    id SERIAL PRIMARY KEY,
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     status text NOT NULL,
     order_type text NOT NULL,
     exchange text NOT NULL,

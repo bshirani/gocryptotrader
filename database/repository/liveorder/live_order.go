@@ -67,6 +67,71 @@ func Active() (out []Details, err error) {
 }
 
 // Insert writes a single entry into database
+func Update(in *Details) (int64, error) {
+	if database.DB.SQL == nil {
+		return 0, database.ErrDatabaseSupportDisabled
+	}
+
+	ctx := context.Background()
+	tx, err := database.DB.SQL.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+	id, err := updatePostgresql(ctx, tx, []Details{*in})
+
+	if err != nil {
+		errRB := tx.Rollback()
+		if errRB != nil {
+			log.Errorln(log.DatabaseMgr, errRB)
+		}
+		return id, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return id, err
+	}
+
+	return id, nil
+}
+
+func updatePostgresql(ctx context.Context, tx *sql.Tx, in []Details) (id int64, err error) {
+	// boil.DebugMode = true
+	for x := range in {
+		// entryPrice, _ := in[x].EntryPrice.Float64()
+		// exitPrice, _ := in[x].ExitPrice.Float64()
+		// stopLossPrice, _ := in[x].StopLossPrice.Float64()
+
+		// if in[x].EntryTime.IsZero() {
+		// 	fmt.Println("entrytimezero")
+		// 	log.Errorln(log.DatabaseMgr, "entry time zero")
+		// 	os.Exit(2)
+		// }
+		var tempUpdate = postgres.LiveOrder{
+			Status:     in[x].Status.String(),
+			OrderType:  in[x].OrderType.String(),
+			Exchange:   in[x].Exchange,
+			InternalID: in[x].InternalID,
+			StrategyID: in[x].StrategyID,
+			UpdatedAt:  in[x].UpdatedAt,
+			CreatedAt:  in[x].CreatedAt,
+		}
+
+		id, err = tempUpdate.Update(ctx, tx, boil.Infer())
+		if err != nil {
+			log.Errorln(log.DatabaseMgr, err)
+			errRB := tx.Rollback()
+			if errRB != nil {
+				log.Errorln(log.DatabaseMgr, errRB)
+			}
+			return 0, err
+		}
+	}
+
+	return id, nil
+}
+
+// Insert writes a single entry into database
 func Insert(in Details) (int64, error) {
 	if database.DB.SQL == nil {
 		return 0, database.ErrDatabaseSupportDisabled
