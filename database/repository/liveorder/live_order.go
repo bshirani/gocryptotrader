@@ -52,7 +52,7 @@ func Active() (out []Details, err error) {
 
 	for _, x := range ret {
 		out = append(out, Details{
-			ID: int64(x.ID),
+			ID: x.ID,
 		})
 	}
 	if errS != nil {
@@ -108,6 +108,7 @@ func updatePostgresql(ctx context.Context, tx *sql.Tx, in []Details) (id int64, 
 		// 	os.Exit(2)
 		// }
 		var tempUpdate = postgres.LiveOrder{
+			ID:         in[x].ID,
 			Status:     in[x].Status.String(),
 			OrderType:  in[x].OrderType.String(),
 			Exchange:   in[x].Exchange,
@@ -132,15 +133,15 @@ func updatePostgresql(ctx context.Context, tx *sql.Tx, in []Details) (id int64, 
 }
 
 // Insert writes a single entry into database
-func Insert(in Details) (int64, error) {
+func Insert(in Details) (string, error) {
 	if database.DB.SQL == nil {
-		return 0, database.ErrDatabaseSupportDisabled
+		return "", database.ErrDatabaseSupportDisabled
 	}
 
 	ctx := context.Background()
 	tx, err := database.DB.SQL.BeginTx(ctx, nil)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 	id, err := insertPostgresql(ctx, tx, in)
 
@@ -160,7 +161,7 @@ func Insert(in Details) (int64, error) {
 	return id, nil
 }
 
-func insertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int64, err error) {
+func insertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id string, err error) {
 	var tempInsert = postgres.LiveOrder{
 		Status:     in.Status.String(),
 		OrderType:  in.OrderType.String(),
@@ -178,8 +179,8 @@ func insertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int64, er
 		if errRB != nil {
 			log.Errorln(log.DatabaseMgr, errRB)
 		}
-		return 0, err
+		return "", err
 	}
 
-	return int64(tempInsert.ID), nil
+	return tempInsert.ID, nil
 }

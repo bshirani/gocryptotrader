@@ -177,3 +177,24 @@ deploy portfolio
 
 sync the orders with the broker
 use a real order manager
+
+
+when a strategy creates an order signal
+and the portfolio accepts it
+the portfolio stores the order in the database status NEW
+when the portfolio receives the fill event
+- it stores the order as CLOSED
+- it creates a TRADE status ACTIVE
+
+
+
+
+
+
+
+
+
+
+
+
+k

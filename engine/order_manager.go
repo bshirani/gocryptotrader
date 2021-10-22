@@ -16,8 +16,6 @@ import (
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/order"
 	"gocryptotrader/log"
-
-	"github.com/gofrs/uuid"
 )
 
 // SetupOrderManager will boot up the OrderManager
@@ -510,12 +508,12 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 		return nil, errors.New("order unable to be placed")
 	}
 
-	id, err := uuid.NewV4()
-	if err != nil {
-		log.Warnf(log.OrderMgr,
-			"Order manager: Unable to generate UUID. Err: %s",
-			err)
-	}
+	// id, err := uuid.NewV4()
+	// if err != nil {
+	// 	log.Warnf(log.OrderMgr,
+	// 		"Order manager: Unable to generate UUID. Err: %s",
+	// 		err)
+	// }
 	if newOrder.Date.IsZero() {
 		newOrder.Date = time.Now()
 	}
@@ -540,7 +538,7 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 		newOrder.StrategyID,
 		newOrder.Exchange,
 		result.OrderID,
-		id.String(),
+		newOrder.ID,
 		newOrder.Pair,
 		newOrder.Price,
 		newOrder.Amount,
@@ -557,7 +555,7 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 	if result.FullyMatched {
 		status = order.Filled
 	}
-	err = m.orderStore.add(&order.Detail{
+	err := m.orderStore.add(&order.Detail{
 		ImmediateOrCancel: newOrder.ImmediateOrCancel,
 		HiddenOrder:       newOrder.HiddenOrder,
 		FillOrKill:        newOrder.FillOrKill,
@@ -572,7 +570,7 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 		RemainingAmount:   newOrder.RemainingAmount,
 		Fee:               newOrder.Fee,
 		Exchange:          newOrder.Exchange,
-		InternalOrderID:   id.String(),
+		InternalOrderID:   newOrder.ID,
 		ID:                result.OrderID,
 		AccountID:         newOrder.AccountID,
 		ClientID:          newOrder.ClientID,
@@ -591,14 +589,14 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 		return nil, fmt.Errorf("unable to add %v order %v to orderStore: %s", newOrder.Exchange, result.OrderID, err)
 	}
 
-	fmt.Println("returning order id", id, "for strategy", newOrder.StrategyID)
+	fmt.Println("returning order id", newOrder.ID, "for strategy", newOrder.StrategyID)
 
 	return &OrderSubmitResponse{
 		SubmitResponse: order.SubmitResponse{
 			IsOrderPlaced: result.IsOrderPlaced,
 			OrderID:       result.OrderID,
 		},
-		InternalOrderID: id.String(),
+		InternalOrderID: newOrder.ID,
 		StrategyID:      newOrder.StrategyID,
 	}, nil
 }

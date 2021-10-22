@@ -172,8 +172,6 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 }
 
 func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om ExecutionHandler) (submit.Event, error) {
-	// u, _ := uuid.NewV4()
-	// var orderID string
 	priceFloat, _ := o.GetPrice().Float64()
 	a, _ := o.GetAmount().Float64()
 	fee, _ := o.GetExchangeFee().Float64()
@@ -201,7 +199,7 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 		fmt.Println("tm: ERROR order manager submission", err, submission.Side, omr)
 	}
 
-	fmt.Println("tm: order manager response", omr)
+	// fmt.Println("tm: order manager response", omr)
 	// if order is placed, update the status of the order to Open
 	// update order event order_id, status
 	// add the submission to the store
@@ -235,13 +233,6 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	// if ev.GetInternalOrderID() == "" {
 	// 	log.Errorln(log.TradeMgr, "error: order has no internal order id")
 	// }
-
-	if ev.IsOrderPlaced {
-		fmt.Println("TM ORDERPLACED, create fill event", ev.Pair(), ev.GetStrategyID())
-		tm.onFill(omr)
-	} else {
-		fmt.Println("TM ERROR: ORDERPLACED NOT")
-	}
 
 	return ev, nil
 }
@@ -291,7 +282,7 @@ dataLoadingIssue:
 		}
 	}
 
-	fmt.Println("done running", count, "data events")
+	// fmt.Println("done running", count, "data events")
 
 	return nil
 }
@@ -698,19 +689,26 @@ func (tm *TradeManager) processSignalEvent(ev signal.Event) {
 	}
 }
 
-func (tm *TradeManager) onFill(o *OrderSubmitResponse) {
-	if o.StrategyID == "" {
+func (tm *TradeManager) onFill(ev submit.Event) {
+	if ev.GetStrategyID() == "" {
 		fmt.Println("order submit response has no strategyID")
 		os.Exit(2)
 	}
-	if o.InternalOrderID == "" {
-		fmt.Println("order submit response has internal order id")
-		os.Exit(2)
+	e := &fill.Fill{
+		Base: event.Base{
+			StrategyID: ev.GetStrategyID(),
+		},
+		OrderID: ev.GetOrderID(),
 	}
-	if o.SubmitResponse.OrderID == "" {
-		fmt.Println("order submit response has no order id")
-		os.Exit(2)
-	}
+	tm.EventQueue.AppendEvent(e)
+	// if o.InternalOrderID == "" {
+	// 	fmt.Println("order submit response has internal order id")
+	// 	os.Exit(2)
+	// }
+	// if o.SubmitResponse.OrderID == "" {
+	// 	fmt.Println("order submit response has no order id")
+	// 	os.Exit(2)
+	// }
 	// return &OrderSubmitResponse{
 	// 	SubmitResponse: order.SubmitResponse{
 	// 		IsOrderPlaced: result.IsOrderPlaced,
@@ -721,18 +719,6 @@ func (tm *TradeManager) onFill(o *OrderSubmitResponse) {
 	// }, nil
 	// convert to submit event
 
-	ev := &fill.Fill{
-		Base: event.Base{
-			StrategyID: o.StrategyID,
-		},
-		OrderID: o.SubmitResponse.OrderID,
-	}
-	// fmt.Println("tmonfill creating fill event for:", ev.GetStrategyID())
-	if ev.GetStrategyID() == "" {
-		fmt.Println("noooooo")
-		os.Exit(2)
-	}
-	tm.EventQueue.AppendEvent(ev)
 }
 
 func (tm *TradeManager) onCancel(o *OrderSubmitResponse) {
@@ -753,6 +739,10 @@ func (tm *TradeManager) processSubmitEvent(ev submit.Event) {
 		return
 	}
 	tm.Portfolio.OnSubmit(ev)
+
+	if ev.GetIsOrderPlaced() {
+		tm.onFill(ev)
+	}
 }
 
 func (tm *TradeManager) processCancelEvent(ev cancel.Event) {
@@ -926,8 +916,8 @@ func (tm *TradeManager) initializeFactorEngines() error {
 }
 func (tm *TradeManager) setOrderManagerCallbacks() {
 	if tm.OrderManager != nil {
-		// tm.bot.OrderManager.SetOnSubmit(tm.onSubmit)
-		tm.OrderManager.SetOnFill(tm.onFill)
+		// tm.bot.OrderManager.SetOnSubmit(tm.onSubmit) // this is synchronous
+		// tm.OrderManager.SetOnFill(tm.onFill)
 		tm.OrderManager.SetOnCancel(tm.onCancel)
 	}
 }
