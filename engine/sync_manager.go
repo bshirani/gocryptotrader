@@ -34,7 +34,7 @@ var (
 	createdCounter = 0
 	removedCounter = 0
 	// DefaultSyncerWorkers limits the number of sync workers
-	DefaultSyncerWorkers = 5
+	DefaultSyncerWorkers = 1
 	// DefaultSyncerTimeoutREST the default time to switch from REST to websocket protocols without a response
 	DefaultSyncerTimeoutREST = time.Second * 15
 	// DefaultSyncerTimeoutWebsocket the default time to switch from websocket to REST protocols without a response
