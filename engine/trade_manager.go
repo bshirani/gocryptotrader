@@ -897,7 +897,7 @@ func (tm *TradeManager) initializePortfolio(strategyConfig *config.Config) error
 
 	// setup portfolio with strategies
 	var p *Portfolio
-	p, err := SetupPortfolio(tm.Strategies, tm.bot, tm.bot.Config)
+	p, err := SetupPortfolio(tm.Strategies, tm.bot, strategyConfig)
 	if err != nil {
 		return err
 	}

@@ -57,6 +57,25 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 		CurrencySettings: make(map[string]map[asset.Item]map[currency.Pair]*risk.CurrencySettings),
 	}
 
+	for i := range cfg.CurrencySettings {
+		if portfolioRisk.CurrencySettings[cfg.CurrencySettings[i].ExchangeName] == nil {
+			portfolioRisk.CurrencySettings[cfg.CurrencySettings[i].ExchangeName] = make(map[asset.Item]map[currency.Pair]*risk.CurrencySettings)
+		}
+		if portfolioRisk.CurrencySettings[cfg.CurrencySettings[i].ExchangeName][a] == nil {
+			portfolioRisk.CurrencySettings[cfg.CurrencySettings[i].ExchangeName][a] = make(map[currency.Pair]*risk.CurrencySettings)
+		}
+		portfolioRisk.CurrencySettings[cfg.CurrencySettings[i].ExchangeName][a][curr] = &risk.CurrencySettings{
+			MaximumOrdersWithLeverageRatio: cfg.CurrencySettings[i].Leverage.MaximumOrdersWithLeverageRatio,
+			MaxLeverageRate:                cfg.CurrencySettings[i].Leverage.MaximumLeverageRate,
+			MaximumHoldingRatio:            cfg.CurrencySettings[i].MaximumHoldingsRatio,
+		}
+		if cfg.CurrencySettings[i].MakerFee.GreaterThan(cfg.CurrencySettings[i].TakerFee) {
+			log.Warnf(log.TradeManager, "maker fee '%v' should not exceed taker fee '%v'. Please review config",
+				cfg.CurrencySettings[i].MakerFee,
+				cfg.CurrencySettings[i].TakerFee)
+		}
+	}
+
 	if sizeManager == nil {
 		return nil, errSizeManagerUnset
 	}
