@@ -209,7 +209,6 @@ func (p *Portfolio) OnCancel(cancel cancel.Event) {
 func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*order.Order, error) {
 	// if p.verbose {
 	s, _ := p.getStrategy(ev.GetStrategyID())
-	log.Infof(log.Portfolio, "pf on signal t:%s %s-%s decide:%s reason:%s", ev.GetTime(), s.GetPair(), s.GetDirection(), ev.GetDirection(), ev.GetReason())
 	// }
 	if ev == nil || cs == nil {
 		return nil, eventtypes.ErrNilArguments
@@ -257,7 +256,6 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 			StrategyID:   ev.GetStrategyID(),
 		},
 		ID:         id.String(),
-		Direction:  ev.GetDirection(),
 		Amount:     ev.GetAmount(),
 		StrategyID: ev.GetStrategyID(),
 	}
@@ -277,27 +275,38 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	switch ev.GetDecision() {
 	case signal.Enter:
 		if strategyDirection == gctorder.Sell {
+			// ev.Base.SetDirection(gctorder.Sell)
 			ev.SetDirection(gctorder.Sell)
 		} else {
+			// ev.Base.SetDirection(gctorder.Buy)
 			ev.SetDirection(gctorder.Buy)
 		}
 	case signal.Exit:
 		if strategyDirection == gctorder.Sell {
+			// ev.Base.SetDirection(gctorder.Buy)
 			ev.SetDirection(gctorder.Buy)
 		} else {
+			// ev.Base.SetDirection(gctorder.Sell)
 			ev.SetDirection(gctorder.Sell)
 		}
 	case signal.DoNothing:
-		return nil, nil
-
+		// ev.Base.SetDirection(signal.DoNothing)
+		ev.SetDirection(eventtypes.DoNothing)
 	default:
 		return nil, errNoDecision
 	}
 
 	lo.Side = gctorder.Sell
 	p.store.openOrders[ev.GetStrategyID()] = append(p.store.openOrders[ev.GetStrategyID()], &lo)
+
 	if !p.bot.Settings.EnableDryRun {
-		id, _ := liveorder.Insert(lo)
+		id, err := liveorder.Insert(lo)
+		if err != nil {
+			log.Errorln(log.Portfolio, "Unable to store order in database", err)
+			// ev.SetDirection(signal.DoNothing)
+			// ev.AppendReason(fmt.Sprintf("unable to store in database. err: %s", err))
+			return nil, fmt.Errorf("unable to store in database. %v", err)
+		}
 		lo.ID = id
 	}
 
@@ -305,10 +314,11 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		return o, errInvalidDirection
 	}
 
+	log.Infof(log.Portfolio, "pf on signal t:%s %s-%s decide:%s reason:%s", ev.GetTime(), s.GetPair(), s.GetDirection(), ev.GetDirection(), ev.GetReason())
+
 	// lookup := p.bot.exchangeAssetPairSettings[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
 	lookup, _ := p.bot.GetCurrencySettings(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 	if lookup == nil {
-		fmt.Println("pf on signal, lookup nil")
 		return nil, fmt.Errorf("%w for %v %v %v",
 			errNoPortfolioSettings,
 			ev.GetExchange(),
@@ -316,12 +326,11 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 			ev.Pair())
 	}
 
-	// sdir := p.Strategies[0].Direction()
-
+	// don't allow trade if already active
 	// if pos.Active {
-	// if (sdir == gctorder.Buy && ev.GetDirection() == gctorder.Buy) || (sdir == gctorder.Sell && ev.GetDirection() == gctorder.Sell) {
-	// 	return nil, errAlreadyInTrade
-	// }
+	// 	if (sdir == gctorder.Buy && ev.GetDirection() == gctorder.Buy) || (sdir == gctorder.Sell && ev.GetDirection() == gctorder.Sell) {
+	// 		return nil, errAlreadyInTrade
+	// 	}
 	// }
 
 	if ev.GetDirection() == eventtypes.DoNothing ||
