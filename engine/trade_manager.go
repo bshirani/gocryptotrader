@@ -486,16 +486,17 @@ func (tm *TradeManager) runLive() error {
 			t := time.Now().UTC()
 			thisMinute = time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, loc)
 			if thisMinute != lastMinute {
-				lup = make(map[*ExchangeAssetPairSettings]time.Time)
 				lastMinute = thisMinute
-				fmt.Println("handling new minute", thisMinute)
 			}
 
 			for _, cs := range tm.bot.CurrencySettings {
 				if lup[cs] != thisMinute {
 					dbData, err := tm.loadCandlesFromDatabase(cs)
+
+					// dont have a bar for this minute yet
+					// TODO handle specific error
 					if err != nil {
-						fmt.Println("error", err)
+						// fmt.Println("error", err)
 						continue
 					}
 
@@ -513,7 +514,7 @@ func (tm *TradeManager) runLive() error {
 						continue
 					}
 
-					// fmt.Println("Handle this minute", thisMinute)
+					// fmt.Println("Handle this minute", dataEvent.GetTime(), thisMinute, common.IsSameMinute(dataEvent.GetTime(), thisMinute))
 					if !dbData.HasDataAtTime(dataEvent.GetTime()) {
 						log.Error(log.TradeMgr, "doesnt have data in range")
 						os.Exit(123)
@@ -602,12 +603,12 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 					} else if hrChg.IsZero() {
 						color.Set(color.FgWhite)
 					} else if hrChg.LessThan(decimal.NewFromInt(0)) {
-						color.Set(color.FgCyan, color.Bold)
+						color.Set(color.FgYellow, color.Bold)
 					}
 					defer color.Unset()
 
 					log.Debugf(log.TradeMgr,
-						"%d:%d %-12s %12v %7v%% %7v%% %12v %12v %12v",
+						"%2d:%2d %-12s %12v %7v%% %7v%% %12v %12v %12v",
 						ev.GetTime().Hour(),
 						ev.GetTime().Minute(),
 						strings.ToUpper(ev.Pair().String()),
@@ -850,7 +851,8 @@ func (tm *TradeManager) initializeStrategies(cfg *config.Config) {
 	var s strategies.Handler
 	count := 0
 	for _, strat := range cfg.StrategiesSettings {
-		for _, dir := range []gctorder.Side{gctorder.Buy, gctorder.Sell} {
+		// for _, dir := range []gctorder.Side{gctorder.Buy, gctorder.Sell} {
+		for _, dir := range []gctorder.Side{gctorder.Buy} {
 			for _, c := range tm.bot.CurrencySettings {
 				// fmt.Println("c", c)
 				// _, pair, _, _ := tm.loadExchangePairAssetBase(c.ExchangeName, c.Base, c.Quote, c.Asset)

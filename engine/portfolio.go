@@ -296,25 +296,29 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		return nil, errNoDecision
 	}
 
-	lo.Side = gctorder.Sell
-	p.store.openOrders[ev.GetStrategyID()] = append(p.store.openOrders[ev.GetStrategyID()], &lo)
-
-	if !p.bot.Settings.EnableDryRun {
-		id, err := liveorder.Insert(lo)
-		if err != nil {
-			log.Errorln(log.Portfolio, "Unable to store order in database", err)
-			// ev.SetDirection(signal.DoNothing)
-			// ev.AppendReason(fmt.Sprintf("unable to store in database. err: %s", err))
-			return nil, fmt.Errorf("unable to store in database. %v", err)
-		}
-		lo.ID = id
-	}
-
 	if ev.GetDirection() == "" {
 		return o, errInvalidDirection
 	}
 
-	log.Infof(log.Portfolio, "pf on signal %s at %s for %s-%s reason:%s", ev.GetDecision(), ev.GetTime(), s.GetPair(), s.GetDirection(), ev.GetReason())
+	if ev.GetDirection() == eventtypes.DoNothing {
+		log.Debugf(
+			log.Portfolio,
+			"%s %s-%s at %s reason: %s",
+			ev.GetDecision(),
+			s.GetPair(),
+			s.GetDirection(),
+			ev.GetTime(),
+			ev.GetReason())
+	} else {
+		log.Infof(
+			log.Portfolio,
+			"%s %s-%s at %s reason: %s",
+			ev.GetDecision(),
+			s.GetPair(),
+			s.GetDirection(),
+			ev.GetTime(),
+			ev.GetReason())
+	}
 
 	// lookup := p.bot.exchangeAssetPairSettings[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
 	lookup, _ := p.bot.GetCurrencySettings(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
@@ -338,6 +342,20 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		ev.GetDirection() == eventtypes.TransferredFunds ||
 		ev.GetDirection() == "" {
 		return nil, nil
+	}
+
+	p.store.openOrders[ev.GetStrategyID()] = append(p.store.openOrders[ev.GetStrategyID()], &lo)
+
+	if !p.bot.Settings.EnableDryRun {
+		fmt.Println("recording the order")
+		id, err := liveorder.Insert(lo)
+		if err != nil {
+			log.Errorln(log.Portfolio, "Unable to store order in database", err)
+			// ev.SetDirection(signal.DoNothing)
+			// ev.AppendReason(fmt.Sprintf("unable to store in database. err: %s", err))
+			return nil, fmt.Errorf("unable to store in database. %v", err)
+		}
+		lo.ID = id
 	}
 
 	o.Price = ev.GetPrice()
@@ -383,7 +401,7 @@ func (p *Portfolio) GetOrderFromStore(orderid string) *gctorder.Detail {
 func (p *Portfolio) createTrade(ev fill.Event, order *liveorder.Details) {
 	// fmt.Println("found order", foundOrd.ID)
 	foundOrd := p.GetOrderFromStore(ev.GetOrderID())
-	stopLossPrice := decimal.NewFromFloat(foundOrd.Price).Sub(decimal.NewFromFloat(20))
+	stopLossPrice := decimal.NewFromFloat(foundOrd.Price).Mul(decimal.NewFromFloat(0.9))
 
 	lt := livetrade.Details{
 		Status:        gctorder.Open,
@@ -400,6 +418,7 @@ func (p *Portfolio) createTrade(ev fill.Event, order *liveorder.Details) {
 		fmt.Println("EntryPrice cannot be empty")
 		os.Exit(2)
 	}
+
 	if lt.EntryTime.IsZero() {
 		fmt.Println("EntryTime cannot be empty")
 		os.Exit(2)
@@ -452,7 +471,7 @@ func (p *Portfolio) OnFill(f fill.Event) {
 		os.Exit(2)
 	}
 
-	// fmt.Println("PF ONFILL", f.GetStrategyID())
+	fmt.Println("PF ONFILL", f.GetStrategyID())
 
 	// // create or update position
 	// for _, pos := range p.store.positions {
@@ -471,7 +490,6 @@ func (p *Portfolio) OnFill(f fill.Event) {
 
 	// update the orders
 	// fmt.Println(submit.GetStrategyID(), "portfolio.OnFill", submit.GetInternalOrderID())
-
 	// fmt.Println(f.GetStrategyID(), "closing order")
 	order := p.store.openOrders[f.GetStrategyID()][0]
 	p.store.closedOrders[f.GetStrategyID()] = append(p.store.closedOrders[f.GetStrategyID()], order)
@@ -481,11 +499,13 @@ func (p *Portfolio) OnFill(f fill.Event) {
 	// update trades and orders here
 	t := p.store.openTrade[f.GetStrategyID()]
 	if t == nil {
-		// fmt.Println("NEW TRADE")
+		fmt.Println("NEW TRADE")
 		p.createTrade(f, order)
+
 	} else if t.Status == gctorder.Open {
-		// fmt.Println("NEW CLOSE TRADE")
+		fmt.Println("CLOSING TRADE")
 		p.closeTrade(f, t)
+
 	}
 
 	// if f == nil {

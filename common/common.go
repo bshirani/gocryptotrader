@@ -101,7 +101,7 @@ func IsSameMinute(t1, t2 time.Time) bool {
 		t2.Month() == t1.Month() &&
 		t2.Day() == t1.Day() &&
 		t2.Hour() == t1.Hour() &&
-		t2.Day() == t1.Day())
+		t2.Minute() == t1.Minute())
 }
 
 // NewHTTPClientWithTimeout initialises a new HTTP client and its underlying

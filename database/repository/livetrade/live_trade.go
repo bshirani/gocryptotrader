@@ -173,9 +173,13 @@ func insertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int, err 
 	exitPrice, _ := in.ExitPrice.Float64()
 	stopLossPrice, _ := in.StopLossPrice.Float64()
 
+	if stopLossPrice < 0 {
+		return 0, fmt.Errorf("stop loss price cannot be below zero")
+	}
+
 	var tempInsert = postgres.LiveTrade{
-		EntryPrice:    entryPrice,
-		CreatedAt:     time.Now(),
+		EntryPrice: entryPrice,
+		// CreatedAt:     time.Now(),
 		EntryTime:     in.EntryTime,
 		ExitTime:      null.Time{Time: in.ExitTime},
 		ExitPrice:     null.Float64{Float64: exitPrice},

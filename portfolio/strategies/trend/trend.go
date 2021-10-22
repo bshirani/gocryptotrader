@@ -9,7 +9,6 @@ import (
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/signal"
 	"gocryptotrader/exchange/order"
-	"gocryptotrader/log"
 	"gocryptotrader/portfolio/strategies/base"
 
 	"github.com/shopspring/decimal"
@@ -38,7 +37,7 @@ func (s *Strategy) Description() string {
 
 func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe base.FactorEngineHandler) (signal.Event, error) {
 	// if p.GetLiveMode() {
-	log.Infoln(log.Global, "trend ONDATA", d.Latest().GetTime(), s.Strategy.GetDirection(), d.Latest().Pair())
+	// log.Infoln(log.Global, "trend ONDATA", d.Latest().GetTime(), s.Strategy.GetDirection(), d.Latest().Pair())
 	// }
 	if d == nil {
 		return nil, eventtypes.ErrNilEvent
@@ -71,6 +70,58 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 		return &es, nil
 	}
 
+	currentTime := d.Latest().GetTime()
+	orders := p.GetOpenOrdersForStrategy(s.GetID())
+	trade := p.GetTradeForStrategy(s.GetID())
+	if trade == nil && len(orders) == 0 {
+
+		if s.Strategy.GetDirection() == order.Buy { // check for buy strategy
+			fmt.Println("check buy")
+			es.SetDecision(signal.Enter)
+			es.AppendReason("no trades, no orders, so trade")
+		} else if s.Strategy.GetDirection() == order.Sell { // check sell strategy
+			fmt.Println("check sell ")
+			es.SetDecision(signal.Enter)
+			es.AppendReason("no trades, no orders, so trade")
+		}
+	} else {
+		secondsInTrade := currentTime.Sub(trade.EntryTime).Seconds()
+		if secondsInTrade < -120 {
+			fmt.Println("ERROR negative seconds in trade", currentTime, trade.EntryTime)
+			reason := fmt.Sprintf("negative %f seconds in trade", secondsInTrade)
+			es.AppendReason(reason)
+			os.Exit(2)
+		} else if secondsInTrade > 60 {
+			es.SetDecision(signal.Exit)
+			reason := fmt.Sprintf("%f seconds in trade", secondsInTrade)
+			es.AppendReason(reason)
+		} else {
+			es.SetDecision(signal.DoNothing)
+			es.AppendReason(fmt.Sprintf("Already in Trade. Only %f seconds in trade", secondsInTrade))
+		}
+
+	}
+
+	if es.GetDecision() == "" {
+		es.SetDecision(signal.DoNothing)
+		es.SetDirection(eventtypes.DoNothing)
+		es.AppendReason("no response")
+	}
+
+	return &es, nil
+
+	// fmt.Println("ALREADY IN TRADE")
+	// if p.GetLiveMode() {
+	// 	log.Debugln(log.TradeMgr, s.GetID(), "can trade")
+	// }
+	// fmt.Println(s.GetID(), "")
+
+	// if trade.ProfitLossPoints.GreaterThan(decimal.NewFromFloat(10)) {
+	// 	fmt.Println("trade profit greater than 10, exiting")
+	// 	es.SetDecision(signal.Exit)
+	// } else {
+	// 	es.SetDecision(signal.DoNothing)
+	// }
 	// pos := p.GetPositionForStrategy(s.GetID())
 	// if len(orders) > 0 {
 	// 	fmt.Printf("%s has %d orders type %s status %s\n", s.GetID(), len(orders), orders[0].OrderType, orders[0].Status)
@@ -80,43 +131,6 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	// 	fmt.Println("trend.go trade", trade, s.GetID())
 	// }
 
-	currentTime := d.Latest().GetTime()
-	orders := p.GetOpenOrdersForStrategy(s.GetID())
-	trade := p.GetTradeForStrategy(s.GetID())
-	if trade == nil && len(orders) == 0 {
-		if p.GetLiveMode() {
-			log.Debugln(log.TradeMgr, s.GetID(), "can trade")
-		}
-		es.SetDecision(signal.Enter)
-		es.SetDirection(order.Buy)
-		es.AppendReason("no trades, no orders, so trade")
-	} else {
-		// fmt.Println("ALREADY IN TRADE")
-		secondsInTrade := currentTime.Sub(trade.EntryTime).Seconds()
-		if secondsInTrade < -120 {
-			fmt.Println("ERROR negative seconds in trade", currentTime, trade.EntryTime)
-			reason := fmt.Sprintf("negative %f seconds in trade", secondsInTrade)
-			es.AppendReason(reason)
-			os.Exit(2)
-		} else if secondsInTrade > 1200 {
-			es.SetDecision(signal.Exit)
-			es.SetDirection(order.Sell)
-			reason := fmt.Sprintf("%f seconds in trade", secondsInTrade)
-			es.AppendReason(reason)
-		} else {
-			es.SetDecision(signal.DoNothing)
-			es.AppendReason(fmt.Sprintf("only %f seconds in trade", secondsInTrade))
-		}
-
-		// fmt.Println(s.GetID(), "")
-
-		// if trade.ProfitLossPoints.GreaterThan(decimal.NewFromFloat(10)) {
-		// 	fmt.Println("trade profit greater than 10, exiting")
-		// 	es.SetDecision(signal.Exit)
-		// } else {
-		// 	es.SetDecision(signal.DoNothing)
-		// }
-	}
 	// else {
 	// 	es.SetDecision(signal.Exit)
 	// }
@@ -153,16 +167,9 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	// }
 
 	// no trade
-	if es.GetDecision() == "" {
-		es.SetDecision(signal.DoNothing)
-		es.SetDirection(eventtypes.DoNothing)
-		es.AppendReason("no response")
-	}
 
 	// fmt.Println(s.GetPosition())
 	// fmt.Printf("%s@%v@%s now:%v pl:%v\n", t.Direction, t.EntryPrice, t.Timestamp, t.CurrentPrice, t.NetProfit)
-
-	return &es, nil
 }
 
 // SupportsSimultaneousProcessing highlights whether the strategy can handle multiple currency calculation
