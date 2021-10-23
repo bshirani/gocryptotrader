@@ -263,7 +263,7 @@
   },
   "telegram": {
    "name": "Telegram",
-   "enabled": true,
+   "enabled": false,
    "verbose": false,
    "verificationToken": "2021148688:AAG_oYIIpW36AqfE-sNuFuGWCzIik3Y-9hg",
    "authorisedClients": 0
