@@ -181,11 +181,18 @@ func validateSettings(b *Engine, s *Settings, flagSet map[string]bool) {
 	b.Settings.EnableGCTScriptManager = b.Settings.EnableGCTScriptManager &&
 		(flagSet["gctscriptmanager"] || b.Config.GCTScript.Enabled)
 
-	b.Settings.EnablePortfolioManager = flagSet["account"]
+	if b.Settings.EnableLiveMode && b.Config.ProductionMode {
+		b.Settings.EnablePortfolioManager = true //flagSet["account"]
+	}
 
 	if b.Settings.EnablePortfolioManager &&
 		b.Settings.PortfolioManagerDelay <= 0 {
 		b.Settings.PortfolioManagerDelay = PortfolioSleepDelay
+	}
+	if flagSet["cleardb"] {
+		if !b.Config.ProductionMode {
+			b.Settings.EnableClearDB = true
+		}
 	}
 
 	if !flagSet["grpc"] {

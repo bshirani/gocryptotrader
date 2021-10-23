@@ -20,13 +20,14 @@ var (
 type Details struct {
 	ID               int
 	Side             order.Side
-	Name             string
-	StrategyID       string
-	EntryOrderID     string
-	EntryTime        time.Time
-	ExitTime         time.Time
 	EntryPrice       decimal.Decimal
 	ExitPrice        decimal.Decimal
+	Amount           float64
+	EntryOrderID     string
+	StrategyID       string
+	Name             string
+	EntryTime        time.Time
+	ExitTime         time.Time
 	StopLossPrice    decimal.Decimal
 	Status           order.Status
 	Pair             currency.Pair

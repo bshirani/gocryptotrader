@@ -66,6 +66,7 @@ func main() {
 	flag.BoolVar(&settings.EnableWatcher, "watcher", false, "enables the system watcher")
 	flag.BoolVar(&settings.EnableTradeManager, "trade", false, "enables trading manager")
 	flag.BoolVar(&settings.EnableTrading, "strategies", false, "enables trading")
+	flag.BoolVar(&settings.EnableClearDB, "cleardb", false, "enable clear db")
 
 	// Exchange syncer settings
 	flag.BoolVar(&settings.EnableKlineSyncing, "klinesync", true, "enables kline syncing for all enabled exchanges")

@@ -81,9 +81,9 @@ func (t *Telegram) Connect() error {
 
 // PushEvent sends an event to a supplied recipient list via telegram
 func (t *Telegram) PushEvent(event base.Event) error {
-	msg := fmt.Sprintf("Type: %s Message: %s",
-		event.Type, event.Message)
-	err := t.SendMessage(msg, 1172801516)
+	// msg := fmt.Sprintf("%s",
+	// 	event.Type, event.Message)
+	err := t.SendMessage(event.Message, 1172801516)
 	if err != nil {
 		return err
 	}

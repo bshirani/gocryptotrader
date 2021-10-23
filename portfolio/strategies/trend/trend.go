@@ -8,7 +8,6 @@ import (
 	"gocryptotrader/data"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/signal"
-	"gocryptotrader/exchange/order"
 	"gocryptotrader/portfolio/strategies/base"
 
 	"github.com/shopspring/decimal"
@@ -79,26 +78,29 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	}
 
 	if trade == nil && len(orders) == 0 {
-		m60Chg := fe.Minute().M60PctChange.Last(1)
 
-		if s.Strategy.GetDirection() == order.Buy { // check for buy strategy
-			if m60Chg.GreaterThan(decimal.NewFromInt(0)) {
-				es.AppendReason("Strategy: m60Chg greater than zero")
-				es.SetDecision(signal.Enter)
-			} else {
-				es.AppendReason("Strategy: m60Chg less than zero")
-				es.SetDecision(signal.DoNothing)
-			}
+		es.SetDecision(signal.Enter)
+		es.AppendReason("Strategy: no_reason_test")
 
-		} else if s.Strategy.GetDirection() == order.Sell { // check sell strategy
-			if m60Chg.LessThan(decimal.NewFromInt(0)) {
-				es.AppendReason("Strategy: m60Chg less than zero")
-				es.SetDecision(signal.Enter)
-			} else {
-				es.AppendReason("Strategy: m60Chg greater than zero")
-				es.SetDecision(signal.DoNothing)
-			}
-		}
+		// m60Chg := fe.Minute().M60PctChange.Last(1)
+		// if s.Strategy.GetDirection() == order.Buy { // check for buy strategy
+		// 	if m60Chg.GreaterThan(decimal.NewFromInt(0)) {
+		// 		es.AppendReason("Strategy: m60Chg greater than zero")
+		// 		es.SetDecision(signal.Enter)
+		// 	} else {
+		// 		es.AppendReason("Strategy: m60Chg less than zero")
+		// 		es.SetDecision(signal.DoNothing)
+		// 	}
+		//
+		// } else if s.Strategy.GetDirection() == order.Sell { // check sell strategy
+		// 	if m60Chg.LessThan(decimal.NewFromInt(0)) {
+		// 		es.AppendReason("Strategy: m60Chg less than zero")
+		// 		es.SetDecision(signal.Enter)
+		// 	} else {
+		// 		es.AppendReason("Strategy: m60Chg greater than zero")
+		// 		es.SetDecision(signal.DoNothing)
+		// 	}
+		// }
 	} else {
 		minutesInTrade := int(currentTime.Sub(trade.EntryTime).Minutes())
 		if minutesInTrade < -2 {
@@ -108,31 +110,33 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 			es.AppendReason(reason)
 			os.Exit(2)
 
-		} else if minutesInTrade > 60 {
-			// handle exit
-			m60PctChg := fe.Minute().M60PctChange.Last(1)
-
-			// CHECK EXIT BUY
-			if s.Strategy.GetDirection() == order.Buy {
-				if m60PctChg.LessThan(decimal.NewFromFloat(-1)) {
-					es.SetDecision(signal.Exit)
-					es.AppendReason(fmt.Sprintf("Strategy: t >. %d min and M60PctChange is negative.", minutesInTrade))
-				} else {
-					es.SetDecision(signal.DoNothing)
-					es.AppendReason(fmt.Sprintf("Strategy: Stay in long. M60PctChange is positive. (%d).", minutesInTrade))
-				}
-			}
-
-			// CHECK EXIT SELL
-			if s.Strategy.GetDirection() == order.Sell {
-				if m60PctChg.GreaterThan(decimal.NewFromFloat(1)) {
-					es.SetDecision(signal.Exit)
-					es.AppendReason(fmt.Sprintf("Strategy.go says: exiting t > (%d) min and M60PctChange is positive.", minutesInTrade))
-				} else {
-					es.SetDecision(signal.DoNothing)
-					es.AppendReason(fmt.Sprintf("Strategy.go says: Stay in short. M60PctChange is negative. (%d).", minutesInTrade))
-				}
-			}
+		} else if minutesInTrade > -2 {
+			es.SetDecision(signal.Exit)
+			es.AppendReason(fmt.Sprintf("Strategy: no_reason_test", minutesInTrade))
+			// // handle exit
+			// m60PctChg := fe.Minute().M60PctChange.Last(1)
+			//
+			// // CHECK EXIT BUY
+			// if s.Strategy.GetDirection() == order.Buy {
+			// 	if m60PctChg.LessThan(decimal.NewFromFloat(-1)) {
+			// 		es.SetDecision(signal.Exit)
+			// 		es.AppendReason(fmt.Sprintf("Strategy: t >. %d min and M60PctChange is negative.", minutesInTrade))
+			// 	} else {
+			// 		es.SetDecision(signal.DoNothing)
+			// 		es.AppendReason(fmt.Sprintf("Strategy: Stay in long. M60PctChange is positive. (%d).", minutesInTrade))
+			// 	}
+			// }
+			//
+			// // CHECK EXIT SELL
+			// if s.Strategy.GetDirection() == order.Sell {
+			// 	if m60PctChg.GreaterThan(decimal.NewFromFloat(1)) {
+			// 		es.SetDecision(signal.Exit)
+			// 		es.AppendReason(fmt.Sprintf("Strategy.go says: exiting t > (%d) min and M60PctChange is positive.", minutesInTrade))
+			// 	} else {
+			// 		es.SetDecision(signal.DoNothing)
+			// 		es.AppendReason(fmt.Sprintf("Strategy.go says: Stay in short. M60PctChange is negative. (%d).", minutesInTrade))
+			// 	}
+			// }
 
 		} else {
 			es.SetDecision(signal.DoNothing)

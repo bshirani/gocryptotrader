@@ -143,7 +143,8 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	if tm.bot.Settings.EnableTrading {
 		tm.initializeStrategies(cfg)
 
-		if tm.bot.Config.TradeManager.ClearDB {
+		if tm.bot.Settings.EnableClearDB {
+			log.Warn(log.TradeMgr, "clearing DB")
 			if tm.bot.Config.ProductionMode || tm.bot.Config.Database.ConnectionDetails.Database == "gct_prod" {
 				// check database name to ensure we don't delete anything
 				panic("trying to delete production")
@@ -231,6 +232,16 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	// fmt.Println("omr", omr)
 
 	ev := &submit.Submit{
+		Base: event.Base{
+			Offset:       o.GetOffset(),
+			Exchange:     o.GetExchange(),
+			Time:         o.GetTime(),
+			CurrencyPair: o.Pair(),
+			AssetType:    o.GetAssetType(),
+			Interval:     o.GetInterval(),
+			Reason:       o.GetReason(),
+			StrategyID:   o.GetStrategyID(),
+		},
 		OrderID:         o.GetID(),
 		IsOrderPlaced:   omr.IsOrderPlaced,
 		InternalOrderID: internalOrderID,
@@ -696,16 +707,41 @@ func (tm *TradeManager) processSignalEvent(ev signal.Event) {
 	}
 }
 
-func (tm *TradeManager) onFill(ev submit.Event) {
+func (tm *TradeManager) createFillEvent(ev submit.Event) {
 	if ev.GetStrategyID() == "" {
-		fmt.Println("order submit response has no strategyID")
-		os.Exit(2)
+		panic("order submit response has no strategyID")
 	}
+	if !ev.GetIsOrderPlaced() {
+		panic("trying filling an unsubmitted order")
+	}
+	if ev.GetTime().IsZero() {
+		panic("event has no time")
+	}
+
+	o := tm.Portfolio.GetOrderFromStore(ev.GetOrderID())
+	// if err != nil {
+	// 	panic("error getting order from store")
+	// }
+
+	if o.Amount == 0 {
+		panic("order amount is 0")
+	}
+
 	e := &fill.Fill{
 		Base: event.Base{
-			StrategyID: ev.GetStrategyID(),
+			Offset:       ev.GetOffset(),
+			Exchange:     ev.GetExchange(),
+			Time:         ev.GetTime(),
+			CurrencyPair: ev.Pair(),
+			AssetType:    ev.GetAssetType(),
+			Interval:     ev.GetInterval(),
+			Reason:       ev.GetReason(),
+			StrategyID:   ev.GetStrategyID(),
 		},
-		OrderID: ev.GetOrderID(),
+		OrderID:    ev.GetOrderID(),
+		ClosePrice: decimal.NewFromFloat(o.Price),
+		// Amount:     ev.GetAmount(),
+		// Direction:  ev.GetDirection(),
 	}
 	tm.EventQueue.AppendEvent(e)
 	// if o.InternalOrderID == "" {
@@ -748,7 +784,7 @@ func (tm *TradeManager) processSubmitEvent(ev submit.Event) {
 	tm.Portfolio.OnSubmit(ev)
 
 	if ev.GetIsOrderPlaced() {
-		tm.onFill(ev)
+		tm.createFillEvent(ev)
 	}
 }
 

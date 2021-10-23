@@ -49,7 +49,7 @@
   "enabled": true,
   "verbose": false,
   "trading": true,
-  "clearDB": true
+  "clearDB": false
  },
  "factorEngine": {
   "verbose": false
@@ -263,7 +263,7 @@
   },
   "telegram": {
    "name": "Telegram",
-   "enabled": false,
+   "enabled": true,
    "verbose": false,
    "verificationToken": "2021148688:AAG_oYIIpW36AqfE-sNuFuGWCzIik3Y-9hg",
    "authorisedClients": 0

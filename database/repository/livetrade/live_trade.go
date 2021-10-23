@@ -214,6 +214,7 @@ func insertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int, err 
 		Pair:          in.Pair.String(),
 		EntryOrderID:  in.EntryOrderID,
 		Side:          in.Side.String(),
+		Amount:        in.Amount,
 	}
 
 	err = tempInsert.Upsert(
@@ -260,6 +261,7 @@ func updatePostgresql(ctx context.Context, tx *sql.Tx, in []Details) (id int64, 
 			Pair:          in[x].Pair.String(),
 			EntryOrderID:  in[x].EntryOrderID,
 			Side:          in[x].Side.String(),
+			Amount:        in[x].Amount,
 		}
 
 		id, err = tempInsert.Update(ctx, tx, boil.Infer())

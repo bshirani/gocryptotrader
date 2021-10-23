@@ -15,6 +15,7 @@ type Settings struct {
 	CheckParamInteraction bool
 
 	// Core Settings
+	EnableClearDB               bool
 	EnableRealOrders            bool
 	EnableAllExchanges          bool
 	EnableAllPairs              bool
