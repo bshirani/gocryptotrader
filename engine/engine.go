@@ -288,7 +288,7 @@ func PrintSettings(s *Settings) {
 	engineLog("\t trader: %v", s.EnableTradeManager)
 	engineLog("\t trading: %v", s.EnableTrading)
 	engineLog("\t sync: %v kline:%v ticker:%v trade:%v wsTimeout:%v", s.EnableExchangeSyncManager, s.EnableKlineSyncing, s.EnableTickerSyncing, s.EnableTradeSyncing, s.SyncTimeoutWebsocket)
-	engineLog("\t verbose: %v", s.Verbose)
+	// engineLog("\t verbose: %v", s.Verbose)
 	// engineLog("\t data history: %v", s.EnableDataHistoryManager)
 	// engineLog("\t coinmarketcap analaysis: %v", s.EnableCoinmarketcapAnalysis)
 	// engineLog("\t gPRC: %v", s.EnableGRPC)
