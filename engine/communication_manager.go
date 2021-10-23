@@ -85,7 +85,7 @@ func (m *CommunicationManager) Stop() error {
 
 // PushEvent pushes an event to the communications relay
 func (m *CommunicationManager) PushEvent(evt base.Event) {
-	log.Warnf(log.CommunicationMgr, "\n%s", evt.Message)
+	log.Debugf(log.CommunicationMgr, "\n%s", evt.Message)
 	if !m.IsRunning() {
 		return
 	}

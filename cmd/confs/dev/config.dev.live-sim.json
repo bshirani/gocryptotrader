@@ -1,9 +1,8 @@
 {
  "productionMode": false,
- "LiveMode": false,
- "DryRun": true,
- "Script": false,
- "realOrders": false,
+ "liveMode": true,
+ "dryRun": false,
+ "script": false,
  "nickname": "",
  "goal": "",
  "strategy-settings": {
@@ -20,7 +19,7 @@
   "data-type": ""
  },
  "portfolio-settings": {
-  "verbose": false,
+  "verbose": true,
   "leverage": {
    "can-use-leverage": false,
    "maximum-orders-with-leverage-ratio": "0",
@@ -47,8 +46,12 @@
  },
  "tradeManager": {
   "enabled": true,
-  "verbose": true,
-  "trading": true
+  "verbose": false,
+  "trading": true,
+  "clearDB": false,
+  "strategies": [
+   "trenddev"
+  ]
  },
  "factorEngine": {
   "verbose": false
@@ -76,7 +79,7 @@
   "connectionDetails": {
    "host": "localhost",
    "port": 5432,
-   "username": "bijan",
+   "username": "gct",
    "password": "",
    "database": "gct_dev",
    "sslmode": ""
@@ -85,9 +88,9 @@
  "logging": {
   "enabled": true,
   "level": "INFO|DEBUG|WARN|ERROR",
-  "output": "console",
+  "output": "console|file",
   "fileSettings": {
-   "filename": "log.txt",
+   "filename": "dev.log",
    "rotate": true,
    "maxsize": 250
   },

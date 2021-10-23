@@ -1,9 +1,8 @@
 {
  "productionMode": false,
- "LiveMode": true,
- "DryRun": false,
- "Script": false,
- "realOrders": false,
+ "liveMode": true,
+ "dryRun": false,
+ "script": false,
  "nickname": "",
  "goal": "",
  "strategy-settings": {
@@ -49,7 +48,10 @@
   "enabled": true,
   "verbose": false,
   "trading": true,
-  "clearDB": false
+  "clearDB": false,
+  "strategies": [
+   "trenddev"
+  ]
  },
  "factorEngine": {
   "verbose": false

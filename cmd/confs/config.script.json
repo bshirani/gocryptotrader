@@ -1,7 +1,7 @@
 {
- "LiveMode": true,
- "DryRun": false,
- "Script": true,
+ "liveMode": true,
+ "dryRun": false,
+ "script": true,
  "nickname": "",
  "goal": "",
  "strategy-settings": {

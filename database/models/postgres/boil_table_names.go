@@ -20,7 +20,7 @@ var TableNames = struct {
 	LiveTrade               string
 	Script                  string
 	ScriptExecution         string
-	Strategies              string
+	Strategy                string
 	Trade                   string
 	WithdrawalCrypto        string
 	WithdrawalFiat          string
@@ -42,7 +42,7 @@ var TableNames = struct {
 	LiveTrade:               "live_trade",
 	Script:                  "script",
 	ScriptExecution:         "script_execution",
-	Strategies:              "strategies",
+	Strategy:                "strategy",
 	Trade:                   "trade",
 	WithdrawalCrypto:        "withdrawal_crypto",
 	WithdrawalFiat:          "withdrawal_fiat",

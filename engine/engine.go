@@ -155,10 +155,10 @@ func validateSettings(b *Engine, s *Settings, flagSet map[string]bool) {
 	b.Settings.EnableTradeManager = (flagSet["trade"] && b.Settings.EnableTradeManager) || b.Config.TradeManager.Enabled
 	b.Settings.EnableTrading = (flagSet["strategies"] && b.Settings.EnableTrading) || b.Config.TradeManager.Trading
 	b.Settings.EnableOrderManager = flagSet["orders"] && b.Settings.EnableOrderManager || b.Config.OrderManager.Enabled
-	b.Settings.EnableRealOrders = flagSet["real"] && b.Settings.EnableRealOrders || b.Config.RealOrders
 	b.Settings.EnableExchangeSyncManager = flagSet["sync"] && b.Settings.EnableExchangeSyncManager || b.Config.SyncManager.Enabled
 	b.Settings.EnableDryRun = flagSet["dryrun"] && b.Settings.EnableDryRun || b.Config.DryRun
 	b.Settings.EnableLiveMode = b.Config.LiveMode
+	b.Settings.EnableProductionMode = b.Config.ProductionMode
 	b.Settings.EnableCommsRelayer = b.Config.Communications.TelegramConfig.Enabled
 
 	// if b.Settings.EnableTradeManager {
@@ -289,8 +289,8 @@ func engineLog(str string, args ...interface{}) {
 
 // PrintSettings returns the engine settings
 func PrintSettings(s *Settings) {
-	if s.EnableRealOrders {
-		engineLog("\t $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ REAL MONIES $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$: %v", s.EnableRealOrders)
+	if s.EnableProductionMode {
+		engineLog("\t $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ REAL MONIES $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$: %v", s.EnableProductionMode)
 	}
 	engineLog("\t live:%v", s.EnableLiveMode)
 	engineLog("\t save_db: %v", !s.EnableDryRun)
@@ -535,14 +535,14 @@ func (bot *Engine) Start() error {
 		}()
 	}
 
-	if bot.Settings.EnableOrderManager && bot.Config.RealOrders {
+	if bot.Settings.EnableOrderManager && bot.Config.ProductionMode {
 		log.Warn(log.TradeMgr, "Enabling REAL order manager")
 		bot.OrderManager, err = SetupOrderManager(
 			bot.ExchangeManager,
 			bot.CommunicationsManager,
 			&bot.ServicesWG,
 			bot.Config.OrderManager.Verbose,
-			bot.Config.RealOrders,
+			bot.Config.ProductionMode,
 			bot.Config.LiveMode,
 		)
 		if err != nil {
@@ -1052,6 +1052,7 @@ func (bot *Engine) SetupExchangeSettings() error {
 			if err != nil {
 				return err
 			}
+			// fmt.Println("setting pair", pair)
 			bot.CurrencySettings = append(bot.CurrencySettings, &ExchangeAssetPairSettings{
 				ExchangeName: e,
 				CurrencyPair: pair,
@@ -1114,6 +1115,10 @@ func (bot *Engine) SetExchangeAssetCurrencySettings(exch string, a asset.Item, c
 		}
 	}
 	bot.CurrencySettings = append(bot.CurrencySettings, c)
+}
+
+func (bot *Engine) GetCurrentTime() time.Time {
+	return time.Now().UTC()
 }
 
 // GetCurrencySettings returns the settings for an exchange, asset currency

@@ -85,6 +85,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 
 	tm.cfg = *cfg
 	tm.verbose = bot.Config.TradeManager.Verbose
+	tm.tradingEnabled = bot.Settings.EnableTrading
 	// fmt.Println("tmconfig", cfg.TradeManager, cfg.TradeManager.Verbose, cfg.TradeManager.Trading, cfg.TradeManager.Enabled)
 
 	stats := &statistics.Statistic{
@@ -113,7 +114,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 			bot.CommunicationsManager,
 			&bot.ServicesWG,
 			bot.Settings.Verbose,
-			bot.Config.RealOrders,
+			bot.Config.ProductionMode,
 			bot.Config.LiveMode,
 		)
 
@@ -141,7 +142,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 		// return err
 	}
 
-	if tm.bot.Settings.EnableTrading {
+	if tm.tradingEnabled {
 		tm.initializeStrategies(cfg)
 
 		if tm.bot.Settings.EnableClearDB {
@@ -301,7 +302,9 @@ dataLoadingIssue:
 		}
 	}
 
-	// fmt.Println("done running", count, "data events")
+	if tm.bot.Config.LiveMode {
+		fmt.Println("done running", count, "data events")
+	}
 
 	return nil
 }
@@ -430,6 +433,7 @@ func (tm *TradeManager) waitForDataCatchup() {
 func (tm *TradeManager) waitForFactorEnginesWarmup() {
 	// var localWG sync.WaitGroup
 	// localWG.Add(1)
+	fmt.Println("warm up factor engines")
 	tm.initializeFactorEngines()
 
 	// load all candles for instrument
@@ -458,9 +462,9 @@ func (tm *TradeManager) waitForFactorEnginesWarmup() {
 		// fmt.Println(cs.CurrencyPair, "loaded", len(dbData.Item.Candles), "candles")
 	}
 
-	tm.bot.Settings.EnableTrading = false
+	tm.tradingEnabled = false
 	tm.Run()
-	tm.bot.Settings.EnableTrading = true
+	tm.tradingEnabled = true
 
 	// dbm := tm.bot.DatabaseManager.GetInstance()
 	// if err != nil {
@@ -479,12 +483,14 @@ func (tm *TradeManager) waitForFactorEnginesWarmup() {
 	// 	time.Sleep(time.Second)
 	// }
 
+	fmt.Println("done warm up factor engines")
 	// localWG.Wait()
 }
 
 func (tm *TradeManager) runLive() error {
 	log.Debugln(log.TradeMgr, "Waiting for initial currency sync...")
 	tm.bot.WaitForInitialCurrencySync()
+	log.Debugln(log.TradeMgr, "Finished Initial Currency Sync")
 
 	processEventTicker := time.NewTicker(time.Second * 5)
 	if tm.bot.dataHistoryManager.IsRunning() {
@@ -585,8 +591,10 @@ func (tm *TradeManager) handleEvent(ev eventtypes.EventHandler) error {
 }
 
 func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) error {
-	// minutesOld := time.Now().UTC().Sub(ev.GetTime()).Minutes()
-	// fmt.Println("tm processing event at", ev.GetTime(), time.Now().UTC(), "minutes old", int(minutesOld))
+	// minutesOld := tm.bot.CurrentTime().Sub(ev.GetTime()).Minutes()
+	if tm.tradingEnabled {
+		fmt.Println("tm processing event at", ev.GetTime(), ev.Pair(), time.Now().UTC()) //, "minutes old", int(minutesOld))
+	}
 	err := tm.updateStatsForDataEvent(ev)
 	if err != nil {
 		fmt.Println("error updating stats for data event")
@@ -609,7 +617,7 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 	// while ensuring the factor engine has all the historical data
 	// old events should not come through here
 
-	if tm.bot.Settings.EnableTrading {
+	if tm.tradingEnabled {
 		if tm.bot.OrderManager != nil {
 			tm.bot.OrderManager.Update()
 		}
@@ -643,6 +651,7 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 				}
 			}
 
+			fmt.Println("passing data", ev.Pair(), d.Latest().GetTime())
 			for _, strategy := range tm.Strategies {
 				if strategy.GetPair() == ev.Pair() {
 					s, err := strategy.OnData(d, tm.Portfolio, fe)
@@ -868,7 +877,7 @@ func (tm *TradeManager) startOfflineServices() error {
 		tm.bot.CommunicationsManager,
 		&tm.bot.ServicesWG,
 		tm.bot.Settings.Verbose,
-		tm.bot.Config.RealOrders,
+		tm.bot.Config.ProductionMode,
 		tm.bot.Config.LiveMode,
 	)
 	if err != nil {
@@ -899,10 +908,26 @@ func (tm *TradeManager) initializeStrategies(cfg *config.Config) {
 	var slit []strategies.Handler
 	st, _ := strategy.All()
 	for _, s := range st {
+		var isWhitelisted bool
+		for _, name := range tm.bot.Config.TradeManager.Strategies {
+			if strings.EqualFold(name, s.Capture) {
+				isWhitelisted = true
+				break
+			}
+		}
+		if len(tm.bot.Config.TradeManager.Strategies) == 0 {
+			isWhitelisted = true
+		}
+		// fmt.Println("leggg", len(tm.bot.Config.TradeManager.Strategies))
+
+		if !isWhitelisted {
+			continue
+		}
 		for _, c := range tm.bot.CurrencySettings {
 			strat, _ := strategies.LoadStrategyByName(s.Capture)
 			strat.SetID(s.ID)
 			strat.SetNumID(s.ID)
+			// fmt.Println("setting pair for", s.ID, c.CurrencyPair)
 			strat.SetPair(c.CurrencyPair)
 			strat.SetDirection(s.Side)
 			if strat.GetID() == 0 {
@@ -918,6 +943,7 @@ func (tm *TradeManager) initializeStrategies(cfg *config.Config) {
 
 func (tm *TradeManager) initializeFactorEngines() error {
 	tm.FactorEngines = make(map[string]map[asset.Item]map[currency.Pair]*FactorEngine)
+	tm.Datas.Setup()
 	for _, cs := range tm.bot.CurrencySettings {
 		if tm.FactorEngines[cs.ExchangeName] == nil {
 			tm.FactorEngines[cs.ExchangeName] = make(map[asset.Item]map[currency.Pair]*FactorEngine)
@@ -931,6 +957,7 @@ func (tm *TradeManager) initializeFactorEngines() error {
 		var dbData *datakline.DataFromKline
 		var err error
 		if tm.bot.Settings.EnableLiveMode {
+			// fmt.Println("get data for live", cs.CurrencyPair)
 			dbData, err = database.LoadData(
 				time.Now().Add(time.Minute*-300),
 				time.Now().Add(time.Minute*-30),
@@ -939,8 +966,12 @@ func (tm *TradeManager) initializeFactorEngines() error {
 				0,
 				cs.CurrencyPair,
 				cs.AssetType)
-			tm.Datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, dbData)
+			if err != nil {
+				fmt.Println("error initializeFactorEngines:", err)
+			}
+			// fmt.Println("returned", len(dbData.Item.Candles), "bars")
 			dbData.Load()
+			tm.Datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, dbData)
 			if err != nil {
 				fmt.Println("error loading db data", err)
 				// create a data history request if there isn't one already

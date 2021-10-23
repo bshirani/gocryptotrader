@@ -838,29 +838,30 @@ func (m *syncManager) worker() {
 
 					if m.config.SyncKlines {
 						if !m.isProcessing(exchangeName, c.Pair, c.AssetType, SyncItemKline) {
-							if c.Kline.LastUpdated.IsZero() {
-								m.setProcessing(c.Exchange, c.Pair, c.AssetType, SyncItemKline, true)
-								m.Update(c.Exchange, c.Pair, c.AssetType, SyncItemKline, nil)
-								m.setProcessing(exchangeName, c.Pair, c.AssetType, SyncItemKline, false)
-								// m.setProcessing(c.Exchange, c.Pair, c.AssetType, SyncItemKline, false)
-								// lastCandle, _ := candle.Last(c.Exchange,
-								// 	c.Pair.Base.String(),
-								// 	c.Pair.Quote.String(),
-								// 	60,
-								// 	c.AssetType.String())
-								// minutes := time.Now().UTC().Sub(lastCandle.Timestamp).Minutes()
-								// if minutes > 0 {
-								// 	_, err := exchanges[x].GetHistoricCandles(context.TODO(), c.Pair, c.AssetType, lastCandle.Timestamp, time.Now(), kline.OneMin)
-								// 	if err != nil {
-								// 		log.Error(log.SyncMgr, err)
-								// 	}
-								// }
-								//
-								// updateErr := m.Update(c.Exchange, c.Pair, c.AssetType, SyncItemKline, err)
-								// if updateErr != nil {
-								// 	log.Error(log.SyncMgr, updateErr)
-								// }
-							} else if time.Now().Sub(c.Kline.LastUpdated).Seconds() > 5 {
+							// if c.Kline.LastUpdated.IsZero() {
+							// 	m.setProcessing(c.Exchange, c.Pair, c.AssetType, SyncItemKline, true)
+							// 	m.Update(c.Exchange, c.Pair, c.AssetType, SyncItemKline, nil)
+							// 	m.setProcessing(exchangeName, c.Pair, c.AssetType, SyncItemKline, false)
+							// m.setProcessing(c.Exchange, c.Pair, c.AssetType, SyncItemKline, false)
+							// lastCandle, _ := candle.Last(c.Exchange,
+							// 	c.Pair.Base.String(),
+							// 	c.Pair.Quote.String(),
+							// 	60,
+							// 	c.AssetType.String())
+							// minutes := time.Now().UTC().Sub(lastCandle.Timestamp).Minutes()
+							// if minutes > 0 {
+							// 	_, err := exchanges[x].GetHistoricCandles(context.TODO(), c.Pair, c.AssetType, lastCandle.Timestamp, time.Now(), kline.OneMin)
+							// 	if err != nil {
+							// 		log.Error(log.SyncMgr, err)
+							// 	}
+							// }
+							//
+							// updateErr := m.Update(c.Exchange, c.Pair, c.AssetType, SyncItemKline, err)
+							// if updateErr != nil {
+							// 	log.Error(log.SyncMgr, updateErr)
+							// }
+							// } else
+							if c.Kline.LastUpdated.IsZero() || time.Now().Sub(c.Kline.LastUpdated).Seconds() > 5 {
 								m.setProcessing(exchangeName, c.Pair, c.AssetType, SyncItemKline, true)
 
 								lastCandle, err := candle.Last(

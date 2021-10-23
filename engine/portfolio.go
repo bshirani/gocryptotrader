@@ -198,10 +198,13 @@ func (p *Portfolio) Reset() {
 }
 
 func (p *Portfolio) OnSubmit(ev submit.Event) {
-	// fmt.Println("portfolio.OnSubmit", ev.GetStrategyID(), "orderID", ev.GetOrderID())
+	fmt.Println("portfolio.OnSubmit", ev.GetStrategyID(), "orderID", ev.GetOrderID())
 	var openOrder *liveorder.Details
 	if len(p.store.openOrders[ev.GetStrategyID()]) == 0 {
-		panic("did not store open order for strategy")
+		for i := range p.store.openOrders {
+			fmt.Println(i)
+		}
+		panic(fmt.Sprintf("did not store open order for strategy %d", ev.GetStrategyID()))
 	}
 
 	for _, ord := range p.store.openOrders[ev.GetStrategyID()] {
@@ -215,27 +218,18 @@ func (p *Portfolio) OnSubmit(ev submit.Event) {
 		return
 	}
 
+	if ev.GetIsOrderPlaced() {
+		p.completeOrder(ev)
+	}
+
 	openOrder.Status = gctorder.Closed
 
 	if !p.bot.Settings.EnableDryRun {
-		// update orders table
-		// update trades table
-
-		// p.store.closedTrades[f.GetStrategyID()] = append(p.store.closedTrades[f.GetStrategyID()], t)
-		// p.store.openTrade[f.GetStrategyID()] = nil
-
-		if !p.bot.Settings.EnableDryRun {
-			id, err := liveorder.Update(openOrder)
-			if err != nil || id == 0 {
-				fmt.Println("error saving to db")
-				os.Exit(2)
-			}
+		id, err := liveorder.Update(openOrder)
+		if err != nil || id == 0 {
+			fmt.Println("error saving to db")
+			os.Exit(2)
 		}
-	}
-
-	// if order is placed
-	if ev.GetIsOrderPlaced() {
-		p.completeOrder(ev)
 	}
 }
 
@@ -359,33 +353,25 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		tradeStatus = fmt.Sprintf("IN_TRADE PL:%v", t.ProfitLossPoints.Mul(t.Amount))
 	}
 
+	if ev.Pair() != s.GetPair() {
+		fmt.Println(ev.Pair(), s.GetPair())
+		panic("updating wrong strategy/pair")
+	}
 	// logging
 	if p.verbose {
-		if ev.GetDirection() == eventtypes.DoNothing {
-			log.Debugf(
-				log.Portfolio,
-				"%s %s %s %s %s-%s at %s ",
-				ev.GetStrategyID(),
-				tradeStatus,
-				ev.GetDecision(),
-				ev.GetReason(),
-				s.GetPair(),
-				s.GetDirection(),
-				ev.GetTime(),
-			)
-		} else {
-			log.Debugf(
-				log.Portfolio,
-				"%s %s %s %s-%s at %s reason: %s",
-				ev.GetStrategyID(),
-				tradeStatus,
-				ev.GetDecision(),
-				ev.GetReason(),
-				s.GetPair(),
-				s.GetDirection(),
-				ev.GetTime(),
-			)
-		}
+		log.Debugf(
+			log.Portfolio,
+			"onsig name=%d-%s-%s-%s decision=%s status=%s reason=%s time=%s ",
+			ev.GetStrategyID(),
+			s.GetDirection(),
+			s.GetPair(),
+			s.Name(),
+			ev.GetDecision(),
+			ev.Pair(),
+			tradeStatus,
+			ev.GetReason(),
+			ev.GetTime(),
+		)
 	}
 
 	o := &order.Order{
@@ -479,9 +465,15 @@ func (p *Portfolio) recordOrder(ev signal.Event, lo liveorder.Details, o *order.
 		o.ID = id
 	}
 
+	fmt.Println("adding order for strategy:", ev.GetStrategyID())
 	beforeLen := len(p.store.openOrders[ev.GetStrategyID()])
 	p.store.openOrders[ev.GetStrategyID()] = append(p.store.openOrders[ev.GetStrategyID()], &lo)
 	afterLen := len(p.store.openOrders[ev.GetStrategyID()])
+	fmt.Println("store now has", afterLen, "orders for", ev.GetStrategyID())
+
+	if afterLen > 1 {
+		panic(fmt.Sprintf("more than one open order for strategy: %d", ev.GetStrategyID()))
+	}
 
 	// verify open order exists
 	if afterLen <= beforeLen {
@@ -571,7 +563,7 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 		}
 	}
 	if p.bot.Settings.EnableLiveMode {
-		tradeMsg := fmt.Sprintf("created trade for %s %v %s", ev.GetStrategyID(), ev.GetAmount(), ev.GetDirection())
+		tradeMsg := fmt.Sprintf("created trade for s:%d %v %s %s", ev.GetStrategyID(), ev.Pair(), ev.GetAmount(), ev.GetDirection())
 		log.Warnf(log.Portfolio, tradeMsg)
 
 		// lt.EntryTime.UTC().AppendFormat(e.data, l.Timestamp)
@@ -579,13 +571,13 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 		timestampFormat := " 15:04:05 UTC"
 		s, _ := p.getStrategy(ev.GetStrategyID())
 		notificationMsg := fmt.Sprintf(
-			"ENTER TRADE: %s\n%s %v@%v@%v %s\n%s",
+			"ENTER TRADE: %d-%s %s\n%v@%v@%v\n%s",
 			s.GetID(),
+			s.GetPair(),
 			lt.Side,
 			lt.Amount,
 			lt.EntryTime.Format(timestampFormat),
 			lt.EntryPrice,
-			lt.Side,
 			ev.GetReason())
 
 		// fmt.Print("notification message", notificationMsg)
@@ -716,7 +708,7 @@ func (p *Portfolio) completeOrder(ev submit.Event) {
 	// if p.verbose {
 	// 	log.Infoln(log.Portfolio, "completing order", ev.GetStrategyID())
 	// }
-	// fmt.Println("COMPLETING ORDER for:", ev.GetStrategyID())
+	fmt.Println("COMPLETING ORDER for:", ev.GetStrategyID())
 	// fmt.Println("open orders", len(p.store.openOrders[ev.GetStrategyID()]))
 	order := p.store.openOrders[ev.GetStrategyID()][0]
 	p.store.closedOrders[ev.GetStrategyID()] = append(p.store.closedOrders[ev.GetStrategyID()], order)

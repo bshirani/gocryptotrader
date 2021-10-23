@@ -15,8 +15,8 @@ type Settings struct {
 	CheckParamInteraction bool
 
 	// Core Settings
+	EnableProductionMode        bool
 	EnableClearDB               bool
-	EnableRealOrders            bool
 	EnableAllExchanges          bool
 	EnableAllPairs              bool
 	EnableCoinmarketcapAnalysis bool

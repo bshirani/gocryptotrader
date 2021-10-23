@@ -92,11 +92,10 @@ var (
 // Exchanges
 type Config struct {
 	ProductionMode bool `json:"productionMode"`
-	LiveMode       bool
-	DryRun         bool
-	Script         bool
+	LiveMode       bool `json:"liveMode"`
+	DryRun         bool `json:"dryRun"`
+	Script         bool `json:"script"`
 
-	RealOrders               bool                       `json:"realOrders"`
 	Nickname                 string                     `json:"nickname"`
 	Goal                     string                     `json:"goal"`
 	StrategySettings         StrategySettings           `json:"strategy-settings"`
@@ -158,10 +157,11 @@ type DataImporterConfig struct {
 
 // DataHistoryManager holds all information required for the data history manager
 type TradeManagerConfig struct {
-	Enabled bool `json:"enabled"`
-	Verbose bool `json:"verbose"`
-	Trading bool `json:"trading"`
-	ClearDB bool `json:"clearDB"`
+	Enabled    bool     `json:"enabled"`
+	Verbose    bool     `json:"verbose"`
+	Trading    bool     `json:"trading"`
+	ClearDB    bool     `json:"clearDB"`
+	Strategies []string `json:"strategies"`
 }
 
 type FactorEngineConfig struct {

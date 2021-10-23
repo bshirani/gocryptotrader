@@ -141,7 +141,7 @@ func (bot *Engine) SetSubsystem(subSystemName string, enable bool) error {
 					bot.CommunicationsManager,
 					&bot.ServicesWG,
 					bot.Settings.Verbose,
-					bot.Config.RealOrders,
+					bot.Config.ProductionMode,
 					bot.Config.LiveMode,
 				)
 				if err != nil {

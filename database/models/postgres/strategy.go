@@ -58,12 +58,12 @@ var StrategyTableColumns = struct {
 	CreatedAt     string
 	UpdatedAt     string
 }{
-	ID:            "strategies.id",
-	Side:          "strategies.side",
-	Capture:       "strategies.capture",
-	TimeframeDays: "strategies.timeframe_days",
-	CreatedAt:     "strategies.created_at",
-	UpdatedAt:     "strategies.updated_at",
+	ID:            "strategy.id",
+	Side:          "strategy.side",
+	Capture:       "strategy.capture",
+	TimeframeDays: "strategy.timeframe_days",
+	CreatedAt:     "strategy.created_at",
+	UpdatedAt:     "strategy.updated_at",
 }
 
 // Generated where
@@ -76,12 +76,12 @@ var StrategyWhere = struct {
 	CreatedAt     whereHelpertime_Time
 	UpdatedAt     whereHelpertime_Time
 }{
-	ID:            whereHelperint{field: "\"strategies\".\"id\""},
-	Side:          whereHelperstring{field: "\"strategies\".\"side\""},
-	Capture:       whereHelperstring{field: "\"strategies\".\"capture\""},
-	TimeframeDays: whereHelperint{field: "\"strategies\".\"timeframe_days\""},
-	CreatedAt:     whereHelpertime_Time{field: "\"strategies\".\"created_at\""},
-	UpdatedAt:     whereHelpertime_Time{field: "\"strategies\".\"updated_at\""},
+	ID:            whereHelperint{field: "\"strategy\".\"id\""},
+	Side:          whereHelperstring{field: "\"strategy\".\"side\""},
+	Capture:       whereHelperstring{field: "\"strategy\".\"capture\""},
+	TimeframeDays: whereHelperint{field: "\"strategy\".\"timeframe_days\""},
+	CreatedAt:     whereHelpertime_Time{field: "\"strategy\".\"created_at\""},
+	UpdatedAt:     whereHelpertime_Time{field: "\"strategy\".\"updated_at\""},
 }
 
 // StrategyRels is where relationship names are stored.
@@ -321,7 +321,7 @@ func (q strategyQuery) One(ctx context.Context, exec boil.ContextExecutor) (*Str
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "postgres: failed to execute a one query for strategies")
+		return nil, errors.Wrap(err, "postgres: failed to execute a one query for strategy")
 	}
 
 	if err := o.doAfterSelectHooks(ctx, exec); err != nil {
@@ -360,7 +360,7 @@ func (q strategyQuery) Count(ctx context.Context, exec boil.ContextExecutor) (in
 
 	err := q.Query.QueryRowContext(ctx, exec).Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "postgres: failed to count strategies rows")
+		return 0, errors.Wrap(err, "postgres: failed to count strategy rows")
 	}
 
 	return count, nil
@@ -376,7 +376,7 @@ func (q strategyQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (b
 
 	err := q.Query.QueryRowContext(ctx, exec).Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "postgres: failed to check if strategies exists")
+		return false, errors.Wrap(err, "postgres: failed to check if strategy exists")
 	}
 
 	return count > 0, nil
@@ -384,7 +384,7 @@ func (q strategyQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (b
 
 // Strategies retrieves all the records using an executor.
 func Strategies(mods ...qm.QueryMod) strategyQuery {
-	mods = append(mods, qm.From("\"strategies\""))
+	mods = append(mods, qm.From("\"strategy\""))
 	return strategyQuery{NewQuery(mods...)}
 }
 
@@ -398,7 +398,7 @@ func FindStrategy(ctx context.Context, exec boil.ContextExecutor, iD int, select
 		sel = strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, selectCols), ",")
 	}
 	query := fmt.Sprintf(
-		"select %s from \"strategies\" where \"id\"=$1", sel,
+		"select %s from \"strategy\" where \"id\"=$1", sel,
 	)
 
 	q := queries.Raw(query, iD)
@@ -408,7 +408,7 @@ func FindStrategy(ctx context.Context, exec boil.ContextExecutor, iD int, select
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "postgres: unable to select from strategies")
+		return nil, errors.Wrap(err, "postgres: unable to select from strategy")
 	}
 
 	if err = strategyObj.doAfterSelectHooks(ctx, exec); err != nil {
@@ -422,7 +422,7 @@ func FindStrategy(ctx context.Context, exec boil.ContextExecutor, iD int, select
 // See boil.Columns.InsertColumnSet documentation to understand column list inference for inserts.
 func (o *Strategy) Insert(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) error {
 	if o == nil {
-		return errors.New("postgres: no strategies provided for insertion")
+		return errors.New("postgres: no strategy provided for insertion")
 	}
 
 	var err error
@@ -465,9 +465,9 @@ func (o *Strategy) Insert(ctx context.Context, exec boil.ContextExecutor, column
 			return err
 		}
 		if len(wl) != 0 {
-			cache.query = fmt.Sprintf("INSERT INTO \"strategies\" (\"%s\") %%sVALUES (%s)%%s", strings.Join(wl, "\",\""), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
+			cache.query = fmt.Sprintf("INSERT INTO \"strategy\" (\"%s\") %%sVALUES (%s)%%s", strings.Join(wl, "\",\""), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
 		} else {
-			cache.query = "INSERT INTO \"strategies\" %sDEFAULT VALUES%s"
+			cache.query = "INSERT INTO \"strategy\" %sDEFAULT VALUES%s"
 		}
 
 		var queryOutput, queryReturning string
@@ -495,7 +495,7 @@ func (o *Strategy) Insert(ctx context.Context, exec boil.ContextExecutor, column
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "postgres: unable to insert into strategies")
+		return errors.Wrap(err, "postgres: unable to insert into strategy")
 	}
 
 	if !cached {
@@ -536,10 +536,10 @@ func (o *Strategy) Update(ctx context.Context, exec boil.ContextExecutor, column
 			wl = strmangle.SetComplement(wl, []string{"created_at"})
 		}
 		if len(wl) == 0 {
-			return 0, errors.New("postgres: unable to update strategies, could not build whitelist")
+			return 0, errors.New("postgres: unable to update strategy, could not build whitelist")
 		}
 
-		cache.query = fmt.Sprintf("UPDATE \"strategies\" SET %s WHERE %s",
+		cache.query = fmt.Sprintf("UPDATE \"strategy\" SET %s WHERE %s",
 			strmangle.SetParamNames("\"", "\"", 1, wl),
 			strmangle.WhereClause("\"", "\"", len(wl)+1, strategyPrimaryKeyColumns),
 		)
@@ -559,12 +559,12 @@ func (o *Strategy) Update(ctx context.Context, exec boil.ContextExecutor, column
 	var result sql.Result
 	result, err = exec.ExecContext(ctx, cache.query, values...)
 	if err != nil {
-		return 0, errors.Wrap(err, "postgres: unable to update strategies row")
+		return 0, errors.Wrap(err, "postgres: unable to update strategy row")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "postgres: failed to get rows affected by update for strategies")
+		return 0, errors.Wrap(err, "postgres: failed to get rows affected by update for strategy")
 	}
 
 	if !cached {
@@ -582,12 +582,12 @@ func (q strategyQuery) UpdateAll(ctx context.Context, exec boil.ContextExecutor,
 
 	result, err := q.Query.ExecContext(ctx, exec)
 	if err != nil {
-		return 0, errors.Wrap(err, "postgres: unable to update all for strategies")
+		return 0, errors.Wrap(err, "postgres: unable to update all for strategy")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "postgres: unable to retrieve rows affected for strategies")
+		return 0, errors.Wrap(err, "postgres: unable to retrieve rows affected for strategy")
 	}
 
 	return rowsAff, nil
@@ -620,7 +620,7 @@ func (o StrategySlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor,
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf("UPDATE \"strategies\" SET %s WHERE %s",
+	sql := fmt.Sprintf("UPDATE \"strategy\" SET %s WHERE %s",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), len(colNames)+1, strategyPrimaryKeyColumns, len(o)))
 
@@ -645,7 +645,7 @@ func (o StrategySlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor,
 // See boil.Columns documentation for how to properly use updateColumns and insertColumns.
 func (o *Strategy) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOnConflict bool, conflictColumns []string, updateColumns, insertColumns boil.Columns) error {
 	if o == nil {
-		return errors.New("postgres: no strategies provided for upsert")
+		return errors.New("postgres: no strategy provided for upsert")
 	}
 	if !boil.TimestampsAreSkipped(ctx) {
 		currTime := time.Now().In(boil.GetLocation())
@@ -709,7 +709,7 @@ func (o *Strategy) Upsert(ctx context.Context, exec boil.ContextExecutor, update
 		)
 
 		if updateOnConflict && len(update) == 0 {
-			return errors.New("postgres: unable to upsert strategies, could not build update column list")
+			return errors.New("postgres: unable to upsert strategy, could not build update column list")
 		}
 
 		conflict := conflictColumns
@@ -717,7 +717,7 @@ func (o *Strategy) Upsert(ctx context.Context, exec boil.ContextExecutor, update
 			conflict = make([]string, len(strategyPrimaryKeyColumns))
 			copy(conflict, strategyPrimaryKeyColumns)
 		}
-		cache.query = buildUpsertQueryPostgres(dialect, "\"strategies\"", updateOnConflict, ret, update, conflict, insert)
+		cache.query = buildUpsertQueryPostgres(dialect, "\"strategy\"", updateOnConflict, ret, update, conflict, insert)
 
 		cache.valueMapping, err = queries.BindMapping(strategyType, strategyMapping, insert)
 		if err != nil {
@@ -752,7 +752,7 @@ func (o *Strategy) Upsert(ctx context.Context, exec boil.ContextExecutor, update
 		_, err = exec.ExecContext(ctx, cache.query, vals...)
 	}
 	if err != nil {
-		return errors.Wrap(err, "postgres: unable to upsert strategies")
+		return errors.Wrap(err, "postgres: unable to upsert strategy")
 	}
 
 	if !cached {
@@ -776,7 +776,7 @@ func (o *Strategy) Delete(ctx context.Context, exec boil.ContextExecutor) (int64
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), strategyPrimaryKeyMapping)
-	sql := "DELETE FROM \"strategies\" WHERE \"id\"=$1"
+	sql := "DELETE FROM \"strategy\" WHERE \"id\"=$1"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -785,12 +785,12 @@ func (o *Strategy) Delete(ctx context.Context, exec boil.ContextExecutor) (int64
 	}
 	result, err := exec.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return 0, errors.Wrap(err, "postgres: unable to delete from strategies")
+		return 0, errors.Wrap(err, "postgres: unable to delete from strategy")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "postgres: failed to get rows affected by delete for strategies")
+		return 0, errors.Wrap(err, "postgres: failed to get rows affected by delete for strategy")
 	}
 
 	if err := o.doAfterDeleteHooks(ctx, exec); err != nil {
@@ -810,12 +810,12 @@ func (q strategyQuery) DeleteAll(ctx context.Context, exec boil.ContextExecutor)
 
 	result, err := q.Query.ExecContext(ctx, exec)
 	if err != nil {
-		return 0, errors.Wrap(err, "postgres: unable to delete all from strategies")
+		return 0, errors.Wrap(err, "postgres: unable to delete all from strategy")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "postgres: failed to get rows affected by deleteall for strategies")
+		return 0, errors.Wrap(err, "postgres: failed to get rows affected by deleteall for strategy")
 	}
 
 	return rowsAff, nil
@@ -841,7 +841,7 @@ func (o StrategySlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor)
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "DELETE FROM \"strategies\" WHERE " +
+	sql := "DELETE FROM \"strategy\" WHERE " +
 		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, strategyPrimaryKeyColumns, len(o))
 
 	if boil.IsDebug(ctx) {
@@ -856,7 +856,7 @@ func (o StrategySlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor)
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "postgres: failed to get rows affected by deleteall for strategies")
+		return 0, errors.Wrap(err, "postgres: failed to get rows affected by deleteall for strategy")
 	}
 
 	if len(strategyAfterDeleteHooks) != 0 {
@@ -896,7 +896,7 @@ func (o *StrategySlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "SELECT \"strategies\".* FROM \"strategies\" WHERE " +
+	sql := "SELECT \"strategy\".* FROM \"strategy\" WHERE " +
 		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, strategyPrimaryKeyColumns, len(*o))
 
 	q := queries.Raw(sql, args...)
@@ -914,7 +914,7 @@ func (o *StrategySlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor
 // StrategyExists checks if the Strategy row exists.
 func StrategyExists(ctx context.Context, exec boil.ContextExecutor, iD int) (bool, error) {
 	var exists bool
-	sql := "select exists(select 1 from \"strategies\" where \"id\"=$1 limit 1)"
+	sql := "select exists(select 1 from \"strategy\" where \"id\"=$1 limit 1)"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -925,7 +925,7 @@ func StrategyExists(ctx context.Context, exec boil.ContextExecutor, iD int) (boo
 
 	err := row.Scan(&exists)
 	if err != nil {
-		return false, errors.Wrap(err, "postgres: unable to check if strategies exists")
+		return false, errors.Wrap(err, "postgres: unable to check if strategy exists")
 	}
 
 	return exists, nil
