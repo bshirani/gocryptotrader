@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"gocryptotrader/currency"
+	"gocryptotrader/database/repository/accountlog"
 	"gocryptotrader/exchange"
 	"gocryptotrader/exchange/account"
 	"gocryptotrader/log"
@@ -18,7 +19,7 @@ const PortfolioManagerName = "portfolio"
 
 var (
 	// PortfolioSleepDelay defines the default sleep time between portfolio manager runs
-	PortfolioSleepDelay = time.Second * 5
+	PortfolioSleepDelay = time.Second * 60
 )
 
 // portfolioManager routinely retrieves a user's holdings through exchange APIs as well
@@ -158,6 +159,15 @@ func (m *portfolioManager) processPortfolio() {
 	}
 	if m.base.Verbose {
 		log.Infoln(log.PortfolioMgr, "Bitcoin Balance", balance)
+	}
+	err := accountlog.Insert(accountlog.Details{
+		BTCBalance: balance,
+		Timestamp:  time.Now(),
+		OpenTrades: 1,
+		UpdatedAt:  time.Now(),
+	})
+	if err != nil {
+		fmt.Println("error inserting balance", err)
 	}
 	atomic.CompareAndSwapInt32(&m.processing, 1, 0)
 }

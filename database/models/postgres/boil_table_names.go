@@ -4,6 +4,7 @@
 package postgres
 
 var TableNames = struct {
+	AccountLog              string
 	AuditEvent              string
 	Candle                  string
 	CMCLatestListing        string
@@ -23,6 +24,7 @@ var TableNames = struct {
 	WithdrawalFiat          string
 	WithdrawalHistory       string
 }{
+	AccountLog:              "account_log",
 	AuditEvent:              "audit_event",
 	Candle:                  "candle",
 	CMCLatestListing:        "cmc_latest_listing",
