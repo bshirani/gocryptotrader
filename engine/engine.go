@@ -35,9 +35,7 @@ type Engine struct {
 	DatabaseManager         *DatabaseConnectionManager
 	DepositAddressManager   *DepositAddressManager
 	ExchangeManager         *ExchangeManager
-	FakeOrderManager        *FakeOrderManager
 	OrderManager            OrderManagerHandler
-	RealOrderManager        *RealOrderManager
 	ServicesWG              sync.WaitGroup
 	Settings                Settings
 	TradeManager            *TradeManager
@@ -290,8 +288,6 @@ func PrintSettings(s *Settings) {
 	engineLog("\t trader: %v", s.EnableTradeManager)
 	engineLog("\t trading: %v", s.EnableTrading)
 	engineLog("\t sync: %v kline:%v ticker:%v trade:%v wsTimeout:%v", s.EnableExchangeSyncManager, s.EnableKlineSyncing, s.EnableTickerSyncing, s.EnableTradeSyncing, s.SyncTimeoutWebsocket)
-	// engineLog("\t real order manager: %v", s.EnableRealOrderManager)
-	// engineLog("\t fake order manager: %v", s.EnableFakeOrderManager)
 	engineLog("\t verbose: %v", s.Verbose)
 	// engineLog("\t data history: %v", s.EnableDataHistoryManager)
 	// engineLog("\t coinmarketcap analaysis: %v", s.EnableCoinmarketcapAnalysis)
@@ -536,7 +532,10 @@ func (bot *Engine) Start() error {
 			bot.ExchangeManager,
 			bot.CommunicationsManager,
 			&bot.ServicesWG,
-			bot.Config.OrderManager.Verbose)
+			bot.Config.OrderManager.Verbose,
+			bot.Config.RealOrders,
+			bot.Config.LiveMode,
+		)
 		if err != nil {
 			log.Errorf(log.Global, "Order manager unable to setup: %s", err)
 		} else {
@@ -736,12 +735,6 @@ func (bot *Engine) Stop() {
 			}
 		}
 	}
-	// if bot.FakeOrderManager.IsRunning() {
-	// 	if err := bot.FakeOrderManager.Stop(); err != nil {
-	// 		log.Errorf(log.Global, "Fake Order manager unable to stop. Error: %v", err)
-	// 	}
-	// }
-
 	if bot.eventManager.IsRunning() {
 		if err := bot.eventManager.Stop(); err != nil {
 			log.Errorf(log.Global, "event manager unable to stop. Error: %v", err)

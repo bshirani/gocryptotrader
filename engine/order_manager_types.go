@@ -14,7 +14,6 @@ import (
 
 // OrderManagerName is an exported subsystem name
 const OrderManagerName = "orders"
-const FakeOrderManagerName = "fakeorders"
 
 // vars for the fund manager package
 var (
@@ -38,6 +37,7 @@ type orderManagerConfig struct {
 	AllowedExchanges       []string
 	OrderSubmissionRetries int64
 	LiveMode               bool
+	UseRealOrders          bool
 }
 
 // store holds all orders by exchange
@@ -51,6 +51,8 @@ type store struct {
 
 // OrderManager processes and stores orders across enabled exchanges
 type OrderManager struct {
+	useRealOrders    bool
+	liveMode         bool
 	bot              *Engine
 	started          int32
 	processingOrders int32
@@ -61,15 +63,6 @@ type OrderManager struct {
 	onSubmit         func(*OrderSubmitResponse)
 	onFill           func(*OrderSubmitResponse)
 	onCancel         func(*OrderSubmitResponse)
-}
-
-type FakeOrderManager struct {
-	OrderManager
-}
-
-// OrderManager processes and stores orders across enabled exchanges
-type RealOrderManager struct {
-	OrderManager
 }
 
 // OrderSubmitResponse contains the order response along with an internal order ID
@@ -86,7 +79,6 @@ type OrderUpsertResponse struct {
 	IsNewOrder   bool
 }
 
-// SetupOrderManager(exchangeManager iExchangeManager, communicationsManager iCommsManager, wg *sync.WaitGroup, verbose bool) (*FakeOrderManager, error)
 type OrderManagerHandler interface {
 	IsRunning() bool
 	Start() error

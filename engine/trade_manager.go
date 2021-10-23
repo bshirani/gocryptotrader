@@ -106,22 +106,15 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	tm.bot = bot
 	var err error
 	if bot.OrderManager == nil && bot.Settings.EnableOrderManager {
-		if bot.Config.RealOrders {
-			log.Warnln(log.TradeMgr, "!!!!!!!!!!!!!!!!!!!!!!!! Enabling REAL $$$$$$$$ order manager!!!!!!!!!!!!!!!!!!!!")
-			bot.RealOrderManager, err = SetupOrderManager(
-				bot.ExchangeManager,
-				bot.CommunicationsManager,
-				&bot.ServicesWG,
-				bot.Settings.Verbose)
-		} else {
-			bot.FakeOrderManager, err = SetupFakeOrderManager(
-				bot.ExchangeManager,
-				bot.CommunicationsManager,
-				&bot.ServicesWG,
-				bot.Settings.Verbose)
-		}
-
-		bot.OrderManager = bot.FakeOrderManager
+		// log.Warnln(log.TradeMgr, "!!!!!!!!!!!!!!!!!!!!!!!! Enabling REAL $$$$$$$$ order manager!!!!!!!!!!!!!!!!!!!!")
+		bot.OrderManager, err = SetupOrderManager(
+			bot.ExchangeManager,
+			bot.CommunicationsManager,
+			&bot.ServicesWG,
+			bot.Settings.Verbose,
+			bot.Config.RealOrders,
+			bot.Config.LiveMode,
+		)
 
 		if err != nil {
 			log.Errorf(log.Global, "Fake Order manager unable to setup: %s", err)
@@ -825,20 +818,21 @@ func (tm *TradeManager) startOfflineServices() error {
 
 	// start fake order manager here since we don't start engine in backtest mode
 	var err error
-	tm.bot.FakeOrderManager, err = SetupFakeOrderManager(
+	tm.bot.OrderManager, err = SetupOrderManager(
 		tm.bot.ExchangeManager,
 		tm.bot.CommunicationsManager,
 		&tm.bot.ServicesWG,
 		tm.bot.Settings.Verbose,
+		tm.bot.Config.RealOrders,
+		tm.bot.Config.LiveMode,
 	)
 	if err != nil {
-		gctlog.Errorf(gctlog.Global, "Fake Order manager unable to setup: %s", err)
+		gctlog.Errorf(gctlog.Global, "Order manager unable to setup: %s", err)
 	} else {
-		err = tm.bot.FakeOrderManager.Start()
+		err = tm.bot.OrderManager.Start()
 		if err != nil {
-			gctlog.Errorf(gctlog.Global, "Fake Order manager unable to start: %s", err)
+			gctlog.Errorf(gctlog.Global, "Order manager unable to start: %s", err)
 		}
-		tm.bot.OrderManager = tm.bot.FakeOrderManager
 	}
 
 	tm.bot.DatabaseManager, err = SetupDatabaseConnectionManager(gctdatabase.DB.GetConfig())

@@ -143,7 +143,6 @@ func init() {
 	TradeMgr = registerNewSubLogger("TRADE")
 	FactorEngine = registerNewSubLogger("FACTORS")
 	Portfolio = registerNewSubLogger("PORTFOLIO")
-	FakeOrderMgr = registerNewSubLogger("FAKEORDER")
 	CommunicationMgr = registerNewSubLogger("COMMS")
 	APIServerMgr = registerNewSubLogger("API")
 	ConfigMgr = registerNewSubLogger("CONFIG")

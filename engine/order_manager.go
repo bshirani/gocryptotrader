@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/rand"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -19,7 +20,7 @@ import (
 )
 
 // SetupOrderManager will boot up the OrderManager
-func SetupOrderManager(exchangeManager iExchangeManager, communicationsManager iCommsManager, wg *sync.WaitGroup, verbose bool) (*RealOrderManager, error) {
+func SetupOrderManager(exchangeManager iExchangeManager, communicationsManager iCommsManager, wg *sync.WaitGroup, verbose bool, realOrders bool, liveMode bool) (*OrderManager, error) {
 	if exchangeManager == nil {
 		return nil, errNilExchangeManager
 	}
@@ -30,17 +31,17 @@ func SetupOrderManager(exchangeManager iExchangeManager, communicationsManager i
 		return nil, errNilWaitGroup
 	}
 
-	return &RealOrderManager{
-		OrderManager{
-			shutdown: make(chan struct{}),
-			orderStore: store{
-				Orders:          make(map[string][]*order.Detail),
-				exchangeManager: exchangeManager,
-				commsManager:    communicationsManager,
-				wg:              wg,
-			},
-			verbose: verbose,
+	return &OrderManager{
+		shutdown: make(chan struct{}),
+		orderStore: store{
+			Orders:          make(map[string][]*order.Detail),
+			exchangeManager: exchangeManager,
+			commsManager:    communicationsManager,
+			wg:              wg,
 		},
+		useRealOrders: realOrders,
+		verbose:       verbose,
+		liveMode:      liveMode,
 	}, nil
 }
 
@@ -381,20 +382,9 @@ func (m *OrderManager) Modify(ctx context.Context, mod *order.Modify) (*order.Mo
 // Submit will take in an order struct, send it to the exchange and
 // populate it in the OrderManager if successful
 func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*OrderSubmitResponse, error) {
-	fmt.Println("trying to submit real order.")
-
-	// fmt.Println("order", newOrder)
-
-	fmt.Println("exchange", newOrder.Exchange)
-	fmt.Println("pair", newOrder.Pair)
-	fmt.Println("type", newOrder.Type)
-	fmt.Println("side", newOrder.Side)
-	fmt.Println("amount", newOrder.Amount)
-
-	fmt.Println("stop price", newOrder.StopPrice)
-	fmt.Println("price", newOrder.Price)
-
-	// os.Exit(123)
+	if m.liveMode {
+		log.Infoln(log.OrderMgr, "Order manager: Order", newOrder.Side, newOrder.Date, newOrder.StrategyID, newOrder.ID)
+	}
 
 	if m == nil {
 		return nil, fmt.Errorf("order manager %w", ErrNilSubsystem)
@@ -436,23 +426,31 @@ func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*Ord
 			err)
 	}
 
-	exch.GetBase().Verbose = true
-	result, err := exch.SubmitOrder(ctx, newOrder)
-	exch.GetBase().Verbose = false
-	// exch.Verbose = false
+	var result order.SubmitResponse
 
-	if err != nil {
-		return nil, err
+	if m.useRealOrders {
+		exch.GetBase().Verbose = true
+		result, err = exch.SubmitOrder(ctx, newOrder)
+		exch.GetBase().Verbose = false
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		result = order.SubmitResponse{
+			IsOrderPlaced: true,
+			OrderID:       randString(12),
+			FullyMatched:  true,
+		}
 	}
 
 	return m.processSubmittedOrder(newOrder, result)
+
 }
 
 // GetOrdersSnapshot returns a snapshot of all orders in the orderstore. It optionally filters any orders that do not match the status
 // but a status of "" or ANY will include all
 // the time adds contexts for the when the snapshot is relevant for
 func (m *OrderManager) GetOrdersSnapshot(s order.Status) ([]order.Detail, time.Time) {
-
 	if m == nil || atomic.LoadInt32(&m.started) == 0 {
 		return nil, time.Time{}
 	}
@@ -1074,4 +1072,18 @@ func (s *store) getActiveOrders(f *order.Filter) []order.Detail {
 	}
 
 	return orders
+}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
+var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+func randString(n int) string {
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(b)
 }

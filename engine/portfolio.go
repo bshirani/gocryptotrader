@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"gocryptotrader/communications/base"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/database/repository/candle"
@@ -181,7 +182,7 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 		}
 	}
 
-	// go p.heartBeat()
+	go p.heartBeat()
 
 	// p.SetupCurrencySettingsMap(exch string, a asset.Item, cp currency.Pair) (*PortfolioSettings, error) {
 
@@ -470,7 +471,7 @@ func (p *Portfolio) GetOrderFromStore(orderid string) *gctorder.Detail {
 	var foundOrd *gctorder.Detail
 	ords, _ := p.bot.OrderManager.GetOrdersSnapshot("")
 	for _, ord := range ords {
-		if ord.ID != orderid {
+		if ord.InternalOrderID != orderid {
 			continue
 		}
 		foundOrd = &ord
@@ -1253,13 +1254,16 @@ func reduceAmountToFitPortfolioLimit(adjustedPrice, amount, sizedPortfolioTotal 
 }
 
 func (p *Portfolio) heartBeat() {
-	tick := time.NewTicker(time.Second * 5)
+	tick := time.NewTicker(time.Second * 30)
 	for {
 		select {
 		case <-p.shutdown:
 			return
 		case <-tick.C:
-			p.PrintPortfolioDetails()
+			p.bot.CommunicationsManager.PushEvent(base.Event{
+				Type:    "portfolio",
+				Message: "my pf info",
+			})
 		}
 	}
 	// time.Sleep(time.Second * 10)

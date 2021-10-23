@@ -29,6 +29,8 @@ func NewComm(cfg *base.CommunicationsConfig) (*Communications, error) {
 		Telegram := new(telegram.Telegram)
 		Telegram.Setup(cfg)
 		comm.IComm = append(comm.IComm, Telegram)
+	} else {
+		panic("telegram not enabled!")
 	}
 
 	if cfg.SMSGlobalConfig.Enabled {

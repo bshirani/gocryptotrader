@@ -15,8 +15,6 @@ type Settings struct {
 	CheckParamInteraction bool
 
 	// Core Settings
-	EnableRealOrderManager      bool
-	EnableFakeOrderManager      bool
 	EnableRealOrders            bool
 	EnableAllExchanges          bool
 	EnableAllPairs              bool
