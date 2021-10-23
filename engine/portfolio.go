@@ -160,6 +160,10 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 	if !p.bot.Settings.EnableDryRun {
 		activeTrades, _ := livetrade.Active()
 		for _, t := range activeTrades {
+			if t.Amount.IsZero() {
+				panic("trade amount is zero")
+			}
+			fmt.Println("setting trade with amount", t.Amount)
 			// p.getStrategyTrade(t.StrategyID)
 			// set open trade
 			// set position
@@ -531,7 +535,7 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 		StopLossPrice: stopLossPrice,
 		Side:          foundOrd.Side,
 		Pair:          foundOrd.Pair,
-		Amount:        foundOrd.Amount,
+		Amount:        decimal.NewFromFloat(foundOrd.Amount),
 	}
 
 	if lt.EntryPrice.IsZero() {
@@ -540,7 +544,7 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 	if lt.EntryTime.IsZero() {
 		panic("EntryTime cannot be empty")
 	}
-	if lt.Amount == 0 {
+	if lt.Amount.IsZero() {
 		panic("Amount cannot be 0")
 	}
 	// else {
@@ -624,7 +628,7 @@ func (p *Portfolio) recordExitTrade(f fill.Event, t *livetrade.Details) {
 	// 	p.store.openTrade[f.GetStrategyID()] = &ot
 	// }
 
-	if t.Amount == 0 {
+	if t.Amount.IsZero() {
 		panic("trade amount is zero")
 	}
 	if t.ExitTime.IsZero() {

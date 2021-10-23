@@ -22,7 +22,7 @@ type Details struct {
 	Side             order.Side
 	EntryPrice       decimal.Decimal
 	ExitPrice        decimal.Decimal
-	Amount           float64
+	Amount           decimal.Decimal
 	EntryOrderID     string
 	StrategyID       string
 	Name             string

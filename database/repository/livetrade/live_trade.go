@@ -80,14 +80,20 @@ func ByStatus(status order.Status) (out []Details, err error) {
 
 		out = append(out, Details{
 			EntryPrice: decimal.NewFromFloat(x.EntryPrice),
-			EntryTime:  x.EntryTime,
-			// ExitTime:   exitTime,
-			ID:         x.ID,
-			StrategyID: x.StrategyID,
-			Status:     order.Status(x.Status),
-			Side:       order.Side(x.Side),
-			UpdatedAt:  x.UpdatedAt,
-			CreatedAt:  x.CreatedAt,
+			// ExitPrice:     decimal.NewFromFloat(x.ExitPrice),
+			// ExitTime:      x.ExitTime,
+			// ExitPrice:     null.Float64{Float64: x.ExitPrice},
+			// StopLossPrice: stopLossPrice,
+			// Pair:         x.Pair,
+			EntryTime:    x.EntryTime,
+			Amount:       decimal.NewFromFloat(x.Amount),
+			ID:           x.ID,
+			StrategyID:   x.StrategyID,
+			Status:       order.Status(x.Status),
+			Side:         order.Side(x.Side),
+			UpdatedAt:    x.UpdatedAt,
+			CreatedAt:    x.CreatedAt,
+			EntryOrderID: x.EntryOrderID,
 		})
 	}
 	if errS != nil {
@@ -197,6 +203,7 @@ func insertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int, err 
 	entryPrice, _ := in.EntryPrice.Float64()
 	exitPrice, _ := in.ExitPrice.Float64()
 	stopLossPrice, _ := in.StopLossPrice.Float64()
+	amount, _ := in.Amount.Float64()
 
 	if stopLossPrice < 0 {
 		return 0, fmt.Errorf("stop loss price cannot be below zero")
@@ -214,7 +221,7 @@ func insertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int, err 
 		Pair:          in.Pair.String(),
 		EntryOrderID:  in.EntryOrderID,
 		Side:          in.Side.String(),
-		Amount:        in.Amount,
+		Amount:        amount,
 	}
 
 	err = tempInsert.Upsert(
@@ -242,6 +249,7 @@ func updatePostgresql(ctx context.Context, tx *sql.Tx, in []Details) (id int64, 
 		entryPrice, _ := in[x].EntryPrice.Float64()
 		exitPrice, _ := in[x].ExitPrice.Float64()
 		stopLossPrice, _ := in[x].StopLossPrice.Float64()
+		amount, _ := in[x].StopLossPrice.Float64()
 
 		if in[x].EntryTime.IsZero() {
 			fmt.Println("entrytimezero")
@@ -261,7 +269,7 @@ func updatePostgresql(ctx context.Context, tx *sql.Tx, in []Details) (id int64, 
 			Pair:          in[x].Pair.String(),
 			EntryOrderID:  in[x].EntryOrderID,
 			Side:          in[x].Side.String(),
-			Amount:        in[x].Amount,
+			Amount:        amount,
 		}
 
 		id, err = tempInsert.Update(ctx, tx, boil.Infer())
