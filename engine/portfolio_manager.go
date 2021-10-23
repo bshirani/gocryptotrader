@@ -154,7 +154,7 @@ func (m *portfolioManager) processPortfolio() {
 	var BTCbalance float64
 	var USDTbalance float64
 	for _, cur := range currencies {
-		fmt.Println(cur.CurrencyName, cur.TotalValue)
+		// fmt.Println(cur.CurrencyName, cur.TotalValue)
 		if cur.CurrencyName == currency.NewCode("XBT") {
 			BTCbalance = cur.TotalValue
 		}
@@ -162,9 +162,9 @@ func (m *portfolioManager) processPortfolio() {
 			USDTbalance = cur.TotalValue
 		}
 	}
-	// if m.base.Verbose {
-	log.Infoln(log.PortfolioMgr, "Bitcoin Balance", BTCbalance, "USDT", USDTbalance)
-	// }
+	if m.base.Verbose {
+		log.Infoln(log.PortfolioMgr, "Bitcoin Balance", BTCbalance, "USDT", USDTbalance)
+	}
 
 	activeTrades, _ := livetrade.Active()
 	err = accountlog.Insert(accountlog.Details{
