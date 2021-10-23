@@ -341,7 +341,8 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		if ev.GetDirection() == eventtypes.DoNothing {
 			log.Debugf(
 				log.Portfolio,
-				"%s %s %s-%s at %s ",
+				"%s %s %s %s-%s at %s ",
+				ev.GetStrategyID(),
 				ev.GetDecision(),
 				ev.GetReason(),
 				s.GetPair(),
@@ -351,7 +352,8 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		} else {
 			log.Infof(
 				log.Portfolio,
-				"%s %s-%s at %s reason: %s",
+				"%s %s %s-%s at %s reason: %s",
+				ev.GetStrategyID(),
 				ev.GetDecision(),
 				ev.GetReason(),
 				s.GetPair(),
@@ -444,6 +446,7 @@ func (p *Portfolio) recordOrder(ev signal.Event, lo liveorder.Details, o *order.
 			log.Errorln(log.Portfolio, "Unable to store order in database", err)
 			// ev.SetDirection(signal.DoNothing)
 			// ev.AppendReason(fmt.Sprintf("unable to store in database. err: %s", err))
+			panic(fmt.Sprintf("unable to store order in database", err))
 			return fmt.Errorf("unable to store in database. %v", err)
 		}
 		// fmt.Println("order signal, inserted order to db", id)
@@ -468,7 +471,6 @@ func (p *Portfolio) updatePosition(pos *positions.Position, amount decimal.Decim
 }
 
 func (p *Portfolio) GetOrderFromStore(orderid string) *gctorder.Detail {
-	fmt.Println("looking for order", orderid)
 	var foundOrd *gctorder.Detail
 	ords, _ := p.bot.OrderManager.GetOrdersSnapshot("")
 	for _, ord := range ords {
@@ -478,11 +480,8 @@ func (p *Portfolio) GetOrderFromStore(orderid string) *gctorder.Detail {
 		foundOrd = &ord
 	}
 	if foundOrd == nil {
-		// fmt.Println("Portfolio ERROR order has no ID", foundOrd)
 		panic("order not found in store")
 	}
-
-	fmt.Println("found order", foundOrd)
 
 	if foundOrd.Price == 0 {
 		fmt.Println("ERROR order has no price ")

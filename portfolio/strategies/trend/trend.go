@@ -99,16 +99,19 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	} else {
 		minutesInTrade := int(currentTime.Sub(trade.EntryTime).Minutes())
 		if minutesInTrade < -2 {
+
 			fmt.Println("ERROR negative seconds in trade", currentTime, trade.EntryTime)
 			reason := fmt.Sprintf("negative %d minutes in trade", minutesInTrade)
 			es.AppendReason(reason)
 			os.Exit(2)
+
 		} else if minutesInTrade > 60 {
 			// handle exit
+			m60PctChg := fe.Minute().M60PctChange.Last(1)
 
 			// CHECK EXIT BUY
 			if s.Strategy.GetDirection() == order.Buy {
-				if fe.Minute().M60PctChange.Last(1).LessThan(decimal.NewFromFloat(0)) {
+				if m60PctChg.LessThan(decimal.NewFromFloat(-1)) {
 					es.SetDecision(signal.Exit)
 					es.AppendReason(fmt.Sprintf("Strategy: t >. %d min and M60PctChange is negative.", minutesInTrade))
 				} else {
@@ -119,7 +122,7 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 
 			// CHECK EXIT SELL
 			if s.Strategy.GetDirection() == order.Sell {
-				if fe.Minute().M60PctChange.Last(1).GreaterThan(decimal.NewFromFloat(0)) {
+				if m60PctChg.GreaterThan(decimal.NewFromFloat(1)) {
 					es.SetDecision(signal.Exit)
 					es.AppendReason(fmt.Sprintf("Strategy.go says: exiting t > (%d) min and M60PctChange is positive.", minutesInTrade))
 				} else {
@@ -127,6 +130,7 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 					es.AppendReason(fmt.Sprintf("Strategy.go says: Stay in short. M60PctChange is negative. (%d).", minutesInTrade))
 				}
 			}
+
 		} else {
 			es.SetDecision(signal.DoNothing)
 			es.AppendReason(fmt.Sprintf("trade started %d minutes ago.", minutesInTrade))
