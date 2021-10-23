@@ -186,9 +186,13 @@ when the portfolio receives the fill event
 - it stores the order as CLOSED
 - it creates a TRADE status ACTIVE
 
+more strategies
+backtesting individual strategies
+caching factors
+longer-term strategies, backtested, in a loop
 
-
-
+keep track of the strategies in the database
+keep track of the pairs being traded in the database
 
 
 

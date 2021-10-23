@@ -482,7 +482,7 @@ func (tm *TradeManager) waitForFactorEnginesWarmup() {
 }
 
 func (tm *TradeManager) runLive() error {
-	log.Infoln(log.TradeMgr, "Waiting for initial currency sync...")
+	log.Debugln(log.TradeMgr, "Waiting for initial currency sync...")
 	tm.bot.WaitForInitialCurrencySync()
 
 	processEventTicker := time.NewTicker(time.Second * 5)

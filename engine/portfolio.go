@@ -374,7 +374,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 				ev.GetTime(),
 			)
 		} else {
-			log.Infof(
+			log.Debugf(
 				log.Portfolio,
 				"%s %s %s %s-%s at %s reason: %s",
 				ev.GetStrategyID(),
