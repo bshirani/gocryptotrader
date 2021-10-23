@@ -160,7 +160,7 @@ func (m *portfolioManager) processPortfolio() {
 	if m.base.Verbose {
 		log.Infoln(log.PortfolioMgr, "Bitcoin Balance", balance)
 	}
-	err := accountlog.Insert(accountlog.Details{
+	err = accountlog.Insert(accountlog.Details{
 		BTCBalance: balance,
 		Timestamp:  time.Now(),
 		OpenTrades: 1,

@@ -1110,22 +1110,22 @@ func verifyOrderWithinLimits(f *fill.Fill, limitReducedAmount decimal.Decimal, c
 	return nil
 }
 
-func (p *Portfolio) printTradeDetails(t *livetrade.Details) {
-	secondsInTrade := int64(p.lastUpdate.Sub(t.EntryTime).Seconds())
-	log.Infof(log.Portfolio, "%s trade: pl:%v time:%d\n", t.StrategyID, t.ProfitLossPoints, secondsInTrade)
-	return
-}
+// func (p *Portfolio) printTradeDetails(t *livetrade.Details) {
+// 	secondsInTrade := int64(p.lastUpdate.Sub(t.EntryTime).Seconds())
+// 	log.Infof(log.Portfolio, "%s trade: pl:%v time:%d\n", t.StrategyID, t.ProfitLossPoints, secondsInTrade)
+// 	return
+// }
 
 func (p *Portfolio) PrintPortfolioDetails() {
-	log.Infoln(log.Portfolio, "portfolio details", p.lastUpdate)
-	active, _ := livetrade.Active()
-	activeOrders, _ := liveorder.Active()
-	closed, _ := livetrade.Closed()
+	// log.Infoln(log.Portfolio, "portfolio details", p.lastUpdate)
+	// active, _ := livetrade.Active()
+	// activeOrders, _ := liveorder.Active()
+	// closed, _ := livetrade.Closed()
 
-	for _, t := range active {
-		p.printTradeDetails(&t)
-	}
-	log.Infof(log.Portfolio, "orders:%d open_trades:%d closed_trades:%d", len(activeOrders), len(active), len(closed))
+	// for _, t := range active {
+	// 	p.printTradeDetails(&t)
+	// }
+	// log.Infof(log.Portfolio, "orders:%d open_trades:%d closed_trades:%d", len(activeOrders), len(active), len(closed))
 
 	// get strategy last updated time
 	// get factor engine last updated time for each pair
@@ -1255,13 +1255,13 @@ func reduceAmountToFitPortfolioLimit(adjustedPrice, amount, sizedPortfolioTotal 
 }
 
 func (p *Portfolio) heartBeat() {
-	tick := time.NewTicker(time.Second * 30)
+	// tick := time.NewTicker(time.Second * 30)
 	for {
 		select {
 		case <-p.shutdown:
 			return
-		case <-tick.C:
-			p.PrintPortfolioDetails()
+			// case <-tick.C:
+			// 	p.PrintPortfolioDetails()
 		}
 	}
 	// time.Sleep(time.Second * 10)

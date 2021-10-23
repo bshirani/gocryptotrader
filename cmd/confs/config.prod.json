@@ -77,7 +77,7 @@
   "connectionDetails": {
    "host": "localhost",
    "port": 5432,
-   "username": "bijan",
+   "username": "gct",
    "password": "",
    "database": "gct_prod",
    "sslmode": ""
