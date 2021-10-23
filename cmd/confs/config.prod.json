@@ -1,9 +1,9 @@
 {
  "productionMode": true,
- "realOrders": true,
  "LiveMode": true,
  "DryRun": false,
  "Script": false,
+ "realOrders": true,
  "nickname": "",
  "goal": "",
  "strategy-settings": {
