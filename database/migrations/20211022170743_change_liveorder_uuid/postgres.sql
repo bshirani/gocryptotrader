@@ -1,5 +1,4 @@
 -- +goose Up
-DROP TABLE live_order;
 CREATE TABLE live_order (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     status text NOT NULL,
