@@ -75,13 +75,27 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	trade := p.GetTradeForStrategy(s.GetID())
 
 	if trade == nil && len(orders) == 0 {
-		if s.Strategy.GetDirection() == order.Buy { // check for buy strategy
-			es.SetDecision(signal.Enter)
-		} else if s.Strategy.GetDirection() == order.Sell { // check sell strategy
-			es.SetDecision(signal.Enter)
-		}
-		es.AppendReason("Strategy: no trades/orders")
+		m60Chg := fe.Minute().M60PctChange.Last(1)
 
+		if s.Strategy.GetDirection() == order.Buy { // check for buy strategy
+
+			if m60Chg.GreaterThan(decimal.NewFromInt(0)) {
+				es.AppendReason("Strategy: m60Chg greater than zero")
+				es.SetDecision(signal.Enter)
+			} else {
+				es.AppendReason("Strategy: m60Chg less than zero")
+				es.SetDecision(signal.DoNothing)
+			}
+
+		} else if s.Strategy.GetDirection() == order.Sell { // check sell strategy
+			if m60Chg.LessThan(decimal.NewFromInt(0)) {
+				es.AppendReason("Strategy: m60Chg less than zero")
+				es.SetDecision(signal.Enter)
+			} else {
+				es.AppendReason("Strategy: m60Chg greater than zero")
+				es.SetDecision(signal.DoNothing)
+			}
+		}
 	} else {
 		minutesInTrade := int(currentTime.Sub(trade.EntryTime).Minutes())
 		if minutesInTrade < -2 {
@@ -113,10 +127,9 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 					es.AppendReason(fmt.Sprintf("Strategy.go says: Stay in short. M60PctChange is negative. (%d).", minutesInTrade))
 				}
 			}
-
 		} else {
 			es.SetDecision(signal.DoNothing)
-			es.AppendReason(fmt.Sprintf("Strategy: trade age %d minutes.", minutesInTrade))
+			es.AppendReason(fmt.Sprintf("trade started %d minutes ago.", minutesInTrade))
 		}
 
 	}

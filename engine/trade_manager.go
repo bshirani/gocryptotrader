@@ -144,12 +144,10 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 		tm.initializeStrategies(cfg)
 
 		if tm.bot.Config.TradeManager.ClearDB {
-			if tm.bot.Config.ProductionMode {
+			if tm.bot.Config.ProductionMode || tm.bot.Config.Database.ConnectionDetails.Database == "gct_prod" {
 				// check database name to ensure we don't delete anything
 				panic("trying to delete production")
 			}
-			fmt.Println("clear database of orders and trades here")
-
 			liveorder.DeleteAll()
 			livetrade.DeleteAll()
 		}

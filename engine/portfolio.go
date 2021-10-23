@@ -342,21 +342,23 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		if ev.GetDirection() == eventtypes.DoNothing {
 			log.Debugf(
 				log.Portfolio,
-				"%s %s-%s at %s reason: %s",
+				"%s %s %s-%s at %s ",
 				ev.GetDecision(),
+				ev.GetReason(),
 				s.GetPair(),
 				s.GetDirection(),
 				ev.GetTime(),
-				ev.GetReason())
+			)
 		} else {
 			log.Infof(
 				log.Portfolio,
 				"%s %s-%s at %s reason: %s",
 				ev.GetDecision(),
+				ev.GetReason(),
 				s.GetPair(),
 				s.GetDirection(),
 				ev.GetTime(),
-				ev.GetReason())
+			)
 		}
 	}
 
@@ -1260,10 +1262,12 @@ func (p *Portfolio) heartBeat() {
 		case <-p.shutdown:
 			return
 		case <-tick.C:
-			p.bot.CommunicationsManager.PushEvent(base.Event{
-				Type:    "portfolio",
-				Message: "my pf info",
-			})
+			if p.bot.Config.ProductionMode {
+				p.bot.CommunicationsManager.PushEvent(base.Event{
+					Type:    "portfolio",
+					Message: "my pf info",
+				})
+			}
 		}
 	}
 	// time.Sleep(time.Second * 10)
