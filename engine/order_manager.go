@@ -382,9 +382,9 @@ func (m *OrderManager) Modify(ctx context.Context, mod *order.Modify) (*order.Mo
 // Submit will take in an order struct, send it to the exchange and
 // populate it in the OrderManager if successful
 func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*OrderSubmitResponse, error) {
-	if m.liveMode {
-		log.Infoln(log.OrderMgr, "Order manager: Order", newOrder.Side, newOrder.Date, newOrder.StrategyID, newOrder.ID)
-	}
+	// if m.liveMode {
+	// 	log.Warnln(log.OrderMgr, "Order manager: Order", newOrder.Side, newOrder.Date, newOrder.StrategyID, newOrder.ID)
+	// }
 
 	if m == nil {
 		return nil, fmt.Errorf("order manager %w", ErrNilSubsystem)
@@ -587,7 +587,7 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 		return nil, fmt.Errorf("unable to add %v order %v to orderStore: %s", newOrder.Exchange, result.OrderID, err)
 	}
 
-	fmt.Println("returning order id", newOrder.ID, "for strategy", newOrder.StrategyID)
+	// fmt.Println("returning order id", newOrder.ID, "for strategy", newOrder.StrategyID)
 
 	return &OrderSubmitResponse{
 		SubmitResponse: order.SubmitResponse{

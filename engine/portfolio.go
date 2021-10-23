@@ -524,16 +524,16 @@ func (p *Portfolio) GetOrderFromStore(orderid string) *gctorder.Detail {
 
 func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 	s, _ := p.getStrategy(ev.GetStrategyID())
-	fmt.Println("STRATEGY DIR", s.GetDirection())
-	fmt.Println("EV DIR", ev.GetDirection())
-	fmt.Println("ORDER ID", ev.GetOrderID())
+	// fmt.Println("STRATEGY DIR", s.GetDirection())
+	// fmt.Println("EV DIR", ev.GetDirection())
+	// fmt.Println("ORDER ID", ev.GetOrderID())
 
 	if ev.GetDirection() != s.GetDirection() {
 		str := fmt.Sprintf("%s %s for %s", ev.GetDirection(), s.GetDirection(), ev.GetStrategyID())
 		panic(str)
 	}
 	foundOrd := p.GetOrderFromStore(ev.GetOrderID())
-	fmt.Println("found order", foundOrd.ID, foundOrd.InternalOrderID)
+	// fmt.Println("found order", foundOrd.ID, foundOrd.InternalOrderID)
 	stopLossPrice := decimal.NewFromFloat(foundOrd.Price).Mul(decimal.NewFromFloat(0.9))
 	p.store.positions[ev.GetStrategyID()] = &positions.Position{Active: true}
 
@@ -541,7 +541,7 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 		Status:        gctorder.Open,
 		StrategyID:    ev.GetStrategyID(),
 		EntryTime:     foundOrd.Date,
-		EntryOrderID:  foundOrd.ID,
+		EntryOrderID:  foundOrd.InternalOrderID,
 		EntryPrice:    decimal.NewFromFloat(foundOrd.Price),
 		StopLossPrice: stopLossPrice,
 		Side:          foundOrd.Side,
@@ -569,31 +569,30 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 			fmt.Println("error inserting trade", err)
 			os.Exit(2)
 		}
+	}
+	if p.bot.Settings.EnableLiveMode {
+		tradeMsg := fmt.Sprintf("created trade for %s %v %s", ev.GetStrategyID(), ev.GetAmount(), ev.GetDirection())
+		log.Warnf(log.Portfolio, tradeMsg)
 
-		if p.bot.Settings.EnableLiveMode {
-			tradeMsg := fmt.Sprintf("created trade for %s %v %s", ev.GetStrategyID(), ev.GetAmount(), ev.GetDirection())
-			log.Warnf(log.Portfolio, tradeMsg)
+		// lt.EntryTime.UTC().AppendFormat(e.data, l.Timestamp)
 
-			// lt.EntryTime.UTC().AppendFormat(e.data, l.Timestamp)
+		timestampFormat := " 15:04:05 UTC"
+		s, _ := p.getStrategy(ev.GetStrategyID())
+		notificationMsg := fmt.Sprintf(
+			"ENTER TRADE: %s\n%s %v@%v@%v %s\n%s",
+			s.GetID(),
+			lt.Side,
+			lt.Amount,
+			lt.EntryTime.Format(timestampFormat),
+			lt.EntryPrice,
+			lt.Side,
+			ev.GetReason())
 
-			timestampFormat := " 15:04:05 UTC"
-			s, _ := p.getStrategy(ev.GetStrategyID())
-			notificationMsg := fmt.Sprintf(
-				"ENTER TRADE: %s\n%s %v@%v@%v %s\n%s",
-				s.GetID(),
-				lt.Side,
-				lt.Amount,
-				lt.EntryTime.Format(timestampFormat),
-				lt.EntryPrice,
-				lt.Side,
-				ev.GetReason())
-
-			fmt.Print("notification message", notificationMsg)
-			p.bot.CommunicationsManager.PushEvent(base.Event{
-				Type:    "trade_open\n",
-				Message: notificationMsg,
-			})
-		}
+		// fmt.Print("notification message", notificationMsg)
+		p.bot.CommunicationsManager.PushEvent(base.Event{
+			Type:    "trade_open\n",
+			Message: notificationMsg,
+		})
 	}
 
 	p.store.openTrade[ev.GetStrategyID()] = &lt
@@ -714,9 +713,9 @@ func (p *Portfolio) OnFill(f fill.Event) {
 }
 
 func (p *Portfolio) completeOrder(ev submit.Event) {
-	if p.verbose {
-		log.Infof(log.Portfolio, "completing order", ev.GetStrategyID())
-	}
+	// if p.verbose {
+	// 	log.Infoln(log.Portfolio, "completing order", ev.GetStrategyID())
+	// }
 	// fmt.Println("COMPLETING ORDER for:", ev.GetStrategyID())
 	// fmt.Println("open orders", len(p.store.openOrders[ev.GetStrategyID()]))
 	order := p.store.openOrders[ev.GetStrategyID()][0]

@@ -23,3 +23,6 @@ CREATE TABLE live_order (
 -- +goose Down
 DROP TABLE live_order;
 
+alter table live_trade alter column entry_order_id type uuid USING entry_order_id::uuid;
+ALTER TABLE live_trade ADD CONSTRAINT live_trade_live_order_fk FOREIGN KEY (entry_order_id) REFERENCES live_order (id);
+
