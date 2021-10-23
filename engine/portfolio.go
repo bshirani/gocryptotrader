@@ -163,7 +163,6 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 			if t.Amount.IsZero() {
 				panic("trade amount is zero")
 			}
-			fmt.Println("setting trade with amount", t.Amount)
 			// p.getStrategyTrade(t.StrategyID)
 			// set open trade
 			// set position
@@ -350,13 +349,24 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		}
 	}
 
+	// get trade for strategy
+
+	t := p.GetTradeForStrategy(ev.GetStrategyID())
+	var tradeStatus string
+	if t == nil {
+		tradeStatus = "NOT_IN_TRADE"
+	} else {
+		tradeStatus = fmt.Sprintf("IN_TRADE PL:%v", t.ProfitLossPoints.Mul(t.Amount))
+	}
+
 	// logging
 	if p.verbose {
 		if ev.GetDirection() == eventtypes.DoNothing {
 			log.Debugf(
 				log.Portfolio,
-				"%s %s %s %s-%s at %s ",
+				"%s %s %s %s %s-%s at %s ",
 				ev.GetStrategyID(),
+				tradeStatus,
 				ev.GetDecision(),
 				ev.GetReason(),
 				s.GetPair(),
@@ -366,8 +376,9 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		} else {
 			log.Infof(
 				log.Portfolio,
-				"%s %s %s-%s at %s reason: %s",
+				"%s %s %s %s-%s at %s reason: %s",
 				ev.GetStrategyID(),
+				tradeStatus,
 				ev.GetDecision(),
 				ev.GetReason(),
 				s.GetPair(),
