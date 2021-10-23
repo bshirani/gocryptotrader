@@ -157,11 +157,20 @@ type DataImporterConfig struct {
 
 // DataHistoryManager holds all information required for the data history manager
 type TradeManagerConfig struct {
-	Enabled    bool     `json:"enabled"`
-	Verbose    bool     `json:"verbose"`
-	Trading    bool     `json:"trading"`
-	ClearDB    bool     `json:"clearDB"`
-	Strategies []string `json:"strategies"`
+	Enabled        bool                 `json:"enabled"`
+	Verbose        bool                 `json:"verbose"`
+	Trading        bool                 `json:"trading"`
+	ClearDB        bool                 `json:"clearDB"`
+	Strategies     []string             `json:"strategies"`
+	LiveSimulation LiveSimulationConfig `json:"liveSimulation"`
+}
+
+type LiveSimulationConfig struct {
+	Enabled   bool      `json:"enabled"`
+	StartDate time.Time `json:"start-date"`
+	EndDate   time.Time `json:"end-date"`
+	// ConfigOverride   *database.Config `json:"config-override"`
+	// InclusiveEndDate bool             `json:"inclusive-end-date"`
 }
 
 type FactorEngineConfig struct {

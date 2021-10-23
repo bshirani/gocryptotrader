@@ -1117,10 +1117,6 @@ func (bot *Engine) SetExchangeAssetCurrencySettings(exch string, a asset.Item, c
 	bot.CurrencySettings = append(bot.CurrencySettings, c)
 }
 
-func (bot *Engine) GetCurrentTime() time.Time {
-	return time.Now().UTC()
-}
-
 // GetCurrencySettings returns the settings for an exchange, asset currency
 func (bot *Engine) GetCurrencySettings(exch string, a asset.Item, cp currency.Pair) (*ExchangeAssetPairSettings, error) {
 	for i := range bot.CurrencySettings {

@@ -7,6 +7,8 @@ import (
 	"gocryptotrader/database"
 	"gocryptotrader/database/models/postgres"
 	"gocryptotrader/exchange/order"
+
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
 type Details struct {
@@ -35,6 +37,27 @@ func All() (st []Details, err error) {
 			CreatedAt:     r.CreatedAt,
 			UpdatedAt:     r.UpdatedAt,
 		})
+	}
+
+	return st, nil
+}
+
+func One(id int) (st Details, err error) {
+	// query := postgres.Datahistoryjobs(qm.Where("nickname = ?", strings.ToLower(nickname)))
+	query := postgres.Strategies(qm.Where("id=?", id))
+	var r *postgres.Strategy
+	r, err = query.One(context.Background(), database.DB.SQL)
+	if err != nil {
+		return st, err
+	}
+
+	st = Details{
+		ID:            r.ID,
+		Side:          order.Side(r.Side),
+		Capture:       r.Capture,
+		TimeframeDays: r.TimeframeDays,
+		CreatedAt:     r.CreatedAt,
+		UpdatedAt:     r.UpdatedAt,
 	}
 
 	return st, nil

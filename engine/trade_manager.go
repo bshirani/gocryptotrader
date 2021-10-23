@@ -12,6 +12,8 @@ import (
 	datakline "gocryptotrader/data/kline"
 	"gocryptotrader/data/kline/database"
 	"gocryptotrader/database/repository/candle"
+	"gocryptotrader/database/repository/currencypair"
+	"gocryptotrader/database/repository/currencypairstrategy"
 	"gocryptotrader/database/repository/datahistoryjob"
 	"gocryptotrader/database/repository/liveorder"
 	"gocryptotrader/database/repository/livetrade"
@@ -86,7 +88,12 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	tm.cfg = *cfg
 	tm.verbose = bot.Config.TradeManager.Verbose
 	tm.tradingEnabled = bot.Settings.EnableTrading
+	tm.liveSimulationCfg = bot.Config.TradeManager.LiveSimulation
 	// fmt.Println("tmconfig", cfg.TradeManager, cfg.TradeManager.Verbose, cfg.TradeManager.Trading, cfg.TradeManager.Enabled)
+
+	if tm.liveSimulationCfg.Enabled {
+		fmt.Println("L!!!!!!!!!!!!!!!!LIVE SIMULATION!!!!")
+	}
 
 	stats := &statistics.Statistic{
 		StrategyName:                "ok",
@@ -403,46 +410,19 @@ func (tm *TradeManager) waitForDataCatchup() {
 	// time.Sleep(time.Millisecond * 500)
 	log.Infoln(log.TradeMgr, "Done with catchup")
 	os.Exit(1123)
-
-	// fmt.Println("validating...")
-	// rTotal := make(map[*ExchangeAssetPairSettings]int)
-	// for _, p := range tm.bot.CurrencySettings {
-	// 	t := time.Now()
-	// 	nowTime := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
-	// 	startDate := nowTime.AddDate(0, -1, 0)
-	// 	rTotal[p] = 0
-	//
-	// 	candles, _ := candle.Series(p.ExchangeName, p.CurrencyPair.Base.String(), p.CurrencyPair.Quote.String(), 60, p.AssetType.String(), startDate, time.Now())
-	// 	rTotal[p] += len(candles.Candles)
-	// 	fmt.Println(p.CurrencyPair, "has", rTotal[p], "bars")
-	// }
 }
 
-// ensure that we're synced before moving on
-// r := make(map[*ExchangeAssetPairSettings]map[time.Time]int)
-// for x := startDate; x.Before(nowTime); x = x.AddDate(0, 0, 1) {
-// 	if r[p] == nil {
-// 		r[p] = make(map[time.Time]int)
-// 	}
-// 	candles, _ := candle.Series(p.ExchangeName, p.CurrencyPair.Base.String(), p.CurrencyPair.Quote.String(), 60, p.AssetType.String(), time.Now().Add(time.Minute*-5), time.Now())
-// 	r[p][x] = len(candles.Candles)
-// 	rTotal[p] += len(candles.Candles)
-// 	fmt.Println("adding", len(candles.Candles), rTotal[p])
-// }
-
 func (tm *TradeManager) waitForFactorEnginesWarmup() {
-	// var localWG sync.WaitGroup
-	// localWG.Add(1)
-	fmt.Println("warm up factor engines")
+	// fmt.Println("warm up factor engines")
 	tm.initializeFactorEngines()
 
 	// load all candles for instrument
 	for _, cs := range tm.bot.CurrencySettings {
-		startDate := time.Now().Add(time.Minute * -120)
-		// candles, _ := CandleSeriesForSettings(cs, 60, startDate, time.Now())
+		startDate := tm.GetCurrentTime().Add(time.Minute * -120)
+		// candles, _ := CandleSeriesForSettings(cs, 60, startDate, tm.GetCurrentTime())
 		dbData, err := database.LoadData(
 			startDate,
-			time.Now(),
+			tm.GetCurrentTime(),
 			time.Minute,
 			cs.ExchangeName,
 			0,
@@ -483,7 +463,6 @@ func (tm *TradeManager) waitForFactorEnginesWarmup() {
 	// 	time.Sleep(time.Second)
 	// }
 
-	fmt.Println("done warm up factor engines")
 	// localWG.Wait()
 }
 
@@ -509,7 +488,7 @@ func (tm *TradeManager) runLive() error {
 		case <-tm.shutdown:
 			return nil
 		case <-processEventTicker.C:
-			t := time.Now().UTC()
+			t := tm.GetCurrentTime()
 			thisMinute = time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, loc)
 			if thisMinute != lastMinute {
 				lastMinute = thisMinute
@@ -591,9 +570,8 @@ func (tm *TradeManager) handleEvent(ev eventtypes.EventHandler) error {
 }
 
 func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) error {
-	// minutesOld := tm.bot.CurrentTime().Sub(ev.GetTime()).Minutes()
 	if tm.tradingEnabled {
-		fmt.Println("tm processing event at", ev.GetTime(), ev.Pair(), time.Now().UTC()) //, "minutes old", int(minutesOld))
+		fmt.Println("tm processing event at", ev.GetTime(), ev.Pair(), tm.GetCurrentTime())
 	}
 	err := tm.updateStatsForDataEvent(ev)
 	if err != nil {
@@ -654,7 +632,9 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 			fmt.Println("passing data", ev.Pair(), d.Latest().GetTime())
 			for _, strategy := range tm.Strategies {
 				if strategy.GetPair() == ev.Pair() {
+					fmt.Println("updating strategy", strategy.GetID(), strategy.GetPair(), ev.Pair())
 					s, err := strategy.OnData(d, tm.Portfolio, fe)
+					s.SetStrategyID(strategy.GetID())
 					if err != nil {
 						fmt.Println("error processing data event", err)
 						return err
@@ -906,38 +886,60 @@ func (tm *TradeManager) startOfflineServices() error {
 
 func (tm *TradeManager) initializeStrategies(cfg *config.Config) {
 	var slit []strategies.Handler
-	st, _ := strategy.All()
-	for _, s := range st {
-		var isWhitelisted bool
-		for _, name := range tm.bot.Config.TradeManager.Strategies {
-			if strings.EqualFold(name, s.Capture) {
-				isWhitelisted = true
-				break
-			}
-		}
-		if len(tm.bot.Config.TradeManager.Strategies) == 0 {
-			isWhitelisted = true
-		}
-		// fmt.Println("leggg", len(tm.bot.Config.TradeManager.Strategies))
+	// st, _ := strategy.All()
+	cpsS, _ := currencypairstrategy.All()
+	allPairs, _ := currencypair.All()
 
-		if !isWhitelisted {
-			continue
-		}
-		for _, c := range tm.bot.CurrencySettings {
-			strat, _ := strategies.LoadStrategyByName(s.Capture)
-			strat.SetID(s.ID)
-			strat.SetNumID(s.ID)
-			// fmt.Println("setting pair for", s.ID, c.CurrencyPair)
-			strat.SetPair(c.CurrencyPair)
-			strat.SetDirection(s.Side)
-			if strat.GetID() == 0 {
-				fmt.Println("no strategy id")
-				os.Exit(2)
-			}
-			strat.SetDefaults()
-			slit = append(slit, strat)
-		}
+	fmt.Println("loaded", len(allPairs), "pairs")
+
+	for _, cps := range cpsS {
+		baseStrategy, _ := strategy.One(cps.StrategyID)
+		strat, _ := strategies.LoadStrategyByName(baseStrategy.Capture)
+		fmt.Println("cp loaded", cps.CurrencyPair)
+		// cp, _ := currencypair.One(cps.CurrencyPairID)
+
+		strat.SetID(cps.ID)
+		strat.SetNumID(cps.ID)
+		strat.SetPair(cps.CurrencyPair)
+		strat.SetDirection(cps.Side)
+		fmt.Println("st", strat)
+
 	}
+
+	// for _, cps := range cpsS {
+	// var isWhitelisted bool
+	// for _, name := range tm.bot.Config.TradeManager.Strategies {
+	// 	if strings.EqualFold(name, s.Capture) {
+	// 		isWhitelisted = true
+	// 		break
+	// 	}
+	// }
+	// if len(tm.bot.Config.TradeManager.Strategies) == 0 {
+	// 	isWhitelisted = true
+	// }
+	// fmt.Println("leggg", len(tm.bot.Config.TradeManager.Strategies))
+
+	// if !isWhitelisted {
+	// 	continue
+	// }
+
+	// load the currency pair for the cps
+
+	// strat, _ := strategies.LoadStrategyByName(s.Capture)
+	// fmt.Println("setting strategy", s.ID, c.CurrencyPair)
+	// strat.SetID(s.ID)
+	// strat.SetNumID(s.ID)
+	// // fmt.Println("setting pair for", s.ID, c.CurrencyPair)
+	// strat.SetPair(c.CurrencyPair)
+	// strat.SetDirection(s.Side)
+	// if strat.GetID() == 0 {
+	// 	fmt.Println("no strategy id")
+	// 	os.Exit(2)
+	// }
+	// strat.SetDefaults()
+	// 	slit = append(slit, strat)
+	// }
+
 	tm.Strategies = slit
 }
 
@@ -959,8 +961,8 @@ func (tm *TradeManager) initializeFactorEngines() error {
 		if tm.bot.Settings.EnableLiveMode {
 			// fmt.Println("get data for live", cs.CurrencyPair)
 			dbData, err = database.LoadData(
-				time.Now().Add(time.Minute*-300),
-				time.Now().Add(time.Minute*-30),
+				tm.GetCurrentTime().Add(time.Minute*-300),
+				tm.GetCurrentTime().Add(time.Minute*-30),
 				time.Minute,
 				cs.ExchangeName,
 				0,
@@ -1017,7 +1019,11 @@ func (tm *TradeManager) loadBacktestData() (err error) {
 		}
 
 		tm.Datas.SetDataForCurrency(e, a, p, dbData)
-		dbData.RangeHolder, err = kline.CalculateCandleDateRanges(startTime, time.Now(), kline.Interval(kline.OneMin), 0)
+		dbData.RangeHolder, err = kline.CalculateCandleDateRanges(
+			startTime,
+			tm.GetCurrentTime(),
+			kline.Interval(kline.OneMin),
+			0)
 		dbData.Load()
 
 		if err != nil {
@@ -1067,7 +1073,11 @@ func (tm *TradeManager) loadLatestCandleFromDatabase(eap *ExchangeAssetPairSetti
 	tm.Datas.SetDataForCurrency(e, a, p, dbData)
 	// dbData.RangeHolder.SetHasDataFromCandles(dbData.Item.Candles)
 	// fmt.Println("calculate data in range", startTime, thisMinute, "lasttime", lastCandle.Time)
-	dbData.RangeHolder, err = kline.CalculateCandleDateRanges(startTime, time.Now(), kline.Interval(kline.OneMin), 0)
+	dbData.RangeHolder, err = kline.CalculateCandleDateRanges(
+		startTime,
+		tm.GetCurrentTime(),
+		kline.Interval(kline.OneMin),
+		0)
 
 	if err != nil {
 		return nil, fmt.Errorf("error creating range holder. error: %s", err)
@@ -1085,4 +1095,8 @@ func (tm *TradeManager) loadLatestCandleFromDatabase(eap *ExchangeAssetPairSetti
 	}
 
 	return dbData, err
+}
+
+func (tm *TradeManager) GetCurrentTime() time.Time {
+	return time.Now().UTC()
 }

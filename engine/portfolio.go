@@ -267,7 +267,13 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	// 	fmt.Println("UPDATE STRATEGY TRADES", ev.GetStrategyID())
 	// }
 	// if p.verbose {
+
 	s, _ := p.getStrategy(ev.GetStrategyID())
+	// if ev.Pair() != s.GetPair() {
+	// 	fmt.Println(ev.Pair(), s.GetPair(), s.Name())
+	// 	panic("updating wrong strategy/pair")
+	// }
+
 	// }
 	if ev == nil || cs == nil {
 		return nil, eventtypes.ErrNilArguments
@@ -286,7 +292,6 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 
 	// validate and prepare the event
 	strategyDirection, err := p.getStrategyDirection(ev.GetStrategyID())
-
 	if err != nil {
 		fmt.Println("error getting strategy direction", err)
 	}
@@ -353,18 +358,13 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		tradeStatus = fmt.Sprintf("IN_TRADE PL:%v", t.ProfitLossPoints.Mul(t.Amount))
 	}
 
-	if ev.Pair() != s.GetPair() {
-		fmt.Println(ev.Pair(), s.GetPair())
-		panic("updating wrong strategy/pair")
-	}
 	// logging
 	if p.verbose {
 		log.Debugf(
 			log.Portfolio,
-			"onsig name=%d-%s-%s-%s decision=%s status=%s reason=%s time=%s ",
+			"onsig name=%d-%s-%s decision=%s status=%s reason=%s time=%s ",
 			ev.GetStrategyID(),
 			s.GetDirection(),
-			s.GetPair(),
 			s.Name(),
 			ev.GetDecision(),
 			ev.Pair(),
@@ -571,13 +571,12 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 		timestampFormat := " 15:04:05 UTC"
 		s, _ := p.getStrategy(ev.GetStrategyID())
 		notificationMsg := fmt.Sprintf(
-			"ENTER TRADE: %d-%s %s\n%v@%v@%v\n%s",
+			"ENTER TRADE: %d\n%s %v@%v %v\n%s",
 			s.GetID(),
-			s.GetPair(),
 			lt.Side,
 			lt.Amount,
-			lt.EntryTime.Format(timestampFormat),
 			lt.EntryPrice,
+			lt.EntryTime.Format(timestampFormat),
 			ev.GetReason())
 
 		// fmt.Print("notification message", notificationMsg)
@@ -1498,7 +1497,9 @@ func (p *Portfolio) getStrategyDirection(strategyID int) (gctorder.Side, error) 
 
 func (p *Portfolio) getStrategy(strategyID int) (strategies.Handler, error) {
 	for _, s := range p.Strategies {
+		// fmt.Println("lookup strategy", strategyID)
 		if s.GetID() == strategyID {
+			// fmt.Println("returning", strategyID, s.Name(), s.GetDirection(), s.GetPair())
 			return s, nil
 		}
 	}

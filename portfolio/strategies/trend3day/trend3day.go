@@ -53,7 +53,6 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	// set defaults
 	es.SetPrice(d.Latest().ClosePrice())
 	es.SetAmount(decimal.NewFromFloat(1.0))
-	es.SetStrategyID(s.GetID())
 
 	offset := d.Offset()
 

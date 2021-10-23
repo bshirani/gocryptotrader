@@ -62,4 +62,5 @@ const (
 	CaptureTypeTrend     = "trend"
 	CaptureTypeTrend2day = "trend2day"
 	CaptureTypeTrend3day = "trend3day"
+	CaptureTypeTrenddev  = "trenddev"
 )

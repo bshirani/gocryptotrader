@@ -47,6 +47,7 @@ type TradeManager struct {
 	Reports            report.Handler
 	Statistic          statistics.Handler
 	Strategies         []strategies.Handler
+	liveSimulationCfg  config.LiveSimulationConfig
 	tradingEnabled     bool
 	cfg                config.Config
 	hasHandledEvent    bool
