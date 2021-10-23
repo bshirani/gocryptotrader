@@ -7,7 +7,6 @@ import (
 	"os"
 	"time"
 
-	"gocryptotrader/communications/base"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/database/repository/candle"
@@ -1262,12 +1261,7 @@ func (p *Portfolio) heartBeat() {
 		case <-p.shutdown:
 			return
 		case <-tick.C:
-			if p.bot.Config.ProductionMode {
-				p.bot.CommunicationsManager.PushEvent(base.Event{
-					Type:    "portfolio",
-					Message: "my pf info",
-				})
-			}
+			p.PrintPortfolioDetails()
 		}
 	}
 	// time.Sleep(time.Second * 10)

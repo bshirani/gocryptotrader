@@ -88,7 +88,7 @@
   "level": "INFO|DEBUG|WARN|ERROR",
   "output": "console|file",
   "fileSettings": {
-   "filename": "log.txt",
+   "filename": "prod.log",
    "rotate": true,
    "maxsize": 250
   },
