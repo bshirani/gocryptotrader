@@ -574,18 +574,21 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 			tradeMsg := fmt.Sprintf("created trade for %s %v %s", ev.GetStrategyID(), ev.GetAmount(), ev.GetDirection())
 			log.Warnf(log.Portfolio, tradeMsg)
 
-			timeFormat := "15:05:05"
+			// lt.EntryTime.UTC().AppendFormat(e.data, l.Timestamp)
+
+			timestampFormat := " 15:04:05 UTC"
 			s, _ := p.getStrategy(ev.GetStrategyID())
 			notificationMsg := fmt.Sprintf(
 				"ENTER TRADE: %s\n%s %v@%v@%v %s\n%s",
 				s.GetID(),
 				lt.Side,
 				lt.Amount,
-				lt.EntryTime.Format(timeFormat),
+				lt.EntryTime.Format(timestampFormat),
 				lt.EntryPrice,
 				lt.Side,
 				ev.GetReason())
 
+			fmt.Print("notification message", notificationMsg)
 			p.bot.CommunicationsManager.PushEvent(base.Event{
 				Type:    "trade_open\n",
 				Message: notificationMsg,
