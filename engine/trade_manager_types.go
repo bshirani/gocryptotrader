@@ -48,11 +48,14 @@ type TradeManager struct {
 	Statistic          statistics.Handler
 	Strategies         []strategies.Handler
 	liveSimulationCfg  config.LiveSimulationConfig
+	lastUpdateMin      map[*ExchangeAssetPairSettings]time.Time
+	isSimulation       bool
 	tradingEnabled     bool
 	cfg                config.Config
 	hasHandledEvent    bool
 	shutdown           chan struct{}
 	started            int32
+	currentTime        time.Time
 	syncManager        *syncManager
 	verbose            bool
 	wg                 sync.WaitGroup

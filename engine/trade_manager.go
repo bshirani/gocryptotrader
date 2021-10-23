@@ -12,7 +12,6 @@ import (
 	datakline "gocryptotrader/data/kline"
 	"gocryptotrader/data/kline/database"
 	"gocryptotrader/database/repository/candle"
-	"gocryptotrader/database/repository/currencypair"
 	"gocryptotrader/database/repository/currencypairstrategy"
 	"gocryptotrader/database/repository/datahistoryjob"
 	"gocryptotrader/database/repository/liveorder"
@@ -89,11 +88,12 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	tm.verbose = bot.Config.TradeManager.Verbose
 	tm.tradingEnabled = bot.Settings.EnableTrading
 	tm.liveSimulationCfg = bot.Config.TradeManager.LiveSimulation
-	// fmt.Println("tmconfig", cfg.TradeManager, cfg.TradeManager.Verbose, cfg.TradeManager.Trading, cfg.TradeManager.Enabled)
+	tm.isSimulation = tm.liveSimulationCfg.Enabled
 
-	if tm.liveSimulationCfg.Enabled {
-		fmt.Println("L!!!!!!!!!!!!!!!!LIVE SIMULATION!!!!")
+	if tm.isSimulation {
+		tm.currentTime = tm.liveSimulationCfg.StartDate
 	}
+	// fmt.Println("tmconfig", cfg.TradeManager, cfg.TradeManager.Verbose, cfg.TradeManager.Trading, cfg.TradeManager.Enabled)
 
 	stats := &statistics.Statistic{
 		StrategyName:                "ok",
@@ -471,6 +471,8 @@ func (tm *TradeManager) runLive() error {
 	tm.bot.WaitForInitialCurrencySync()
 	log.Debugln(log.TradeMgr, "Finished Initial Currency Sync")
 
+	// var processEventTicker time.Ticker
+	// processEventTickerSim := time.NewTicker(time.Second)
 	processEventTicker := time.NewTicker(time.Second * 5)
 	if tm.bot.dataHistoryManager.IsRunning() {
 		tm.waitForDataCatchup()
@@ -478,72 +480,69 @@ func (tm *TradeManager) runLive() error {
 	tm.waitForFactorEnginesWarmup()
 	log.Infoln(log.TradeMgr, "Running Live!")
 
-	lup := make(map[*ExchangeAssetPairSettings]time.Time)
-
-	var thisMinute, lastMinute time.Time
-	loc, _ := time.LoadLocation("UTC")
+	tm.lastUpdateMin = make(map[*ExchangeAssetPairSettings]time.Time)
 
 	for {
 		select {
 		case <-tm.shutdown:
 			return nil
 		case <-processEventTicker.C:
-			t := tm.GetCurrentTime()
-			thisMinute = time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, loc)
-			if thisMinute != lastMinute {
-				lastMinute = thisMinute
-			}
+			err := tm.processLiveMinute()
 
-			for _, cs := range tm.bot.CurrencySettings {
-				if lup[cs] != thisMinute {
-					dbData, err := tm.loadLatestCandleFromDatabase(cs)
-
-					// dont have a bar for this minute yet
-					// TODO handle specific error
-					if err != nil {
-						// fmt.Println("error", err)
-						continue
-					}
-
-					dataEvent := dbData.Next()
-					for ; ; dataEvent = dbData.Next() {
-						if dataEvent == nil {
-							break
-						}
-					}
-					dataEvent = dbData.Latest()
-
-					// if same this as this minute
-					if !common.IsSameMinute(thisMinute, dataEvent.GetTime()) {
-						fmt.Println("skipping already seen bar", dataEvent.GetTime(), thisMinute)
-						continue
-					}
-
-					// fmt.Println("Handle this minute", dataEvent.GetTime(), thisMinute, common.IsSameMinute(dataEvent.GetTime(), thisMinute))
-					if !dbData.HasDataAtTime(dataEvent.GetTime()) {
-						log.Error(log.TradeMgr, "doesnt have data in range")
-						os.Exit(123)
-					}
-					// fmt.Println("got data event from database", dataEvent.GetTime())
-					lup[cs] = dataEvent.GetTime().UTC()
-					tm.EventQueue.AppendEvent(dataEvent)
-					// fmt.Println(cs.CurrencyPair, "seen", thisMinute, "loadedbars", t1, len(dbData.Item.Candles))
-					// fmt.Println("sending event", dataEvent.GetTime())
-					// else {
-					// 	break
-					// }
-
-				}
-				// else {
-				// 	fmt.Println("lastupdate", cs.CurrencyPair, lup[cs], "now", thisMinute)
-				// }
-			}
-
-			err := tm.processEvents()
 			if err != nil {
-				log.Errorln(log.TradeMgr, "procesing events", err)
+				fmt.Println("error live min process", err)
+			} else {
+				if tm.isSimulation {
+					tm.incrementMinute()
+				}
 			}
 		}
+	}
+	return nil
+}
+
+func (tm *TradeManager) processLiveMinute() error {
+	var thisMinute, lastMinute time.Time
+	loc, _ := time.LoadLocation("UTC")
+	t := tm.GetCurrentTime()
+	thisMinute = time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, loc)
+	if thisMinute != lastMinute {
+		lastMinute = thisMinute
+	}
+
+	for _, cs := range tm.bot.CurrencySettings {
+		if tm.lastUpdateMin[cs] != thisMinute {
+			dbData, err := tm.loadLatestCandleFromDatabase(cs)
+			if err != nil {
+				continue
+			}
+
+			dataEvent := dbData.Next()
+			for ; ; dataEvent = dbData.Next() {
+				if dataEvent == nil {
+					break
+				}
+			}
+			dataEvent = dbData.Latest()
+
+			if !common.IsSameMinute(thisMinute, dataEvent.GetTime()) {
+				fmt.Println("skipping already seen bar", dataEvent.GetTime(), thisMinute)
+				continue
+			}
+
+			if !dbData.HasDataAtTime(dataEvent.GetTime()) {
+				log.Error(log.TradeMgr, "doesnt have data in range")
+				os.Exit(123)
+			}
+			tm.lastUpdateMin[cs] = dataEvent.GetTime().UTC()
+			tm.EventQueue.AppendEvent(dataEvent)
+		}
+	}
+
+	err := tm.processEvents()
+	if err != nil {
+		log.Errorln(log.TradeMgr, "procesing events", err)
+		return err
 	}
 	return nil
 }
@@ -886,24 +885,17 @@ func (tm *TradeManager) startOfflineServices() error {
 
 func (tm *TradeManager) initializeStrategies(cfg *config.Config) {
 	var slit []strategies.Handler
-	// st, _ := strategy.All()
 	cpsS, _ := currencypairstrategy.All()
-	allPairs, _ := currencypair.All()
-
-	fmt.Println("loaded", len(allPairs), "pairs")
 
 	for _, cps := range cpsS {
 		baseStrategy, _ := strategy.One(cps.StrategyID)
 		strat, _ := strategies.LoadStrategyByName(baseStrategy.Capture)
-		fmt.Println("cp loaded", cps.CurrencyPair)
-		// cp, _ := currencypair.One(cps.CurrencyPairID)
-
 		strat.SetID(cps.ID)
 		strat.SetNumID(cps.ID)
 		strat.SetPair(cps.CurrencyPair)
 		strat.SetDirection(cps.Side)
-		fmt.Println("st", strat)
-
+		strat.SetDefaults()
+		slit = append(slit, strat)
 	}
 
 	// for _, cps := range cpsS {
@@ -917,27 +909,8 @@ func (tm *TradeManager) initializeStrategies(cfg *config.Config) {
 	// if len(tm.bot.Config.TradeManager.Strategies) == 0 {
 	// 	isWhitelisted = true
 	// }
-	// fmt.Println("leggg", len(tm.bot.Config.TradeManager.Strategies))
-
 	// if !isWhitelisted {
 	// 	continue
-	// }
-
-	// load the currency pair for the cps
-
-	// strat, _ := strategies.LoadStrategyByName(s.Capture)
-	// fmt.Println("setting strategy", s.ID, c.CurrencyPair)
-	// strat.SetID(s.ID)
-	// strat.SetNumID(s.ID)
-	// // fmt.Println("setting pair for", s.ID, c.CurrencyPair)
-	// strat.SetPair(c.CurrencyPair)
-	// strat.SetDirection(s.Side)
-	// if strat.GetID() == 0 {
-	// 	fmt.Println("no strategy id")
-	// 	os.Exit(2)
-	// }
-	// strat.SetDefaults()
-	// 	slit = append(slit, strat)
 	// }
 
 	tm.Strategies = slit
@@ -971,7 +944,20 @@ func (tm *TradeManager) initializeFactorEngines() error {
 			if err != nil {
 				fmt.Println("error initializeFactorEngines:", err)
 			}
-			// fmt.Println("returned", len(dbData.Item.Candles), "bars")
+
+			if dbData == nil {
+				return fmt.Errorf("no bars returned")
+			}
+
+			fmt.Println(dbData.Item)
+			barsRet := len(dbData.Item.Candles)
+			fmt.Println("returned", barsRet, "bars")
+			if barsRet == 0 {
+				if tm.isSimulation {
+					panic("no bars returned")
+				}
+				return fmt.Errorf("no bars returned")
+			}
 			dbData.Load()
 			tm.Datas.SetDataForCurrency(cs.ExchangeName, cs.AssetType, cs.CurrencyPair, dbData)
 			if err != nil {
@@ -1098,5 +1084,12 @@ func (tm *TradeManager) loadLatestCandleFromDatabase(eap *ExchangeAssetPairSetti
 }
 
 func (tm *TradeManager) GetCurrentTime() time.Time {
+	if tm.isSimulation {
+		return tm.currentTime
+	}
 	return time.Now().UTC()
+}
+
+func (tm *TradeManager) incrementMinute() {
+	tm.currentTime = tm.currentTime.Add(time.Minute)
 }

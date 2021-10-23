@@ -2,7 +2,6 @@ package currencypairstrategy
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"gocryptotrader/currency"
@@ -36,7 +35,7 @@ func All() (st []Details, err error) {
 		return st, err
 	}
 	pair, _ := currency.NewPairFromString(cp.KrakenSymbol)
-	fmt.Println("loaded pair", pair, pair.Base, pair.Quote)
+	// fmt.Println("loaded pair", pair, pair.Base, pair.Quote)
 
 	for _, r := range result {
 		st = append(st, Details{
