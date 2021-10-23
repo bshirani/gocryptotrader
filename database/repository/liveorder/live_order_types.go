@@ -25,7 +25,7 @@ type Details struct {
 	OrderType  order.Type
 	Exchange   string
 	InternalID string
-	StrategyID string
+	StrategyID int
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 }

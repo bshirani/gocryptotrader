@@ -10,7 +10,7 @@ type Submit struct {
 	event.Base
 	InternalOrderID string
 	OrderID         string
-	StrategyID      string
+	StrategyID      int
 	IsOrderPlaced   bool
 }
 

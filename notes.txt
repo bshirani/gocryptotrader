@@ -194,11 +194,6 @@ longer-term strategies, backtested, in a loop
 keep track of the strategies in the database
 keep track of the pairs being traded in the database
 
+retrieve the active currencies and strategies from the database instead of the configuration
 
-
-
-
-
-
-
-k
+load the strategies from the database instead of configuration

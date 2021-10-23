@@ -32,7 +32,7 @@ type Submit struct {
 	Side       Side
 	Exchange   string
 	Pair       currency.Pair
-	StrategyID string
+	StrategyID int
 	Type       Type
 	Status     Status
 
@@ -154,7 +154,7 @@ type Detail struct {
 	Side                 Side
 	Status               Status
 	Strategy             string
-	StrategyID           string
+	StrategyID           int
 	TargetAmount         float64
 	Trades               []TradeHistory
 	TriggerPrice         float64

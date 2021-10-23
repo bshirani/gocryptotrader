@@ -14,7 +14,7 @@ import (
 // Strategy is base implementation of the Handler interface
 type Strategy struct {
 	Name                      string
-	ID                        string
+	ID                        int
 	NumID                     int
 	pair                      currency.Pair
 	weight                    decimal.Decimal
@@ -35,7 +35,7 @@ func (s *Strategy) GetName() string {
 	return s.Name
 }
 
-func (s *Strategy) GetID() string {
+func (s *Strategy) GetID() int {
 	return s.ID
 }
 
@@ -69,7 +69,7 @@ func GetBaseData(d data.Handler) (signal.Signal, error) {
 	}, nil
 }
 
-func (s *Strategy) SetID(id string) {
+func (s *Strategy) SetID(id int) {
 	s.ID = id
 }
 

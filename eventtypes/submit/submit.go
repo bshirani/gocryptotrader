@@ -12,6 +12,6 @@ func (s *Submit) GetIsOrderPlaced() bool {
 	return s.IsOrderPlaced
 }
 
-func (s *Submit) GetStrategyID() string {
+func (s *Submit) GetStrategyID() int {
 	return s.StrategyID
 }

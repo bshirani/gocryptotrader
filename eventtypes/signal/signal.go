@@ -22,11 +22,11 @@ func (s *Signal) GetDirection() order.Side {
 	return s.Direction
 }
 
-func (s *Signal) GetStrategyID() string {
+func (s *Signal) GetStrategyID() int {
 	return s.Base.StrategyID
 }
 
-func (s *Signal) SetStrategyID(st string) {
+func (s *Signal) SetStrategyID(st int) {
 	s.Base.StrategyID = st
 }
 

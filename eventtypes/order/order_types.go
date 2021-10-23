@@ -13,7 +13,7 @@ type Order struct {
 	event.Base
 	ID             string
 	Direction      order.Side
-	StrategyID     string
+	StrategyID     int
 	Status         order.Status
 	Price          decimal.Decimal
 	ExchangeFee    decimal.Decimal

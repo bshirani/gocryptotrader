@@ -157,10 +157,14 @@ var LiveTradeWhere = struct {
 
 // LiveTradeRels is where relationship names are stored.
 var LiveTradeRels = struct {
-}{}
+	EntryOrder string
+}{
+	EntryOrder: "EntryOrder",
+}
 
 // liveTradeR is where relationships are stored.
 type liveTradeR struct {
+	EntryOrder *LiveOrder `boil:"EntryOrder" json:"EntryOrder" toml:"EntryOrder" yaml:"EntryOrder"`
 }
 
 // NewStruct creates a new relationship struct
@@ -451,6 +455,171 @@ func (q liveTradeQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (
 	}
 
 	return count > 0, nil
+}
+
+// EntryOrder pointed to by the foreign key.
+func (o *LiveTrade) EntryOrder(mods ...qm.QueryMod) liveOrderQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("\"id\" = ?", o.EntryOrderID),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	query := LiveOrders(queryMods...)
+	queries.SetFrom(query.Query, "\"live_order\"")
+
+	return query
+}
+
+// LoadEntryOrder allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for an N-1 relationship.
+func (liveTradeL) LoadEntryOrder(ctx context.Context, e boil.ContextExecutor, singular bool, maybeLiveTrade interface{}, mods queries.Applicator) error {
+	var slice []*LiveTrade
+	var object *LiveTrade
+
+	if singular {
+		object = maybeLiveTrade.(*LiveTrade)
+	} else {
+		slice = *maybeLiveTrade.(*[]*LiveTrade)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &liveTradeR{}
+		}
+		args = append(args, object.EntryOrderID)
+
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &liveTradeR{}
+			}
+
+			for _, a := range args {
+				if a == obj.EntryOrderID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.EntryOrderID)
+
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`live_order`),
+		qm.WhereIn(`live_order.id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load LiveOrder")
+	}
+
+	var resultSlice []*LiveOrder
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice LiveOrder")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results of eager load for live_order")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for live_order")
+	}
+
+	if len(liveTradeAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		foreign := resultSlice[0]
+		object.R.EntryOrder = foreign
+		if foreign.R == nil {
+			foreign.R = &liveOrderR{}
+		}
+		foreign.R.EntryOrderLiveTrades = append(foreign.R.EntryOrderLiveTrades, object)
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if local.EntryOrderID == foreign.ID {
+				local.R.EntryOrder = foreign
+				if foreign.R == nil {
+					foreign.R = &liveOrderR{}
+				}
+				foreign.R.EntryOrderLiveTrades = append(foreign.R.EntryOrderLiveTrades, local)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// SetEntryOrder of the liveTrade to the related item.
+// Sets o.R.EntryOrder to related.
+// Adds o to related.R.EntryOrderLiveTrades.
+func (o *LiveTrade) SetEntryOrder(ctx context.Context, exec boil.ContextExecutor, insert bool, related *LiveOrder) error {
+	var err error
+	if insert {
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"live_trade\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"entry_order_id"}),
+		strmangle.WhereClause("\"", "\"", 2, liveTradePrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.ID}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, updateQuery)
+		fmt.Fprintln(writer, values)
+	}
+	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	o.EntryOrderID = related.ID
+	if o.R == nil {
+		o.R = &liveTradeR{
+			EntryOrder: related,
+		}
+	} else {
+		o.R.EntryOrder = related
+	}
+
+	if related.R == nil {
+		related.R = &liveOrderR{
+			EntryOrderLiveTrades: LiveTradeSlice{o},
+		}
+	} else {
+		related.R.EntryOrderLiveTrades = append(related.R.EntryOrderLiveTrades, o)
+	}
+
+	return nil
 }
 
 // LiveTrades retrieves all the records using an executor.

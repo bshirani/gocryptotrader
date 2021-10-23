@@ -50,3 +50,14 @@ func makeCacheKey(cols boil.Columns, nzDefaults []string) string {
 	strmangle.PutBuffer(buf)
 	return str
 }
+
+// Enum values for order_side
+const (
+	OrderSideBUY  = "BUY"
+	OrderSideSELL = "SELL"
+)
+
+// Enum values for capture_type
+const (
+	CaptureTypeTrend = "trend"
+)

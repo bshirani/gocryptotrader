@@ -15,6 +15,7 @@ import (
 	"gocryptotrader/database/repository/datahistoryjob"
 	"gocryptotrader/database/repository/liveorder"
 	"gocryptotrader/database/repository/livetrade"
+	"gocryptotrader/database/repository/strategy"
 	"os"
 	"path/filepath"
 	"strings"
@@ -898,39 +899,25 @@ func (tm *TradeManager) initializeStrategies(cfg *config.Config) {
 	var slit []strategies.Handler
 	var s strategies.Handler
 	count := 0
-	for _, strat := range cfg.StrategiesSettings {
-		for _, dir := range []gctorder.Side{gctorder.Buy, gctorder.Sell} {
-			// for _, dir := range []gctorder.Side{gctorder.Sell} {
-			for _, c := range tm.bot.CurrencySettings {
-				// fmt.Println("c", c)
-				// _, pair, _, _ := tm.loadExchangePairAssetBase(c.ExchangeName, c.Base, c.Quote, c.Asset)
-				s, _ = strategies.LoadStrategyByName(strat.Name)
 
-				// tm.SetExchangeAssetCurrencySettings(exch, a, cp , c *ExchangeAssetPairSettings) {
-				count += 1
+	st, _ := strategy.All()
 
-				// fmt.Println("type of s", reflect.New(reflect.TypeOf(s)))
-				// fmt.Println("type", reflect.New(reflect.ValueOf(s).Elem().Type()).Interface())
-				// fmt.Println("valueof", reflect.New(reflect.ValueOf(s).Elem().Type()))
-				// strategy = reflect.New(reflect.ValueOf(s).Elem().Type()).Interface().(strategy.Handler)
-				// fmt.Println("loaded", strategy)
-
-				id := fmt.Sprintf("%d_%s_%s_%v", count, s.Name(), string(dir), c.CurrencyPair)
-				s.SetID(id)
-				s.SetNumID(count)
-				s.SetPair(c.CurrencyPair)
-				s.SetDirection(dir)
-
-				// validate strategy
-				if s.GetID() == "" {
-					fmt.Println("no strategy id")
-					os.Exit(2)
-				}
-				s.SetDefaults()
-				slit = append(slit, s)
+	for _, s := range st {
+		for _, c := range tm.bot.CurrencySettings {
+			strat, _ := strategies.LoadStrategyByName(s.Capture)
+			strat.SetID(s.ID)
+			strat.SetNumID(s.ID)
+			strat.SetPair(c.CurrencyPair)
+			strat.SetDirection(s.Side)
+			if strat.GetID() == 0 {
+				fmt.Println("no strategy id")
+				os.Exit(2)
 			}
+			strat.SetDefaults()
+			slit = append(slit, strat)
 		}
 	}
+
 	tm.Strategies = slit
 }
 

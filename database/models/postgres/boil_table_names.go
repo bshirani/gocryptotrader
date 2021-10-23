@@ -8,17 +8,19 @@ var TableNames = struct {
 	AuditEvent              string
 	Candle                  string
 	CMCLatestListing        string
+	Currency                string
+	CurrencyPair            string
 	Datahistoryjob          string
 	Datahistoryjobrelations string
 	Datahistoryjobresult    string
 	Exchange                string
 	Gateiocoin              string
 	GooseDBVersion          string
-	Instrument              string
 	LiveOrder               string
 	LiveTrade               string
 	Script                  string
 	ScriptExecution         string
+	Strategies              string
 	Trade                   string
 	WithdrawalCrypto        string
 	WithdrawalFiat          string
@@ -28,17 +30,19 @@ var TableNames = struct {
 	AuditEvent:              "audit_event",
 	Candle:                  "candle",
 	CMCLatestListing:        "cmc_latest_listing",
+	Currency:                "currency",
+	CurrencyPair:            "currency_pair",
 	Datahistoryjob:          "datahistoryjob",
 	Datahistoryjobrelations: "datahistoryjobrelations",
 	Datahistoryjobresult:    "datahistoryjobresult",
 	Exchange:                "exchange",
 	Gateiocoin:              "gateiocoin",
 	GooseDBVersion:          "goose_db_version",
-	Instrument:              "instrument",
 	LiveOrder:               "live_order",
 	LiveTrade:               "live_trade",
 	Script:                  "script",
 	ScriptExecution:         "script_execution",
+	Strategies:              "strategies",
 	Trade:                   "trade",
 	WithdrawalCrypto:        "withdrawal_crypto",
 	WithdrawalFiat:          "withdrawal_fiat",

@@ -9,7 +9,7 @@ import (
 // Cancel is an event that details the events from placing an order
 type Cancel struct {
 	event.Base
-	StrategyID string        `json:"strategy-id"`
+	StrategyID int           `json:"strategy-id"`
 	Order      *order.Detail `json:"-"`
 }
 

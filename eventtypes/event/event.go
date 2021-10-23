@@ -44,12 +44,12 @@ func (b *Base) GetAssetType() asset.Item {
 }
 
 // GetStrategy returns the strategy
-func (b *Base) GetStrategyID() string {
+func (b *Base) GetStrategyID() int {
 	return b.StrategyID
 }
 
 // GetStrategy returns the strategy
-func (b *Base) SetStrategyID(s string) {
+func (b *Base) SetStrategyID(s int) {
 	b.StrategyID = s
 }
 
