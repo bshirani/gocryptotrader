@@ -86,7 +86,7 @@
  "logging": {
   "enabled": true,
   "level": "INFO|DEBUG|WARN|ERROR",
-  "output": "console",
+  "output": "console|file",
   "fileSettings": {
    "filename": "log.txt",
    "rotate": true,
