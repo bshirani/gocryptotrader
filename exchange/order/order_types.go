@@ -153,7 +153,7 @@ type Detail struct {
 	RemainingAmount      float64
 	Side                 Side
 	Status               Status
-	Strategy             string
+	Strategy             int
 	StrategyID           int
 	TargetAmount         float64
 	Trades               []TradeHistory

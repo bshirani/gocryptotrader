@@ -13,10 +13,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gorilla/websocket"
 	"gocryptotrader/common"
 	"gocryptotrader/communications/base"
 	"gocryptotrader/log"
+
+	"github.com/gorilla/websocket"
 )
 
 // const declares main slack url and commands that will be supported on client

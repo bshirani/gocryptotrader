@@ -12,8 +12,8 @@ import (
 
 // Handler defines all functions required to run strategies against data events
 type Handler interface {
-	SetID(string)
-	GetID() string
+	SetID(int)
+	GetID() int
 	SetNumID(int)
 	GetNumID() int
 	GetDirection() order.Side

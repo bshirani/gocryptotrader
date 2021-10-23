@@ -24,15 +24,15 @@ func Count() int64 {
 	return i
 }
 
-func OneByStrategyID(in string) (Details, error) {
+func OneByStrategyID(in int) (Details, error) {
 	return one(in, "strategy_id")
 }
 
-func OneByID(in string) (Details, error) {
+func OneByID(in int) (Details, error) {
 	return one(in, "id")
 }
 
-func one(in, clause string) (out Details, err error) {
+func one(in int, clause string) (out Details, err error) {
 	if database.DB.SQL == nil {
 		return out, database.ErrDatabaseSupportDisabled
 	}

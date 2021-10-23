@@ -136,11 +136,11 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 	// create position for every strategy
 	// create open trades array for every strategy
 	// you need the strategy IDS here
-	p.store.positions = make(map[string]*positions.Position)
-	p.store.openTrade = make(map[string]*livetrade.Details)
-	p.store.openOrders = make(map[string][]*liveorder.Details)
-	p.store.closedOrders = make(map[string][]*liveorder.Details)
-	p.store.closedTrades = make(map[string][]*livetrade.Details)
+	p.store.positions = make(map[int]*positions.Position)
+	p.store.openTrade = make(map[int]*livetrade.Details)
+	p.store.openOrders = make(map[int][]*liveorder.Details)
+	p.store.closedOrders = make(map[int][]*liveorder.Details)
+	p.store.closedTrades = make(map[int][]*livetrade.Details)
 
 	p.orderManager = bot.OrderManager
 	p.bot = bot
@@ -284,7 +284,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	if p.riskManager == nil {
 		return nil, errRiskManagerUnset
 	}
-	if ev.GetStrategyID() == "" {
+	if ev.GetStrategyID() == 0 {
 		return nil, errStrategyIDUnset
 	}
 	p.lastUpdate = ev.GetTime()
@@ -690,7 +690,7 @@ func (p *Portfolio) recordExitTrade(f fill.Event, t *livetrade.Details) {
 
 // OnFill processes the event after an order has been placed by the exchange. Its purpose is to track holdings for future portfolio decisions.
 func (p *Portfolio) OnFill(f fill.Event) {
-	if f.GetStrategyID() == "" {
+	if f.GetStrategyID() == 0 {
 		fmt.Println("fill has no strategy ID")
 		os.Exit(2)
 	}
@@ -844,15 +844,15 @@ func (p *Portfolio) UpdateTrades(ev eventtypes.DataEventHandler) error {
 // 	return p.Strategies
 // }
 
-func (p *Portfolio) GetPositionForStrategy(sid string) *positions.Position {
+func (p *Portfolio) GetPositionForStrategy(sid int) *positions.Position {
 	return p.store.positions[sid]
 }
 
-func (p *Portfolio) GetTradeForStrategy(sid string) *livetrade.Details {
+func (p *Portfolio) GetTradeForStrategy(sid int) *livetrade.Details {
 	return p.store.openTrade[sid]
 }
 
-func (p *Portfolio) GetOpenOrdersForStrategy(sid string) []*liveorder.Details {
+func (p *Portfolio) GetOpenOrdersForStrategy(sid int) []*liveorder.Details {
 	return p.store.openOrders[sid]
 }
 
@@ -1499,12 +1499,12 @@ func (p *Portfolio) PrintTradingDetails() {
 	}
 }
 
-func (p *Portfolio) getStrategyDirection(strategyID string) (gctorder.Side, error) {
+func (p *Portfolio) getStrategyDirection(strategyID int) (gctorder.Side, error) {
 	strategy, err := p.getStrategy(strategyID)
 	return strategy.GetDirection(), err
 }
 
-func (p *Portfolio) getStrategy(strategyID string) (strategies.Handler, error) {
+func (p *Portfolio) getStrategy(strategyID int) (strategies.Handler, error) {
 	for _, s := range p.Strategies {
 		if s.GetID() == strategyID {
 			return s, nil

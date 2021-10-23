@@ -47,11 +47,11 @@ var (
 
 type portfolioStore struct {
 	m            sync.RWMutex
-	positions    map[string]*positions.Position
-	openOrders   map[string][]*liveorder.Details
-	closedOrders map[string][]*liveorder.Details
-	openTrade    map[string]*livetrade.Details
-	closedTrades map[string][]*livetrade.Details
+	positions    map[int]*positions.Position
+	openOrders   map[int][]*liveorder.Details
+	closedOrders map[int][]*liveorder.Details
+	openTrade    map[int]*livetrade.Details
+	closedTrades map[int][]*livetrade.Details
 	wg           *sync.WaitGroup
 }
 
@@ -112,7 +112,7 @@ type ExchangeAssetPairSettings struct {
 type PortfolioHandler interface {
 	GetVerbose() bool
 	OnSignal(signal.Event, *ExchangeAssetPairSettings) (*order.Order, error)
-	GetOpenOrdersForStrategy(string) []*liveorder.Details
+	GetOpenOrdersForStrategy(int) []*liveorder.Details
 
 	GetOrderFromStore(orderid string) *gctorder.Detail
 
@@ -126,8 +126,8 @@ type PortfolioHandler interface {
 	ViewHoldingAtTimePeriod(eventtypes.EventHandler) (*holdings.Holding, error)
 	setHoldingsForOffset(*holdings.Holding, bool) error
 	UpdateHoldings(eventtypes.DataEventHandler) error
-	GetTradeForStrategy(string) *livetrade.Details
-	GetPositionForStrategy(string) *positions.Position
+	GetTradeForStrategy(int) *livetrade.Details
+	GetPositionForStrategy(int) *positions.Position
 
 	PrintPortfolioDetails()
 

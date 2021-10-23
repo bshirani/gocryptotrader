@@ -28,7 +28,7 @@ type LiveOrder struct {
 	Status        string       `boil:"status" json:"status" toml:"status" yaml:"status"`
 	OrderType     string       `boil:"order_type" json:"order_type" toml:"order_type" yaml:"order_type"`
 	Exchange      string       `boil:"exchange" json:"exchange" toml:"exchange" yaml:"exchange"`
-	StrategyID    string       `boil:"strategy_id" json:"strategy_id" toml:"strategy_id" yaml:"strategy_id"`
+	StrategyID    int          `boil:"strategy_id" json:"strategy_id" toml:"strategy_id" yaml:"strategy_id"`
 	InternalID    string       `boil:"internal_id" json:"internal_id" toml:"internal_id" yaml:"internal_id"`
 	Side          null.String  `boil:"side" json:"side,omitempty" toml:"side" yaml:"side,omitempty"`
 	ClientOrderID null.String  `boil:"client_order_id" json:"client_order_id,omitempty" toml:"client_order_id" yaml:"client_order_id,omitempty"`
@@ -163,7 +163,7 @@ var LiveOrderWhere = struct {
 	Status        whereHelperstring
 	OrderType     whereHelperstring
 	Exchange      whereHelperstring
-	StrategyID    whereHelperstring
+	StrategyID    whereHelperint
 	InternalID    whereHelperstring
 	Side          whereHelpernull_String
 	ClientOrderID whereHelpernull_String
@@ -183,7 +183,7 @@ var LiveOrderWhere = struct {
 	Status:        whereHelperstring{field: "\"live_order\".\"status\""},
 	OrderType:     whereHelperstring{field: "\"live_order\".\"order_type\""},
 	Exchange:      whereHelperstring{field: "\"live_order\".\"exchange\""},
-	StrategyID:    whereHelperstring{field: "\"live_order\".\"strategy_id\""},
+	StrategyID:    whereHelperint{field: "\"live_order\".\"strategy_id\""},
 	InternalID:    whereHelperstring{field: "\"live_order\".\"internal_id\""},
 	Side:          whereHelpernull_String{field: "\"live_order\".\"side\""},
 	ClientOrderID: whereHelpernull_String{field: "\"live_order\".\"client_order_id\""},

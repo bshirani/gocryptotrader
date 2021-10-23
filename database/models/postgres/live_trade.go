@@ -30,7 +30,7 @@ type LiveTrade struct {
 	EntryPrice       float64      `boil:"entry_price" json:"entry_price" toml:"entry_price" yaml:"entry_price"`
 	EntryTime        time.Time    `boil:"entry_time" json:"entry_time" toml:"entry_time" yaml:"entry_time"`
 	StopLossPrice    float64      `boil:"stop_loss_price" json:"stop_loss_price" toml:"stop_loss_price" yaml:"stop_loss_price"`
-	StrategyID       string       `boil:"strategy_id" json:"strategy_id" toml:"strategy_id" yaml:"strategy_id"`
+	StrategyID       int          `boil:"strategy_id" json:"strategy_id" toml:"strategy_id" yaml:"strategy_id"`
 	Status           string       `boil:"status" json:"status" toml:"status" yaml:"status"`
 	Pair             string       `boil:"pair" json:"pair" toml:"pair" yaml:"pair"`
 	ExitTime         null.Time    `boil:"exit_time" json:"exit_time,omitempty" toml:"exit_time" yaml:"exit_time,omitempty"`
@@ -126,7 +126,7 @@ var LiveTradeWhere = struct {
 	EntryPrice       whereHelperfloat64
 	EntryTime        whereHelpertime_Time
 	StopLossPrice    whereHelperfloat64
-	StrategyID       whereHelperstring
+	StrategyID       whereHelperint
 	Status           whereHelperstring
 	Pair             whereHelperstring
 	ExitTime         whereHelpernull_Time
@@ -143,7 +143,7 @@ var LiveTradeWhere = struct {
 	EntryPrice:       whereHelperfloat64{field: "\"live_trade\".\"entry_price\""},
 	EntryTime:        whereHelpertime_Time{field: "\"live_trade\".\"entry_time\""},
 	StopLossPrice:    whereHelperfloat64{field: "\"live_trade\".\"stop_loss_price\""},
-	StrategyID:       whereHelperstring{field: "\"live_trade\".\"strategy_id\""},
+	StrategyID:       whereHelperint{field: "\"live_trade\".\"strategy_id\""},
 	Status:           whereHelperstring{field: "\"live_trade\".\"status\""},
 	Pair:             whereHelperstring{field: "\"live_trade\".\"pair\""},
 	ExitTime:         whereHelpernull_Time{field: "\"live_trade\".\"exit_time\""},

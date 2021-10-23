@@ -516,7 +516,7 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 		newOrder.Date = time.Now()
 	}
 
-	if newOrder.StrategyID == "" {
+	if newOrder.StrategyID == 0 {
 		return nil, errors.New("order must have a strategy")
 	}
 

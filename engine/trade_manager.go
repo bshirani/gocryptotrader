@@ -709,7 +709,7 @@ func (tm *TradeManager) processSignalEvent(ev signal.Event) {
 }
 
 func (tm *TradeManager) createFillEvent(ev submit.Event) {
-	if ev.GetStrategyID() == "" {
+	if ev.GetStrategyID() == 0 {
 		panic("order submit response has no strategyID")
 	}
 	if !ev.GetIsOrderPlaced() {
@@ -783,7 +783,7 @@ func (tm *TradeManager) onCancel(o *OrderSubmitResponse) {
 
 func (tm *TradeManager) processSubmitEvent(ev submit.Event) {
 	// fmt.Println("processing submit event", ev.GetStrategyID())
-	if ev.GetStrategyID() == "" {
+	if ev.GetStrategyID() == 0 {
 		log.Error(log.TradeMgr, "submit event has no strategy ID")
 		return
 	}
@@ -808,7 +808,7 @@ func (tm *TradeManager) processFillEvent(ev fill.Event) {
 }
 
 func (tm *TradeManager) processOrderEvent(o order.Event) {
-	if o.GetStrategyID() == "" {
+	if o.GetStrategyID() == 0 {
 		log.Error(log.TradeMgr, "order event has no strategy ID")
 	}
 	// else {
@@ -824,7 +824,7 @@ func (tm *TradeManager) processOrderEvent(o order.Event) {
 		return
 	}
 
-	if submitEvent.GetStrategyID() == "" {
+	if submitEvent.GetStrategyID() == 0 {
 		log.Error(log.TradeMgr, "Not strategy ID in order event")
 		return
 	}
@@ -897,11 +897,7 @@ func (tm *TradeManager) startOfflineServices() error {
 
 func (tm *TradeManager) initializeStrategies(cfg *config.Config) {
 	var slit []strategies.Handler
-	var s strategies.Handler
-	count := 0
-
 	st, _ := strategy.All()
-
 	for _, s := range st {
 		for _, c := range tm.bot.CurrencySettings {
 			strat, _ := strategies.LoadStrategyByName(s.Capture)
@@ -917,7 +913,6 @@ func (tm *TradeManager) initializeStrategies(cfg *config.Config) {
 			slit = append(slit, strat)
 		}
 	}
-
 	tm.Strategies = slit
 }
 
