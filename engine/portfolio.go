@@ -332,7 +332,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	}
 	activeTrades, _ := livetrade.Active()
 	// activeOrders, _ := liveorder.Active()
-	maxTradeCount := 1
+	maxTradeCount := 3
 
 	// validate new entry order
 	if ev.GetDecision() == signal.Enter {
