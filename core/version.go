@@ -9,7 +9,7 @@ import (
 // const vars related to the app version
 const (
 	MajorVersion = "0"
-	MinorVersion = "2"
+	MinorVersion = "3"
 
 	PrereleaseBlurb = "This version is pre-release and is not inteded to be used as a production ready trading framework or bot - use at your own risk."
 	IsRelease       = true
