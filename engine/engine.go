@@ -161,6 +161,7 @@ func validateSettings(b *Engine, s *Settings, flagSet map[string]bool) {
 	b.Settings.EnableExchangeSyncManager = flagSet["sync"] && b.Settings.EnableExchangeSyncManager || b.Config.SyncManager.Enabled
 	b.Settings.EnableDryRun = flagSet["dryrun"] && b.Settings.EnableDryRun || b.Config.DryRun
 	b.Settings.EnableLiveMode = b.Config.LiveMode
+	b.Settings.EnableCommsRelayer = b.Config.Communications.TelegramConfig.Enabled
 
 	// if b.Settings.EnableTradeManager {
 	// 	b.Settings.EnableDataHistoryManager = true
