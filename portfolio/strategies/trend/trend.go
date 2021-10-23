@@ -74,6 +74,10 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	orders := p.GetOpenOrdersForStrategy(s.GetID())
 	trade := p.GetTradeForStrategy(s.GetID())
 
+	if trade != nil {
+		fmt.Println("trade profit is", trade.ProfitLossPoints)
+	}
+
 	if trade == nil && len(orders) == 0 {
 		m60Chg := fe.Minute().M60PctChange.Last(1)
 
