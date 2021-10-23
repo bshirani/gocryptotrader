@@ -163,7 +163,6 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 			// p.getStrategyTrade(t.StrategyID)
 			// set open trade
 			// set position
-			fmt.Println("looking for", t.StrategyID)
 			p.store.openTrade[t.StrategyID] = &t
 			pos := p.store.positions[t.StrategyID]
 			pos.Active = true

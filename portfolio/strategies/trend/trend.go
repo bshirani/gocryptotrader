@@ -75,13 +75,14 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	trade := p.GetTradeForStrategy(s.GetID())
 
 	if trade != nil {
-		fmt.Println("trade profit is", trade.ProfitLossPoints)
+		fmt.Println("trade profit is", trade.ProfitLossPoints.Mul(decimal.NewFromFloat(trade.Amount)))
 	}
 
 	if trade == nil && len(orders) == 0 {
 		m60Chg := fe.Minute().M60PctChange.Last(1)
 
 		if s.Strategy.GetDirection() == order.Buy { // check for buy strategy
+
 			if m60Chg.GreaterThan(decimal.NewFromInt(0)) {
 				es.AppendReason("Strategy: m60Chg greater than zero")
 				es.SetDecision(signal.Enter)
