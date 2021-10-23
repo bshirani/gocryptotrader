@@ -228,8 +228,11 @@ func (p *Portfolio) OnSubmit(ev submit.Event) {
 			}
 		}
 	}
+
 	// if order is placed
-	p.completeOrder(ev)
+	if ev.GetIsOrderPlaced() {
+		p.completeOrder(ev)
+	}
 }
 
 func (p *Portfolio) OnCancel(cancel cancel.Event) {
@@ -315,16 +318,16 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		return nil, errInvalidDirection
 	}
 	activeTrades, _ := livetrade.Active()
-	activeOrders, _ := liveorder.Active()
+	// activeOrders, _ := liveorder.Active()
 	maxTradeCount := 1
 
 	// validate new entry order
 	if ev.GetDecision() == signal.Enter {
-		if len(activeOrders) >= maxTradeCount {
-			ev.SetDirection(eventtypes.DoNothing)
-			ev.SetDecision(signal.DoNothing)
-			ev.AppendReason(fmt.Sprintf("Mgr: NOGO. DoNothing. Has %d new orders", len(activeOrders)))
-		} else if len(activeTrades) >= maxTradeCount {
+		// if len(activeOrders) >= maxTradeCount {
+		// 	ev.SetDirection(eventtypes.DoNothing)
+		// 	ev.SetDecision(signal.DoNothing)
+		// 	ev.AppendReason(fmt.Sprintf("Mgr: NOGO. DoNothing. Has %d new orders", len(activeOrders))) } else
+		if len(activeTrades) >= maxTradeCount {
 			ev.SetDirection(eventtypes.DoNothing)
 			ev.SetDecision(signal.DoNothing)
 			ev.AppendReason(fmt.Sprintf("Mgr: NOGO. DoNothing. Has Active Trades %d", len(activeTrades)))
@@ -579,6 +582,9 @@ func (p *Portfolio) OnFill(f fill.Event) {
 }
 
 func (p *Portfolio) completeOrder(ev submit.Event) {
+	if p.verbose {
+		log.Infof(log.Portfolio, "completing order", ev.GetStrategyID())
+	}
 	// fmt.Println("COMPLETING ORDER for:", ev.GetStrategyID())
 	// fmt.Println("open orders", len(p.store.openOrders[ev.GetStrategyID()]))
 	order := p.store.openOrders[ev.GetStrategyID()][0]
