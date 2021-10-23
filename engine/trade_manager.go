@@ -718,10 +718,17 @@ func (tm *TradeManager) createFillEvent(ev submit.Event) {
 		panic("event has no time")
 	}
 
+	// fmt.Println("decision", ev.GetDecision(), "evdir", ev.GetDirection())
+
+	// fmt.Println("CREATE FILL EVENT REFERENCING ORDER", ev.GetOrderID(), "for strategy", ev.GetStrategyID())
 	o := tm.Portfolio.GetOrderFromStore(ev.GetOrderID())
+	// fmt.Println("returned order id:", o.ID, "internal", o.InternalOrderID)
+
 	// if err != nil {
 	// 	panic("error getting order from store")
 	// }
+
+	// validate the side here
 
 	if o.Amount == 0 {
 		panic("order amount is 0")
@@ -740,8 +747,10 @@ func (tm *TradeManager) createFillEvent(ev submit.Event) {
 		},
 		OrderID:    ev.GetOrderID(),
 		ClosePrice: decimal.NewFromFloat(o.Price),
-		// Amount:     ev.GetAmount(),
+		Direction:  o.Side,
+		Amount:     decimal.NewFromFloat(o.Amount),
 		// Direction:  ev.GetDirection(),
+		// Amount:     ev.GetAmount(),
 	}
 	tm.EventQueue.AppendEvent(e)
 	// if o.InternalOrderID == "" {
@@ -784,6 +793,7 @@ func (tm *TradeManager) processSubmitEvent(ev submit.Event) {
 	tm.Portfolio.OnSubmit(ev)
 
 	if ev.GetIsOrderPlaced() {
+		// fmt.Println("creating fill", ev.GetStrategyID(), "orderid", ev.GetOrderID(), "internalID", ev.GetInternalOrderID())
 		tm.createFillEvent(ev)
 	}
 }
@@ -890,7 +900,7 @@ func (tm *TradeManager) initializeStrategies(cfg *config.Config) {
 	count := 0
 	for _, strat := range cfg.StrategiesSettings {
 		for _, dir := range []gctorder.Side{gctorder.Buy, gctorder.Sell} {
-			// for _, dir := range []gctorder.Side{gctorder.Buy} {
+			// for _, dir := range []gctorder.Side{gctorder.Sell} {
 			for _, c := range tm.bot.CurrencySettings {
 				// fmt.Println("c", c)
 				// _, pair, _, _ := tm.loadExchangePairAssetBase(c.ExchangeName, c.Base, c.Quote, c.Asset)

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"gocryptotrader/communications/base"
@@ -289,18 +290,18 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 
 	// validate and prepare the event
 	strategyDirection, err := p.getStrategyDirection(ev.GetStrategyID())
+
 	if err != nil {
 		fmt.Println("error getting strategy direction", err)
 	}
 	switch ev.GetDecision() {
 	case signal.Enter:
 		if strategyDirection == gctorder.Sell {
-
-			fmt.Println("STRATEGY DIRECTION SELL, ENTER SELL")
+			// fmt.Println("STRATEGY DIRECTION SELL, ENTER SELL")
 			// ev.Base.SetDirection(gctorder.Sell)
 			ev.SetDirection(gctorder.Sell)
 		} else if strategyDirection == gctorder.Buy {
-			fmt.Println("STRATEGY DIRECTION BUY, ENTER BUY")
+			// fmt.Println("STRATEGY DIRECTION BUY, ENTER BUY")
 			// ev.Base.SetDirection(gctorder.Buy)
 			ev.SetDirection(gctorder.Buy)
 		} else {
@@ -309,11 +310,11 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	case signal.Exit:
 		if strategyDirection == gctorder.Sell {
 			// ev.Base.SetDirection(gctorder.Buy)
-			fmt.Println("STRATEGY DIRECTION SELL, EXIT w BUY", ev.GetStrategyID())
+			// fmt.Println("STRATEGY DIRECTION SELL, EXIT w BUY", ev.GetStrategyID())
 			ev.SetDirection(gctorder.Buy)
 		} else if strategyDirection == gctorder.Buy {
 			// ev.Base.SetDirection(gctorder.Sell)
-			fmt.Println("STRATEGY DIRECTION BUY , EXIT w SELL", ev.GetStrategyID())
+			// fmt.Println("STRATEGY DIRECTION BUY , EXIT w SELL", ev.GetStrategyID())
 			ev.SetDirection(gctorder.Sell)
 		} else {
 			panic("no valid strategy side")
@@ -340,9 +341,9 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		if len(activeTrades) >= maxTradeCount {
 			ev.SetDirection(eventtypes.DoNothing)
 			ev.SetDecision(signal.DoNothing)
-			ev.AppendReason(fmt.Sprintf("ENTRY_DENIED,active_trades|"))
+			ev.AppendReason("ENTRY_DENIED,active_trades|")
 		} else {
-			ev.AppendReason(fmt.Sprintf("Approve Entry"))
+			ev.AppendReason("Approve Entry")
 		}
 	}
 
@@ -481,20 +482,27 @@ func (p *Portfolio) updatePosition(pos *positions.Position, amount decimal.Decim
 }
 
 func (p *Portfolio) GetOrderFromStore(orderid string) *gctorder.Detail {
+	// fmt.Printf("getorderfromstore LOOKUP", orderid)
 	var foundOrd *gctorder.Detail
 	ords, _ := p.bot.OrderManager.GetOrdersSnapshot("")
 	for _, ord := range ords {
-		if ord.InternalOrderID != orderid {
+		if !strings.EqualFold(ord.InternalOrderID, orderid) {
 			continue
 		}
+		// fmt.Println("FOUND", ord.InternalOrderID)
 		foundOrd = &ord
+		break
 	}
 	if foundOrd == nil {
 		panic("order not found in store")
 	}
-
 	if foundOrd.Price == 0 {
 		fmt.Println("ERROR order has no price ")
+	}
+
+	if !strings.EqualFold(foundOrd.InternalOrderID, orderid) {
+		// fmt.Println("FOUND ORDER internal:", foundOrd.InternalOrderID, foundOrd.ID)
+		panic("baddd")
 	}
 
 	return foundOrd
@@ -502,16 +510,16 @@ func (p *Portfolio) GetOrderFromStore(orderid string) *gctorder.Detail {
 
 func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 	s, _ := p.getStrategy(ev.GetStrategyID())
-	fmt.Println("STRATEGY", s, s.GetDirection())
+	fmt.Println("STRATEGY DIR", s.GetDirection())
+	fmt.Println("EV DIR", ev.GetDirection())
+	fmt.Println("ORDER ID", ev.GetOrderID())
 
-	dir, _ := p.getStrategyDirection(ev.GetStrategyID())
-
-	if ev.GetDirection() != dir {
-		str := fmt.Sprintf("%s %s for %s", ev.GetDirection(), dir, ev.GetStrategyID())
+	if ev.GetDirection() != s.GetDirection() {
+		str := fmt.Sprintf("%s %s for %s", ev.GetDirection(), s.GetDirection(), ev.GetStrategyID())
 		panic(str)
 	}
-	// fmt.Println("look up order", ev.GetOrderID())
 	foundOrd := p.GetOrderFromStore(ev.GetOrderID())
+	fmt.Println("found order", foundOrd.ID, foundOrd.InternalOrderID)
 	stopLossPrice := decimal.NewFromFloat(foundOrd.Price).Mul(decimal.NewFromFloat(0.9))
 	p.store.positions[ev.GetStrategyID()] = &positions.Position{Active: true}
 
@@ -555,7 +563,7 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 			timeFormat := "15:05:05"
 			s, _ := p.getStrategy(ev.GetStrategyID())
 			notificationMsg := fmt.Sprintf(
-				"ENTER TRADE: %s\n%s %v@%v@%v\n%s",
+				"ENTER TRADE: %s\n%s %v@%v@%v %s\n%s",
 				s.GetID(),
 				lt.Side,
 				lt.Amount,
