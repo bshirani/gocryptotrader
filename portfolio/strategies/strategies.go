@@ -7,7 +7,8 @@ import (
 	"gocryptotrader/portfolio/strategies/base"
 	"gocryptotrader/portfolio/strategies/rsi"
 	"gocryptotrader/portfolio/strategies/trend"
-	"gocryptotrader/portfolio/strategies/trend2"
+	"gocryptotrader/portfolio/strategies/trend2day"
+	"gocryptotrader/portfolio/strategies/trend3day"
 )
 
 // LoadStrategyByName returns the strategy by its name
@@ -40,7 +41,8 @@ func GetStrategies() []Handler {
 		// new(dollarcostaverage.Strategy),
 		new(rsi.Strategy),
 		new(trend.Strategy),
-		new(trend2.Strategy),
+		new(trend2day.Strategy),
+		new(trend3day.Strategy),
 		// new(top2bottom2.Strategy),
 	}
 	// for i := range x {

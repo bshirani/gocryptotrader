@@ -1,5 +1,5 @@
 -- +goose Up
-CREATE TYPE capture_type AS ENUM ('trend');
+CREATE TYPE capture_type AS ENUM ('trend', 'trend2day', 'trend3day');
 CREATE TYPE order_side AS ENUM ('BUY', 'SELL');
 
 CREATE TABLE strategies (
@@ -15,10 +15,10 @@ CREATE TABLE strategies (
 INSERT INTO strategies (side, capture, timeframe_days) VALUES
     ('BUY', 'trend', 1),
     ('SELL', 'trend', 1),
-    ('BUY', 'trend', 2),
-    ('SELL', 'trend', 2),
-    ('BUY', 'trend', 3),
-    ('SELL', 'trend', 3)
+    ('BUY', 'trend2day', 2),
+    ('SELL', 'trend2day', 2),
+    ('BUY', 'trend3day', 3),
+    ('SELL', 'trend3day', 3)
 ;
 -- +goose Down
 DROP TABLE strategies;
