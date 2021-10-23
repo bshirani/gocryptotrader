@@ -150,8 +150,8 @@ func (t *Telegram) InitialConnect() error {
 	// for userName, ID := range warmWelcomeList {
 	// continue
 	// }
+	// err = t.SendMessage(fmt.Sprintf("bot started"), 1172801516)
 
-	err = t.SendMessage(fmt.Sprintf("bot started"), 1172801516)
 	if err != nil {
 		log.Errorf(log.CommunicationMgr, "Telegram: Unable to send welcome message. Error: %s\n", err)
 	}
