@@ -89,7 +89,7 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 			reason := fmt.Sprintf("negative %d minutes in trade", minutesInTrade)
 			es.AppendReason(reason)
 			os.Exit(2)
-		} else if minutesInTrade > 1 {
+		} else if minutesInTrade > 60 {
 			// handle exit
 
 			// CHECK EXIT BUY

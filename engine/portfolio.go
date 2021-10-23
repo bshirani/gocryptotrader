@@ -466,6 +466,7 @@ func (p *Portfolio) updatePosition(pos *positions.Position, amount decimal.Decim
 }
 
 func (p *Portfolio) GetOrderFromStore(orderid string) *gctorder.Detail {
+	fmt.Println("looking for order", orderid)
 	var foundOrd *gctorder.Detail
 	ords, _ := p.bot.OrderManager.GetOrdersSnapshot("")
 	for _, ord := range ords {
@@ -474,9 +475,12 @@ func (p *Portfolio) GetOrderFromStore(orderid string) *gctorder.Detail {
 		}
 		foundOrd = &ord
 	}
-	if foundOrd.ID == "" {
-		fmt.Println("Portfolio ERROR order has no ID", foundOrd)
+	if foundOrd == nil {
+		// fmt.Println("Portfolio ERROR order has no ID", foundOrd)
+		panic("order not found in store")
 	}
+
+	fmt.Println("found order", foundOrd)
 
 	if foundOrd.Price == 0 {
 		fmt.Println("ERROR order has no price ")

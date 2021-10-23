@@ -331,13 +331,8 @@ func GetExecutablePath() (string, error) {
 }
 
 // GetDefaultDataDir returns the default data directory
-// Windows - C:\Users\%USER%\AppData\Roaming\GoCryptoTrader
 // Linux/Unix or OSX - $HOME/.gocryptotrader
 func GetDefaultDataDir(env string) string {
-	if env == "windows" {
-		return filepath.Join(os.Getenv("APPDATA"), "GoCryptoTrader")
-	}
-
 	usr, err := user.Current()
 	if err == nil {
 		return filepath.Join(usr.HomeDir, ".gocryptotrader")
