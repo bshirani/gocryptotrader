@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"gocryptotrader/communications/base"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/database/repository/candle"
@@ -330,9 +331,9 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		if len(activeTrades) >= maxTradeCount {
 			ev.SetDirection(eventtypes.DoNothing)
 			ev.SetDecision(signal.DoNothing)
-			ev.AppendReason(fmt.Sprintf("Mgr: Deny Entry. Have active Trades |", len(activeTrades)))
+			ev.AppendReason(fmt.Sprintf("ENTRY_DENIED,active_trades|", len(activeTrades)))
 		} else {
-			ev.AppendReason(fmt.Sprintf("Mgr: Approve Entry. global_max_trades=1 cur=%d", len(activeTrades)))
+			ev.AppendReason(fmt.Sprintf("Approve Entry", len(activeTrades)))
 		}
 	}
 
@@ -493,6 +494,11 @@ func (p *Portfolio) GetOrderFromStore(orderid string) *gctorder.Detail {
 func (p *Portfolio) createTrade(ev fill.Event) {
 	if p.bot.Settings.EnableLiveMode {
 		log.Warnf(log.Portfolio, "created trade for %s %v %s", ev.GetStrategyID(), ev.GetAmount(), ev.GetDirection())
+
+		p.bot.CommunicationsManager.PushEvent(base.Event{
+			Type:    "trade_open",
+			Message: "trade opened",
+		})
 	}
 	// fmt.Println("look up order", ev.GetOrderID())
 	foundOrd := p.GetOrderFromStore(ev.GetOrderID())
@@ -536,9 +542,34 @@ func (p *Portfolio) createTrade(ev fill.Event) {
 }
 
 func (p *Portfolio) closeTrade(f fill.Event, t *livetrade.Details) {
-
 	if t.Status == gctorder.Open {
+
+		// msg := fmt.Sprintf("Order manager: Strategy=%s Exchange=%s submitted order ID=%v [Ours: %v] pair=%v price=%v amount=%v side=%v type=%v for time %v.",
+		// 	newOrder.StrategyID,
+		// 	newOrder.Exchange,
+		// 	result.OrderID,
+		// 	newOrder.ID,
+		// 	newOrder.Pair,
+		// 	newOrder.Price,
+		// 	newOrder.Amount,
+		// 	newOrder.Side,
+		// 	newOrder.Type,
+		// 	newOrder.Date)
+		// log.Debugln(log.OrderMgr, msg)
+
+		if p.bot.Settings.EnableLiveMode {
+			p.bot.CommunicationsManager.PushEvent(base.Event{
+				Type:    "trade_open",
+				Message: "trade opened",
+			})
+		}
+
 		t.Status = gctorder.Closed
+		t.ExitTime = f.GetTime()
+		t.ExitPrice = f.GetClosePrice()
+
+		// send PL notification here
+
 		p.store.closedTrades[f.GetStrategyID()] = append(p.store.closedTrades[f.GetStrategyID()], t)
 		p.store.openTrade[f.GetStrategyID()] = nil
 		p.store.positions[f.GetStrategyID()] = &positions.Position{Active: false}

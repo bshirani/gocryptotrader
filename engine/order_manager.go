@@ -521,15 +521,8 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 	}
 
 	// formatting for backtest only
-	odate := newOrder.Date
-	dtime := fmt.Sprintf("%d-%02d-%02d %d:%02d", odate.Year(), odate.Month(), odate.Day(), odate.Hour(), odate.Minute())
-	msgInfo := fmt.Sprintf("%v %s %-10s %v %-5v %10v",
-		newOrder.Pair,
-		dtime,
-		newOrder.StrategyID,
-		newOrder.Pair,
-		newOrder.Side,
-		newOrder.Price)
+	// odate := newOrder.Date
+	// dtime := fmt.Sprintf("%d-%02d-%02d %d:%02d", odate.Year(), odate.Month(), odate.Day(), odate.Hour(), odate.Minute())
 	// fmt.Println(msgInfo)
 
 	msg := fmt.Sprintf("Order manager: Strategy=%s Exchange=%s submitted order ID=%v [Ours: %v] pair=%v price=%v amount=%v side=%v type=%v for time %v.",
@@ -545,10 +538,17 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 		newOrder.Date)
 	log.Debugln(log.OrderMgr, msg)
 
-	m.orderStore.commsManager.PushEvent(base.Event{
-		Type:    "order",
-		Message: msgInfo,
-	})
+	// msgInfo := fmt.Sprintf("%v %s %-10s %v %-5v %10v",
+	// 	newOrder.Pair,
+	// 	dtime,
+	// 	newOrder.StrategyID,
+	// 	newOrder.Pair,
+	// 	newOrder.Side,
+	// 	newOrder.Price)
+	// m.orderStore.commsManager.PushEvent(base.Event{
+	// 	Type:    "order",
+	// 	Message: msgInfo,
+	// })
 	status := order.New
 	if result.FullyMatched {
 		status = order.Filled
