@@ -9,6 +9,7 @@ import (
 
 	"gocryptotrader/currency"
 	"gocryptotrader/database/repository/accountlog"
+	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/exchange"
 	"gocryptotrader/exchange/account"
 	"gocryptotrader/log"
@@ -19,7 +20,7 @@ const PortfolioManagerName = "portfolio"
 
 var (
 	// PortfolioSleepDelay defines the default sleep time between portfolio manager runs
-	PortfolioSleepDelay = time.Second * 60
+	PortfolioSleepDelay = time.Second * 30
 )
 
 // portfolioManager routinely retrieves a user's holdings through exchange APIs as well
@@ -150,20 +151,27 @@ func (m *portfolioManager) processPortfolio() {
 	}
 	d := m.getExchangeAccountInfo(exchanges)
 	currencies := d[0].Accounts[0].Currencies
-	var balance float64
+	var BTCbalance float64
+	var USDTbalance float64
 	for _, cur := range currencies {
-		// fmt.Println(cur.CurrencyName, cur.TotalValue)
+		fmt.Println(cur.CurrencyName, cur.TotalValue)
 		if cur.CurrencyName == currency.NewCode("XBT") {
-			balance = cur.TotalValue
+			BTCbalance = cur.TotalValue
+		}
+		if cur.CurrencyName == currency.NewCode("USDT") {
+			USDTbalance = cur.TotalValue
 		}
 	}
-	if m.base.Verbose {
-		log.Infoln(log.PortfolioMgr, "Bitcoin Balance", balance)
-	}
+	// if m.base.Verbose {
+	log.Infoln(log.PortfolioMgr, "Bitcoin Balance", BTCbalance, "USDT", USDTbalance)
+	// }
+
+	activeTrades, _ := livetrade.Active()
 	err = accountlog.Insert(accountlog.Details{
-		BTCBalance: balance,
+		BTCBalance: BTCbalance,
+		USDBalance: USDTbalance,
 		Timestamp:  time.Now(),
-		OpenTrades: 1,
+		OpenTrades: len(activeTrades),
 		UpdatedAt:  time.Now(),
 	})
 	if err != nil {

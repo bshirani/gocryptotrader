@@ -74,7 +74,7 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	trade := p.GetTradeForStrategy(s.GetID())
 
 	if trade != nil {
-		fmt.Println("trade profit is", trade.ProfitLossPoints)
+		fmt.Println("trade profit is", trade.ProfitLossPoints.Mul(decimal.NewFromFloat(trade.Amount)))
 	}
 
 	if trade == nil && len(orders) == 0 {
