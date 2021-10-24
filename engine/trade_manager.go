@@ -960,9 +960,9 @@ func (tm *TradeManager) initializeFactorEngines() error {
 				return fmt.Errorf("no bars returned")
 			}
 
-			fmt.Println(dbData.Item)
+			// fmt.Println(dbData.Item)
 			barsRet := len(dbData.Item.Candles)
-			fmt.Println("returned", barsRet, "bars")
+			// fmt.Println("returned", barsRet, "bars")
 			if barsRet == 0 {
 				if tm.isSimulation {
 					panic("no bars returned")
@@ -1001,7 +1001,6 @@ func (tm *TradeManager) loadBacktestData() (err error) {
 		thisMinute := common.ThisMinute()
 		startTime := thisMinute.Add(time.Minute * -1000)
 		endTime := thisMinute.Add(time.Minute * -900)
-		fmt.Println(1, startTime, endTime)
 		dbData, err := database.LoadData(
 			startTime,
 			endTime,
