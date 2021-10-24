@@ -21,6 +21,7 @@ type Strategy struct {
 	direction                 order.Side
 	useSimultaneousProcessing bool
 	usingExchangeLevelFunding bool
+	Debug                     bool
 }
 
 func (s *Strategy) GetNumID() int {

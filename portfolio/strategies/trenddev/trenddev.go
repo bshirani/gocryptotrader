@@ -34,12 +34,17 @@ func (s *Strategy) Description() string {
 }
 
 func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe base.FactorEngineHandler) (signal.Event, error) {
+
 	if d == nil {
 		return nil, eventtypes.ErrNilEvent
 	}
 	es, err := base.GetBaseData(d)
 	if err != nil {
 		return nil, err
+	}
+
+	if s.Strategy.Debug {
+		fmt.Println("trenddev on data")
 	}
 
 	es.SetPrice(d.Latest().ClosePrice())
@@ -148,6 +153,7 @@ func (s *Strategy) checkExit(es signal.Signal, p base.StrategyPortfolioHandler, 
 	currentTime := d.Latest().GetTime()
 	trade := p.GetTradeForStrategy(s.GetID())
 	minutesInTrade := int(currentTime.Sub(trade.EntryTime).Minutes())
+
 	if minutesInTrade < -2 {
 		fmt.Println("ERROR negative seconds in trade", currentTime, trade.EntryTime)
 		reason := fmt.Sprintf("negative %d minutes in trade", minutesInTrade)

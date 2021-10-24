@@ -70,6 +70,7 @@ type Portfolio struct {
 	sizeManager               SizeHandler
 	store                     portfolioStore
 	verbose                   bool
+	debug                     bool
 }
 
 // Settings holds all important information for the portfolio manager

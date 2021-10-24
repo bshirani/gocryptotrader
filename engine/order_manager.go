@@ -525,7 +525,7 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 	// dtime := fmt.Sprintf("%d-%02d-%02d %d:%02d", odate.Year(), odate.Month(), odate.Day(), odate.Hour(), odate.Minute())
 	// fmt.Println(msgInfo)
 
-	if m.liveMode {
+	if m.verbose {
 		msg := fmt.Sprintf("Order manager: Strategy=%d Exchange=%s submitted order ID=%v [Ours: %v] pair=%v price=%v amount=%v side=%v type=%v for time %v.",
 			newOrder.StrategyID,
 			newOrder.Exchange,

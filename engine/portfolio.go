@@ -199,7 +199,9 @@ func (p *Portfolio) Reset() {
 }
 
 func (p *Portfolio) OnSubmit(ev submit.Event) {
-	// fmt.Println("portfolio.OnSubmit", ev.GetStrategyID(), "orderID", ev.GetOrderID())
+	if p.debug {
+		fmt.Println("portfolio.OnSubmit", ev.GetStrategyID(), "orderID", ev.GetOrderID())
+	}
 	var openOrder *liveorder.Details
 	if len(p.store.openOrders[ev.GetStrategyID()]) == 0 {
 		for i := range p.store.openOrders {
@@ -475,7 +477,9 @@ func (p *Portfolio) recordOrder(ev signal.Event, lo liveorder.Details, o *order.
 		o.ID = id.String()
 	}
 
-	// fmt.Println("adding order for strategy:", ev.GetStrategyID())
+	if p.debug {
+		fmt.Println("adding order for strategy:", ev.GetStrategyID())
+	}
 	beforeLen := len(p.store.openOrders[ev.GetStrategyID()])
 	p.store.openOrders[ev.GetStrategyID()] = append(p.store.openOrders[ev.GetStrategyID()], &lo)
 	afterLen := len(p.store.openOrders[ev.GetStrategyID()])
@@ -854,6 +858,9 @@ func (p *Portfolio) GetTradeForStrategy(sid int) *livetrade.Details {
 }
 
 func (p *Portfolio) GetOpenOrdersForStrategy(sid int) []*liveorder.Details {
+	if p.debug {
+		fmt.Println("get open orders", sid, len(p.store.openOrders[sid]))
+	}
 	return p.store.openOrders[sid]
 }
 

@@ -186,9 +186,9 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 }
 
 func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om ExecutionHandler) (submit.Event, error) {
-	// if tm.bot.Settings.EnableLiveMode {
-	// 	log.Debugf(log.TradeMgr, "Executing order!!!!!")
-	// }
+	if tm.debug {
+		log.Debugf(log.TradeMgr, "Executing order!!!!!")
+	}
 	priceFloat, _ := o.GetPrice().Float64()
 	a, _ := o.GetAmount().Float64()
 	fee, _ := o.GetExchangeFee().Float64()
@@ -241,7 +241,9 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	if o.GetID() == "" {
 		panic("no order id")
 	}
-	// fmt.Println("submitting order ID:", o.GetID())
+	if tm.debug {
+		fmt.Println("submitting order ID:", o.GetID())
+	}
 
 	ev := &submit.Submit{
 		Base: event.Base{
@@ -690,7 +692,6 @@ func (tm *TradeManager) processSignalEvent(ev signal.Event) {
 	}
 	var o *order.Order
 	o, err = tm.Portfolio.OnSignal(ev, cs)
-	// fmt.Println("tm received order from pf", o, err)
 	if err != nil {
 		log.Error(log.TradeMgr, err)
 		return
@@ -700,6 +701,9 @@ func (tm *TradeManager) processSignalEvent(ev signal.Event) {
 	}
 
 	if o != nil {
+		if tm.debug {
+			fmt.Println("tm received order from pf", o, err)
+		}
 		err = tm.Statistic.SetEventForOffset(o)
 		tm.EventQueue.AppendEvent(o)
 	}
@@ -779,7 +783,9 @@ func (tm *TradeManager) onCancel(o *OrderSubmitResponse) {
 }
 
 func (tm *TradeManager) processSubmitEvent(ev submit.Event) {
-	// fmt.Println("processing submit event", ev.GetStrategyID())
+	if tm.debug {
+		fmt.Println("processing submit event", ev.GetStrategyID())
+	}
 	if ev.GetStrategyID() == 0 {
 		log.Error(log.TradeMgr, "submit event has no strategy ID")
 		return
@@ -898,9 +904,31 @@ func (tm *TradeManager) initializeStrategies(cfg *config.Config) {
 	cpsS, _ := currencypairstrategy.All()
 
 	for _, cps := range cpsS {
-		// fmt.Println("creating strategy for pair", cps.CurrencyPair)
+		if !cps.Active {
+			continue
+		}
+
 		baseStrategy, _ := strategy.One(cps.StrategyID)
+		if baseStrategy.TimeframeDays != 1 {
+			continue
+		}
+		var isWhitelisted bool
+		for _, name := range tm.bot.Config.TradeManager.Strategies {
+			if strings.EqualFold(name, baseStrategy.Capture) {
+				isWhitelisted = true
+				break
+			}
+		}
+		if len(tm.bot.Config.TradeManager.Strategies) == 0 {
+			isWhitelisted = true
+		}
+		if !isWhitelisted {
+			continue
+		}
+
+		// fmt.Println("creating strategy for pair", cps.ID, baseStrategy.Capture, cps.CurrencyPair, cps.Side)
 		strat, _ := strategies.LoadStrategyByName(baseStrategy.Capture)
+		// fmt.Println("creating strategy", cps.ID, cps.CurrencyPair, cps.Side)
 		strat.SetID(cps.ID)
 		strat.SetNumID(cps.ID)
 		strat.SetPair(cps.CurrencyPair)
@@ -909,22 +937,8 @@ func (tm *TradeManager) initializeStrategies(cfg *config.Config) {
 		slit = append(slit, strat)
 	}
 
-	// for _, cps := range cpsS {
-	// var isWhitelisted bool
-	// for _, name := range tm.bot.Config.TradeManager.Strategies {
-	// 	if strings.EqualFold(name, s.Capture) {
-	// 		isWhitelisted = true
-	// 		break
-	// 	}
-	// }
-	// if len(tm.bot.Config.TradeManager.Strategies) == 0 {
-	// 	isWhitelisted = true
-	// }
-	// if !isWhitelisted {
-	// 	continue
-	// }
-
 	tm.Strategies = slit
+	// panic("finished")
 }
 
 func (tm *TradeManager) initializeFactorEngines() error {

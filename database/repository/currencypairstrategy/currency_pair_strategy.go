@@ -15,6 +15,7 @@ type Details struct {
 	ID           int
 	CurrencyPair currency.Pair
 	StrategyID   int
+	Active       bool
 	Side         order.Side
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
@@ -46,6 +47,7 @@ func All() (st []Details, err error) {
 		st = append(st, Details{
 			ID:           r.ID,
 			CurrencyPair: pair,
+			Active:       r.Active,
 			Side:         order.Side(r.Side),
 			StrategyID:   r.StrategyID,
 			CreatedAt:    r.CreatedAt,

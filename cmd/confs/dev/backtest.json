@@ -47,7 +47,11 @@
  "tradeManager": {
   "enabled": true,
   "verbose": true,
-  "trading": true
+  "trading": true,
+  "clearDB": false,
+  "strategies": [
+   "trenddev"
+  ]
  },
  "factorEngine": {
   "verbose": false
