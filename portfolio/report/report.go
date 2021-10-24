@@ -8,17 +8,21 @@ import (
 	"strings"
 	"time"
 
-	"github.com/shopspring/decimal"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/exchange/kline"
 	"gocryptotrader/exchange/order"
 	"gocryptotrader/log"
+
+	"github.com/shopspring/decimal"
 )
 
 // GenerateReport sends final data from statistics to a template
 // to create a lovely final report for someone to view
 func (d *Data) GenerateReport() error {
 	log.Info(log.TradeMgr, "generating report")
+
+	fmt.Println("loaded original candles:", len(d.OriginalCandles))
+
 	err := d.enhanceCandles()
 	if err != nil {
 		return err
@@ -86,10 +90,13 @@ func (d *Data) GenerateReport() error {
 // generation
 func (d *Data) AddKlineItem(k *kline.Item) {
 	d.OriginalCandles = append(d.OriginalCandles, k)
+	fmt.Println("added kline item", len(k.Candles))
+	fmt.Println("original candle length:", len(d.OriginalCandles))
 }
 
 // UpdateItem updates an existing kline item for LIVE data usage
 func (d *Data) UpdateItem(k *kline.Item) {
+	panic("update item")
 	if len(d.OriginalCandles) == 0 {
 		d.OriginalCandles = append(d.OriginalCandles, k)
 	} else {
@@ -111,6 +118,7 @@ func (d *Data) enhanceCandles() error {
 
 	for intVal := range d.OriginalCandles {
 		lookup := d.OriginalCandles[intVal]
+		fmt.Println("lookup len", len(lookup.Candles))
 		enhancedKline := DetailedKline{
 			Exchange:  lookup.Exchange,
 			Asset:     lookup.Asset,
@@ -125,7 +133,12 @@ func (d *Data) enhanceCandles() error {
 			continue
 		}
 
+		fmt.Println("stats for candles", statsForCandles)
+
+		fmt.Println("original0 len", len(d.OriginalCandles[0].Candles))
+
 		requiresIteration := false
+		// fmt.Println(len(statsForCandles.Events), len(d.OriginalCandles[intVal].Candles))
 		if len(statsForCandles.Events) != len(d.OriginalCandles[intVal].Candles) {
 			requiresIteration = true
 		}
@@ -147,6 +160,8 @@ func (d *Data) enhanceCandles() error {
 				}
 			}
 			if !requiresIteration {
+				fmt.Println("intval", intVal)
+				fmt.Println(statsForCandles.Events[intVal])
 				if statsForCandles.Events[intVal].SignalEvent.GetTime().Equal(d.OriginalCandles[intVal].Candles[j].Time) &&
 					statsForCandles.Events[intVal].SignalEvent.GetDirection() == eventtypes.MissingData &&
 					len(enhancedKline.Candles) > 0 {

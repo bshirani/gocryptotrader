@@ -6,6 +6,7 @@ import (
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/data"
+	"gocryptotrader/data/kline"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/order"
@@ -48,6 +49,7 @@ type TradeManager struct {
 	Statistic          statistics.Handler
 	Strategies         []strategies.Handler
 	liveSimulationCfg  config.LiveSimulationConfig
+	originalCandles    *kline.DataFromKline
 	lastUpdateMin      map[*ExchangeAssetPairSettings]time.Time
 	isSimulation       bool
 	debug              bool

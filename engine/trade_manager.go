@@ -118,6 +118,8 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 		OutputPath:   output,
 	}
 	tm.Reports = reports
+	reports.Statistics = stats
+
 	tm.bot = bot
 	var err error
 	if bot.OrderManager == nil && bot.Settings.EnableOrderManager {
@@ -315,6 +317,7 @@ dataLoadingIssue:
 		}
 		if ev != nil {
 			// fmt.Println("handle event", ev)
+			fmt.Println("origina candle len", len(tm.originalCandles.Item.Candles))
 			err := tm.handleEvent(ev)
 			if err != nil {
 				fmt.Println("error handling event", err)
@@ -969,6 +972,7 @@ func (tm *TradeManager) initializeFactorEngines() error {
 		var dbData *datakline.DataFromKline
 		var err error
 		if tm.bot.Settings.EnableLiveMode {
+			fmt.Println("initialize factor engine")
 			// fmt.Println("get data for live", cs.CurrencyPair)
 			dbData, err = database.LoadData(
 				tm.GetCurrentTime().Add(time.Minute*-300),
@@ -1047,6 +1051,8 @@ func (tm *TradeManager) loadBacktestData() (err error) {
 			kline.Interval(kline.OneMin),
 			0)
 		dbData.Load()
+		tm.Reports.AddKlineItem(&dbData.Item)
+		tm.originalCandles = dbData
 
 		if err != nil {
 			return fmt.Errorf("error creating range holder. error: %s", err)
@@ -1057,6 +1063,8 @@ func (tm *TradeManager) loadBacktestData() (err error) {
 				dbData.RangeHolder.Ranges[i].Intervals[j].HasData = true
 			}
 		}
+
+		fmt.Println("db data has", len(dbData.Item.Candles))
 	}
 	// fmt.Println("done loading bt data")
 
