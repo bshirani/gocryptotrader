@@ -197,3 +197,15 @@ keep track of the pairs being traded in the database
 retrieve the active currencies and strategies from the database instead of the configuration
 
 load the strategies from the database instead of configuration
+
+
+backtest a strategy and get the performance numbers for it
+analyze a trades.csv and generate a simple report for it
+basic weight determination for a set of strategies from a csv
+
+
+
+portfolio backtest
+deciding which strategies to deploy on a daily basis
+dynamically enabling/disabling pairs/strategies
+
