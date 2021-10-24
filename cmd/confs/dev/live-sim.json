@@ -5,15 +5,7 @@
  "script": false,
  "nickname": "",
  "goal": "",
- "strategy-settings": {
-  "name": "",
-  "direction": "",
-  "use-simultaneous-signal-processing": false,
-  "use-exchange-level-funding": false
- },
- "strategies-settings": null,
  "currency-settings": null,
- "strategy-currency-settings": null,
  "data-settings": {
   "interval": 0,
   "data-type": ""

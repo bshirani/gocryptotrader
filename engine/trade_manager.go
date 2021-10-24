@@ -72,13 +72,7 @@ func (tm *TradeManager) Reset() {
 }
 
 func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, bot *Engine) (*TradeManager, error) {
-	if !bot.Config.LiveMode {
-		log.Debugln(log.TradeMgr, "TradeManager: Initializing...")
-		log.Warnln(log.TradeMgr, "startdate:", cfg.DataSettings.DatabaseData.StartDate)
-		log.Warnln(log.TradeMgr, "enddate:", cfg.DataSettings.DatabaseData.EndDate)
-	} else {
-		log.Debugln(log.TradeMgr, "TradeManager: Initializing...")
-	}
+	log.Debugln(log.TradeMgr, "TradeManager: Initializing...")
 	if cfg == nil {
 		return nil, errNilConfig
 	}
@@ -296,6 +290,16 @@ func (tm *TradeManager) Run() error {
 		if err != nil {
 			fmt.Println("error loadBacktestData:", err)
 		}
+		t1 := tm.cfg.DataSettings.DatabaseData.StartDate
+		t2 := tm.cfg.DataSettings.DatabaseData.EndDate
+		dayDuration := int(t2.Sub(t1).Minutes()) / 60 / 24
+		log.Warnln(log.TradeMgr, "startdate:", t1)
+		log.Warnln(log.TradeMgr, "enddate:", t2)
+		log.Warnln(log.TradeMgr, "duration:", dayDuration, "days")
+		log.Warnln(log.TradeMgr, "strategies:", len(tm.Strategies))
+		for _, s := range tm.Strategies {
+			log.Debugln(log.TradeMgr, s.GetPair(), s.Name(), s.GetDirection(), s.GetID())
+		}
 	}
 dataLoadingIssue:
 	for ev := tm.EventQueue.NextEvent(); ; ev = tm.EventQueue.NextEvent() {
@@ -340,6 +344,8 @@ dataLoadingIssue:
 
 	if tm.bot.Config.LiveMode {
 		fmt.Println("done running", count, "data events")
+	} else {
+		livetrade.WriteTradesCSV(tm.Portfolio.GetAllClosedTrades())
 	}
 
 	return nil
@@ -364,6 +370,7 @@ func (tm *TradeManager) Stop() error {
 	}
 
 	log.Debugln(log.TradeMgr, "TradeManager Stopping...")
+
 	if tm.bot.OrderManager != nil && tm.bot.OrderManager.IsRunning() {
 		tm.bot.OrderManager.Stop()
 	}
@@ -973,6 +980,7 @@ func (tm *TradeManager) initializeStrategies(cfg *config.Config) {
 		if baseStrategy.TimeframeDays != 1 {
 			continue
 		}
+
 		var isWhitelisted bool
 		for _, name := range tm.bot.Config.TradeManager.Strategies {
 			if strings.EqualFold(name, baseStrategy.Capture) {
@@ -980,7 +988,7 @@ func (tm *TradeManager) initializeStrategies(cfg *config.Config) {
 				break
 			}
 		}
-		if len(tm.bot.Config.TradeManager.Strategies) == 0 {
+		if len(tm.bot.Config.TradeManager.Strategies) == 0 && !strings.EqualFold(baseStrategy.Capture, "trenddev") {
 			isWhitelisted = true
 		}
 		if !isWhitelisted {
@@ -996,7 +1004,6 @@ func (tm *TradeManager) initializeStrategies(cfg *config.Config) {
 		strat.SetDirection(cps.Side)
 		strat.SetDefaults()
 		slit = append(slit, strat)
-		break // NOTE
 	}
 
 	tm.Strategies = slit
@@ -1076,6 +1083,7 @@ func (tm *TradeManager) loadBacktestData() (err error) {
 		e := eap.ExchangeName
 		a := eap.AssetType
 		p := eap.CurrencyPair
+		fmt.Println("loading data for", p)
 		startDate := tm.cfg.DataSettings.DatabaseData.StartDate
 		endDate := tm.cfg.DataSettings.DatabaseData.EndDate
 		dbData, err := database.LoadData(
@@ -1097,7 +1105,7 @@ func (tm *TradeManager) loadBacktestData() (err error) {
 			endDate,
 			kline.Interval(kline.OneMin),
 			0)
-		fmt.Println("load data for currency", p)
+		// fmt.Println("load data for currency", p)
 		dbData.Load()
 		tm.Reports.AddKlineItem(&dbData.Item)
 		// tm.TradeReports.AddKlineItem(&dbData.Item)

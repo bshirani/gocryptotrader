@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
 	"gocryptotrader/database"
@@ -284,4 +285,29 @@ func updatePostgresql(ctx context.Context, tx *sql.Tx, in []Details) (id int64, 
 	}
 
 	return id, nil
+}
+
+func WriteTradesCSV(trades []*Details) {
+	// var nickName string
+	// if d.Config.Nickname != "" {
+	// 	nickName = d.Config.Nickname + "-"
+	// }
+	fileName := fmt.Sprintf(
+		"results/trades-%v.csv",
+		time.Now().Format("2006-01-02-15-04-05"))
+	newpath := filepath.Join(".", fileName)
+	fmt.Println("writing to", newpath)
+
+	file, err := os.OpenFile(newpath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
+	if err != nil {
+		fmt.Println("error", err)
+	}
+
+	header := "strategy"
+	file.WriteString(header)
+	for _, t := range trades {
+		s := fmt.Sprintf("%v\n", t.StrategyID)
+		file.WriteString(s)
+	}
+	file.Close()
 }

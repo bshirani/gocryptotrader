@@ -129,6 +129,7 @@ type PortfolioHandler interface {
 	UpdateHoldings(eventtypes.DataEventHandler) error
 	GetTradeForStrategy(int) *livetrade.Details
 	GetPositionForStrategy(int) *positions.Position
+	GetComplianceManager(string, asset.Item, currency.Pair) (*compliance.Manager, error)
 
 	PrintPortfolioDetails()
 

@@ -1047,11 +1047,13 @@ func (bot *Engine) WaitForInitialCurrencySync() error {
 func (bot *Engine) SetupExchangeSettings() error {
 	for _, e := range bot.Config.GetEnabledExchanges() {
 		enabledPairs, _ := bot.Config.GetEnabledPairs(e, asset.Spot)
+		fmt.Println("enabled", e, enabledPairs)
 		for _, pair := range enabledPairs {
 			_, pair, a, err := bot.loadExchangePairAssetBase(e, pair.Base.String(), pair.Quote.String(), "spot")
 			if err != nil {
 				return err
 			}
+			fmt.Println("setup pair", pair)
 			// fmt.Println("setting pair", pair)
 			bot.CurrencySettings = append(bot.CurrencySettings, &ExchangeAssetPairSettings{
 				ExchangeName: e,
@@ -1066,7 +1068,7 @@ func (bot *Engine) SetupExchangeSettings() error {
 func (bot *Engine) loadExchangePairAssetBase(exch, base, quote, ass string) (exchange.IBotExchange, currency.Pair, asset.Item, error) {
 	e, err := bot.GetExchangeByName(exch)
 	if err != nil {
-		fmt.Println(123)
+		fmt.Println(123, err)
 		return nil, currency.Pair{}, "", err
 	}
 

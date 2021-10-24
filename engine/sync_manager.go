@@ -899,6 +899,7 @@ func (m *syncManager) worker() {
 
 								// log.Warnln(log.SyncMgr, "requesting", minSinceLast, "candles from", c.Exchange, "for", c.Pair)
 								if len(newCandle.Candles) > 0 {
+									// fmt.Println("saving candle")
 									// fmt.Println("sync manager received", len(newCandle.Candles), "candles", "for", c.Pair)
 									_, err = m.candleSaver(&newCandle, false)
 									if err != nil {

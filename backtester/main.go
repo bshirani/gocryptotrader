@@ -96,11 +96,6 @@ func main() {
 		len(tm.Portfolio.GetAllClosedTrades()),
 		len(tm.Strategies),
 	)
-	// for _, t := range tm.Portfolio.GetAllClosedTrades() {
-	// 	if t != nil {
-	// 		fmt.Println("trade:", t)
-	// 	}
-	// }
 	tm.Stop()
 
 	// err = tm.Statistic.CalculateAllResults()
@@ -110,11 +105,11 @@ func main() {
 	// }
 
 	// if generateReport {
-	tm.Reports.UseDarkMode(darkReport)
-	err = tm.Reports.GenerateReport()
-	if err != nil {
-		log.Error(log.Global, err)
-	}
+	// tm.Reports.UseDarkMode(darkReport)
+	// err = tm.Reports.GenerateReport()
+	// if err != nil {
+	// 	log.Error(log.Global, err)
+	// }
 
 	// tm.TradeReports.AddTrades(tm.Portfolio.GetAllClosedTrades())
 	// tm.TradeReports.UseDarkMode(darkReport)

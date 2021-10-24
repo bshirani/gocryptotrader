@@ -35,7 +35,7 @@ func (s *Statistic) SetupEventForTime(ev eventtypes.DataEventHandler) error {
 	s.setupMap(ex, a)
 	lookup := s.ExchangeAssetPairStatistics[ex][a][p]
 	if lookup == nil {
-		fmt.Println("lookup nil")
+		// fmt.Println("lookup nil")
 		lookup = &currencystatistics.CurrencyStatistic{}
 	}
 	for i := range lookup.Events {
@@ -114,7 +114,7 @@ func applyEventAtOffset(ev eventtypes.EventHandler, lookup *currencystatistics.C
 
 // AddHoldingsForTime adds all holdings to the statistics at the time period
 func (s *Statistic) AddHoldingsForTime(h *holdings.Holding) error {
-	fmt.Println("add holding for time....................")
+	// fmt.Println("add holding for time....................")
 	if s.ExchangeAssetPairStatistics == nil {
 		return errExchangeAssetPairStatsUnset
 	}
