@@ -12,11 +12,10 @@ import (
 )
 
 type Details struct {
-	ID           int
-	Pair         currency.Pair
-	KrakenSymbol string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID        int
+	Pair      currency.Pair
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 func All() (st []Details, err error) {
@@ -38,7 +37,7 @@ func All() (st []Details, err error) {
 	return st, nil
 }
 
-func One(id int) (pair currency.Pair, err error) {
+func One(id int, liveMode bool) (pair currency.Pair, err error) {
 	query := postgres.CurrencyPairs(qm.Where("id=?", id))
 	var r *postgres.CurrencyPair
 	r, err = query.One(context.Background(), database.DB.SQL)
@@ -46,6 +45,11 @@ func One(id int) (pair currency.Pair, err error) {
 		return pair, err
 	}
 
-	pair, err = currency.NewPairFromString(r.KrakenSymbol)
+	if liveMode {
+		pair, err = currency.NewPairFromString(r.KrakenSymbol)
+	} else {
+		pair, err = currency.NewPairFromString(r.GateioSymbol)
+	}
+
 	return pair, nil
 }

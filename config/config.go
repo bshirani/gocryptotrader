@@ -22,6 +22,7 @@ import (
 	"gocryptotrader/currency"
 	"gocryptotrader/currency/forexprovider"
 	"gocryptotrader/database"
+	"gocryptotrader/database/repository/currencypairstrategy"
 	"gocryptotrader/exchange/asset"
 	gctscript "gocryptotrader/gctscript/vm"
 	"gocryptotrader/log"
@@ -612,40 +613,46 @@ func (c *Config) GetAvailablePairs(exchName string, assetType asset.Item) (curre
 
 // GetEnabledPairs returns a list of currency pairs for a specifc exchange
 func (c *Config) GetEnabledPairs(exchName string, assetType asset.Item) (currency.Pairs, error) {
-	exchCfg, err := c.GetExchangeConfig(exchName)
-	if err != nil {
-		return nil, err
-	}
-
-	pairFormat, err := c.GetPairFormat(exchName, assetType)
-	if err != nil {
-		return nil, err
-	}
-
-	pairs, err := exchCfg.CurrencyPairs.GetPairs(assetType, true)
-	if err != nil {
-		return pairs, err
-	}
-
-	if pairs == nil {
-		return nil, nil
-	}
-
-	return pairs.Format(pairFormat.Delimiter,
-			pairFormat.Index,
-			pairFormat.Uppercase),
-		nil
+	return currencypairstrategy.ActivePairs(c.LiveMode)
+	// exchCfg, err := c.GetExchangeConfig(exchName)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	//
+	// pairFormat, err := c.GetPairFormat(exchName, assetType)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	//
+	// pairs, err := exchCfg.CurrencyPairs.GetPairs(assetType, true)
+	// if err != nil {
+	// 	return pairs, err
+	// }
+	//
+	// if pairs == nil {
+	// 	return nil, nil
+	// }
+	//
+	// return pairs.Format(pairFormat.Delimiter,
+	// 		pairFormat.Index,
+	// 		pairFormat.Uppercase),
+	// 	nil
 }
 
 // GetEnabledExchanges returns a list of enabled exchanges
 func (c *Config) GetEnabledExchanges() []string {
 	var enabledExchs []string
-	for i := range c.Exchanges {
-		if c.Exchanges[i].Enabled {
-			enabledExchs = append(enabledExchs, c.Exchanges[i].Name)
-		}
+
+	if c.LiveMode {
+		return append(enabledExchs, "kraken")
 	}
-	return enabledExchs
+	return append(enabledExchs, "gateio")
+	// for i := range c.Exchanges {
+	// 	if c.Exchanges[i].Enabled {
+	// 		enabledExchs = append(enabledExchs, c.Exchanges[i].Name)
+	// 	}
+	// }
+	// return enabledExchs
 }
 
 // GetDisabledExchanges returns a list of disabled exchanges
@@ -1895,9 +1902,9 @@ func (c *Config) validateDate() error {
 
 // validateCurrencySettings checks whether someone has set invalid currency setting data in their config
 func (c *Config) validateCurrencySettings() error {
-	if len(c.CurrencySettings) == 0 {
-		return errNoCurrencySettings
-	}
+	// if len(c.CurrencySettings) == 0 {
+	// 	return errNoCurrencySettings
+	// }
 	for i := range c.CurrencySettings {
 		if c.CurrencySettings[i].InitialLegacyFunds > 0 {
 			// temporarily migrate legacy start config value

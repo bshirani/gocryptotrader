@@ -305,10 +305,35 @@
   ],
   "Verbose": false
  },
+
+ "data-settings": {
+  "interval": 60000000000,
+  "data-type": "candle",
+  "live-data": {
+   "real-orders": false
+  },
+  "database-data": {
+   "start-date": "2021-10-01T00:00:00+00:00",
+   "end-date": "2021-10-10T00:10:00+00:00",
+   "config-override": {
+    "enabled": true,
+    "verbose": false,
+    "driver": "postgres",
+    "connectionDetails": {
+     "host": "localhost",
+     "port": 5432,
+     "username": "bijan",
+     "password": "",
+     "database": "gct-dev",
+     "sslmode": ""
+    }
+   }
+  }
+ },
  "exchanges": [
   {
    "name": "gateio",
-   "enabled": false,
+   "enabled": true,
    "verbose": false,
    "httpTimeout": 15000000000,
    "websocketResponseCheckTimeout": 30000000,
@@ -387,7 +412,7 @@
   },
   {
    "name": "kraken",
-   "enabled": true,
+   "enabled": false,
    "verbose": false,
    "httpTimeout": 15000000000,
    "websocketResponseCheckTimeout": 30000000,

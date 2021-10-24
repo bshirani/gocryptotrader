@@ -21,6 +21,7 @@ import (
 	"gocryptotrader/exchange/trade"
 	gctscript "gocryptotrader/gctscript/vm"
 	"gocryptotrader/log"
+	"gocryptotrader/portfolio/strategies"
 	"gocryptotrader/portfolio/withdraw"
 	"gocryptotrader/utils"
 
@@ -49,6 +50,7 @@ type Engine struct {
 	gctScriptManager        *gctscript.GctScriptManager
 	ntpManager              *ntpManager
 	portfolioManager        *portfolioManager
+	Strategies              []strategies.Handler
 	uptime                  time.Time
 	watcher                 *Watcher
 	websocketRoutineManager *websocketRoutineManager
@@ -1051,9 +1053,10 @@ func (bot *Engine) SetupExchangeSettings() error {
 		for _, pair := range enabledPairs {
 			_, pair, a, err := bot.loadExchangePairAssetBase(e, pair.Base.String(), pair.Quote.String(), "spot")
 			if err != nil {
+				fmt.Println("enabled", err)
 				return err
 			}
-			fmt.Println("setup pair", pair)
+			fmt.Println("setup pair", pair, "exchange", e)
 			// fmt.Println("setting pair", pair)
 			bot.CurrencySettings = append(bot.CurrencySettings, &ExchangeAssetPairSettings{
 				ExchangeName: e,

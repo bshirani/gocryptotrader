@@ -30,6 +30,7 @@ type CurrencyPair struct {
 	Active       bool      `boil:"active" json:"active" toml:"active" yaml:"active"`
 	CreatedAt    time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt    time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	GateioSymbol string    `boil:"gateio_symbol" json:"gateio_symbol" toml:"gateio_symbol" yaml:"gateio_symbol"`
 
 	R *currencyPairR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L currencyPairL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -43,6 +44,7 @@ var CurrencyPairColumns = struct {
 	Active       string
 	CreatedAt    string
 	UpdatedAt    string
+	GateioSymbol string
 }{
 	ID:           "id",
 	BaseID:       "base_id",
@@ -51,6 +53,7 @@ var CurrencyPairColumns = struct {
 	Active:       "active",
 	CreatedAt:    "created_at",
 	UpdatedAt:    "updated_at",
+	GateioSymbol: "gateio_symbol",
 }
 
 var CurrencyPairTableColumns = struct {
@@ -61,6 +64,7 @@ var CurrencyPairTableColumns = struct {
 	Active       string
 	CreatedAt    string
 	UpdatedAt    string
+	GateioSymbol string
 }{
 	ID:           "currency_pair.id",
 	BaseID:       "currency_pair.base_id",
@@ -69,6 +73,7 @@ var CurrencyPairTableColumns = struct {
 	Active:       "currency_pair.active",
 	CreatedAt:    "currency_pair.created_at",
 	UpdatedAt:    "currency_pair.updated_at",
+	GateioSymbol: "currency_pair.gateio_symbol",
 }
 
 // Generated where
@@ -81,6 +86,7 @@ var CurrencyPairWhere = struct {
 	Active       whereHelperbool
 	CreatedAt    whereHelpertime_Time
 	UpdatedAt    whereHelpertime_Time
+	GateioSymbol whereHelperstring
 }{
 	ID:           whereHelperint{field: "\"currency_pair\".\"id\""},
 	BaseID:       whereHelperint{field: "\"currency_pair\".\"base_id\""},
@@ -89,6 +95,7 @@ var CurrencyPairWhere = struct {
 	Active:       whereHelperbool{field: "\"currency_pair\".\"active\""},
 	CreatedAt:    whereHelpertime_Time{field: "\"currency_pair\".\"created_at\""},
 	UpdatedAt:    whereHelpertime_Time{field: "\"currency_pair\".\"updated_at\""},
+	GateioSymbol: whereHelperstring{field: "\"currency_pair\".\"gateio_symbol\""},
 }
 
 // CurrencyPairRels is where relationship names are stored.
@@ -115,9 +122,9 @@ func (*currencyPairR) NewStruct() *currencyPairR {
 type currencyPairL struct{}
 
 var (
-	currencyPairAllColumns            = []string{"id", "base_id", "quote_id", "kraken_symbol", "active", "created_at", "updated_at"}
+	currencyPairAllColumns            = []string{"id", "base_id", "quote_id", "kraken_symbol", "active", "created_at", "updated_at", "gateio_symbol"}
 	currencyPairColumnsWithoutDefault = []string{"base_id", "quote_id", "kraken_symbol"}
-	currencyPairColumnsWithDefault    = []string{"id", "active", "created_at", "updated_at"}
+	currencyPairColumnsWithDefault    = []string{"id", "active", "created_at", "updated_at", "gateio_symbol"}
 	currencyPairPrimaryKeyColumns     = []string{"id"}
 )
 

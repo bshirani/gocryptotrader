@@ -55,6 +55,7 @@ type TradeManager struct {
 	lastUpdateMin      map[*ExchangeAssetPairSettings]time.Time
 	isSimulation       bool
 	debug              bool
+	liveMode           bool
 	tradingEnabled     bool
 	cfg                config.Config
 	hasHandledEvent    bool

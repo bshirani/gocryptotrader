@@ -30,6 +30,7 @@ type CurrencyPairStrategy struct {
 	Active         bool      `boil:"active" json:"active" toml:"active" yaml:"active"`
 	CreatedAt      time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt      time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	Weight         float64   `boil:"weight" json:"weight" toml:"weight" yaml:"weight"`
 
 	R *currencyPairStrategyR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L currencyPairStrategyL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -43,6 +44,7 @@ var CurrencyPairStrategyColumns = struct {
 	Active         string
 	CreatedAt      string
 	UpdatedAt      string
+	Weight         string
 }{
 	ID:             "id",
 	CurrencyPairID: "currency_pair_id",
@@ -51,6 +53,7 @@ var CurrencyPairStrategyColumns = struct {
 	Active:         "active",
 	CreatedAt:      "created_at",
 	UpdatedAt:      "updated_at",
+	Weight:         "weight",
 }
 
 var CurrencyPairStrategyTableColumns = struct {
@@ -61,6 +64,7 @@ var CurrencyPairStrategyTableColumns = struct {
 	Active         string
 	CreatedAt      string
 	UpdatedAt      string
+	Weight         string
 }{
 	ID:             "currency_pair_strategy.id",
 	CurrencyPairID: "currency_pair_strategy.currency_pair_id",
@@ -69,6 +73,7 @@ var CurrencyPairStrategyTableColumns = struct {
 	Active:         "currency_pair_strategy.active",
 	CreatedAt:      "currency_pair_strategy.created_at",
 	UpdatedAt:      "currency_pair_strategy.updated_at",
+	Weight:         "currency_pair_strategy.weight",
 }
 
 // Generated where
@@ -81,6 +86,7 @@ var CurrencyPairStrategyWhere = struct {
 	Active         whereHelperbool
 	CreatedAt      whereHelpertime_Time
 	UpdatedAt      whereHelpertime_Time
+	Weight         whereHelperfloat64
 }{
 	ID:             whereHelperint{field: "\"currency_pair_strategy\".\"id\""},
 	CurrencyPairID: whereHelperint{field: "\"currency_pair_strategy\".\"currency_pair_id\""},
@@ -89,6 +95,7 @@ var CurrencyPairStrategyWhere = struct {
 	Active:         whereHelperbool{field: "\"currency_pair_strategy\".\"active\""},
 	CreatedAt:      whereHelpertime_Time{field: "\"currency_pair_strategy\".\"created_at\""},
 	UpdatedAt:      whereHelpertime_Time{field: "\"currency_pair_strategy\".\"updated_at\""},
+	Weight:         whereHelperfloat64{field: "\"currency_pair_strategy\".\"weight\""},
 }
 
 // CurrencyPairStrategyRels is where relationship names are stored.
@@ -115,9 +122,9 @@ func (*currencyPairStrategyR) NewStruct() *currencyPairStrategyR {
 type currencyPairStrategyL struct{}
 
 var (
-	currencyPairStrategyAllColumns            = []string{"id", "currency_pair_id", "strategy_id", "side", "active", "created_at", "updated_at"}
+	currencyPairStrategyAllColumns            = []string{"id", "currency_pair_id", "strategy_id", "side", "active", "created_at", "updated_at", "weight"}
 	currencyPairStrategyColumnsWithoutDefault = []string{"currency_pair_id", "strategy_id", "side"}
-	currencyPairStrategyColumnsWithDefault    = []string{"id", "active", "created_at", "updated_at"}
+	currencyPairStrategyColumnsWithDefault    = []string{"id", "active", "created_at", "updated_at", "weight"}
 	currencyPairStrategyPrimaryKeyColumns     = []string{"id"}
 )
 

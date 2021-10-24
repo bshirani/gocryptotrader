@@ -2,6 +2,7 @@ package currencypairstrategy
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"gocryptotrader/currency"
@@ -9,6 +10,8 @@ import (
 	"gocryptotrader/database/models/postgres"
 	"gocryptotrader/database/repository/currencypair"
 	"gocryptotrader/exchange/order"
+
+	"github.com/shopspring/decimal"
 )
 
 type Details struct {
@@ -17,11 +20,28 @@ type Details struct {
 	StrategyID   int
 	Active       bool
 	Side         order.Side
+	Weight       decimal.Decimal
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }
 
-func All() (st []Details, err error) {
+func ActivePairs(liveMode bool) (currency.Pairs, error) {
+	if liveMode {
+		pair, err := currency.NewPairFromString("XBT_USDT")
+		return currency.Pairs{pair}, err
+	}
+
+	pair, err := currency.NewPairFromString("BTC_USDT")
+	return currency.Pairs{pair}, err
+
+	// return pairs.Format(pairFormat.Delimiter,
+	// 		pairFormat.Index,
+	// 		pairFormat.Uppercase),
+	// 	nil
+	// return
+}
+
+func All(liveMode bool) (st []Details, err error) {
 	query := postgres.CurrencyPairStrategies()
 	var result []*postgres.CurrencyPairStrategy
 	result, err = query.All(context.Background(), database.DB.SQL)
@@ -41,7 +61,11 @@ func All() (st []Details, err error) {
 	// fmt.Println("loaded pair", cp.KrakenSymbol, pair, pair.Base, pair.Quote)
 
 	for _, r := range result {
-		pair, _ := currencypair.One(r.CurrencyPairID)
+		pair, err := currencypair.One(r.CurrencyPairID, liveMode)
+		if err != nil {
+			fmt.Println("error getting cp", err)
+		}
+		fmt.Println("got pair", pair, "for id", r.CurrencyPairID)
 		// pair.Base, pair.Quote
 
 		st = append(st, Details{
@@ -49,6 +73,7 @@ func All() (st []Details, err error) {
 			CurrencyPair: pair,
 			Active:       r.Active,
 			Side:         order.Side(r.Side),
+			Weight:       decimal.NewFromFloat(r.Weight),
 			StrategyID:   r.StrategyID,
 			CreatedAt:    r.CreatedAt,
 			UpdatedAt:    r.UpdatedAt,

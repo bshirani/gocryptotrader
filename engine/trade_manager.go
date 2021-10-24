@@ -12,13 +12,10 @@ import (
 	datakline "gocryptotrader/data/kline"
 	"gocryptotrader/data/kline/database"
 	"gocryptotrader/database/repository/candle"
-	"gocryptotrader/database/repository/currencypairstrategy"
 	"gocryptotrader/database/repository/datahistoryjob"
 	"gocryptotrader/database/repository/liveorder"
 	"gocryptotrader/database/repository/livetrade"
-	"gocryptotrader/database/repository/strategy"
 	"os"
-	"path/filepath"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -43,7 +40,6 @@ import (
 	"gocryptotrader/portfolio/report"
 	"gocryptotrader/portfolio/statistics"
 	"gocryptotrader/portfolio/statistics/currencystatistics"
-	"gocryptotrader/portfolio/strategies"
 	"gocryptotrader/portfolio/tradereport"
 
 	"github.com/fatih/color"
@@ -51,14 +47,14 @@ import (
 )
 
 func NewTradeManager(bot *Engine) (*TradeManager, error) {
-	wd, err := os.Getwd()
-	configPath := filepath.Join(wd, "backtester", "config", "trend.strat")
-	btcfg, err := config.ReadConfigFromFile(configPath)
-	if err != nil {
-		fmt.Println("error", err)
-		return nil, err
-	}
-	return NewTradeManagerFromConfig(btcfg, "xx", "xx", bot)
+	// wd, err := os.Getwd()
+	// configPath := filepath.Join(wd, "backtester", "config", "trend.strat")
+	// btcfg, err := config.ReadConfigFromFile(configPath)
+	// if err != nil {
+	// 	fmt.Println("error", err)
+	// 	return nil, err
+	// }
+	return NewTradeManagerFromConfig(bot.Config, "xx", "xx", bot)
 }
 
 func (tm *TradeManager) Reset() {
@@ -79,10 +75,6 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	if bot == nil {
 		return nil, errNilBot
 	}
-	if len(cfg.CurrencySettings) < 1 {
-		fmt.Println("no cs")
-		os.Exit(123)
-	}
 	tm := &TradeManager{
 		shutdown: make(chan struct{}),
 	}
@@ -92,6 +84,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	tm.tradingEnabled = bot.Settings.EnableTrading
 	tm.liveSimulationCfg = bot.Config.TradeManager.LiveSimulation
 	tm.isSimulation = tm.liveSimulationCfg.Enabled
+	tm.liveMode = bot.Config.LiveMode
 
 	if tm.isSimulation {
 		tm.currentTime = tm.liveSimulationCfg.StartDate
@@ -153,7 +146,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 
 	tm.Datas = &data.HandlerPerCurrency{}
 	tm.Datas.Setup()
-	if !tm.bot.Config.LiveMode {
+	if !tm.liveMode {
 		// log.Debug(log.TradeMgr, "starting offline services")
 		err = tm.startOfflineServices()
 	}
@@ -163,7 +156,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	}
 
 	if tm.tradingEnabled {
-		tm.initializeStrategies(cfg)
+		tm.Strategies = SetupStrategies(cfg)
 
 		if tm.bot.Settings.EnableClearDB {
 			log.Warn(log.TradeMgr, "clearing DB")
@@ -188,10 +181,10 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	}
 
 	// fmt.Println("done setting up bot with", len(tm.bot.CurrencySettings), "currencies")
-	if len(tm.bot.CurrencySettings) < 1 {
-		log.Error(log.TradeMgr, "!!no currency settings")
-		os.Exit(123)
-	}
+	// if len(tm.bot.CurrencySettings) < 1 {
+	// 	log.Error(log.TradeMgr, "!!no currency settings")
+	// 	os.Exit(123)
+	// }
 
 	tm.setOrderManagerCallbacks()
 
@@ -285,7 +278,7 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 func (tm *TradeManager) Run() error {
 	count := 0
 	log.Debugf(log.TradeMgr, "TradeManager Running")
-	if !tm.bot.Config.LiveMode {
+	if !tm.liveMode {
 		err := tm.loadBacktestData()
 		if err != nil {
 			fmt.Println("error loadBacktestData:", err)
@@ -293,6 +286,9 @@ func (tm *TradeManager) Run() error {
 		t1 := tm.cfg.DataSettings.DatabaseData.StartDate
 		t2 := tm.cfg.DataSettings.DatabaseData.EndDate
 		dayDuration := int(t2.Sub(t1).Minutes()) / 60 / 24
+		if dayDuration > 30 {
+			panic("more than 30 days")
+		}
 		log.Warnln(log.TradeMgr, "startdate:", t1)
 		log.Warnln(log.TradeMgr, "enddate:", t2)
 		log.Warnln(log.TradeMgr, "duration:", dayDuration, "days")
@@ -300,13 +296,19 @@ func (tm *TradeManager) Run() error {
 		for _, s := range tm.Strategies {
 			log.Debugln(log.TradeMgr, s.GetPair(), s.Name(), s.GetDirection(), s.GetID())
 		}
+		pairs, err := tm.bot.Config.GetEnabledPairs("gateio", asset.Spot)
+		for _, p := range pairs {
+			log.Debugln(log.TradeMgr, "Active:", p)
+		}
 	}
+	// return nil
 dataLoadingIssue:
 	for ev := tm.EventQueue.NextEvent(); ; ev = tm.EventQueue.NextEvent() {
+		// check for new day
 		if ev == nil {
-			if !tm.bot.Config.LiveMode && count%1000 == 0 {
-				fmt.Printf(".")
-			}
+			// if !tm.liveMode && count%1000 == 0 {
+			// 	fmt.Printf(".")
+			// }
 
 			dataHandlerMap := tm.Datas.GetAllData()
 			for _, exchangeMap := range dataHandlerMap {
@@ -319,8 +321,6 @@ dataLoadingIssue:
 							// if !tm.hasHandledEvent {
 							// 	log.Errorf(log.TradeMgr, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
 							// }
-
-							fmt.Println("")
 							break dataLoadingIssue
 						}
 						tm.hasHandledEvent = true
@@ -331,6 +331,7 @@ dataLoadingIssue:
 			}
 		}
 		if ev != nil {
+			// fmt.Println("handle event", ev.GetTime())
 			err := tm.handleEvent(ev)
 			if err != nil {
 				fmt.Println("error handling event", err)
@@ -342,7 +343,7 @@ dataLoadingIssue:
 		}
 	}
 
-	if tm.bot.Config.LiveMode {
+	if tm.liveMode {
 		fmt.Println("done running", count, "data events")
 	} else {
 		livetrade.WriteTradesCSV(tm.Portfolio.GetAllClosedTrades())
@@ -636,7 +637,7 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 		}
 
 		if len(fe.Minute().M60Range) > 0 {
-			if tm.bot.Config.LiveMode {
+			if tm.liveMode {
 
 				if tm.verbose {
 					hrChg := fe.Minute().M60PctChange.Last(1).Round(2)
@@ -931,17 +932,20 @@ func (tm *TradeManager) startOfflineServices() error {
 		}
 	}
 
+	err := tm.bot.SetupExchanges()
+	if err != nil {
+		return err
+	}
 	tm.bot.SetupExchangeSettings()
 
 	// start fake order manager here since we don't start engine in backtest mode
-	var err error
 	tm.bot.OrderManager, err = SetupOrderManager(
 		tm.bot.ExchangeManager,
 		tm.bot.CommunicationsManager,
 		&tm.bot.ServicesWG,
 		tm.bot.Settings.Verbose,
 		tm.bot.Config.ProductionMode,
-		tm.bot.Config.LiveMode,
+		tm.liveMode,
 	)
 	if err != nil {
 		gctlog.Errorf(gctlog.Global, "Order manager unable to setup: %s", err)
@@ -965,49 +969,6 @@ func (tm *TradeManager) startOfflineServices() error {
 	tm.initializeFactorEngines()
 
 	return err
-}
-
-func (tm *TradeManager) initializeStrategies(cfg *config.Config) {
-	var slit []strategies.Handler
-	cpsS, _ := currencypairstrategy.All()
-
-	for _, cps := range cpsS {
-		if !cps.Active {
-			continue
-		}
-
-		baseStrategy, _ := strategy.One(cps.StrategyID)
-		if baseStrategy.TimeframeDays != 1 {
-			continue
-		}
-
-		var isWhitelisted bool
-		for _, name := range tm.bot.Config.TradeManager.Strategies {
-			if strings.EqualFold(name, baseStrategy.Capture) {
-				isWhitelisted = true
-				break
-			}
-		}
-		if len(tm.bot.Config.TradeManager.Strategies) == 0 && !strings.EqualFold(baseStrategy.Capture, "trenddev") {
-			isWhitelisted = true
-		}
-		if !isWhitelisted {
-			continue
-		}
-
-		// fmt.Println("creating strategy for pair", cps.ID, baseStrategy.Capture, cps.CurrencyPair, cps.Side)
-		strat, _ := strategies.LoadStrategyByName(baseStrategy.Capture)
-		// fmt.Println("creating strategy", cps.ID, cps.CurrencyPair, cps.Side)
-		strat.SetID(cps.ID)
-		strat.SetNumID(cps.ID)
-		strat.SetPair(cps.CurrencyPair)
-		strat.SetDirection(cps.Side)
-		strat.SetDefaults()
-		slit = append(slit, strat)
-	}
-
-	tm.Strategies = slit
-	// panic("finished")
 }
 
 func (tm *TradeManager) initializeFactorEngines() error {
@@ -1079,6 +1040,9 @@ func CandleSeriesForSettings(e *ExchangeAssetPairSettings, interval int64, start
 }
 
 func (tm *TradeManager) loadBacktestData() (err error) {
+	if len(tm.bot.CurrencySettings) == 0 {
+		panic("no cs")
+	}
 	for _, eap := range tm.bot.CurrencySettings {
 		e := eap.ExchangeName
 		a := eap.AssetType
@@ -1196,5 +1160,5 @@ func (tm *TradeManager) incrementMinute() {
 }
 
 func arePairsEqual(p1, p2 currency.Pair) bool {
-	return strings.EqualFold(p1.Quote.String(), p2.Quote.String()) && strings.EqualFold(p1.Quote.String(), p2.Quote.String())
+	return strings.EqualFold(p1.Quote.String(), p2.Quote.String()) && strings.EqualFold(p1.Base.String(), p2.Base.String())
 }
