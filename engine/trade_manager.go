@@ -42,6 +42,7 @@ import (
 	"gocryptotrader/portfolio/statistics"
 	"gocryptotrader/portfolio/statistics/currencystatistics"
 	"gocryptotrader/portfolio/strategies"
+	"gocryptotrader/portfolio/tradereport"
 
 	"github.com/fatih/color"
 	"github.com/shopspring/decimal"
@@ -118,7 +119,15 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 		OutputPath:   output,
 	}
 	tm.Reports = reports
+
+	tradereports := &tradereport.Data{
+		Config:       cfg,
+		TemplatePath: templatePath,
+		OutputPath:   output,
+	}
+	tm.TradeReports = tradereports
 	reports.Statistics = stats
+	tradereports.Statistics = stats
 
 	tm.bot = bot
 	var err error
@@ -316,8 +325,6 @@ dataLoadingIssue:
 			}
 		}
 		if ev != nil {
-			// fmt.Println("handle event", ev)
-			fmt.Println("origina candle len", len(tm.originalCandles.Item.Candles))
 			err := tm.handleEvent(ev)
 			if err != nil {
 				fmt.Println("error handling event", err)
@@ -621,6 +628,7 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 
 		if len(fe.Minute().M60Range) > 0 {
 			if tm.bot.Config.LiveMode {
+
 				if tm.verbose {
 					hrChg := fe.Minute().M60PctChange.Last(1).Round(2)
 
@@ -646,23 +654,23 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 						fe.Minute().M60Low.Last(1))
 
 				}
+
 			}
 
-			// fmt.Println("passing data", ev.Pair(), d.Latest().GetTime())
-			// fmt.Println("has", len(tm.Strategies), "strategies")
 			for _, strategy := range tm.Strategies {
-				// isSameBase := strings.EqualFold(sp.Base.String(), ep.Base.String())
-				// isSameBase := strings.EqualFold(sp.Base.String(), ep.Base.String())
 				sp := strategy.GetPair()
 				ep := ev.Pair()
-				// fmt.Println("checking", strategy.Name(), sp, sp.Base, ep.Base, sp.Quote, ep.Quote)
 				if arePairsEqual(sp, ep) {
-					// fmt.Println("updating strategy", strategy.GetID(), strategy.GetPair(), ev.Pair())
 					s, err := strategy.OnData(d, tm.Portfolio, fe)
 					s.SetStrategyID(strategy.GetID())
 					if err != nil {
 						fmt.Println("error processing data event", err)
 						return err
+					}
+
+					err = tm.Statistic.SetEventForOffset(s)
+					if err != nil {
+						log.Error(log.TradeMgr, err)
 					}
 					tm.EventQueue.AppendEvent(s)
 				}
@@ -852,6 +860,7 @@ func (tm *TradeManager) processOrderEvent(o order.Event) {
 }
 
 func (tm *TradeManager) updateStatsForDataEvent(ev eventtypes.DataEventHandler) error {
+	// fmt.Println("update stats", ev.GetTime())
 	// update statistics with the latest price
 	err := tm.Statistic.SetupEventForTime(ev)
 	if err != nil {
@@ -950,6 +959,7 @@ func (tm *TradeManager) initializeStrategies(cfg *config.Config) {
 		strat.SetDirection(cps.Side)
 		strat.SetDefaults()
 		slit = append(slit, strat)
+		break // NOTE
 	}
 
 	tm.Strategies = slit
@@ -1050,8 +1060,10 @@ func (tm *TradeManager) loadBacktestData() (err error) {
 			endDate,
 			kline.Interval(kline.OneMin),
 			0)
+		fmt.Println("load data for currency", p)
 		dbData.Load()
 		tm.Reports.AddKlineItem(&dbData.Item)
+		// tm.TradeReports.AddKlineItem(&dbData.Item)
 		tm.originalCandles = dbData
 
 		if err != nil {
@@ -1064,7 +1076,7 @@ func (tm *TradeManager) loadBacktestData() (err error) {
 			}
 		}
 
-		fmt.Println("db data has", len(dbData.Item.Candles))
+		// fmt.Println("db data has", len(dbData.Item.Candles))
 	}
 	// fmt.Println("done loading bt data")
 

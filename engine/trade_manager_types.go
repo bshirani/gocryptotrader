@@ -14,6 +14,7 @@ import (
 	"gocryptotrader/portfolio/report"
 	"gocryptotrader/portfolio/statistics"
 	"gocryptotrader/portfolio/strategies"
+	"gocryptotrader/portfolio/tradereport"
 	"sync"
 	"time"
 )
@@ -46,6 +47,7 @@ type TradeManager struct {
 	OrderManager       OrderManagerHandler
 	Portfolio          PortfolioHandler
 	Reports            report.Handler
+	TradeReports       tradereport.Handler
 	Statistic          statistics.Handler
 	Strategies         []strategies.Handler
 	liveSimulationCfg  config.LiveSimulationConfig

@@ -1,4 +1,4 @@
-package report
+package tradereport
 
 import (
 	"fmt"
@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/exchange/kline"
 	"gocryptotrader/exchange/order"
@@ -19,34 +20,31 @@ import (
 // GenerateReport sends final data from statistics to a template
 // to create a lovely final report for someone to view
 func (d *Data) GenerateReport() error {
-	log.Info(log.TradeMgr, "generating report")
 
-	fmt.Println("loaded original candles:", len(d.OriginalCandles))
-
-	err := d.enhanceCandles()
-	if err != nil {
-		return err
-	}
-
-	for i := range d.OriginalCandles {
-		for j := range d.OriginalCandles[i].Candles {
-			if d.OriginalCandles[i].Candles[j].ValidationIssues == "" {
-				continue
-			}
-			d.Warnings = append(d.Warnings, Warning{
-				Exchange: d.OriginalCandles[i].Exchange,
-				Asset:    d.OriginalCandles[i].Asset,
-				Pair:     d.OriginalCandles[i].Pair,
-				Message:  fmt.Sprintf("candle data %v", d.OriginalCandles[i].Candles[j].ValidationIssues),
-			})
-		}
-	}
-	for i := range d.EnhancedCandles {
-		if len(d.EnhancedCandles[i].Candles) >= maxChartLimit {
-			d.EnhancedCandles[i].IsOverLimit = true
-			d.EnhancedCandles[i].Candles = d.EnhancedCandles[i].Candles[:maxChartLimit]
-		}
-	}
+	// err := d.enhanceCandles()
+	// if err != nil {
+	// 	return err
+	// }
+	//
+	// for i := range d.OriginalCandles {
+	// 	for j := range d.OriginalCandles[i].Candles {
+	// 		if d.OriginalCandles[i].Candles[j].ValidationIssues == "" {
+	// 			continue
+	// 		}
+	// 		d.Warnings = append(d.Warnings, Warning{
+	// 			Exchange: d.OriginalCandles[i].Exchange,
+	// 			Asset:    d.OriginalCandles[i].Asset,
+	// 			Pair:     d.OriginalCandles[i].Pair,
+	// 			Message:  fmt.Sprintf("candle data %v", d.OriginalCandles[i].Candles[j].ValidationIssues),
+	// 		})
+	// 	}
+	// }
+	// for i := range d.EnhancedCandles {
+	// 	if len(d.EnhancedCandles[i].Candles) >= maxChartLimit {
+	// 		d.EnhancedCandles[i].IsOverLimit = true
+	// 		d.EnhancedCandles[i].Candles = d.EnhancedCandles[i].Candles[:maxChartLimit]
+	// 	}
+	// }
 
 	tmpl := template.Must(
 		template.ParseFiles(
@@ -63,7 +61,7 @@ func (d *Data) GenerateReport() error {
 		d.Statistics.StrategyName,
 		time.Now().Format("2006-01-02-15-04-05"))
 	var f *os.File
-	f, err = os.Create(
+	f, err := os.Create(
 		filepath.Join(d.OutputPath,
 			fileName,
 		),
@@ -86,10 +84,9 @@ func (d *Data) GenerateReport() error {
 	return nil
 }
 
-// AddKlineItem appends a SET of candles for the report to enhance upon
-// generation
-func (d *Data) AddKlineItem(k *kline.Item) {
-	d.OriginalCandles = append(d.OriginalCandles, k)
+func (d *Data) AddTrades(trades []*livetrade.Details) {
+	d.OriginalTrades = append(d.OriginalTrades, trades)
+	// d.OriginalCandles = append(d.OriginalCandles, k)
 	// fmt.Println("added kline item", len(k.Candles))
 	// fmt.Println("original candle length:", len(d.OriginalCandles))
 }
@@ -133,8 +130,7 @@ func (d *Data) enhanceCandles() error {
 			continue
 		}
 
-		// fmt.Println("stats for candles", statsForCandles)
-		// fmt.Println("original0 len", len(d.OriginalCandles[0].Candles))
+		fmt.Println("statsforcandles", statsForCandles.Events)
 
 		requiresIteration := false
 		// fmt.Println(len(statsForCandles.Events), len(d.OriginalCandles[intVal].Candles))
@@ -159,7 +155,7 @@ func (d *Data) enhanceCandles() error {
 				}
 			}
 			if !requiresIteration {
-				fmt.Println("intval", intVal)
+				// fmt.Println("intval", intVal)
 				fmt.Println(statsForCandles.Events[intVal])
 				if statsForCandles.Events[intVal].SignalEvent.GetTime().Equal(d.OriginalCandles[intVal].Candles[j].Time) &&
 					statsForCandles.Events[intVal].SignalEvent.GetDirection() == eventtypes.MissingData &&

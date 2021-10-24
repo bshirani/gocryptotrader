@@ -24,7 +24,7 @@ func main() {
 	flag.BoolVar(&dryrun, "dryrun", true, "write orders/trades to db")
 	flag.BoolVar(&generateReport, "generatereport", false, "whether to generate the report file")
 	flag.StringVar(&configPath, "configpath", filepath.Join(wd, "config", "trend.strat"), "the config containing strategy params")
-	flag.StringVar(&templatePath, "templatepath", filepath.Join(wd, "report", "tpl.gohtml"), "the report template to use")
+	flag.StringVar(&templatePath, "templatepath", filepath.Join(wd, "../portfolio/tradereport", "tpl.gohtml"), "the report template to use")
 	flag.StringVar(&reportOutput, "outputpath", filepath.Join(wd, "results"), "the path where to output results")
 	flag.StringVar(&strategiesArg, "strategy", "", "strategies")
 	flag.StringVar(&pairsArg, "pairs", "", "pairs")
@@ -109,11 +109,18 @@ func main() {
 	// 	os.Exit(1)
 	// }
 
-	if generateReport {
-		tm.Reports.UseDarkMode(darkReport)
-		err = tm.Reports.GenerateReport()
-		if err != nil {
-			log.Error(log.Global, err)
-		}
+	// if generateReport {
+	tm.Reports.UseDarkMode(darkReport)
+	err = tm.Reports.GenerateReport()
+	if err != nil {
+		log.Error(log.Global, err)
 	}
+
+	// tm.TradeReports.AddTrades(tm.Portfolio.GetAllClosedTrades())
+	// tm.TradeReports.UseDarkMode(darkReport)
+	// err = tm.TradeReports.GenerateReport()
+	// if err != nil {
+	// 	log.Error(log.Global, err)
+	// }
+	// }
 }
