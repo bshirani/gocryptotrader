@@ -8,6 +8,7 @@ import (
 	"gocryptotrader/communications/base"
 	"gocryptotrader/currency"
 	"gocryptotrader/database"
+	"gocryptotrader/exchange/order"
 	"gocryptotrader/exchange/protocol"
 	gctscript "gocryptotrader/gctscript/vm"
 	"gocryptotrader/log"
@@ -157,8 +158,20 @@ type TradeManagerConfig struct {
 	Verbose        bool                 `json:"verbose"`
 	Trading        bool                 `json:"trading"`
 	ClearDB        bool                 `json:"clearDB"`
-	Strategies     []string             `json:"strategies"`
+	Strategies     []StrategySetting    `json:"strategies"`
 	LiveSimulation LiveSimulationConfig `json:"liveSimulation"`
+}
+
+type StrategySetting struct {
+	Weight  decimal.Decimal
+	Side    order.Side  `json:"side"`
+	Pair    PairSetting `json:"pair"`
+	Capture string      `json:"capture"`
+}
+
+type PairSetting struct {
+	Exchange string `json:"exchange"`
+	Symbol   string `json:"symbol"`
 }
 
 type LiveSimulationConfig struct {

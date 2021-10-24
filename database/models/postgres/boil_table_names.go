@@ -10,7 +10,6 @@ var TableNames = struct {
 	CMCLatestListing        string
 	Currency                string
 	CurrencyPair            string
-	CurrencyPairStrategy    string
 	Datahistoryjob          string
 	Datahistoryjobrelations string
 	Datahistoryjobresult    string
@@ -33,7 +32,6 @@ var TableNames = struct {
 	CMCLatestListing:        "cmc_latest_listing",
 	Currency:                "currency",
 	CurrencyPair:            "currency_pair",
-	CurrencyPairStrategy:    "currency_pair_strategy",
 	Datahistoryjob:          "datahistoryjob",
 	Datahistoryjobrelations: "datahistoryjobrelations",
 	Datahistoryjobresult:    "datahistoryjobresult",

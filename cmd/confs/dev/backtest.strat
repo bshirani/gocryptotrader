@@ -3,7 +3,27 @@
  "goal": "Trend Exploit",
  "gocryptotrader-config-path": "/home/bijan/work/crypto/gocryptotrader/cmd/confs/dev/backtest.json",
  "tradeManager" : {
-     "verbose": false
+     "verbose": false,
+     "strategies": [
+         {
+             "weight": 1,
+             "side": "SELL",
+             "capture": "trend",
+             "pair": {
+                 "exchange": "gateio",
+                 "symbol": "BTC_USDT"
+             }
+         },
+         {
+             "weight": 1,
+             "side": "BUY",
+             "capture": "trend",
+             "pair": {
+                 "exchange": "gateio",
+                 "symbol": "BTC_USDT"
+             }
+         }
+     ]
  },
  "currency-settings": [
   {

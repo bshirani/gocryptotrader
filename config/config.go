@@ -22,7 +22,6 @@ import (
 	"gocryptotrader/currency"
 	"gocryptotrader/currency/forexprovider"
 	"gocryptotrader/database"
-	"gocryptotrader/database/repository/currencypairstrategy"
 	"gocryptotrader/exchange/asset"
 	gctscript "gocryptotrader/gctscript/vm"
 	"gocryptotrader/log"
@@ -613,30 +612,29 @@ func (c *Config) GetAvailablePairs(exchName string, assetType asset.Item) (curre
 
 // GetEnabledPairs returns a list of currency pairs for a specifc exchange
 func (c *Config) GetEnabledPairs(exchName string, assetType asset.Item) (currency.Pairs, error) {
-	return currencypairstrategy.ActivePairs(c.LiveMode)
-	// exchCfg, err := c.GetExchangeConfig(exchName)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	//
-	// pairFormat, err := c.GetPairFormat(exchName, assetType)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	//
-	// pairs, err := exchCfg.CurrencyPairs.GetPairs(assetType, true)
-	// if err != nil {
-	// 	return pairs, err
-	// }
-	//
-	// if pairs == nil {
-	// 	return nil, nil
-	// }
-	//
-	// return pairs.Format(pairFormat.Delimiter,
-	// 		pairFormat.Index,
-	// 		pairFormat.Uppercase),
-	// 	nil
+	exchCfg, err := c.GetExchangeConfig(exchName)
+	if err != nil {
+		return nil, err
+	}
+
+	pairFormat, err := c.GetPairFormat(exchName, assetType)
+	if err != nil {
+		return nil, err
+	}
+
+	pairs, err := exchCfg.CurrencyPairs.GetPairs(assetType, true)
+	if err != nil {
+		return pairs, err
+	}
+
+	if pairs == nil {
+		return nil, nil
+	}
+
+	return pairs.Format(pairFormat.Delimiter,
+			pairFormat.Index,
+			pairFormat.Uppercase),
+		nil
 }
 
 // GetEnabledExchanges returns a list of enabled exchanges

@@ -179,20 +179,17 @@ var CurrencyWhere = struct {
 
 // CurrencyRels is where relationship names are stored.
 var CurrencyRels = struct {
-	BaseCurrencyPairs                  string
-	QuoteCurrencyPairs                 string
-	CurrencyPairCurrencyPairStrategies string
+	BaseCurrencyPairs  string
+	QuoteCurrencyPairs string
 }{
-	BaseCurrencyPairs:                  "BaseCurrencyPairs",
-	QuoteCurrencyPairs:                 "QuoteCurrencyPairs",
-	CurrencyPairCurrencyPairStrategies: "CurrencyPairCurrencyPairStrategies",
+	BaseCurrencyPairs:  "BaseCurrencyPairs",
+	QuoteCurrencyPairs: "QuoteCurrencyPairs",
 }
 
 // currencyR is where relationships are stored.
 type currencyR struct {
-	BaseCurrencyPairs                  CurrencyPairSlice         `boil:"BaseCurrencyPairs" json:"BaseCurrencyPairs" toml:"BaseCurrencyPairs" yaml:"BaseCurrencyPairs"`
-	QuoteCurrencyPairs                 CurrencyPairSlice         `boil:"QuoteCurrencyPairs" json:"QuoteCurrencyPairs" toml:"QuoteCurrencyPairs" yaml:"QuoteCurrencyPairs"`
-	CurrencyPairCurrencyPairStrategies CurrencyPairStrategySlice `boil:"CurrencyPairCurrencyPairStrategies" json:"CurrencyPairCurrencyPairStrategies" toml:"CurrencyPairCurrencyPairStrategies" yaml:"CurrencyPairCurrencyPairStrategies"`
+	BaseCurrencyPairs  CurrencyPairSlice `boil:"BaseCurrencyPairs" json:"BaseCurrencyPairs" toml:"BaseCurrencyPairs" yaml:"BaseCurrencyPairs"`
+	QuoteCurrencyPairs CurrencyPairSlice `boil:"QuoteCurrencyPairs" json:"QuoteCurrencyPairs" toml:"QuoteCurrencyPairs" yaml:"QuoteCurrencyPairs"`
 }
 
 // NewStruct creates a new relationship struct
@@ -527,27 +524,6 @@ func (o *Currency) QuoteCurrencyPairs(mods ...qm.QueryMod) currencyPairQuery {
 	return query
 }
 
-// CurrencyPairCurrencyPairStrategies retrieves all the currency_pair_strategy's CurrencyPairStrategies with an executor via currency_pair_id column.
-func (o *Currency) CurrencyPairCurrencyPairStrategies(mods ...qm.QueryMod) currencyPairStrategyQuery {
-	var queryMods []qm.QueryMod
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"currency_pair_strategy\".\"currency_pair_id\"=?", o.ID),
-	)
-
-	query := CurrencyPairStrategies(queryMods...)
-	queries.SetFrom(query.Query, "\"currency_pair_strategy\"")
-
-	if len(queries.GetSelect(query.Query)) == 0 {
-		queries.SetSelect(query.Query, []string{"\"currency_pair_strategy\".*"})
-	}
-
-	return query
-}
-
 // LoadBaseCurrencyPairs allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for a 1-M or N-M relationship.
 func (currencyL) LoadBaseCurrencyPairs(ctx context.Context, e boil.ContextExecutor, singular bool, maybeCurrency interface{}, mods queries.Applicator) error {
@@ -744,104 +720,6 @@ func (currencyL) LoadQuoteCurrencyPairs(ctx context.Context, e boil.ContextExecu
 	return nil
 }
 
-// LoadCurrencyPairCurrencyPairStrategies allows an eager lookup of values, cached into the
-// loaded structs of the objects. This is for a 1-M or N-M relationship.
-func (currencyL) LoadCurrencyPairCurrencyPairStrategies(ctx context.Context, e boil.ContextExecutor, singular bool, maybeCurrency interface{}, mods queries.Applicator) error {
-	var slice []*Currency
-	var object *Currency
-
-	if singular {
-		object = maybeCurrency.(*Currency)
-	} else {
-		slice = *maybeCurrency.(*[]*Currency)
-	}
-
-	args := make([]interface{}, 0, 1)
-	if singular {
-		if object.R == nil {
-			object.R = &currencyR{}
-		}
-		args = append(args, object.ID)
-	} else {
-	Outer:
-		for _, obj := range slice {
-			if obj.R == nil {
-				obj.R = &currencyR{}
-			}
-
-			for _, a := range args {
-				if a == obj.ID {
-					continue Outer
-				}
-			}
-
-			args = append(args, obj.ID)
-		}
-	}
-
-	if len(args) == 0 {
-		return nil
-	}
-
-	query := NewQuery(
-		qm.From(`currency_pair_strategy`),
-		qm.WhereIn(`currency_pair_strategy.currency_pair_id in ?`, args...),
-	)
-	if mods != nil {
-		mods.Apply(query)
-	}
-
-	results, err := query.QueryContext(ctx, e)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load currency_pair_strategy")
-	}
-
-	var resultSlice []*CurrencyPairStrategy
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice currency_pair_strategy")
-	}
-
-	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results in eager load on currency_pair_strategy")
-	}
-	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for currency_pair_strategy")
-	}
-
-	if len(currencyPairStrategyAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
-				return err
-			}
-		}
-	}
-	if singular {
-		object.R.CurrencyPairCurrencyPairStrategies = resultSlice
-		for _, foreign := range resultSlice {
-			if foreign.R == nil {
-				foreign.R = &currencyPairStrategyR{}
-			}
-			foreign.R.CurrencyPair = object
-		}
-		return nil
-	}
-
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if local.ID == foreign.CurrencyPairID {
-				local.R.CurrencyPairCurrencyPairStrategies = append(local.R.CurrencyPairCurrencyPairStrategies, foreign)
-				if foreign.R == nil {
-					foreign.R = &currencyPairStrategyR{}
-				}
-				foreign.R.CurrencyPair = local
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
 // AddBaseCurrencyPairs adds the given related objects to the existing relationships
 // of the currency, optionally inserting them as new records.
 // Appends related to o.R.BaseCurrencyPairs.
@@ -943,59 +821,6 @@ func (o *Currency) AddQuoteCurrencyPairs(ctx context.Context, exec boil.ContextE
 			}
 		} else {
 			rel.R.Quote = o
-		}
-	}
-	return nil
-}
-
-// AddCurrencyPairCurrencyPairStrategies adds the given related objects to the existing relationships
-// of the currency, optionally inserting them as new records.
-// Appends related to o.R.CurrencyPairCurrencyPairStrategies.
-// Sets related.R.CurrencyPair appropriately.
-func (o *Currency) AddCurrencyPairCurrencyPairStrategies(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*CurrencyPairStrategy) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.CurrencyPairID = o.ID
-			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"currency_pair_strategy\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"currency_pair_id"}),
-				strmangle.WhereClause("\"", "\"", 2, currencyPairStrategyPrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.ID}
-
-			if boil.IsDebug(ctx) {
-				writer := boil.DebugWriterFrom(ctx)
-				fmt.Fprintln(writer, updateQuery)
-				fmt.Fprintln(writer, values)
-			}
-			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.CurrencyPairID = o.ID
-		}
-	}
-
-	if o.R == nil {
-		o.R = &currencyR{
-			CurrencyPairCurrencyPairStrategies: related,
-		}
-	} else {
-		o.R.CurrencyPairCurrencyPairStrategies = append(o.R.CurrencyPairCurrencyPairStrategies, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &currencyPairStrategyR{
-				CurrencyPair: o,
-			}
-		} else {
-			rel.R.CurrencyPair = o
 		}
 	}
 	return nil

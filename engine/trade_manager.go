@@ -16,6 +16,7 @@ import (
 	"gocryptotrader/database/repository/liveorder"
 	"gocryptotrader/database/repository/livetrade"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -47,14 +48,23 @@ import (
 )
 
 func NewTradeManager(bot *Engine) (*TradeManager, error) {
-	// wd, err := os.Getwd()
-	// configPath := filepath.Join(wd, "backtester", "config", "trend.strat")
-	// btcfg, err := config.ReadConfigFromFile(configPath)
-	// if err != nil {
-	// 	fmt.Println("error", err)
-	// 	return nil, err
-	// }
-	return NewTradeManagerFromConfig(bot.Config, "xx", "xx", bot)
+	wd, err := os.Getwd()
+	var configPath string
+	if bot.Config.LiveMode {
+		if bot.Config.ProductionMode {
+			configPath = filepath.Join(wd, "cmd/confs/prod.strat")
+		} else {
+			configPath = filepath.Join(wd, "cmd/confs/dev/live.strat")
+		}
+	} else {
+		configPath = filepath.Join(wd, "cmd/confs/dev/backtest.strat")
+	}
+	btcfg, err := config.ReadConfigFromFile(configPath)
+	if err != nil {
+		fmt.Println("error", configPath, err)
+		return nil, err
+	}
+	return NewTradeManagerFromConfig(btcfg, "xx", "xx", bot)
 }
 
 func (tm *TradeManager) Reset() {
