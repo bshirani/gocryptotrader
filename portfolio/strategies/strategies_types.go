@@ -14,6 +14,7 @@ import (
 type Handler interface {
 	SetID(int)
 	GetID() int
+	GetWeight() decimal.Decimal
 	SetNumID(int)
 	GetNumID() int
 	GetDirection() order.Side

@@ -32,7 +32,8 @@ func ActivePairs(liveMode bool) (currency.Pairs, error) {
 	}
 
 	pair, err := currency.NewPairFromString("BTC_USDT")
-	return currency.Pairs{pair}, err
+	pair2, err := currency.NewPairFromString("XRP_USDT")
+	return currency.Pairs{pair, pair2}, err
 
 	// return pairs.Format(pairFormat.Delimiter,
 	// 		pairFormat.Index,
@@ -65,7 +66,6 @@ func All(liveMode bool) (st []Details, err error) {
 		if err != nil {
 			fmt.Println("error getting cp", err)
 		}
-		fmt.Println("got pair", pair, "for id", r.CurrencyPairID)
 		// pair.Base, pair.Quote
 
 		st = append(st, Details{

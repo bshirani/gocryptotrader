@@ -69,6 +69,7 @@ func (tm *TradeManager) Reset() {
 
 func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, bot *Engine) (*TradeManager, error) {
 	log.Debugln(log.TradeMgr, "TradeManager: Initializing...")
+
 	if cfg == nil {
 		return nil, errNilConfig
 	}
@@ -357,6 +358,11 @@ func (tm *TradeManager) Start() error {
 		return fmt.Errorf("backtester %w", ErrSubSystemAlreadyStarted)
 	}
 	tm.shutdown = make(chan struct{})
+
+	if tm.liveMode {
+		printStrategies(tm.Strategies)
+	}
+
 	// go tm.heartBeat()
 	go tm.runLive()
 	return nil

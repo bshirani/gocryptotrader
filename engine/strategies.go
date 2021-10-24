@@ -11,13 +11,17 @@ import (
 	"strings"
 )
 
+// loads active strategies from the database
 func SetupStrategies(cfg *config.Config) (slit []strategies.Handler) {
 	cpsS, _ := currencypairstrategy.All(cfg.LiveMode)
 
 	for _, cps := range cpsS {
-		if !cps.Active {
-			continue
-		}
+
+		// LOAD ONLY ACTIVE STRATEGIES
+
+		// if !cps.Active {
+		// 	continue
+		// }
 		if cps.Weight.IsZero() && cfg.LiveMode {
 			fmt.Println("skip", cps.ID, cps.Weight)
 			continue
@@ -50,14 +54,15 @@ func SetupStrategies(cfg *config.Config) (slit []strategies.Handler) {
 			continue
 		}
 
-		// fmt.Println("creating strategy for pair", cps.ID, baseStrategy.Capture, cps.CurrencyPair, cps.Side)
 		strat, _ := strategies.LoadStrategyByName(baseStrategy.Capture)
 		// fmt.Println("creating strategy", cps.ID, cps.CurrencyPair, cps.Side)
 		strat.SetID(cps.ID)
+		strat.SetWeight(cps.Weight)
 		strat.SetNumID(cps.ID)
 		strat.SetPair(cps.CurrencyPair)
 		strat.SetDirection(cps.Side)
 		strat.SetDefaults()
+		// fmt.Println("creating strategy for pair", baseStrategy.Capture, cps.CurrencyPair, cps.Side)
 		slit = append(slit, strat)
 	}
 
@@ -74,4 +79,10 @@ func isActivePair(pairs currency.Pairs, mypair currency.Pair) bool {
 		}
 	}
 	return false
+}
+
+func printStrategies(strategies []strategies.Handler) {
+	for _, x := range strategies {
+		fmt.Println("ACTIVE STRATEGY", x.Name(), x.GetPair(), x.GetWeight())
+	}
 }
