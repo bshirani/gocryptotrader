@@ -63,7 +63,7 @@
   "toDate": "",
   "numWorkers": 0
  },
- "name": "Full",
+ "name": "Development",
  "dataDirectory": "",
  "encryptConfig": -1,
  "globalHTTPTimeout": 15000000000,

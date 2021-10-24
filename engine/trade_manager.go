@@ -60,7 +60,7 @@ func NewTradeManager(bot *Engine) (*TradeManager, error) {
 			configPath = filepath.Join(wd, "cmd/confs/dev/backtest.strat")
 		}
 	}
-	fmt.Println("TMMMMMMMMMMMMMM config path", configPath)
+	// fmt.Println("TMMMMMMMMMMMMMM config path", configPath)
 	btcfg, err := config.ReadConfigFromFile(configPath)
 	if err != nil {
 		fmt.Println("error", configPath, err)

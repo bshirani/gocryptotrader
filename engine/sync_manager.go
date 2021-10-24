@@ -896,9 +896,9 @@ func (m *syncManager) worker() {
 									m.setProcessing(c.Exchange, c.Pair, c.AssetType, SyncItemKline, false)
 									continue
 								}
-								if c.Kline.LastUpdated.IsZero() {
-									log.Warnln(log.SyncMgr, "INITIALI REQUEST", minSinceLast, "candles from", c.Exchange, "for", c.Pair)
-								}
+								// if c.Kline.LastUpdated.IsZero() {
+								// 	log.Warnln(log.SyncMgr, "INITIALI REQUEST", minSinceLast, "candles from", c.Exchange, "for", c.Pair)
+								// }
 
 								if len(newCandle.Candles) > 0 {
 									// fmt.Println("saving candle")
