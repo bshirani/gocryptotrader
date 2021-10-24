@@ -38,6 +38,8 @@ import (
 	"gocryptotrader/log"
 
 	gctlog "gocryptotrader/log"
+	"gocryptotrader/portfolio/compliance"
+	"gocryptotrader/portfolio/holdings"
 	"gocryptotrader/portfolio/report"
 	"gocryptotrader/portfolio/statistics"
 	"gocryptotrader/portfolio/statistics/currencystatistics"
@@ -832,6 +834,41 @@ func (tm *TradeManager) processCancelEvent(ev cancel.Event) {
 
 func (tm *TradeManager) processFillEvent(ev fill.Event) {
 	tm.Portfolio.OnFill(ev)
+
+	// t, err := bt.Portfolio.OnFill(ev, funds)
+	// if err != nil {
+	// 	log.Error(log.BackTester, err)
+	// 	return
+	// }
+
+	err := tm.Statistic.SetEventForOffset(ev)
+	if err != nil {
+		log.Error(log.TradeMgr, err)
+	}
+
+	var holding *holdings.Holding
+	holding, err = tm.Portfolio.ViewHoldingAtTimePeriod(ev)
+	if err != nil {
+		log.Error(log.TradeMgr, err)
+	}
+
+	err = tm.Statistic.AddHoldingsForTime(holding)
+	if err != nil {
+		log.Error(log.TradeMgr, err)
+	}
+
+	var cp *compliance.Manager
+	cp, err = tm.Portfolio.GetComplianceManager(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
+	if err != nil {
+		log.Error(log.TradeMgr, err)
+	}
+
+	snap := cp.GetLatestSnapshot()
+	err = tm.Statistic.AddComplianceSnapshotForTime(snap, ev)
+	if err != nil {
+		log.Error(log.TradeMgr, err)
+	}
+
 }
 
 func (tm *TradeManager) processOrderEvent(o order.Event) {
@@ -1078,7 +1115,7 @@ func (tm *TradeManager) loadBacktestData() (err error) {
 
 		// fmt.Println("db data has", len(dbData.Item.Candles))
 	}
-	// fmt.Println("done loading bt data")
+	// fmt.Println("done loading tm data")
 
 	return err
 }
