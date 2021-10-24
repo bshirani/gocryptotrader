@@ -48,18 +48,20 @@ import (
 )
 
 func NewTradeManager(bot *Engine) (*TradeManager, error) {
+	configPath := bot.Settings.TradeConfigFile
 	wd, err := os.Getwd()
-	var configPath string
-	if bot.Config.LiveMode {
-		if bot.Config.ProductionMode {
-			configPath = filepath.Join(wd, "cmd/confs/prod.strat")
+	// var configPath string
+	if configPath == "" {
+		if bot.Config.LiveMode {
+			if bot.Config.ProductionMode {
+				configPath = filepath.Join(wd, "cmd/confs/prod.strat")
+			} else {
+				configPath = filepath.Join(wd, "cmd/confs/dev/live-1.strat")
+			}
 		} else {
-			configPath = filepath.Join(wd, "cmd/confs/dev/live.strat")
+			configPath = filepath.Join(wd, "cmd/confs/dev/backtest.strat")
 		}
-	} else {
-		configPath = filepath.Join(wd, "cmd/confs/dev/backtest.strat")
 	}
-	fmt.Println("loading config", configPath)
 	btcfg, err := config.ReadConfigFromFile(configPath)
 	if err != nil {
 		fmt.Println("error", configPath, err)

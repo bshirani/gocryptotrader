@@ -154,7 +154,6 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 		p.store.positions[s.GetID()] = &positions.Position{}
 		p.store.closedTrades[s.GetID()] = make([]*livetrade.Details, 0)
 		p.store.openOrders[s.GetID()] = make([]*liveorder.Details, 0)
-		s.SetWeight(decimal.NewFromFloat(1.5))
 	}
 
 	if !p.bot.Settings.EnableDryRun {
@@ -576,16 +575,18 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 		}
 	}
 	if p.bot.Settings.EnableLiveMode {
-		tradeMsg := fmt.Sprintf("created trade for s:%d %v %s %s", ev.GetStrategyID(), ev.Pair(), ev.GetAmount(), ev.GetDirection())
-		log.Warnf(log.Portfolio, tradeMsg)
+		// tradeMsg := fmt.Sprintf("created trade for s:%d %v %s %s", ev.GetStrategyID(), ev.Pair(), ev.GetAmount(), ev.GetDirection())
+		// log.Warnf(log.Portfolio, tradeMsg)
 
 		// lt.EntryTime.UTC().AppendFormat(e.data, l.Timestamp)
 
 		timestampFormat := " 15:04:05 UTC"
 		s, _ := p.getStrategy(ev.GetStrategyID())
 		notificationMsg := fmt.Sprintf(
-			"ENTER TRADE: %d\n%s %v@%v %v\n%s",
+			"ENTER TRADE: %d-%s-%s\n%s %v@%v %v\n%s",
 			s.GetID(),
+			s.GetPair(),
+			s.GetDirection(),
 			lt.Side,
 			lt.Amount,
 			lt.EntryPrice,

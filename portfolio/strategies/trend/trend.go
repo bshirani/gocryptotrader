@@ -37,6 +37,7 @@ func (s *Strategy) Description() string {
 }
 
 func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe base.FactorEngineHandler) (signal.Event, error) {
+	s.Strategy.Debug = true
 	// if p.GetLiveMode() {
 	log.Infoln(log.Global, "trend ONDATA", d.Latest().GetTime(), s.Strategy.GetDirection(), d.Latest().Pair(), len(d.History()), len(fe.Minute().Close))
 	// }
@@ -55,14 +56,14 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	es.SetPrice(d.Latest().ClosePrice())
 	es.SetAmount(decimal.NewFromFloat(1.0))
 
-	offset := d.Offset()
-	fmt.Println("trend.go offset", offset)
+	// offset := d.Offset()
+	// fmt.Println("trend.go offset", offset)
 
-	if offset <= int(60) {
-		es.SetDecision(signal.DoNothing)
-		es.AppendReason("Not enough data for signal generation")
-		return &es, nil
-	}
+	// if offset <= int(60) {
+	// 	es.SetDecision(signal.DoNothing)
+	// 	es.AppendReason("Not enough data for signal generation")
+	// 	return &es, nil
+	// }
 
 	if !d.HasDataAtTime(d.Latest().GetTime()) {
 		es.SetDirection(eventtypes.MissingData)
@@ -83,21 +84,20 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 		m60Chg := fe.Minute().M60PctChange.Last(0)
 
 		if s.Strategy.GetDirection() == order.Buy { // check for buy strategy
-
 			if m60Chg.GreaterThan(decimal.NewFromInt(0)) {
-				es.AppendReason("Strategy: m60Chg greater than zero")
+				es.AppendReason(fmt.Sprintf("Strategy: m60Chg greater than zero (%v)", m60Chg))
 				es.SetDecision(signal.Enter)
 			} else {
-				es.AppendReason("Strategy: m60Chg less than zero")
+				es.AppendReason(fmt.Sprintf("Strategy: m60Chg less than zero (%v)", m60Chg))
 				es.SetDecision(signal.DoNothing)
 			}
 
 		} else if s.Strategy.GetDirection() == order.Sell { // check sell strategy
 			if m60Chg.LessThan(decimal.NewFromInt(0)) {
-				es.AppendReason("Strategy: m60Chg less than zero")
+				es.AppendReason(fmt.Sprintf("Strategy: m60Chg less than zero (%v)", m60Chg))
 				es.SetDecision(signal.Enter)
 			} else {
-				es.AppendReason("Strategy: m60Chg greater than zero")
+				es.AppendReason(fmt.Sprintf("Strategy: m60Chg greater than zero (%v)", m60Chg))
 				es.SetDecision(signal.DoNothing)
 			}
 		}

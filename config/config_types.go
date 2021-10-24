@@ -167,6 +167,7 @@ type StrategySetting struct {
 	Side    order.Side  `json:"side"`
 	Pair    PairSetting `json:"pair"`
 	Capture string      `json:"capture"`
+	Debug   bool        `json:"debug"`
 }
 
 type PairSetting struct {

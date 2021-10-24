@@ -149,7 +149,7 @@ func init() {
 	DatabaseMgr = registerNewSubLogger("DATABASE")
 	DataHistory = registerNewSubLogger("DATAHISTORY")
 	OrderMgr = registerNewSubLogger("ORDER")
-	PortfolioMgr = registerNewSubLogger("PORTFOLIOMGR")
+	PortfolioMgr = registerNewSubLogger("PF")
 	SyncMgr = registerNewSubLogger("SYNC")
 	TimeMgr = registerNewSubLogger("TIMEKEEPER")
 	GCTScriptMgr = registerNewSubLogger("GCTSCRIPT")
