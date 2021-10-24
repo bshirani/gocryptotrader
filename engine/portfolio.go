@@ -363,12 +363,12 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	if p.verbose {
 		log.Debugf(
 			log.Portfolio,
-			"onsig name=%d-%s-%s decision=%s status=%s reason=%s time=%s ",
+			"onsig name=%d-%s-%s-%s decision=%s status=%s reason=%s time=%s ",
 			ev.GetStrategyID(),
-			s.GetDirection(),
 			s.Name(),
+			s.GetPair(),
+			s.GetDirection(),
 			ev.GetDecision(),
-			ev.Pair(),
 			tradeStatus,
 			ev.GetReason(),
 			ev.GetTime(),

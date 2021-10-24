@@ -1048,7 +1048,6 @@ func (bot *Engine) WaitForInitialCurrencySync() error {
 }
 
 func (bot *Engine) SetupExchangeSettings() error {
-	fmt.Println("!!!!!!!!setup exchangesettings")
 	for _, e := range bot.Config.GetEnabledExchanges() {
 		enabledPairs, _ := bot.Config.GetEnabledPairs(e, asset.Spot)
 		fmt.Println("enabled", e, enabledPairs)

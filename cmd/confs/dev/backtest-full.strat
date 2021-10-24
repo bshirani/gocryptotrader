@@ -22,6 +22,24 @@
                  "exchange": "gateio",
                  "symbol": "BTC_USDT"
              }
+         },
+         {
+             "weight": 1,
+             "side": "SELL",
+             "capture": "trend",
+             "pair": {
+                 "exchange": "gateio",
+                 "symbol": "XRP_USDT"
+             }
+         },
+         {
+             "weight": 1,
+             "side": "BUY",
+             "capture": "trend",
+             "pair": {
+                 "exchange": "gateio",
+                 "symbol": "XRP_USDT"
+             }
          }
      ]
  },
@@ -42,7 +60,7 @@
   },
   "database-data": {
    "start-date": "2021-10-01T00:00:00+00:00",
-   "end-date": "2021-10-10T10:00:00+00:00",
+   "end-date": "2021-10-02T00:00:00+00:00",
    "config-override": {
     "enabled": true,
     "verbose": false,

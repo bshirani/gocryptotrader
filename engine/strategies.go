@@ -31,6 +31,7 @@ func SetupStrategies(cfg *config.Config) (slit []strategies.Handler) {
 		strat.SetDirection(cs.Side)
 		strat.SetPair(pair)
 		strat.SetDefaults()
+		fmt.Println("created strategy", strat.GetPair(), strat.GetDirection(), strat.Name(), strat.GetWeight())
 		slit = append(slit, strat)
 	}
 

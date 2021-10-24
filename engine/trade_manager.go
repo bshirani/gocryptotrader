@@ -3,7 +3,6 @@ package engine
 // . "github.com/volatiletech/sqlboiler/v4/queries/qm"
 import (
 	"context"
-	"errors"
 	"fmt"
 	"gocryptotrader/common"
 	"gocryptotrader/config"
@@ -50,7 +49,6 @@ import (
 func NewTradeManager(bot *Engine) (*TradeManager, error) {
 	configPath := bot.Settings.TradeConfigFile
 	wd, err := os.Getwd()
-	// var configPath string
 	if configPath == "" {
 		if bot.Config.LiveMode {
 			if bot.Config.ProductionMode {
@@ -62,6 +60,7 @@ func NewTradeManager(bot *Engine) (*TradeManager, error) {
 			configPath = filepath.Join(wd, "cmd/confs/dev/backtest.strat")
 		}
 	}
+	fmt.Println("TMMMMMMMMMMMMMM config path", configPath)
 	btcfg, err := config.ReadConfigFromFile(configPath)
 	if err != nil {
 		fmt.Println("error", configPath, err)
@@ -312,7 +311,7 @@ func (tm *TradeManager) Run() error {
 		}
 		pairs, err := tm.bot.Config.GetEnabledPairs("gateio", asset.Spot)
 		for _, p := range pairs {
-			log.Debugln(log.TradeMgr, "Active:", p)
+			log.Debugln(log.TradeMgr, "Active Pair:", p)
 		}
 	}
 	// return nil
@@ -944,12 +943,12 @@ func (tm *TradeManager) updateStatsForDataEvent(ev eventtypes.DataEventHandler) 
 
 func (tm *TradeManager) startOfflineServices() error {
 	// fmt.Println("TM start offline services")
-	for _, cs := range tm.cfg.CurrencySettings {
-		err := tm.bot.LoadExchange(cs.ExchangeName, nil)
-		if err != nil && !errors.Is(err, ErrExchangeAlreadyLoaded) {
-			return err
-		}
-	}
+	// for _, cs := range tm.cfg.CurrencySettings {
+	// 	err := tm.bot.LoadExchange(cs.ExchangeName, nil)
+	// 	if err != nil && !errors.Is(err, ErrExchangeAlreadyLoaded) {
+	// 		return err
+	// 	}
+	// }
 
 	err := tm.bot.SetupExchanges()
 	if err != nil {

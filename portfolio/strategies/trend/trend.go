@@ -37,10 +37,10 @@ func (s *Strategy) Description() string {
 }
 
 func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe base.FactorEngineHandler) (signal.Event, error) {
-	s.Strategy.Debug = true
-	// if p.GetLiveMode() {
-	log.Infoln(log.Global, "trend ONDATA", d.Latest().GetTime(), s.Strategy.GetDirection(), d.Latest().Pair(), len(d.History()), len(fe.Minute().Close))
-	// }
+	if p.GetLiveMode() {
+		s.Strategy.Debug = true
+		log.Infoln(log.Global, "trend ONDATA", d.Latest().GetTime(), s.Strategy.GetDirection(), d.Latest().Pair(), len(d.History()), len(fe.Minute().Close))
+	}
 	if d == nil {
 		return nil, eventtypes.ErrNilEvent
 	}
