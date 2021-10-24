@@ -23,65 +23,51 @@ import (
 
 // Strategy is an object representing the database table.
 type Strategy struct {
-	ID            int       `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Side          string    `boil:"side" json:"side" toml:"side" yaml:"side"`
-	Capture       string    `boil:"capture" json:"capture" toml:"capture" yaml:"capture"`
-	TimeframeDays int       `boil:"timeframe_days" json:"timeframe_days" toml:"timeframe_days" yaml:"timeframe_days"`
-	CreatedAt     time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt     time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	ID        int       `boil:"id" json:"id" toml:"id" yaml:"id"`
+	Capture   string    `boil:"capture" json:"capture" toml:"capture" yaml:"capture"`
+	CreatedAt time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
 	R *strategyR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L strategyL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var StrategyColumns = struct {
-	ID            string
-	Side          string
-	Capture       string
-	TimeframeDays string
-	CreatedAt     string
-	UpdatedAt     string
+	ID        string
+	Capture   string
+	CreatedAt string
+	UpdatedAt string
 }{
-	ID:            "id",
-	Side:          "side",
-	Capture:       "capture",
-	TimeframeDays: "timeframe_days",
-	CreatedAt:     "created_at",
-	UpdatedAt:     "updated_at",
+	ID:        "id",
+	Capture:   "capture",
+	CreatedAt: "created_at",
+	UpdatedAt: "updated_at",
 }
 
 var StrategyTableColumns = struct {
-	ID            string
-	Side          string
-	Capture       string
-	TimeframeDays string
-	CreatedAt     string
-	UpdatedAt     string
+	ID        string
+	Capture   string
+	CreatedAt string
+	UpdatedAt string
 }{
-	ID:            "strategy.id",
-	Side:          "strategy.side",
-	Capture:       "strategy.capture",
-	TimeframeDays: "strategy.timeframe_days",
-	CreatedAt:     "strategy.created_at",
-	UpdatedAt:     "strategy.updated_at",
+	ID:        "strategy.id",
+	Capture:   "strategy.capture",
+	CreatedAt: "strategy.created_at",
+	UpdatedAt: "strategy.updated_at",
 }
 
 // Generated where
 
 var StrategyWhere = struct {
-	ID            whereHelperint
-	Side          whereHelperstring
-	Capture       whereHelperstring
-	TimeframeDays whereHelperint
-	CreatedAt     whereHelpertime_Time
-	UpdatedAt     whereHelpertime_Time
+	ID        whereHelperint
+	Capture   whereHelperstring
+	CreatedAt whereHelpertime_Time
+	UpdatedAt whereHelpertime_Time
 }{
-	ID:            whereHelperint{field: "\"strategy\".\"id\""},
-	Side:          whereHelperstring{field: "\"strategy\".\"side\""},
-	Capture:       whereHelperstring{field: "\"strategy\".\"capture\""},
-	TimeframeDays: whereHelperint{field: "\"strategy\".\"timeframe_days\""},
-	CreatedAt:     whereHelpertime_Time{field: "\"strategy\".\"created_at\""},
-	UpdatedAt:     whereHelpertime_Time{field: "\"strategy\".\"updated_at\""},
+	ID:        whereHelperint{field: "\"strategy\".\"id\""},
+	Capture:   whereHelperstring{field: "\"strategy\".\"capture\""},
+	CreatedAt: whereHelpertime_Time{field: "\"strategy\".\"created_at\""},
+	UpdatedAt: whereHelpertime_Time{field: "\"strategy\".\"updated_at\""},
 }
 
 // StrategyRels is where relationship names are stored.
@@ -105,8 +91,8 @@ func (*strategyR) NewStruct() *strategyR {
 type strategyL struct{}
 
 var (
-	strategyAllColumns            = []string{"id", "side", "capture", "timeframe_days", "created_at", "updated_at"}
-	strategyColumnsWithoutDefault = []string{"side", "capture", "timeframe_days"}
+	strategyAllColumns            = []string{"id", "capture", "created_at", "updated_at"}
+	strategyColumnsWithoutDefault = []string{"capture"}
 	strategyColumnsWithDefault    = []string{"id", "created_at", "updated_at"}
 	strategyPrimaryKeyColumns     = []string{"id"}
 )

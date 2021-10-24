@@ -23,7 +23,7 @@ func SetupStrategies(cfg *config.Config) (slit []strategies.Handler) {
 		// 	continue
 		// }
 		if cps.Weight.IsZero() && cfg.LiveMode {
-			fmt.Println("skip", cps.ID, cps.Weight)
+			fmt.Println("weightskip", cps.ID, cps.Weight)
 			continue
 		}
 
@@ -46,6 +46,11 @@ func SetupStrategies(cfg *config.Config) (slit []strategies.Handler) {
 			continue
 		}
 
+		// filter out environment specific strategies
+		if cfg.ProductionMode && strings.EqualFold(baseStrategy.Capture, "trenddev") {
+			continue
+		}
+
 		pairs, err := cfg.GetEnabledPairs("gateio", asset.Spot)
 		if err != nil {
 			fmt.Println("error getting pairs", err)
@@ -55,7 +60,7 @@ func SetupStrategies(cfg *config.Config) (slit []strategies.Handler) {
 		}
 
 		strat, _ := strategies.LoadStrategyByName(baseStrategy.Capture)
-		// fmt.Println("creating strategy", cps.ID, cps.CurrencyPair, cps.Side)
+		fmt.Println("creating strategy", cps.ID, baseStrategy.Capture, cps.CurrencyPair, cps.Side)
 		strat.SetID(cps.ID)
 		strat.SetWeight(cps.Weight)
 		strat.SetNumID(cps.ID)
