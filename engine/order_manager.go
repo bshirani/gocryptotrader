@@ -525,18 +525,20 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 	// dtime := fmt.Sprintf("%d-%02d-%02d %d:%02d", odate.Year(), odate.Month(), odate.Day(), odate.Hour(), odate.Minute())
 	// fmt.Println(msgInfo)
 
-	msg := fmt.Sprintf("Order manager: Strategy=%d Exchange=%s submitted order ID=%v [Ours: %v] pair=%v price=%v amount=%v side=%v type=%v for time %v.",
-		newOrder.StrategyID,
-		newOrder.Exchange,
-		result.OrderID,
-		newOrder.ID,
-		newOrder.Pair,
-		newOrder.Price,
-		newOrder.Amount,
-		newOrder.Side,
-		newOrder.Type,
-		newOrder.Date)
-	log.Debugln(log.OrderMgr, msg)
+	if m.liveMode {
+		msg := fmt.Sprintf("Order manager: Strategy=%d Exchange=%s submitted order ID=%v [Ours: %v] pair=%v price=%v amount=%v side=%v type=%v for time %v.",
+			newOrder.StrategyID,
+			newOrder.Exchange,
+			result.OrderID,
+			newOrder.ID,
+			newOrder.Pair,
+			newOrder.Price,
+			newOrder.Amount,
+			newOrder.Side,
+			newOrder.Type,
+			newOrder.Date)
+		log.Debugln(log.OrderMgr, msg)
+	}
 
 	// msgInfo := fmt.Sprintf("%v %s %-10s %v %-5v %10v",
 	// 	newOrder.Pair,

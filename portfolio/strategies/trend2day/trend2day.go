@@ -56,7 +56,7 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 
 	offset := d.Offset()
 
-	if offset <= int(s.rsiPeriod.IntPart()) {
+	if offset <= int(60) {
 		es.SetDecision(signal.DoNothing)
 		es.AppendReason("Not enough data for signal generation")
 		return &es, nil
@@ -78,7 +78,7 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	// }
 
 	if trade == nil && len(orders) == 0 {
-		m60Chg := fe.Minute().M60PctChange.Last(1)
+		m60Chg := fe.Minute().M60PctChange.Last(0)
 
 		if s.Strategy.GetDirection() == order.Buy { // check for buy strategy
 

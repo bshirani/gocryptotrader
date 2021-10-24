@@ -238,7 +238,10 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 		ords[i].LastUpdated = o.GetTime()
 		ords[i].CloseTime = o.GetTime()
 	}
-	// fmt.Println("omr", omr)
+	if o.GetID() == "" {
+		panic("no order id")
+	}
+	// fmt.Println("submitting order ID:", o.GetID())
 
 	ev := &submit.Submit{
 		Base: event.Base{
@@ -569,9 +572,9 @@ func (tm *TradeManager) handleEvent(ev eventtypes.EventHandler) error {
 }
 
 func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) error {
-	if tm.tradingEnabled {
-		fmt.Println("tm processing event at", ev.GetTime(), ev.Pair(), tm.GetCurrentTime())
-	}
+	// if tm.tradingEnabled {
+	// fmt.Println("tm processing event at", ev.GetTime(), ev.Pair(), tm.GetCurrentTime())
+	// }
 	err := tm.updateStatsForDataEvent(ev)
 	if err != nil {
 		fmt.Println("error updating stats for data event")
@@ -628,10 +631,16 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 				}
 			}
 
-			fmt.Println("passing data", ev.Pair(), d.Latest().GetTime())
+			// fmt.Println("passing data", ev.Pair(), d.Latest().GetTime())
+			// fmt.Println("has", len(tm.Strategies), "strategies")
 			for _, strategy := range tm.Strategies {
-				if strategy.GetPair() == ev.Pair() {
-					fmt.Println("updating strategy", strategy.GetID(), strategy.GetPair(), ev.Pair())
+				// isSameBase := strings.EqualFold(sp.Base.String(), ep.Base.String())
+				// isSameBase := strings.EqualFold(sp.Base.String(), ep.Base.String())
+				sp := strategy.GetPair()
+				ep := ev.Pair()
+				// fmt.Println("checking", strategy.Name(), sp, sp.Base, ep.Base, sp.Quote, ep.Quote)
+				if arePairsEqual(sp, ep) {
+					// fmt.Println("updating strategy", strategy.GetID(), strategy.GetPair(), ev.Pair())
 					s, err := strategy.OnData(d, tm.Portfolio, fe)
 					s.SetStrategyID(strategy.GetID())
 					if err != nil {
@@ -777,6 +786,7 @@ func (tm *TradeManager) processSubmitEvent(ev submit.Event) {
 	}
 	if ev.GetOrderID() == "" {
 		log.Error(log.TradeMgr, "submit event has no order ID")
+		panic("no order id")
 		return
 	}
 	tm.Portfolio.OnSubmit(ev)
@@ -888,6 +898,7 @@ func (tm *TradeManager) initializeStrategies(cfg *config.Config) {
 	cpsS, _ := currencypairstrategy.All()
 
 	for _, cps := range cpsS {
+		// fmt.Println("creating strategy for pair", cps.CurrencyPair)
 		baseStrategy, _ := strategy.One(cps.StrategyID)
 		strat, _ := strategies.LoadStrategyByName(baseStrategy.Capture)
 		strat.SetID(cps.ID)
@@ -1022,7 +1033,7 @@ func (tm *TradeManager) loadBacktestData() (err error) {
 			}
 		}
 	}
-	fmt.Println("done loading bt data")
+	// fmt.Println("done loading bt data")
 
 	return err
 }
@@ -1092,4 +1103,8 @@ func (tm *TradeManager) GetCurrentTime() time.Time {
 
 func (tm *TradeManager) incrementMinute() {
 	tm.currentTime = tm.currentTime.Add(time.Minute)
+}
+
+func arePairsEqual(p1, p2 currency.Pair) bool {
+	return strings.EqualFold(p1.Quote.String(), p2.Quote.String()) && strings.EqualFold(p1.Quote.String(), p2.Quote.String())
 }

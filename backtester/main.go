@@ -95,11 +95,11 @@ func main() {
 		"%d trades, %d strategies",
 		len(tm.Portfolio.GetAllClosedTrades()),
 	)
-	for _, t := range tm.Portfolio.GetAllClosedTrades() {
-		if t != nil {
-			fmt.Println("trade:", t)
-		}
-	}
+	// for _, t := range tm.Portfolio.GetAllClosedTrades() {
+	// 	if t != nil {
+	// 		fmt.Println("trade:", t)
+	// 	}
+	// }
 	tm.Stop()
 
 	// err = tm.Statistic.CalculateAllResults()

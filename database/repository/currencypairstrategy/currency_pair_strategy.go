@@ -7,6 +7,7 @@ import (
 	"gocryptotrader/currency"
 	"gocryptotrader/database"
 	"gocryptotrader/database/models/postgres"
+	"gocryptotrader/database/repository/currencypair"
 	"gocryptotrader/exchange/order"
 )
 
@@ -27,17 +28,21 @@ func All() (st []Details, err error) {
 		return st, err
 	}
 
-	// r.CurrencyPairID
-	query2 := postgres.CurrencyPairs()
-	var cp *postgres.CurrencyPair
-	cp, err = query2.One(context.Background(), database.DB.SQL)
-	if err != nil {
-		return st, err
-	}
-	pair, _ := currency.NewPairFromString(cp.KrakenSymbol)
-	// fmt.Println("loaded pair", pair, pair.Base, pair.Quote)
+	// // r.CurrencyPairID
+	// // query2 := postgres.CurrencyPairs()
+	// query2 := postgres.CurrencyPairs(qm.Where("id=?", id))
+	// var cp *postgres.CurrencyPair
+	// cp, err = query2.One(context.Background(), database.DB.SQL)
+	// if err != nil {
+	// 	return st, err
+	// }
+	// pair, _ := currency.NewPairFromString(cp.KrakenSymbol)
+	// fmt.Println("loaded pair", cp.KrakenSymbol, pair, pair.Base, pair.Quote)
 
 	for _, r := range result {
+		pair, _ := currencypair.One(r.CurrencyPairID)
+		// pair.Base, pair.Quote
+
 		st = append(st, Details{
 			ID:           r.ID,
 			CurrencyPair: pair,

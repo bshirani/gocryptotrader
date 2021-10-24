@@ -1,7 +1,7 @@
 {
  "nickname": "TrendStrategy",
  "goal": "Trend Exploit",
- "gocryptotrader-config-path": "/home/bijan/work/crypto/gocryptotrader/cmd/confs/config.dev.backtest.json",
+ "gocryptotrader-config-path": "/home/bijan/work/crypto/gocryptotrader/cmd/confs/dev/backtest.json",
  "tradeManager" : {
      "verbose": false
  },

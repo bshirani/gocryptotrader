@@ -149,7 +149,6 @@ func (s *Strategy) checkExit(es signal.Signal, p base.StrategyPortfolioHandler, 
 	trade := p.GetTradeForStrategy(s.GetID())
 	minutesInTrade := int(currentTime.Sub(trade.EntryTime).Minutes())
 	if minutesInTrade < -2 {
-
 		fmt.Println("ERROR negative seconds in trade", currentTime, trade.EntryTime)
 		reason := fmt.Sprintf("negative %d minutes in trade", minutesInTrade)
 		es.AppendReason(reason)

@@ -2,9 +2,9 @@ package currencypair
 
 import (
 	"context"
-	"fmt"
 	"time"
 
+	"gocryptotrader/currency"
 	"gocryptotrader/database"
 	"gocryptotrader/database/models/postgres"
 
@@ -13,6 +13,7 @@ import (
 
 type Details struct {
 	ID           int
+	Pair         currency.Pair
 	KrakenSymbol string
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
@@ -37,28 +38,14 @@ func All() (st []Details, err error) {
 	return st, nil
 }
 
-func One(id int) (st Details, err error) {
-	// query := postgres.Datahistoryjobs(qm.Where("nickname = ?", strings.ToLower(nickname)))
-	query := postgres.Currencies(qm.Where("id=?", id))
-	var base *postgres.Currency
-	var quote *postgres.Currency
-	base, err = query.One(context.Background(), database.DB.SQL)
-	quote, err = query.One(context.Background(), database.DB.SQL)
+func One(id int) (pair currency.Pair, err error) {
+	query := postgres.CurrencyPairs(qm.Where("id=?", id))
+	var r *postgres.CurrencyPair
+	r, err = query.One(context.Background(), database.DB.SQL)
+	if err != nil {
+		return pair, err
+	}
 
-	fmt.Println("base", base, "quote", quote)
-
-	// var r *postgres.CurrencyPair
-	// r, err = query.One(context.Background(), database.DB.SQL)
-	// if err != nil {
-	// 	return st, err
-	// }
-	//
-	// st = Details{
-	// 	ID:        r.ID,
-	// 	Base
-	// 	CreatedAt: r.CreatedAt,
-	// 	UpdatedAt: r.UpdatedAt,
-	// }
-	//
-	return st, nil
+	pair, err = currency.NewPairFromString(r.KrakenSymbol)
+	return pair, nil
 }

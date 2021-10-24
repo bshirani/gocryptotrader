@@ -33,6 +33,7 @@ import (
 	"gocryptotrader/portfolio/strategies"
 	"gocryptotrader/portfolio/trades"
 
+	"github.com/gofrs/uuid"
 	"github.com/shopspring/decimal"
 )
 
@@ -198,7 +199,7 @@ func (p *Portfolio) Reset() {
 }
 
 func (p *Portfolio) OnSubmit(ev submit.Event) {
-	fmt.Println("portfolio.OnSubmit", ev.GetStrategyID(), "orderID", ev.GetOrderID())
+	// fmt.Println("portfolio.OnSubmit", ev.GetStrategyID(), "orderID", ev.GetOrderID())
 	var openOrder *liveorder.Details
 	if len(p.store.openOrders[ev.GetStrategyID()]) == 0 {
 		for i := range p.store.openOrders {
@@ -463,13 +464,22 @@ func (p *Portfolio) recordOrder(ev signal.Event, lo liveorder.Details, o *order.
 		// fmt.Println("order signal, inserted order to db", id)
 		lo.ID = id
 		o.ID = id
+	} else {
+		id, err := uuid.NewV4()
+		if err != nil {
+			log.Warnf(log.OrderMgr,
+				"Order manager: Unable to generate UUID. Err: %s",
+				err)
+		}
+		lo.ID = id.String()
+		o.ID = id.String()
 	}
 
-	fmt.Println("adding order for strategy:", ev.GetStrategyID())
+	// fmt.Println("adding order for strategy:", ev.GetStrategyID())
 	beforeLen := len(p.store.openOrders[ev.GetStrategyID()])
 	p.store.openOrders[ev.GetStrategyID()] = append(p.store.openOrders[ev.GetStrategyID()], &lo)
 	afterLen := len(p.store.openOrders[ev.GetStrategyID()])
-	fmt.Println("store now has", afterLen, "orders for", ev.GetStrategyID())
+	// fmt.Println("store now has", afterLen, "orders for", ev.GetStrategyID())
 
 	if afterLen > 1 {
 		panic(fmt.Sprintf("more than one open order for strategy: %d", ev.GetStrategyID()))
@@ -532,7 +542,7 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 	lt := livetrade.Details{
 		Status:        gctorder.Open,
 		StrategyID:    ev.GetStrategyID(),
-		EntryTime:     foundOrd.Date,
+		EntryTime:     ev.GetTime(),
 		EntryOrderID:  foundOrd.InternalOrderID,
 		EntryPrice:    decimal.NewFromFloat(foundOrd.Price),
 		StopLossPrice: stopLossPrice,
@@ -707,7 +717,7 @@ func (p *Portfolio) completeOrder(ev submit.Event) {
 	// if p.verbose {
 	// 	log.Infoln(log.Portfolio, "completing order", ev.GetStrategyID())
 	// }
-	fmt.Println("COMPLETING ORDER for:", ev.GetStrategyID())
+	// fmt.Println("COMPLETING ORDER for:", ev.GetStrategyID())
 	// fmt.Println("open orders", len(p.store.openOrders[ev.GetStrategyID()]))
 	order := p.store.openOrders[ev.GetStrategyID()][0]
 	p.store.closedOrders[ev.GetStrategyID()] = append(p.store.closedOrders[ev.GetStrategyID()], order)
