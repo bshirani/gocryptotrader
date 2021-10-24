@@ -203,148 +203,66 @@
 						</tbody>
 					</table>
 				{{ end }}
-				{{if $.Config.StrategySettings.UseExchangeLevelFunding}}
-					<div class="alert alert-warning" role="alert" data-mdb-color="warning">
-						This strategy is using Exchange Level Funding. Different statistics are shown. USD conversion rates are approximate using https://api.exchangerate.host
-					</div>
-					<h5>Funding results</h5>
-					<table class="table table-hover table-bordered table-striped">
-						<thead>
-						<tr>
-							<th>Exchange</th>
-							<th>Asset</th>
-							<th>Currency</th>
-							<th>Initial Funds</th>
-							<th>Initial Fund in USD</th>
-							<th>Final Funds</th>
-							<th>Final Funds in USD</th>
-							<th>Difference</th>
-						</tr>
-						</thead>
-						<tbody>
-						{{ range .Statistics.Funding.Items}}
-							<tr>
-								<td>{{.Exchange}}</td>
-								<td>{{.Asset}}</td>
-								<td>{{.Currency}}</td>
-								<td>{{.InitialFunds}} {{.Currency}}</td>
-								<td>${{.InitialFundsUSD}}</td>
-								<td>{{.FinalFunds}} {{.Currency}}</td>
-								<td>${{.FinalFundsUSD}}</td>
-								{{if .ShowInfinite}}
-									<td>∞%</td>
-								{{ else }}
-									<td>{{ .Difference}}%</td>
-								{{ end }}
-							</tr>
-						{{end}}
-						</tbody>
-					</table>
-					<h5>Totals</h5>
-					<table class="table table-hover table-bordered table-striped">
-						<tbody>
-						<tr>
-							<td><b>Initial Total Funds in USD</b></td>
-							<td><b>${{  .Statistics.Funding.InitialTotalUSD}}</b></td>
-						</tr>
-						<tr>
-							<td><b>Final Total Funds in USD</b></td>
-							<td><b>${{  .Statistics.Funding.FinalTotalUSD}}</b></td>
-						</tr>
-						<tr>
-							<td><b>Difference</b></td>
-							<td><b>{{ .Statistics.Funding.Difference}}%</b></td>
-						</tr>
-						</tbody>
-					</table>
-					<h5>Pair market movement</h5>
-					<table class="table table-hover table-bordered table-striped">
-						<thead>
-						<tr>
-							<th>Exchange</th>
-							<th>Asset</th>
-							<th>Currency</th>
-							<th>Market Movement</th>
-						</tr>
-						</thead>
-						<tbody>
-						{{ range $exchange, $unused := .Statistics.ExchangeAssetPairStatistics}}
-							{{ range $asset, $unused := .}}
-								{{ range $pair, $unused := .}}
-									<tr>
-										<td>{{ $exchange}}</td>
-										<td>{{ $asset}}</td>
-										<td>{{ $pair}}</td>
-										<td>{{ .MarketMovement}}%</td>
-									</tr>
-								{{end}}
-							{{end}}
-						{{end}}
-						</tbody>
-					</table>
-				{{else}}
-					<table class="table table-hover table-bordered table-striped">
-						<thead>
-						<tr>
-							<th>Exchange</th>
-							<th>Asset</th>
-							<th>Currency</th>
-							<th>Initial Base funds</th>
-							<th>Initial Quote funds</th>
-							<th>Initial Total value</th>
-							<th>Resulting Base funds</th>
-							<th>Resulting Quote funds</th>
-							<th>Resulting Total value</th>
-							<th>Did it make profit?</th>
-							<th>Did it beat the market?</th>
-							<th>Strategy Movement</th>
-							<th>Market Movement</th>
-						</tr>
-						</thead>
-						<tbody>
-						{{ range $exchange, $unused := .Statistics.ExchangeAssetPairStatistics}}
-							{{ range $asset, $unused := .}}
-								{{ range $pair, $unused := .}}
-									<tr>
-										<td>{{ $exchange}}</td>
-										<td>{{ $asset}}</td>
-										<td>{{ $pair}}</td>
-										<td>{{ .InitialHoldings.BaseInitialFunds }} {{.FinalHoldings.Pair.Base}}</td>
-										<td>{{ .InitialHoldings.QuoteInitialFunds }} {{.FinalHoldings.Pair.Quote}}</td>
-										<td>{{ .InitialHoldings.TotalInitialValue }} {{.FinalHoldings.Pair.Quote}}</td>
-										<td>{{ .FinalHoldings.BaseSize }} {{ .FinalHoldings.Pair.Base}}</td>
-										<td>{{ .FinalHoldings.QuoteSize }} {{ .FinalHoldings.Pair.Quote}}</td>
-										<td>{{ .FinalHoldings.TotalValue }} {{ .FinalHoldings.Pair.Quote}}</td>
-										<td>{{  .IsStrategyProfitable }}</td>
-										<td> {{ .DoesPerformanceBeatTheMarket }}</td>
-										<td>{{  .StrategyMovement }}%</td>
-										<td>{{  .MarketMovement}}%</td>
-									</tr>
-								{{end}}
-							{{end}}
-						{{end}}
-						</tbody>
-					</table>
+                <table class="table table-hover table-bordered table-striped">
+                    <thead>
+                    <tr>
+                        <th>Exchange</th>
+                        <th>Asset</th>
+                        <th>Currency</th>
+                        <th>Initial Base funds</th>
+                        <th>Initial Quote funds</th>
+                        <th>Initial Total value</th>
+                        <th>Resulting Base funds</th>
+                        <th>Resulting Quote funds</th>
+                        <th>Resulting Total value</th>
+                        <th>Did it make profit?</th>
+                        <th>Did it beat the market?</th>
+                        <th>Strategy Movement</th>
+                        <th>Market Movement</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{ range $exchange, $unused := .Statistics.ExchangeAssetPairStatistics}}
+                        {{ range $asset, $unused := .}}
+                            {{ range $pair, $unused := .}}
+                                <tr>
+                                    <td>{{ $exchange}}</td>
+                                    <td>{{ $asset}}</td>
+                                    <td>{{ $pair}}</td>
+                                    <td>{{ .InitialHoldings.BaseInitialFunds }} {{.FinalHoldings.Pair.Base}}</td>
+                                    <td>{{ .InitialHoldings.QuoteInitialFunds }} {{.FinalHoldings.Pair.Quote}}</td>
+                                    <td>{{ .InitialHoldings.TotalInitialValue }} {{.FinalHoldings.Pair.Quote}}</td>
+                                    <td>{{ .FinalHoldings.BaseSize }} {{ .FinalHoldings.Pair.Base}}</td>
+                                    <td>{{ .FinalHoldings.QuoteSize }} {{ .FinalHoldings.Pair.Quote}}</td>
+                                    <td>{{ .FinalHoldings.TotalValue }} {{ .FinalHoldings.Pair.Quote}}</td>
+                                    <td>{{  .IsStrategyProfitable }}</td>
+                                    <td> {{ .DoesPerformanceBeatTheMarket }}</td>
+                                    <td>{{  .StrategyMovement }}%</td>
+                                    <td>{{  .MarketMovement}}%</td>
+                                </tr>
+                            {{end}}
+                        {{end}}
+                    {{end}}
+                    </tbody>
+                </table>
 
-					<h5>Totals</h5>
-					<table class="table table-hover table-bordered table-striped">
-						<tbody>
-						<tr>
-							<td><b>Initial Total Funds in USD</b></td>
-							<td><b>${{   .Statistics.Funding.InitialTotalUSD}}</b></td>
-						</tr>
-						<tr>
-							<td><b>Final Total Funds in USD</b></td>
-							<td><b>${{   .Statistics.Funding.FinalTotalUSD}}</b></td>
-						</tr>
-						<tr>
-							<td><b>Difference</b></td>
-							<td><b>{{  .Statistics.Funding.Difference}}%</b></td>
-						</tr>
-						</tbody>
-					</table>
-
-				{{end}}
+                <h5>Totals</h5>
+                <table class="table table-hover table-bordered table-striped">
+                    <tbody>
+                    <tr>
+                        <td><b>Initial Total Funds in USD</b></td>
+                        <td><b>${{   .Statistics.Funding.InitialTotalUSD}}</b></td>
+                    </tr>
+                    <tr>
+                        <td><b>Final Total Funds in USD</b></td>
+                        <td><b>${{   .Statistics.Funding.FinalTotalUSD}}</b></td>
+                    </tr>
+                    <tr>
+                        <td><b>Difference</b></td>
+                        <td><b>{{  .Statistics.Funding.Difference}}%</b></td>
+                    </tr>
+                    </tbody>
+                </table>
 			</div>
 
 		</div>
@@ -360,24 +278,6 @@
 		<div class="card card-cascade narrower">
 			<div class="view view-cascade bg-info">
 				<h2 id="strategy-settings" class="px-4 card-header-title text-light">Strategy Settings</h2>
-			</div>
-			<div class="card-body card-body-cascade ">
-				<table class="table table-hover table-bordered table-striped">
-					<tbody>
-					<tr>
-						<td><b>Strategy name</b></td>
-						<td>{{.Config.StrategySettings.Name}}</td>
-					</tr>
-					<tr>
-						<td><b>Is multi currency</b></td>
-						<td>{{.Config.StrategySettings.SimultaneousSignalProcessing}}</td>
-					</tr>
-					<tr>
-						<td><b>Custom settings</b></td>
-						<td>{{.Config.StrategySettings.CustomSettings}}</td>
-					</tr>
-					</tbody>
-				</table>
 			</div>
 		</div>
 	</div>
@@ -718,11 +618,6 @@
 							<h2  class="px-4 card-header-title text-light">Statistics for {{$exchange}} {{ $asset}} {{ $pair}}</h2>
 						</div>
 						<div class="card-body card-body-cascade ">
-							{{if $.Config.StrategySettings.UseExchangeLevelFunding}}
-								<div class="alert alert-warning" role="alert" data-mdb-color="warning">
-									This strategy is using Exchange Level Funding. Calculation of ratios and strategic performance may be inaccurate
-								</div>
-							{{end}}
 							<table class="table table-hover table-bordered table-striped">
 								<tbody>
 								<tr>

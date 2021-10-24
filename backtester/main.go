@@ -94,6 +94,7 @@ func main() {
 		log.Global,
 		"%d trades, %d strategies",
 		len(tm.Portfolio.GetAllClosedTrades()),
+		len(tm.Strategies),
 	)
 	// for _, t := range tm.Portfolio.GetAllClosedTrades() {
 	// 	if t != nil {
@@ -109,10 +110,10 @@ func main() {
 	// }
 
 	// if generateReport {
-	// 	tm.Reports.UseDarkMode(darkReport)
-	// 	err = tm.Reports.GenerateReport()
-	// 	if err != nil {
-	// 		gctlog.Error(gctlog.Global, err)
-	// 	}
+	tm.Reports.UseDarkMode(darkReport)
+	err = tm.Reports.GenerateReport()
+	if err != nil {
+		log.Error(log.Global, err)
+	}
 	// }
 }

@@ -5,15 +5,6 @@
  "tradeManager" : {
      "verbose": false
  },
- "strategy-settings": {
-  "name": "trend"
- },
- "strategies-settings": [
- { "name": "trend" }
- ],
- "strategy-currency-settings": [
-     { "exchange-name" :"gateio", "pairs": ["UNI_ETH", "UNI_USDT"]}
- ],
  "currency-settings": [
   {
    "exchange-name": "kraken",

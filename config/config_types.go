@@ -8,7 +8,6 @@ import (
 	"gocryptotrader/communications/base"
 	"gocryptotrader/currency"
 	"gocryptotrader/database"
-	"gocryptotrader/exchange/order"
 	"gocryptotrader/exchange/protocol"
 	gctscript "gocryptotrader/gctscript/vm"
 	"gocryptotrader/log"
@@ -96,14 +95,11 @@ type Config struct {
 	DryRun         bool `json:"dryRun"`
 	Script         bool `json:"script"`
 
-	Nickname                 string                     `json:"nickname"`
-	Goal                     string                     `json:"goal"`
-	StrategySettings         StrategySettings           `json:"strategy-settings"`
-	StrategiesSettings       []StrategySettings         `json:"strategies-settings"`
-	CurrencySettings         []CurrencySettings         `json:"currency-settings"`
-	StrategyCurrencySettings []StrategyCurrencySettings `json:"strategy-currency-settings"`
-	DataSettings             DataSettings               `json:"data-settings"`
-	PortfolioSettings        PortfolioSettings          `json:"portfolio-settings"`
+	Nickname          string             `json:"nickname"`
+	Goal              string             `json:"goal"`
+	CurrencySettings  []CurrencySettings `json:"currency-settings"`
+	DataSettings      DataSettings       `json:"data-settings"`
+	PortfolioSettings PortfolioSettings  `json:"portfolio-settings"`
 
 	GoCryptoTraderConfigPath string `json:"gocryptotrader-config-path"`
 
@@ -437,18 +433,6 @@ type DataSettings struct {
 	CSVData      *CSVData      `json:"csv-data,omitempty"`
 }
 
-// StrategySettings contains what strategy to load, along with custom settings map
-// (variables defined per strategy)
-// along with defining whether the strategy will assess all currencies at once, or individually
-type StrategySettings struct {
-	Name                         string                 `json:"name"`
-	Direction                    order.Side             `json:"direction"`
-	SimultaneousSignalProcessing bool                   `json:"use-simultaneous-signal-processing"`
-	UseExchangeLevelFunding      bool                   `json:"use-exchange-level-funding"`
-	ExchangeLevelFunding         []ExchangeLevelFunding `json:"exchange-level-funding,omitempty"`
-	CustomSettings               map[string]interface{} `json:"custom-settings,omitempty"`
-}
-
 // ExchangeLevelFunding allows the portfolio manager to access
 // a shared pool. For example, The base currencies BTC and LTC can both
 // access the same USDT funding to make purchasing decisions
@@ -524,12 +508,6 @@ type CurrencySettings struct {
 	CanUseExchangeLimits          bool `json:"use-exchange-order-limits"`
 	SkipCandleVolumeFitting       bool `json:"skip-candle-volume-fitting"`
 	ShowExchangeOrderLimitWarning bool `json:"-"`
-}
-
-type StrategyCurrencySettings struct {
-	ExchangeName string   `json:"exchange-name"`
-	Asset        string   `json:"asset"`
-	Pairs        []string `json:"pairs"`
 }
 
 // APIData defines all fields to configure API based data

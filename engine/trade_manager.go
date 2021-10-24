@@ -141,7 +141,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	tm.Datas = &data.HandlerPerCurrency{}
 	tm.Datas.Setup()
 	if !tm.bot.Config.LiveMode {
-		log.Info(log.TradeMgr, "starting offline services")
+		// log.Debug(log.TradeMgr, "starting offline services")
 		err = tm.startOfflineServices()
 	}
 	if err != nil {
