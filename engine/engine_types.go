@@ -8,6 +8,7 @@ import (
 // Settings stores engine params
 type Settings struct {
 	ConfigFile            string
+	TradeConfigFile       string
 	DataDir               string
 	MigrationDir          string
 	LogFile               string

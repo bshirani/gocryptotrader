@@ -60,6 +60,7 @@ func main() {
 	path := config.DefaultFilePath()
 	bot, err = engine.NewFromSettings(&engine.Settings{
 		ConfigFile:                    path,
+		TradeConfigFile:               configPath,
 		EnableDryRun:                  dryrun,
 		EnableAllPairs:                false,
 		EnableExchangeHTTPRateLimiter: true,

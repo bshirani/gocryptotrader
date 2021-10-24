@@ -28,6 +28,7 @@ func main() {
 	versionFlag := flag.Bool("version", false, "retrieves current GoCryptoTrader version")
 
 	flag.StringVar(&settings.ConfigFile, "config", config.DefaultFilePath(), "config file to load")
+	flag.StringVar(&settings.TradeConfigFile, "tradeconfig", config.DefaultFilePath(), "config file to load")
 	flag.StringVar(&settings.DataDir, "datadir", common.GetDefaultDataDir(runtime.GOOS), "default data directory for GoCryptoTrader files")
 
 	// Core settings

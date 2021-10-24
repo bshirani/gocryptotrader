@@ -9,6 +9,7 @@ import (
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/signal"
 	"gocryptotrader/exchange/order"
+	"gocryptotrader/log"
 	"gocryptotrader/portfolio/strategies/base"
 
 	"github.com/shopspring/decimal"
@@ -37,7 +38,7 @@ func (s *Strategy) Description() string {
 
 func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe base.FactorEngineHandler) (signal.Event, error) {
 	// if p.GetLiveMode() {
-	// log.Infoln(log.Global, "trend ONDATA", d.Latest().GetTime(), s.Strategy.GetDirection(), d.Latest().Pair())
+	log.Infoln(log.Global, "trend ONDATA", d.Latest().GetTime(), s.Strategy.GetDirection(), d.Latest().Pair(), len(d.History()), len(fe.Minute().Close))
 	// }
 	if d == nil {
 		return nil, eventtypes.ErrNilEvent
@@ -55,8 +56,9 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	es.SetAmount(decimal.NewFromFloat(1.0))
 
 	offset := d.Offset()
+	fmt.Println("trend.go offset", offset)
 
-	if offset <= int(61) {
+	if offset <= int(60) {
 		es.SetDecision(signal.DoNothing)
 		es.AppendReason("Not enough data for signal generation")
 		return &es, nil

@@ -32,6 +32,7 @@ import (
 type Engine struct {
 	CommunicationsManager   *CommunicationManager
 	Config                  *config.Config
+	TradeManagerConfig      *config.Config
 	CurrencySettings        []*ExchangeAssetPairSettings
 	DatabaseManager         *DatabaseConnectionManager
 	DepositAddressManager   *DepositAddressManager
@@ -1047,6 +1048,7 @@ func (bot *Engine) WaitForInitialCurrencySync() error {
 }
 
 func (bot *Engine) SetupExchangeSettings() error {
+	fmt.Println("!!!!!!!!setup exchangesettings")
 	for _, e := range bot.Config.GetEnabledExchanges() {
 		enabledPairs, _ := bot.Config.GetEnabledPairs(e, asset.Spot)
 		fmt.Println("enabled", e, enabledPairs)
@@ -1056,7 +1058,7 @@ func (bot *Engine) SetupExchangeSettings() error {
 				fmt.Println("enabled", err)
 				return err
 			}
-			fmt.Println("setup pair", pair, "exchange", e)
+			// fmt.Println("setup pair", pair, "exchange", e)
 			// fmt.Println("setting pair", pair)
 			bot.CurrencySettings = append(bot.CurrencySettings, &ExchangeAssetPairSettings{
 				ExchangeName: e,

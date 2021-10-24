@@ -59,6 +59,7 @@ func NewTradeManager(bot *Engine) (*TradeManager, error) {
 	} else {
 		configPath = filepath.Join(wd, "cmd/confs/dev/backtest.strat")
 	}
+	fmt.Println("loading config", configPath)
 	btcfg, err := config.ReadConfigFromFile(configPath)
 	if err != nil {
 		fmt.Println("error", configPath, err)
@@ -1003,7 +1004,7 @@ func (tm *TradeManager) initializeFactorEngines() error {
 		var dbData *datakline.DataFromKline
 		var err error
 		if tm.bot.Settings.EnableLiveMode {
-			fmt.Println("initialize factor engine")
+			fmt.Println("initialize factor engine", cs.CurrencyPair)
 			// fmt.Println("get data for live", cs.CurrencyPair)
 			dbData, err = database.LoadData(
 				tm.GetCurrentTime().Add(time.Minute*-300),
@@ -1063,7 +1064,7 @@ func (tm *TradeManager) loadBacktestData() (err error) {
 		e := eap.ExchangeName
 		a := eap.AssetType
 		p := eap.CurrencyPair
-		fmt.Println("loading data for", p)
+		// fmt.Println("loading data for", p)
 		startDate := tm.cfg.DataSettings.DatabaseData.StartDate
 		endDate := tm.cfg.DataSettings.DatabaseData.EndDate
 		dbData, err := database.LoadData(

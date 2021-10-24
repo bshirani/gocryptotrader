@@ -10,8 +10,8 @@
              "side": "SELL",
              "capture": "trend",
              "pair": {
-                 "exchange": "gateio",
-                 "symbol": "BTC_USDT"
+                 "exchange": "kraken",
+                 "symbol": "XBT_USDT"
              }
          },
          {
@@ -19,8 +19,8 @@
              "side": "BUY",
              "capture": "trend",
              "pair": {
-                 "exchange": "gateio",
-                 "symbol": "BTC_USDT"
+                 "exchange": "kraken",
+                 "symbol": "XBT_USDT"
              }
          }
      ]

@@ -22,7 +22,7 @@ func main() {
 	}
 	flag.BoolVar(&dryrun, "dryrun", true, "write orders/trades to db")
 	flag.BoolVar(&generateReport, "generatereport", false, "whether to generate the report file")
-	flag.StringVar(&configPath, "configpath", filepath.Join(wd, "../confs/dev/backtest.json"), "the config containing strategy params")
+	flag.StringVar(&configPath, "configpath", filepath.Join(wd, "../confs/dev/backtest.strat"), "the config containing strategy params")
 	flag.StringVar(&templatePath, "templatepath", filepath.Join(wd, "../portfolio/tradereport", "tpl.gohtml"), "the report template to use")
 	flag.StringVar(&reportOutput, "outputpath", filepath.Join(wd, "results"), "the path where to output results")
 	flag.StringVar(&strategiesArg, "strategy", "", "strategies")
@@ -36,16 +36,17 @@ func main() {
 	}
 
 	var cfg *config.Config
-	fmt.Println("reading", configPath)
+	fmt.Println("reading tm config", configPath)
 	cfg, err = config.ReadConfigFromFile(configPath)
 	if err != nil {
 		fmt.Printf("Could not read config. Error: %v. Path: %s\n", err, configPath)
 		os.Exit(1)
 	}
-	// path := gctconfig.DefaultFilePath()
+	// path := config.DefaultFilePath()
 	// if cfg.GoCryptoTraderConfigPath != "" {
 	// 	path = cfg.GoCryptoTraderConfigPath
 	// }
+	path := "/home/bijan/work/crypto/gocryptotrader/cmd/confs/dev/backtest.json"
 
 	var bot *engine.Engine
 	flags := map[string]bool{
@@ -57,7 +58,7 @@ func main() {
 		"enablecommsrelayer": false,
 	}
 	bot, err = engine.NewFromSettings(&engine.Settings{
-		ConfigFile:                    configPath,
+		ConfigFile:                    path,
 		EnableDryRun:                  dryrun,
 		EnableAllPairs:                false,
 		EnableExchangeHTTPRateLimiter: true,
