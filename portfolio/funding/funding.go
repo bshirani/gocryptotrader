@@ -6,14 +6,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/shopspring/decimal"
-	"gocryptotrader/common"
 	"gocryptotrader/currency"
 	fbase "gocryptotrader/currency/forexprovider/base"
 	exchangeratehost "gocryptotrader/currency/forexprovider/exchangerate.host"
+	"gocryptotrader/eventtypes"
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/order"
 	"gocryptotrader/log"
+
+	"github.com/shopspring/decimal"
 )
 
 var (

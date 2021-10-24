@@ -105,15 +105,15 @@ func main() {
 
 	// err = tm.Statistic.CalculateAllResults()
 	// if err != nil {
-	// 	gctlog.Error(gctlog.Global, err)
+	// 	log.Error(log.Global, err)
 	// 	os.Exit(1)
 	// }
 
-	// if generateReport {
-	tm.Reports.UseDarkMode(darkReport)
-	err = tm.Reports.GenerateReport()
-	if err != nil {
-		log.Error(log.Global, err)
+	if generateReport {
+		tm.Reports.UseDarkMode(darkReport)
+		err = tm.Reports.GenerateReport()
+		if err != nil {
+			log.Error(log.Global, err)
+		}
 	}
-	// }
 }

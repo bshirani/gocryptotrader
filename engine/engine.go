@@ -231,8 +231,8 @@ func validateSettings(b *Engine, s *Settings, flagSet map[string]bool) {
 			trade.BufferProcessorIntervalTime = b.Settings.TradeBufferProcessingInterval
 		} else {
 			b.Settings.TradeBufferProcessingInterval = trade.DefaultProcessorIntervalTime
-			log.Warnf(log.Global, "-tradeprocessinginterval must be >= to 1 second, using default value of %v",
-				trade.DefaultProcessorIntervalTime)
+			// log.Warnf(log.Global, "-tradeprocessinginterval must be >= to 1 second, using default value of %v",
+			// 	trade.DefaultProcessorIntervalTime)
 		}
 	}
 

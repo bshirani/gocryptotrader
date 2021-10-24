@@ -69,7 +69,13 @@ func (tm *TradeManager) Reset() {
 }
 
 func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, bot *Engine) (*TradeManager, error) {
-	log.Debugln(log.TradeMgr, "TradeManager: Initializing... dry run", bot.Config.DryRun)
+	if !bot.Config.LiveMode {
+		log.Debugln(log.TradeMgr, "TradeManager: Initializing...")
+		log.Warnln(log.TradeMgr, "startdate:", cfg.DataSettings.DatabaseData.StartDate)
+		log.Warnln(log.TradeMgr, "enddate:", cfg.DataSettings.DatabaseData.EndDate)
+	} else {
+		log.Debugln(log.TradeMgr, "TradeManager: Initializing...")
+	}
 	if cfg == nil {
 		return nil, errNilConfig
 	}
@@ -281,6 +287,10 @@ func (tm *TradeManager) Run() error {
 dataLoadingIssue:
 	for ev := tm.EventQueue.NextEvent(); ; ev = tm.EventQueue.NextEvent() {
 		if ev == nil {
+			if !tm.bot.Config.LiveMode && count%1000 == 0 {
+				fmt.Printf(".")
+			}
+
 			dataHandlerMap := tm.Datas.GetAllData()
 			for _, exchangeMap := range dataHandlerMap {
 				for _, assetMap := range exchangeMap {
@@ -292,6 +302,8 @@ dataLoadingIssue:
 							// if !tm.hasHandledEvent {
 							// 	log.Errorf(log.TradeMgr, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
 							// }
+
+							fmt.Println("")
 							break dataLoadingIssue
 						}
 						tm.hasHandledEvent = true
@@ -1012,12 +1024,11 @@ func (tm *TradeManager) loadBacktestData() (err error) {
 		e := eap.ExchangeName
 		a := eap.AssetType
 		p := eap.CurrencyPair
-		thisMinute := common.ThisMinute()
-		startTime := thisMinute.Add(time.Minute * -1000)
-		endTime := thisMinute.Add(time.Minute * -900)
+		startDate := tm.cfg.DataSettings.DatabaseData.StartDate
+		endDate := tm.cfg.DataSettings.DatabaseData.EndDate
 		dbData, err := database.LoadData(
-			startTime,
-			endTime,
+			startDate,
+			endDate,
 			time.Minute,
 			e,
 			0,
@@ -1030,8 +1041,8 @@ func (tm *TradeManager) loadBacktestData() (err error) {
 
 		tm.Datas.SetDataForCurrency(e, a, p, dbData)
 		dbData.RangeHolder, err = kline.CalculateCandleDateRanges(
-			startTime,
-			tm.GetCurrentTime(),
+			startDate,
+			endDate,
 			kline.Interval(kline.OneMin),
 			0)
 		dbData.Load()
