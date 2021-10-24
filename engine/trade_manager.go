@@ -170,7 +170,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	}
 
 	if tm.tradingEnabled {
-		tm.Strategies = SetupStrategies(cfg)
+		tm.Strategies = SetupStrategies(cfg, tm.liveMode)
 
 		if tm.bot.Settings.EnableClearDB {
 			log.Warn(log.TradeMgr, "clearing DB")

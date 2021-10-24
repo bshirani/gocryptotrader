@@ -9,10 +9,8 @@ import (
 )
 
 // loads active strategies from the database
-func SetupStrategies(cfg *config.Config) (slit []strategies.Handler) {
-	// load the strategies from the condif
+func SetupStrategies(cfg *config.Config, liveMode bool) (slit []strategies.Handler) {
 	count := 0
-	fmt.Println("strategies", len(cfg.TradeManager.Strategies))
 	for _, cs := range cfg.TradeManager.Strategies {
 		count += 1
 		strat, _ := strategies.LoadStrategyByName(cs.Capture)
@@ -22,7 +20,7 @@ func SetupStrategies(cfg *config.Config) (slit []strategies.Handler) {
 		var pair currency.Pair
 		var err error
 
-		if cfg.LiveMode {
+		if liveMode {
 			pair, err = currency.NewPairFromString(cs.Pair.Symbol)
 		} else {
 			pair, err = currency.NewPairFromString(cs.Pair.BacktestSymbol)
