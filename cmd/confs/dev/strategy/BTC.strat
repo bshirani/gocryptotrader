@@ -11,6 +11,7 @@
              "capture": "trend",
              "pair": {
                  "exchange": "kraken",
+                 "backtestExchange": "gateio",
                  "symbol": "XBT_USDT"
              }
          },
@@ -20,6 +21,7 @@
              "capture": "trend",
              "pair": {
                  "exchange": "kraken",
+                 "backtestExchange": "gateio",
                  "symbol": "XBT_USDT"
              }
          }
