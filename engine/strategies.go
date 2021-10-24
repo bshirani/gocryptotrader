@@ -19,7 +19,15 @@ func SetupStrategies(cfg *config.Config) (slit []strategies.Handler) {
 
 		// fmt.Println("load pair", cs.Pair)
 
-		pair, err := currency.NewPairFromString(cs.Pair.Symbol)
+		var pair currency.Pair
+		var err error
+
+		if cfg.LiveMode {
+			pair, err = currency.NewPairFromString(cs.Pair.Symbol)
+		} else {
+			pair, err = currency.NewPairFromString(cs.Pair.BacktestSymbol)
+		}
+
 		if err != nil {
 			fmt.Println("error hydrating pair:", pair, err)
 			os.Exit(123)

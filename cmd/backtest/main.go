@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"gocryptotrader/common"
 	"gocryptotrader/config"
@@ -13,7 +14,7 @@ import (
 )
 
 func main() {
-	var configPath, templatePath, reportOutput, strategiesArg, pairsArg string
+	var startDate, endDate, configPath, templatePath, reportOutput, pairsArg string
 	var printLogo, generateReport, dryrun, darkReport bool
 	wd, err := os.Getwd()
 	if err != nil {
@@ -22,10 +23,11 @@ func main() {
 	}
 	flag.BoolVar(&dryrun, "dryrun", true, "write orders/trades to db")
 	flag.BoolVar(&generateReport, "generatereport", false, "whether to generate the report file")
-	flag.StringVar(&configPath, "configpath", filepath.Join(wd, "../confs/dev/backtest.strat"), "the config containing strategy params")
+	flag.StringVar(&configPath, "strategy", filepath.Join(wd, "../confs/dev/strategy/all.strat"), "the config containing strategy params")
 	flag.StringVar(&templatePath, "templatepath", filepath.Join(wd, "../portfolio/tradereport", "tpl.gohtml"), "the report template to use")
 	flag.StringVar(&reportOutput, "outputpath", filepath.Join(wd, "results"), "the path where to output results")
-	flag.StringVar(&strategiesArg, "strategy", "", "strategies")
+	flag.StringVar(&startDate, "start", "", "start date")
+	flag.StringVar(&endDate, "end", "", "enddate")
 	flag.StringVar(&pairsArg, "pairs", "", "pairs")
 	flag.BoolVar(&printLogo, "printlogo", false, "print out the logo to the command line, projected profits likely won't be affected if disabled")
 	flag.BoolVar(&darkReport, "darkreport", false, "sets the initial rerport to use a dark theme")
@@ -36,12 +38,33 @@ func main() {
 	}
 
 	var cfg *config.Config
-	fmt.Println("reading tm config", configPath)
+
+	configPath = filepath.Join(wd, "../confs/dev/strategy", fmt.Sprintf("%s.strat", configPath))
+	fmt.Println("Loading TradeManager Config", configPath)
+
 	cfg, err = config.ReadConfigFromFile(configPath)
 	if err != nil {
 		fmt.Printf("Could not read config. Error: %v. Path: %s\n", err, configPath)
 		os.Exit(1)
 	}
+	tformat := "2006-01-02"
+	if startDate != "" {
+		start, err := time.Parse(tformat, startDate)
+		if err != nil {
+			fmt.Println("error date", err)
+		}
+		cfg.DataSettings.DatabaseData.StartDate = start
+	}
+	if endDate != "" {
+		end, err := time.Parse(tformat, endDate)
+		if err != nil {
+			fmt.Println("error date", err)
+		}
+		cfg.DataSettings.DatabaseData.EndDate = end
+	}
+	// if endDate != "" {
+	// 	cfg.DataSettings.DatabaseData.EndDate = endDate
+	// }
 	// path := config.DefaultFilePath()
 	// if cfg.GoCryptoTraderConfigPath != "" {
 	// 	path = cfg.GoCryptoTraderConfigPath

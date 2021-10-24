@@ -54,13 +54,14 @@ func NewTradeManager(bot *Engine) (*TradeManager, error) {
 			if bot.Config.ProductionMode {
 				configPath = filepath.Join(wd, "cmd/confs/prod.strat")
 			} else {
-				configPath = filepath.Join(wd, "cmd/confs/dev/live-1.strat")
+				configPath = filepath.Join(wd, "cmd/confs/dev/strategy/live-1.strat")
 			}
 		} else {
 			configPath = filepath.Join(wd, "cmd/confs/dev/backtest.strat")
 		}
+	} else {
+		configPath = filepath.Join(wd, "cmd/confs/dev/strategy", fmt.Sprintf("%s.strat", configPath))
 	}
-	// fmt.Println("TMMMMMMMMMMMMMM config path", configPath)
 	btcfg, err := config.ReadConfigFromFile(configPath)
 	if err != nil {
 		fmt.Println("error", configPath, err)
@@ -309,10 +310,10 @@ func (tm *TradeManager) Run() error {
 		for _, s := range tm.Strategies {
 			log.Debugln(log.TradeMgr, s.GetPair(), s.Name(), s.GetDirection(), s.GetID())
 		}
-		pairs, err := tm.bot.Config.GetEnabledPairs("gateio", asset.Spot)
-		for _, p := range pairs {
-			log.Debugln(log.TradeMgr, "Active Pair:", p)
-		}
+		// pairs, err := tm.bot.Config.GetEnabledPairs("gateio", asset.Spot)
+		// for _, p := range pairs {
+		// 	log.Debugln(log.TradeMgr, "Active Pair:", p)
+		// }
 	}
 	// return nil
 dataLoadingIssue:
@@ -360,6 +361,8 @@ dataLoadingIssue:
 		fmt.Println("done running", count, "data events")
 	} else {
 		livetrade.WriteTradesCSV(tm.Portfolio.GetAllClosedTrades())
+		log.Debugln(log.TradeMgr, "TradeManager Writing Config to File")
+		tm.cfg.SaveConfigToFile("backtest_config_out.json")
 	}
 
 	return nil

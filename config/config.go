@@ -1597,6 +1597,13 @@ func (c *Config) SaveConfigToFile(configPath string) error {
 		writer, err = file.Writer(defaultPath)
 		return writer, err
 	}
+
+	// sProvider := func() (io.Writer, error) {
+	// 	writer, err = file.Writer("strategies_out.json")
+	// 	return writer, err
+	// }
+	// c.SaveStrategies(sProvider, func() ([]byte, error) { return PromptForConfigKey(true) })
+
 	defer func() {
 		if writer != nil {
 			err = writer.Close()
@@ -1606,6 +1613,20 @@ func (c *Config) SaveConfigToFile(configPath string) error {
 		}
 	}()
 	return c.Save(provider, func() ([]byte, error) { return PromptForConfigKey(true) })
+}
+
+func (c *Config) SaveStrategies(writerProvider func() (io.Writer, error), keyProvider func() ([]byte, error)) error {
+	payload, err := json.MarshalIndent(c.TradeManager.Strategies, "", " ")
+	if err != nil {
+		return err
+	}
+
+	configWriter, err := writerProvider()
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(configWriter, bytes.NewReader(payload))
+	return err
 }
 
 // Save saves your configuration to the writer as a JSON object

@@ -171,8 +171,10 @@ type StrategySetting struct {
 }
 
 type PairSetting struct {
-	Exchange string `json:"exchange"`
-	Symbol   string `json:"symbol"`
+	Exchange         string `json:"exchange"`
+	Symbol           string `json:"symbol"`
+	BacktestExchange string `json:"backtestExchange"`
+	BacktestSymbol   string `json:"backtestSymbol"`
 }
 
 type LiveSimulationConfig struct {
