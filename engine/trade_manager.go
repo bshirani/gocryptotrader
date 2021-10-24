@@ -1006,6 +1006,7 @@ func (tm *TradeManager) initializeFactorEngines() error {
 	}
 	return nil
 }
+
 func (tm *TradeManager) setOrderManagerCallbacks() {
 	if tm.OrderManager != nil {
 		// tm.bot.OrderManager.SetOnSubmit(tm.onSubmit) // this is synchronous

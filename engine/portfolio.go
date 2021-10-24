@@ -40,7 +40,6 @@ import (
 // var (
 // 	errStrategyNotFound = errors.New("Strategy Not found")
 // )
-
 // Setup creates a portfolio manager instance and sets private fields
 func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*Portfolio, error) {
 	buyRule := config.MinMax{
