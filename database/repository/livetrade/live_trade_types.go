@@ -29,6 +29,7 @@ type Details struct {
 	EntryTime        time.Time
 	ExitTime         time.Time
 	StopLossPrice    decimal.Decimal
+	TakeProfitPrice  decimal.Decimal
 	Status           order.Status
 	Pair             currency.Pair
 	ProfitLossPoints decimal.Decimal

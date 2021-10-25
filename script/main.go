@@ -100,15 +100,10 @@ func main() {
 	// generate the statistics
 	// output a report and the weight configuration
 
-	err = analyzeTrades("test.csv")
-	if err != nil {
-		fmt.Println("error analyzeTrades", err)
-	}
-}
-
-func analyzeTrades(filepath string) error {
-	fmt.Println("analyze trades")
-	return nil
+	// err = AnalyzeTrades("test.csv")
+	// if err != nil {
+	// 	fmt.Println("error analyzeTrades", err)
+	// }
 }
 
 func SetupSyncer(bot *engine.Engine) Syncer {

@@ -116,7 +116,7 @@ func (s *Strategy) SetDefaults() {
 }
 
 func (s *Strategy) checkEntry(es signal.Signal, p base.StrategyPortfolioHandler, d data.Handler, fe base.FactorEngineHandler) (signal.Event, error) {
-	m60Chg := fe.Minute().M60PctChange.Last(1)
+	m60Chg := fe.Minute().M60PctChange.Last(0)
 
 	if s.Strategy.GetDirection() == order.Buy { // check for buy strategy
 		if m60Chg.GreaterThan(decimal.NewFromInt(0)) {

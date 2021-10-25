@@ -126,7 +126,8 @@ func updatePostgresql(ctx context.Context, tx *sql.Tx, in []Details) (id int64, 
 	for x := range in {
 		// entryPrice, _ := in[x].EntryPrice.Float64()
 		// exitPrice, _ := in[x].ExitPrice.Float64()
-		// stopLossPrice, _ := in[x].StopLossPrice.Float64()
+		stopLossPrice, _ := in[x].StopPrice.Float64()
+		price, _ := in[x].Price.Float64()
 
 		// if in[x].EntryTime.IsZero() {
 		// 	fmt.Println("entrytimezero")
@@ -137,6 +138,8 @@ func updatePostgresql(ctx context.Context, tx *sql.Tx, in []Details) (id int64, 
 			ID:         in[x].ID,
 			Status:     in[x].Status.String(),
 			OrderType:  in[x].OrderType.String(),
+			StopPrice:  stopLossPrice,
+			Price:      price,
 			Exchange:   in[x].Exchange,
 			InternalID: in[x].InternalID,
 			StrategyID: in[x].StrategyID,
@@ -159,15 +162,15 @@ func updatePostgresql(ctx context.Context, tx *sql.Tx, in []Details) (id int64, 
 }
 
 // Insert writes a single entry into database
-func Insert(in Details) (string, error) {
+func Insert(in Details) (int, error) {
 	if database.DB.SQL == nil {
-		return "", database.ErrDatabaseSupportDisabled
+		return 0, database.ErrDatabaseSupportDisabled
 	}
 
 	ctx := context.Background()
 	tx, err := database.DB.SQL.BeginTx(ctx, nil)
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 	id, err := insertPostgresql(ctx, tx, in)
 
@@ -187,7 +190,7 @@ func Insert(in Details) (string, error) {
 	return id, nil
 }
 
-func insertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id string, err error) {
+func insertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int, err error) {
 	var tempInsert = postgres.LiveOrder{
 		Status:     in.Status.String(),
 		OrderType:  in.OrderType.String(),
@@ -205,7 +208,7 @@ func insertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id string, e
 		if errRB != nil {
 			log.Errorln(log.DatabaseMgr, errRB)
 		}
-		return "", err
+		return 0, err
 	}
 
 	return tempInsert.ID, nil

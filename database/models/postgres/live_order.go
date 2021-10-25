@@ -24,180 +24,170 @@ import (
 
 // LiveOrder is an object representing the database table.
 type LiveOrder struct {
-	ID            string       `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Status        string       `boil:"status" json:"status" toml:"status" yaml:"status"`
-	OrderType     string       `boil:"order_type" json:"order_type" toml:"order_type" yaml:"order_type"`
-	Exchange      string       `boil:"exchange" json:"exchange" toml:"exchange" yaml:"exchange"`
-	StrategyID    int          `boil:"strategy_id" json:"strategy_id" toml:"strategy_id" yaml:"strategy_id"`
-	InternalID    string       `boil:"internal_id" json:"internal_id" toml:"internal_id" yaml:"internal_id"`
-	Side          null.String  `boil:"side" json:"side,omitempty" toml:"side" yaml:"side,omitempty"`
-	ClientOrderID null.String  `boil:"client_order_id" json:"client_order_id,omitempty" toml:"client_order_id" yaml:"client_order_id,omitempty"`
-	Amount        null.Float32 `boil:"amount" json:"amount,omitempty" toml:"amount" yaml:"amount,omitempty"`
-	Symbol        null.String  `boil:"symbol" json:"symbol,omitempty" toml:"symbol" yaml:"symbol,omitempty"`
-	Price         null.Float32 `boil:"price" json:"price,omitempty" toml:"price" yaml:"price,omitempty"`
-	Fee           null.Float32 `boil:"fee" json:"fee,omitempty" toml:"fee" yaml:"fee,omitempty"`
-	Cost          null.Float32 `boil:"cost" json:"cost,omitempty" toml:"cost" yaml:"cost,omitempty"`
-	FilledAt      null.Time    `boil:"filled_at" json:"filled_at,omitempty" toml:"filled_at" yaml:"filled_at,omitempty"`
-	AssetType     null.Int     `boil:"asset_type" json:"asset_type,omitempty" toml:"asset_type" yaml:"asset_type,omitempty"`
-	SubmittedAt   null.Time    `boil:"submitted_at" json:"submitted_at,omitempty" toml:"submitted_at" yaml:"submitted_at,omitempty"`
-	CancelledAt   null.Time    `boil:"cancelled_at" json:"cancelled_at,omitempty" toml:"cancelled_at" yaml:"cancelled_at,omitempty"`
-	CreatedAt     time.Time    `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt     time.Time    `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	ID              int       `boil:"id" json:"id" toml:"id" yaml:"id"`
+	Status          string    `boil:"status" json:"status" toml:"status" yaml:"status"`
+	OrderType       string    `boil:"order_type" json:"order_type" toml:"order_type" yaml:"order_type"`
+	Exchange        string    `boil:"exchange" json:"exchange" toml:"exchange" yaml:"exchange"`
+	StrategyID      int       `boil:"strategy_id" json:"strategy_id" toml:"strategy_id" yaml:"strategy_id"`
+	InternalID      string    `boil:"internal_id" json:"internal_id" toml:"internal_id" yaml:"internal_id"`
+	Side            string    `boil:"side" json:"side" toml:"side" yaml:"side"`
+	ClientOrderID   string    `boil:"client_order_id" json:"client_order_id" toml:"client_order_id" yaml:"client_order_id"`
+	Amount          float64   `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
+	Symbol          string    `boil:"symbol" json:"symbol" toml:"symbol" yaml:"symbol"`
+	Price           float64   `boil:"price" json:"price" toml:"price" yaml:"price"`
+	StopPrice       float64   `boil:"stop_price" json:"stop_price" toml:"stop_price" yaml:"stop_price"`
+	TakeProfitPrice float64   `boil:"take_profit_price" json:"take_profit_price" toml:"take_profit_price" yaml:"take_profit_price"`
+	Fee             float64   `boil:"fee" json:"fee" toml:"fee" yaml:"fee"`
+	Cost            float64   `boil:"cost" json:"cost" toml:"cost" yaml:"cost"`
+	FilledAt        time.Time `boil:"filled_at" json:"filled_at" toml:"filled_at" yaml:"filled_at"`
+	AssetType       int       `boil:"asset_type" json:"asset_type" toml:"asset_type" yaml:"asset_type"`
+	SubmittedAt     time.Time `boil:"submitted_at" json:"submitted_at" toml:"submitted_at" yaml:"submitted_at"`
+	CancelledAt     null.Time `boil:"cancelled_at" json:"cancelled_at,omitempty" toml:"cancelled_at" yaml:"cancelled_at,omitempty"`
+	CreatedAt       time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt       time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
 	R *liveOrderR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L liveOrderL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var LiveOrderColumns = struct {
-	ID            string
-	Status        string
-	OrderType     string
-	Exchange      string
-	StrategyID    string
-	InternalID    string
-	Side          string
-	ClientOrderID string
-	Amount        string
-	Symbol        string
-	Price         string
-	Fee           string
-	Cost          string
-	FilledAt      string
-	AssetType     string
-	SubmittedAt   string
-	CancelledAt   string
-	CreatedAt     string
-	UpdatedAt     string
+	ID              string
+	Status          string
+	OrderType       string
+	Exchange        string
+	StrategyID      string
+	InternalID      string
+	Side            string
+	ClientOrderID   string
+	Amount          string
+	Symbol          string
+	Price           string
+	StopPrice       string
+	TakeProfitPrice string
+	Fee             string
+	Cost            string
+	FilledAt        string
+	AssetType       string
+	SubmittedAt     string
+	CancelledAt     string
+	CreatedAt       string
+	UpdatedAt       string
 }{
-	ID:            "id",
-	Status:        "status",
-	OrderType:     "order_type",
-	Exchange:      "exchange",
-	StrategyID:    "strategy_id",
-	InternalID:    "internal_id",
-	Side:          "side",
-	ClientOrderID: "client_order_id",
-	Amount:        "amount",
-	Symbol:        "symbol",
-	Price:         "price",
-	Fee:           "fee",
-	Cost:          "cost",
-	FilledAt:      "filled_at",
-	AssetType:     "asset_type",
-	SubmittedAt:   "submitted_at",
-	CancelledAt:   "cancelled_at",
-	CreatedAt:     "created_at",
-	UpdatedAt:     "updated_at",
+	ID:              "id",
+	Status:          "status",
+	OrderType:       "order_type",
+	Exchange:        "exchange",
+	StrategyID:      "strategy_id",
+	InternalID:      "internal_id",
+	Side:            "side",
+	ClientOrderID:   "client_order_id",
+	Amount:          "amount",
+	Symbol:          "symbol",
+	Price:           "price",
+	StopPrice:       "stop_price",
+	TakeProfitPrice: "take_profit_price",
+	Fee:             "fee",
+	Cost:            "cost",
+	FilledAt:        "filled_at",
+	AssetType:       "asset_type",
+	SubmittedAt:     "submitted_at",
+	CancelledAt:     "cancelled_at",
+	CreatedAt:       "created_at",
+	UpdatedAt:       "updated_at",
 }
 
 var LiveOrderTableColumns = struct {
-	ID            string
-	Status        string
-	OrderType     string
-	Exchange      string
-	StrategyID    string
-	InternalID    string
-	Side          string
-	ClientOrderID string
-	Amount        string
-	Symbol        string
-	Price         string
-	Fee           string
-	Cost          string
-	FilledAt      string
-	AssetType     string
-	SubmittedAt   string
-	CancelledAt   string
-	CreatedAt     string
-	UpdatedAt     string
+	ID              string
+	Status          string
+	OrderType       string
+	Exchange        string
+	StrategyID      string
+	InternalID      string
+	Side            string
+	ClientOrderID   string
+	Amount          string
+	Symbol          string
+	Price           string
+	StopPrice       string
+	TakeProfitPrice string
+	Fee             string
+	Cost            string
+	FilledAt        string
+	AssetType       string
+	SubmittedAt     string
+	CancelledAt     string
+	CreatedAt       string
+	UpdatedAt       string
 }{
-	ID:            "live_order.id",
-	Status:        "live_order.status",
-	OrderType:     "live_order.order_type",
-	Exchange:      "live_order.exchange",
-	StrategyID:    "live_order.strategy_id",
-	InternalID:    "live_order.internal_id",
-	Side:          "live_order.side",
-	ClientOrderID: "live_order.client_order_id",
-	Amount:        "live_order.amount",
-	Symbol:        "live_order.symbol",
-	Price:         "live_order.price",
-	Fee:           "live_order.fee",
-	Cost:          "live_order.cost",
-	FilledAt:      "live_order.filled_at",
-	AssetType:     "live_order.asset_type",
-	SubmittedAt:   "live_order.submitted_at",
-	CancelledAt:   "live_order.cancelled_at",
-	CreatedAt:     "live_order.created_at",
-	UpdatedAt:     "live_order.updated_at",
+	ID:              "live_order.id",
+	Status:          "live_order.status",
+	OrderType:       "live_order.order_type",
+	Exchange:        "live_order.exchange",
+	StrategyID:      "live_order.strategy_id",
+	InternalID:      "live_order.internal_id",
+	Side:            "live_order.side",
+	ClientOrderID:   "live_order.client_order_id",
+	Amount:          "live_order.amount",
+	Symbol:          "live_order.symbol",
+	Price:           "live_order.price",
+	StopPrice:       "live_order.stop_price",
+	TakeProfitPrice: "live_order.take_profit_price",
+	Fee:             "live_order.fee",
+	Cost:            "live_order.cost",
+	FilledAt:        "live_order.filled_at",
+	AssetType:       "live_order.asset_type",
+	SubmittedAt:     "live_order.submitted_at",
+	CancelledAt:     "live_order.cancelled_at",
+	CreatedAt:       "live_order.created_at",
+	UpdatedAt:       "live_order.updated_at",
 }
 
 // Generated where
 
-type whereHelpernull_Float32 struct{ field string }
-
-func (w whereHelpernull_Float32) EQ(x null.Float32) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, false, x)
-}
-func (w whereHelpernull_Float32) NEQ(x null.Float32) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, true, x)
-}
-func (w whereHelpernull_Float32) LT(x null.Float32) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LT, x)
-}
-func (w whereHelpernull_Float32) LTE(x null.Float32) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LTE, x)
-}
-func (w whereHelpernull_Float32) GT(x null.Float32) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GT, x)
-}
-func (w whereHelpernull_Float32) GTE(x null.Float32) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GTE, x)
-}
-
-func (w whereHelpernull_Float32) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
-func (w whereHelpernull_Float32) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
-
 var LiveOrderWhere = struct {
-	ID            whereHelperstring
-	Status        whereHelperstring
-	OrderType     whereHelperstring
-	Exchange      whereHelperstring
-	StrategyID    whereHelperint
-	InternalID    whereHelperstring
-	Side          whereHelpernull_String
-	ClientOrderID whereHelpernull_String
-	Amount        whereHelpernull_Float32
-	Symbol        whereHelpernull_String
-	Price         whereHelpernull_Float32
-	Fee           whereHelpernull_Float32
-	Cost          whereHelpernull_Float32
-	FilledAt      whereHelpernull_Time
-	AssetType     whereHelpernull_Int
-	SubmittedAt   whereHelpernull_Time
-	CancelledAt   whereHelpernull_Time
-	CreatedAt     whereHelpertime_Time
-	UpdatedAt     whereHelpertime_Time
+	ID              whereHelperint
+	Status          whereHelperstring
+	OrderType       whereHelperstring
+	Exchange        whereHelperstring
+	StrategyID      whereHelperint
+	InternalID      whereHelperstring
+	Side            whereHelperstring
+	ClientOrderID   whereHelperstring
+	Amount          whereHelperfloat64
+	Symbol          whereHelperstring
+	Price           whereHelperfloat64
+	StopPrice       whereHelperfloat64
+	TakeProfitPrice whereHelperfloat64
+	Fee             whereHelperfloat64
+	Cost            whereHelperfloat64
+	FilledAt        whereHelpertime_Time
+	AssetType       whereHelperint
+	SubmittedAt     whereHelpertime_Time
+	CancelledAt     whereHelpernull_Time
+	CreatedAt       whereHelpertime_Time
+	UpdatedAt       whereHelpertime_Time
 }{
-	ID:            whereHelperstring{field: "\"live_order\".\"id\""},
-	Status:        whereHelperstring{field: "\"live_order\".\"status\""},
-	OrderType:     whereHelperstring{field: "\"live_order\".\"order_type\""},
-	Exchange:      whereHelperstring{field: "\"live_order\".\"exchange\""},
-	StrategyID:    whereHelperint{field: "\"live_order\".\"strategy_id\""},
-	InternalID:    whereHelperstring{field: "\"live_order\".\"internal_id\""},
-	Side:          whereHelpernull_String{field: "\"live_order\".\"side\""},
-	ClientOrderID: whereHelpernull_String{field: "\"live_order\".\"client_order_id\""},
-	Amount:        whereHelpernull_Float32{field: "\"live_order\".\"amount\""},
-	Symbol:        whereHelpernull_String{field: "\"live_order\".\"symbol\""},
-	Price:         whereHelpernull_Float32{field: "\"live_order\".\"price\""},
-	Fee:           whereHelpernull_Float32{field: "\"live_order\".\"fee\""},
-	Cost:          whereHelpernull_Float32{field: "\"live_order\".\"cost\""},
-	FilledAt:      whereHelpernull_Time{field: "\"live_order\".\"filled_at\""},
-	AssetType:     whereHelpernull_Int{field: "\"live_order\".\"asset_type\""},
-	SubmittedAt:   whereHelpernull_Time{field: "\"live_order\".\"submitted_at\""},
-	CancelledAt:   whereHelpernull_Time{field: "\"live_order\".\"cancelled_at\""},
-	CreatedAt:     whereHelpertime_Time{field: "\"live_order\".\"created_at\""},
-	UpdatedAt:     whereHelpertime_Time{field: "\"live_order\".\"updated_at\""},
+	ID:              whereHelperint{field: "\"live_order\".\"id\""},
+	Status:          whereHelperstring{field: "\"live_order\".\"status\""},
+	OrderType:       whereHelperstring{field: "\"live_order\".\"order_type\""},
+	Exchange:        whereHelperstring{field: "\"live_order\".\"exchange\""},
+	StrategyID:      whereHelperint{field: "\"live_order\".\"strategy_id\""},
+	InternalID:      whereHelperstring{field: "\"live_order\".\"internal_id\""},
+	Side:            whereHelperstring{field: "\"live_order\".\"side\""},
+	ClientOrderID:   whereHelperstring{field: "\"live_order\".\"client_order_id\""},
+	Amount:          whereHelperfloat64{field: "\"live_order\".\"amount\""},
+	Symbol:          whereHelperstring{field: "\"live_order\".\"symbol\""},
+	Price:           whereHelperfloat64{field: "\"live_order\".\"price\""},
+	StopPrice:       whereHelperfloat64{field: "\"live_order\".\"stop_price\""},
+	TakeProfitPrice: whereHelperfloat64{field: "\"live_order\".\"take_profit_price\""},
+	Fee:             whereHelperfloat64{field: "\"live_order\".\"fee\""},
+	Cost:            whereHelperfloat64{field: "\"live_order\".\"cost\""},
+	FilledAt:        whereHelpertime_Time{field: "\"live_order\".\"filled_at\""},
+	AssetType:       whereHelperint{field: "\"live_order\".\"asset_type\""},
+	SubmittedAt:     whereHelpertime_Time{field: "\"live_order\".\"submitted_at\""},
+	CancelledAt:     whereHelpernull_Time{field: "\"live_order\".\"cancelled_at\""},
+	CreatedAt:       whereHelpertime_Time{field: "\"live_order\".\"created_at\""},
+	UpdatedAt:       whereHelpertime_Time{field: "\"live_order\".\"updated_at\""},
 }
 
 // LiveOrderRels is where relationship names are stored.
@@ -221,9 +211,9 @@ func (*liveOrderR) NewStruct() *liveOrderR {
 type liveOrderL struct{}
 
 var (
-	liveOrderAllColumns            = []string{"id", "status", "order_type", "exchange", "strategy_id", "internal_id", "side", "client_order_id", "amount", "symbol", "price", "fee", "cost", "filled_at", "asset_type", "submitted_at", "cancelled_at", "created_at", "updated_at"}
-	liveOrderColumnsWithoutDefault = []string{"status", "order_type", "exchange", "strategy_id", "internal_id", "side", "client_order_id", "amount", "symbol", "price", "fee", "cost", "filled_at", "asset_type", "submitted_at", "cancelled_at"}
-	liveOrderColumnsWithDefault    = []string{"id", "created_at", "updated_at"}
+	liveOrderAllColumns            = []string{"id", "status", "order_type", "exchange", "strategy_id", "internal_id", "side", "client_order_id", "amount", "symbol", "price", "stop_price", "take_profit_price", "fee", "cost", "filled_at", "asset_type", "submitted_at", "cancelled_at", "created_at", "updated_at"}
+	liveOrderColumnsWithoutDefault = []string{"status", "order_type", "exchange", "strategy_id", "internal_id", "side", "symbol", "filled_at", "submitted_at", "cancelled_at"}
+	liveOrderColumnsWithDefault    = []string{"id", "client_order_id", "amount", "price", "stop_price", "take_profit_price", "fee", "cost", "asset_type", "created_at", "updated_at"}
 	liveOrderPrimaryKeyColumns     = []string{"id"}
 )
 
@@ -682,7 +672,7 @@ func LiveOrders(mods ...qm.QueryMod) liveOrderQuery {
 
 // FindLiveOrder retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindLiveOrder(ctx context.Context, exec boil.ContextExecutor, iD string, selectCols ...string) (*LiveOrder, error) {
+func FindLiveOrder(ctx context.Context, exec boil.ContextExecutor, iD int, selectCols ...string) (*LiveOrder, error) {
 	liveOrderObj := &LiveOrder{}
 
 	sel := "*"
@@ -1204,7 +1194,7 @@ func (o *LiveOrderSlice) ReloadAll(ctx context.Context, exec boil.ContextExecuto
 }
 
 // LiveOrderExists checks if the LiveOrder row exists.
-func LiveOrderExists(ctx context.Context, exec boil.ContextExecutor, iD string) (bool, error) {
+func LiveOrderExists(ctx context.Context, exec boil.ContextExecutor, iD int) (bool, error) {
 	var exists bool
 	sql := "select exists(select 1 from \"live_order\" where \"id\"=$1 limit 1)"
 

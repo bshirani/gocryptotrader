@@ -17,10 +17,10 @@ CREATE TABLE currency_pair (
 	  REFERENCES currency(id)
 );
 
-INSERT INTO currency_pair(base_id, quote_id, kraken_symbol, active) VALUES
-    (1,136,'XBT_USDT', true),
-    (20,136,'XRP_USDT', true)
-;
+-- INSERT INTO currency_pair(base_id, quote_id, kraken_symbol, active) VALUES
+--     (1,136,'XBT_USDT', true),
+--     (20,136,'XRP_USDT', true)
+-- ;
 
 -- +goose Down
 DROP TABLE currency_pair;

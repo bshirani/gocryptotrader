@@ -21,7 +21,6 @@ import (
 	"gocryptotrader/log"
 
 	"github.com/shopspring/decimal"
-	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
@@ -85,22 +84,24 @@ func ByStatus(status order.Status) (out []Details, err error) {
 			os.Exit(2)
 		}
 
+		pair, _ := currency.NewPairFromString(x.Pair)
+
 		out = append(out, Details{
-			EntryPrice: decimal.NewFromFloat(x.EntryPrice),
-			// ExitPrice:     decimal.NewFromFloat(x.ExitPrice),
-			// ExitTime:      x.ExitTime,
-			// ExitPrice:     null.Float64{Float64: x.ExitPrice},
-			StopLossPrice: decimal.NewFromFloat(x.StopLossPrice),
-			// Pair:         x.Pair,
-			EntryTime:    x.EntryTime,
-			Amount:       decimal.NewFromFloat(x.Amount),
-			ID:           x.ID,
-			StrategyID:   x.StrategyID,
-			Status:       order.Status(x.Status),
-			Side:         order.Side(x.Side),
-			UpdatedAt:    x.UpdatedAt,
-			CreatedAt:    x.CreatedAt,
-			EntryOrderID: x.EntryOrderID,
+			EntryPrice:      decimal.NewFromFloat(x.EntryPrice),
+			ExitPrice:       decimal.NewFromFloat(x.ExitPrice),
+			StopLossPrice:   decimal.NewFromFloat(x.StopLossPrice),
+			TakeProfitPrice: decimal.NewFromFloat(x.TakeProfitPrice),
+			ExitTime:        x.ExitTime,
+			Pair:            pair,
+			EntryTime:       x.EntryTime,
+			Amount:          decimal.NewFromFloat(x.Amount),
+			ID:              x.ID,
+			StrategyID:      x.StrategyID,
+			Status:          order.Status(x.Status),
+			Side:            order.Side(x.Side),
+			UpdatedAt:       x.UpdatedAt,
+			CreatedAt:       x.CreatedAt,
+			EntryOrderID:    x.EntryOrderID,
 		})
 	}
 	if errS != nil {
@@ -210,6 +211,7 @@ func insertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int, err 
 	entryPrice, _ := in.EntryPrice.Float64()
 	exitPrice, _ := in.ExitPrice.Float64()
 	stopLossPrice, _ := in.StopLossPrice.Float64()
+	takeProfitPrice, _ := in.TakeProfitPrice.Float64()
 	amount, _ := in.Amount.Float64()
 
 	if stopLossPrice < 0 {
@@ -219,16 +221,17 @@ func insertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int, err 
 	var tempInsert = postgres.LiveTrade{
 		EntryPrice: entryPrice,
 		// CreatedAt:     time.Now(),
-		EntryTime:     in.EntryTime,
-		ExitTime:      null.Time{Time: in.ExitTime},
-		ExitPrice:     null.Float64{Float64: exitPrice},
-		StopLossPrice: stopLossPrice,
-		Status:        fmt.Sprintf("%s", in.Status),
-		StrategyID:    in.StrategyID,
-		Pair:          in.Pair.String(),
-		EntryOrderID:  in.EntryOrderID,
-		Side:          in.Side.String(),
-		Amount:        amount,
+		EntryTime:       in.EntryTime,
+		ExitTime:        in.ExitTime,
+		ExitPrice:       exitPrice,
+		StopLossPrice:   stopLossPrice,
+		TakeProfitPrice: takeProfitPrice,
+		Status:          fmt.Sprintf("%s", in.Status),
+		StrategyID:      in.StrategyID,
+		Pair:            in.Pair.String(),
+		EntryOrderID:    in.EntryOrderID,
+		Side:            in.Side.String(),
+		Amount:          amount,
 	}
 
 	err = tempInsert.Upsert(
@@ -256,6 +259,7 @@ func updatePostgresql(ctx context.Context, tx *sql.Tx, in []Details) (id int64, 
 		entryPrice, _ := in[x].EntryPrice.Float64()
 		exitPrice, _ := in[x].ExitPrice.Float64()
 		stopLossPrice, _ := in[x].StopLossPrice.Float64()
+		takeProfitPrice, _ := in[x].TakeProfitPrice.Float64()
 		amount, _ := in[x].StopLossPrice.Float64()
 
 		if in[x].EntryTime.IsZero() {
@@ -264,19 +268,20 @@ func updatePostgresql(ctx context.Context, tx *sql.Tx, in []Details) (id int64, 
 			os.Exit(2)
 		}
 		var tempInsert = postgres.LiveTrade{
-			ID:            in[x].ID,
-			UpdatedAt:     time.Now(),
-			EntryPrice:    entryPrice,
-			EntryTime:     in[x].EntryTime,
-			ExitTime:      null.Time{Time: in[x].ExitTime},
-			ExitPrice:     null.Float64{Float64: exitPrice},
-			StopLossPrice: stopLossPrice,
-			Status:        fmt.Sprintf("%s", in[x].Status),
-			StrategyID:    in[x].StrategyID,
-			Pair:          in[x].Pair.String(),
-			EntryOrderID:  in[x].EntryOrderID,
-			Side:          in[x].Side.String(),
-			Amount:        amount,
+			ID:              in[x].ID,
+			UpdatedAt:       time.Now(),
+			EntryPrice:      entryPrice,
+			EntryTime:       in[x].EntryTime,
+			ExitTime:        in[x].ExitTime,
+			ExitPrice:       exitPrice,
+			TakeProfitPrice: takeProfitPrice,
+			StopLossPrice:   stopLossPrice,
+			Status:          fmt.Sprintf("%s", in[x].Status),
+			StrategyID:      in[x].StrategyID,
+			Pair:            in[x].Pair.String(),
+			EntryOrderID:    in[x].EntryOrderID,
+			Side:            in[x].Side.String(),
+			Amount:          amount,
 		}
 
 		id, err = tempInsert.Update(ctx, tx, boil.Infer())
@@ -309,11 +314,11 @@ func WriteCSV(trades []*Details) {
 		fmt.Println("error", err)
 	}
 
-	header := "strategy,pair,direction,entry_time,exit_time,entry_price,exit_price,stop_loss,amount\n"
+	header := "strategy,pair,direction,entry_time,exit_time,entry_price,exit_price,stop_loss,amount,take_profit\n"
 	file.WriteString(header)
 	for _, t := range trades {
 		s := fmt.Sprintf(
-			"%d,%s,%s,%v,%v,%v,%v,%v,%v\n",
+			"%d,%s,%s,%v,%v,%v,%v,%v,%v,%v\n",
 			t.StrategyID,
 			t.Pair,
 			t.Side,
@@ -323,10 +328,10 @@ func WriteCSV(trades []*Details) {
 			t.ExitPrice,
 			t.StopLossPrice,
 			t.Amount,
+			t.TakeProfitPrice,
 		)
 		file.WriteString(s)
 	}
-	fmt.Println("wrote trades CSV", newpath)
 	file.Close()
 }
 
@@ -344,7 +349,6 @@ func LoadCSV(file string) (out []Details, err error) {
 		}
 	}()
 
-	fmt.Println("rading", file)
 	csvData := csv.NewReader(csvFile)
 	count := 0
 	for {
@@ -358,10 +362,8 @@ func LoadCSV(file string) (out []Details, err error) {
 
 		if count == 0 {
 			count += 1
-			fmt.Println("HERE", row)
 			continue
 		}
-		fmt.Println("row", row)
 		count += 1
 		id, err := strconv.ParseInt(row[0], 10, 64)
 		pair, err := currency.NewPairFromString(row[1])
@@ -371,23 +373,70 @@ func LoadCSV(file string) (out []Details, err error) {
 		exitPrice, err := decimal.NewFromString(row[6])
 		stop, err := decimal.NewFromString(row[7])
 		amount, err := decimal.NewFromString(row[8])
-		fmt.Println("amount", amount)
+		takeProfit, err := decimal.NewFromString(row[9])
 		out = append(out, Details{
-			StrategyID:    int(id),
-			Pair:          pair,
-			Side:          order.Side(row[2]),
-			EntryTime:     entryTime,
-			ExitTime:      exitTime,
-			EntryPrice:    entryPrice,
-			ExitPrice:     exitPrice,
-			StopLossPrice: stop,
-			Amount:        amount,
+			StrategyID:      int(id),
+			Pair:            pair,
+			Side:            order.Side(row[2]),
+			EntryTime:       entryTime,
+			ExitTime:        exitTime,
+			EntryPrice:      entryPrice,
+			ExitPrice:       exitPrice,
+			StopLossPrice:   stop,
+			TakeProfitPrice: takeProfit,
+			Amount:          amount,
 		})
 		if err != nil {
 			fmt.Println("error", err)
 		}
 	}
 	return out, err
+}
+
+func AnalyzeTrades(filepath string) error {
+	// load all the trades from the csv into trade details
+	lf := LastResult()
+	trades, err := LoadCSV(lf)
+	fmt.Println("net profit", netProfit(trades))
+	fmt.Println("net points", netProfitPoints(trades))
+
+	// for _, t := range trades {
+	// 	fmt.Printf("enter=%v exit=%v enter=%v exit=%v profit=%v minutes=%d amount=%v stop=%v\n",
+	// 		t.EntryTime.Format(common.SimpleTimeFormat),
+	// 		t.ExitTime.Format(common.SimpleTimeFormat),
+	// 		t.EntryPrice,
+	// 		t.ExitPrice,
+	// 		getProfit(t),
+	// 		getDurationMin(t),
+	// 		t.Amount,
+	// 		t.StopLossPrice,
+	// 	)
+	// }
+	return err
+}
+
+func netProfitPoints(trades []Details) (netProfit decimal.Decimal) {
+	for _, t := range trades {
+		if t.Side == order.Buy {
+			t.ProfitLossPoints = t.ExitPrice.Sub(t.EntryPrice)
+		} else if t.Side == order.Sell {
+			t.ProfitLossPoints = t.EntryPrice.Sub(t.ExitPrice)
+		}
+		netProfit = netProfit.Add(t.ProfitLossPoints)
+	}
+	return netProfit
+}
+
+func netProfit(trades []Details) (netProfit decimal.Decimal) {
+	for _, t := range trades {
+		if t.Side == order.Buy {
+			t.ProfitLossPoints = t.ExitPrice.Sub(t.EntryPrice)
+		} else if t.Side == order.Sell {
+			t.ProfitLossPoints = t.EntryPrice.Sub(t.ExitPrice)
+		}
+		netProfit = netProfit.Add(t.Amount.Mul(t.ProfitLossPoints))
+	}
+	return netProfit
 }
 
 func LastResult() string {
@@ -417,8 +466,20 @@ func lastFileInDir(dir string) string {
 			}
 		}
 	}
-	if len(names) > 0 {
-		fmt.Println(modTime, names)
-	}
+	// if len(names) > 0 {
+	// 	fmt.Println(modTime, names)
+	// }
 	return names[len(names)-1]
+}
+func getProfit(trade Details) decimal.Decimal {
+	if trade.Side == order.Buy {
+		return trade.ExitPrice.Sub(trade.EntryPrice)
+	} else if trade.Side == order.Sell {
+		return trade.EntryPrice.Sub(trade.ExitPrice)
+	}
+	return decimal.Decimal{}
+}
+
+func getDurationMin(trade Details) int {
+	return int(trade.ExitTime.Sub(trade.EntryTime).Minutes())
 }

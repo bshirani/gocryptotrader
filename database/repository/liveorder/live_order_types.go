@@ -5,6 +5,8 @@ import (
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange/order"
 	"time"
+
+	"github.com/shopspring/decimal"
 )
 
 var (
@@ -18,10 +20,12 @@ type Status string
 
 // Item generic candle holder for modelPSQL
 type Details struct {
-	ID         string
+	ID         int
 	Side       order.Side
 	Status     order.Status
 	Pair       currency.Pair
+	Price      decimal.Decimal
+	StopPrice  decimal.Decimal
 	OrderType  order.Type
 	Exchange   string
 	InternalID string

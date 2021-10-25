@@ -422,12 +422,21 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 
 	o.Price = ev.GetPrice()
 	o.Direction = ev.GetDirection()
+
+	if o.Direction == gctorder.Buy {
+		o.StopPrice = o.Price.Mul(decimal.NewFromFloat(0.99))
+	} else {
+		o.StopPrice = o.Price.Mul(decimal.NewFromFloat(1.01))
+	}
+	lo.StopPrice = o.StopPrice
+
 	o.OrderType = gctorder.Market
 	o.BuyLimit = ev.GetBuyLimit()
 	o.SellLimit = ev.GetSellLimit()
 	o.StrategyID = ev.GetStrategyID()
 	o = p.sizeOrder(ev, cs, o, decimal.NewFromFloat(1.1))
-	o.Amount = decimal.NewFromFloat(0.0005)
+	o.Amount = decimal.NewFromFloat(0.0001)
+
 	p.recordOrder(ev, lo, o)
 	p.recordTrade(ev)
 	return o, nil

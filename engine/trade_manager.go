@@ -357,6 +357,7 @@ dataLoadingIssue:
 		fmt.Println("done running", count, "data events")
 	} else {
 		livetrade.WriteCSV(tm.Portfolio.GetAllClosedTrades())
+		livetrade.AnalyzeTrades("")
 		log.Debugln(log.TradeMgr, "TradeManager Writing Config to File")
 		tm.cfg.SaveConfigToFile("backtest_config_out.json")
 	}

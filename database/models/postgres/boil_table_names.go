@@ -7,6 +7,7 @@ var TableNames = struct {
 	AccountLog              string
 	AuditEvent              string
 	Candle                  string
+	ClosedTrade             string
 	CMCLatestListing        string
 	Currency                string
 	CurrencyPair            string
@@ -29,6 +30,7 @@ var TableNames = struct {
 	AccountLog:              "account_log",
 	AuditEvent:              "audit_event",
 	Candle:                  "candle",
+	ClosedTrade:             "closed_trade",
 	CMCLatestListing:        "cmc_latest_listing",
 	Currency:                "currency",
 	CurrencyPair:            "currency_pair",

@@ -16,6 +16,7 @@ type Order struct {
 	StrategyID     int
 	Status         order.Status
 	Price          decimal.Decimal
+	StopPrice      decimal.Decimal
 	ExchangeFee    decimal.Decimal
 	Amount         decimal.Decimal
 	OrderType      order.Type
