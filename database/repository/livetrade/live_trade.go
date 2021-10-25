@@ -309,7 +309,7 @@ func WriteTradesCSV(trades []*Details) {
 		fmt.Println("error", err)
 	}
 
-	header := "strategy,pair,direction,entry_time,exit_time,entry_price,exit_price\n"
+	header := "strategy,pair,direction,entry_time,exit_time,entry_price,exit_price,amount\n"
 	file.WriteString(header)
 	for _, t := range trades {
 		s := fmt.Sprintf(
