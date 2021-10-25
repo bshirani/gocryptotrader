@@ -56,7 +56,7 @@
   "verbose": false
  },
  "orderManager": {
-  "verbose": false,
+  "verbose": true,
   "enabled": true
  },
  "dataImporter": {

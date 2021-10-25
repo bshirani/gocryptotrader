@@ -1179,7 +1179,7 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 		EntryTime:     ev.GetTime(),
 		EntryOrderID:  foundOrd.InternalOrderID,
 		EntryPrice:    ev.GetPurchasePrice(),
-		StopLossPrice: decimal.NewFromFloat(stopOrd.StopLossPrice),
+		StopLossPrice: decimal.NewFromFloat(stopOrd.Price),
 		Side:          foundOrd.Side,
 		Pair:          foundOrd.Pair,
 		Amount:        decimal.NewFromFloat(foundOrd.Amount),

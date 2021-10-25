@@ -19,6 +19,8 @@ import (
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/order"
 	"gocryptotrader/log"
+
+	"github.com/shopspring/decimal"
 )
 
 // SetupOrderManager will boot up the OrderManager
@@ -52,6 +54,7 @@ func SetupOrderManager(exchangeManager iExchangeManager, communicationsManager i
 		verbose:       verbose,
 		liveMode:      liveMode,
 		dryRun:        dryRun,
+		currentCloses: make(map[string]map[asset.Item]map[currency.Pair]decimal.Decimal),
 	}, nil
 }
 
@@ -119,6 +122,14 @@ func (m *OrderManager) UpdateFakeOrders(d eventtypes.DataEventHandler) error {
 	if m.useRealOrders {
 		panic("updating fake orders in production")
 	}
+	if m.currentCloses[d.GetExchange()] == nil {
+		m.currentCloses[d.GetExchange()] = make(map[asset.Item]map[currency.Pair]decimal.Decimal)
+	}
+	if m.currentCloses[d.GetExchange()][d.GetAssetType()] == nil {
+		m.currentCloses[d.GetExchange()][d.GetAssetType()] = make(map[currency.Pair]decimal.Decimal)
+	}
+
+	m.currentCloses[d.GetExchange()][d.GetAssetType()][d.Pair()] = d.ClosePrice()
 
 	// active, _ := m.GetOrdersActive(nil)
 	// if len(active) > 0 {
@@ -483,12 +494,15 @@ func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*Ord
 			return nil, err
 		}
 	} else {
-
 		if newOrder.Price != 0 {
-			fmt.Println("order has a price, it's a stop loss order", newOrder.Price, "id:", newOrder.InternalOrderID)
 			isOrderFilled = false
 		} else {
 			isOrderFilled = true
+			currentPrice, _ := m.currentCloses[newOrder.Exchange][newOrder.AssetType][newOrder.Pair].Float64()
+			newOrder.Price = currentPrice
+		}
+		if newOrder.Price == 0 {
+			panic("did not get current price for fake order")
 		}
 
 		result = order.SubmitResponse{
@@ -606,6 +620,9 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 	if result.FullyMatched {
 		status = order.Filled
 	}
+	if newOrder.Price == 0 {
+		panic("new order doesnt have a price")
+	}
 	err := m.orderStore.add(&order.Detail{
 		ImmediateOrCancel: newOrder.ImmediateOrCancel,
 		HiddenOrder:       newOrder.HiddenOrder,
@@ -641,11 +658,12 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 		return nil, fmt.Errorf("unable to add %v order %v to orderStore: %s", newOrder.Exchange, result.OrderID, err)
 	}
 
+	if result.Rate == 0 {
+		panic("order submit response without rate")
+	}
+
 	return &OrderSubmitResponse{
-		SubmitResponse: order.SubmitResponse{
-			IsOrderPlaced: result.IsOrderPlaced,
-			OrderID:       result.OrderID,
-		},
+		SubmitResponse:  result,
 		InternalOrderID: result.InternalOrderID,
 		StrategyID:      newOrder.StrategyID,
 	}, nil

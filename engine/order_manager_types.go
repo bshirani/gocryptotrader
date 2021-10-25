@@ -11,6 +11,8 @@ import (
 	"gocryptotrader/exchange"
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/order"
+
+	"github.com/shopspring/decimal"
 )
 
 // OrderManagerName is an exported subsystem name
@@ -64,6 +66,7 @@ type OrderManager struct {
 	orderStore       store
 	cfg              orderManagerConfig
 	verbose          bool
+	currentCloses    map[string]map[asset.Item]map[currency.Pair]decimal.Decimal
 	onSubmit         func(*OrderSubmitResponse)
 	onFill           func(*OrderSubmitResponse)
 	onCancel         func(*OrderSubmitResponse)
