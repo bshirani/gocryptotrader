@@ -65,6 +65,7 @@ type Portfolio struct {
 	shutdown                  chan struct{}
 	sizeManager               SizeHandler
 	store                     portfolioStore
+	dryRun                    bool
 	verbose                   bool
 	debug                     bool
 }
@@ -122,7 +123,6 @@ type PortfolioHandler interface {
 	setHoldingsForOffset(*holdings.Holding, bool) error
 	UpdateHoldings(eventtypes.DataEventHandler) error
 	GetTradeForStrategy(int) *livetrade.Details
-	GetPositionForStrategy(int) *positions.Position
 	GetComplianceManager(string, asset.Item, currency.Pair) (*compliance.Manager, error)
 
 	PrintPortfolioDetails()

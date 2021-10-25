@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"gocryptotrader/portfolio/strategies/base"
-	"gocryptotrader/portfolio/strategies/rsi"
 	"gocryptotrader/portfolio/strategies/trend"
 	"gocryptotrader/portfolio/strategies/trend2day"
 	"gocryptotrader/portfolio/strategies/trend3day"
@@ -40,7 +39,6 @@ func LoadStrategyByName(name string) (Handler, error) {
 func GetStrategies() []Handler {
 	x := []Handler{
 		// new(dollarcostaverage.Strategy),
-		new(rsi.Strategy),
 		new(trend.Strategy),
 		new(trend2day.Strategy),
 		new(trend3day.Strategy),

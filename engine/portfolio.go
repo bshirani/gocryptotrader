@@ -24,7 +24,6 @@ import (
 	"gocryptotrader/log"
 	"gocryptotrader/portfolio/compliance"
 	"gocryptotrader/portfolio/holdings"
-	"gocryptotrader/portfolio/positions"
 	"gocryptotrader/portfolio/risk"
 	"gocryptotrader/portfolio/slippage"
 	"gocryptotrader/portfolio/strategies"
@@ -129,25 +128,18 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 	// 	os.Exit(123)
 	// }
 
-	// create position for every strategy
 	// create open trades array for every strategy
 	// you need the strategy IDS here
-	p.store.positions = make(map[int]*positions.Position)
 	p.store.openTrade = make(map[int]*livetrade.Details)
 	p.store.closedTrades = make(map[int][]*livetrade.Details)
 
 	p.orderManager = bot.OrderManager
 	p.bot = bot
 	p.sizeManager = sizeManager
+	p.dryRun = bot.Config.DryRun
 	p.riskManager = portfolioRisk
 	p.riskFreeRate = riskFreeRate
 	p.Strategies = st
-
-	// set initial opentrade/positions
-	for _, s := range p.Strategies {
-		p.store.positions[s.GetID()] = &positions.Position{}
-		p.store.closedTrades[s.GetID()] = make([]*livetrade.Details, 0)
-	}
 
 	if !p.bot.Settings.EnableDryRun {
 		activeTrades, _ := livetrade.Active()
@@ -157,10 +149,7 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 			}
 			// p.getStrategyTrade(t.StrategyID)
 			// set open trade
-			// set position
 			p.store.openTrade[t.StrategyID] = &t
-			pos := p.store.positions[t.StrategyID]
-			pos.Active = true
 		}
 
 		log.Infof(log.Portfolio,
@@ -285,26 +274,28 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	if ev.GetDirection() == "" {
 		return nil, errInvalidDirection
 	}
-	activeTrades, _ := livetrade.Active()
-	maxTradeCount := 3
 
-	// validate new entry order
-	if ev.GetDecision() == signal.Enter {
-		// if len(activeOrders) >= maxTradeCount {
-		// 	ev.SetDirection(eventtypes.DoNothing)
-		// 	ev.SetDecision(signal.DoNothing)
-		// 	ev.AppendReason(fmt.Sprintf("Mgr: NOGO. DoNothing. Has %d new orders", len(activeOrders))) } else
-		if len(activeTrades) >= maxTradeCount {
-			ev.SetDirection(eventtypes.DoNothing)
-			ev.SetDecision(signal.DoNothing)
-			ev.AppendReason("ENTRY_DENIED,active_trades|")
-		} else {
-			ev.AppendReason("Approve Entry")
+	if !p.dryRun {
+		activeTrades, _ := livetrade.Active()
+		maxTradeCount := 6
+
+		// validate new entry order
+		if ev.GetDecision() == signal.Enter {
+			// if len(activeOrders) >= maxTradeCount {
+			// 	ev.SetDirection(eventtypes.DoNothing)
+			// 	ev.SetDecision(signal.DoNothing)
+			// 	ev.AppendReason(fmt.Sprintf("Mgr: NOGO. DoNothing. Has %d new orders", len(activeOrders))) } else
+			if len(activeTrades) >= maxTradeCount {
+				ev.SetDirection(eventtypes.DoNothing)
+				ev.SetDecision(signal.DoNothing)
+				ev.AppendReason("ENTRY_DENIED,active_trades|")
+			} else {
+				ev.AppendReason("Approve Entry")
+			}
 		}
 	}
 
 	// get trade for strategy
-
 	t := p.GetTradeForStrategy(ev.GetStrategyID())
 	var tradeStatus string
 	if t == nil {
@@ -404,10 +395,6 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	// return p.evaluateOrder(ev, o, sizedOrder)
 }
 
-func (p *Portfolio) updatePosition(pos *positions.Position, amount decimal.Decimal) {
-	pos.Amount = decimal.NewFromFloat(100.0)
-}
-
 func (p *Portfolio) GetOrderFromStore(orderid int) *gctorder.Detail {
 	var foundOrd *gctorder.Detail
 	ords, _ := p.bot.OrderManager.GetOrdersSnapshot("")
@@ -431,175 +418,6 @@ func (p *Portfolio) GetOrderFromStore(orderid int) *gctorder.Detail {
 	}
 
 	return foundOrd
-}
-
-func (p *Portfolio) recordEnterTrade(ev fill.Event) {
-	s, _ := p.getStrategy(ev.GetStrategyID())
-	// fmt.Println("STRATEGY DIR", s.GetDirection())
-	// fmt.Println("EV DIR", ev.GetDirection())
-	// fmt.Println("ORDER ID", ev.GetOrderID())
-
-	if ev.GetDirection() != s.GetDirection() {
-		str := fmt.Sprintf("%s %s for %s", ev.GetDirection(), s.GetDirection(), ev.GetStrategyID())
-		panic(str)
-	}
-	foundOrd := p.GetOrderFromStore(ev.GetInternalOrderID())
-	// fmt.Println("found order", foundOrd.ID, foundOrd.InternalOrderID)
-	stopLossPrice := decimal.NewFromFloat(foundOrd.Price).Mul(decimal.NewFromFloat(0.9))
-	p.store.positions[ev.GetStrategyID()] = &positions.Position{Active: true}
-
-	t := livetrade.Details{
-		Status:        gctorder.Open,
-		StrategyID:    ev.GetStrategyID(),
-		EntryTime:     ev.GetTime(),
-		EntryOrderID:  foundOrd.InternalOrderID,
-		EntryPrice:    decimal.NewFromFloat(foundOrd.Price),
-		StopLossPrice: stopLossPrice,
-		Side:          foundOrd.Side,
-		Pair:          foundOrd.Pair,
-		Amount:        decimal.NewFromFloat(foundOrd.Amount),
-	}
-
-	if t.EntryPrice.IsZero() {
-		panic("EntryPrice cannot be empty")
-	}
-	if t.EntryTime.IsZero() {
-		panic("EntryTime cannot be empty")
-	}
-	if t.Amount.IsZero() {
-		panic("Amount cannot be 0")
-	}
-	if t.EntryOrderID == 0 {
-		panic("trade must have entry order id")
-	}
-
-	fmt.Println("creating trade, id", t.EntryOrderID, "entrytime:", t.EntryTime)
-
-	if !p.bot.Settings.EnableDryRun {
-		id, err := livetrade.Insert(t)
-		t.ID = id
-		if err != nil {
-			fmt.Println("error inserting trade", err)
-			os.Exit(2)
-		}
-	}
-	if p.bot.Settings.EnableLiveMode {
-		// tradeMsg := fmt.Sprintf("created trade for s:%d %v %s %s", ev.GetStrategyID(), ev.Pair(), ev.GetAmount(), ev.GetDirection())
-		// log.Warnf(log.Portfolio, tradeMsg)
-
-		// t.EntryTime.UTC().AppendFormat(e.data, l.Timestamp)
-
-		timestampFormat := " 15:04:05 UTC"
-		s, _ := p.getStrategy(ev.GetStrategyID())
-		notificationMsg := fmt.Sprintf(
-			"ENTER TRADE: %d-%s-%s\n%s %v@%v %v\n%s",
-			s.GetID(),
-			s.GetPair(),
-			s.GetDirection(),
-			t.Side,
-			t.Amount,
-			t.EntryPrice,
-			t.EntryTime.Format(timestampFormat),
-			ev.GetReason())
-
-		// fmt.Print("notification message", notificationMsg)
-		p.bot.CommunicationsManager.PushEvent(base.Event{
-			Type:    "trade_open\n",
-			Message: notificationMsg,
-		})
-	}
-
-	p.store.openTrade[ev.GetStrategyID()] = &t
-}
-
-func (p *Portfolio) recordExitTrade(f fill.Event, t *livetrade.Details) {
-
-	if t.Status == gctorder.Open {
-		t.Status = gctorder.Closed
-		t.ExitTime = f.GetTime()
-		t.ExitPrice = f.GetClosePrice()
-
-		// duplicate code from updateStrategyTrades
-		if t.Side == gctorder.Buy {
-			// fmt.Println("current price", ev.GetPrice(), "trade price", trade.EntryPrice, ev.GetPrice().Sub(trade.EntryPrice))
-			t.ProfitLossPoints = f.GetClosePrice().Sub(t.EntryPrice)
-		} else if t.Side == gctorder.Sell {
-			t.ProfitLossPoints = t.EntryPrice.Sub(f.GetClosePrice())
-		} else {
-			fmt.Println("trade is not sell or buy")
-			os.Exit(2)
-		}
-
-		// msg := fmt.Sprintf("Order manager: Strategy=%s Exchange=%s submitted order ID=%v [Ours: %v] pair=%v price=%v amount=%v side=%v type=%v for time %v.",
-		// 	newOrder.StrategyID,
-		// 	newOrder.Exchange,
-		// 	result.OrderID,
-		// 	newOrder.ID,
-		// 	newOrder.Pair,
-		// 	newOrder.Price,
-		// 	newOrder.Amount,
-		// 	newOrder.Side,
-		// 	newOrder.Type,
-		// 	newOrder.Date)
-		// log.Debugln(log.OrderMgr, msg)
-
-		// get order for trade
-
-	} else {
-		fmt.Println("TRYING TO CLOSE  ALREADY CLOSED TRADE. TRADE IS NOT OPEN")
-		os.Exit(1)
-	}
-	// Velse if t.Status == livetrade.Pending {
-	// 	ot := *p.store.openTrade[f.GetStrategyID()]
-	// 	ot.Status = livetrade.Open
-	// 	p.store.openTrade[f.GetStrategyID()] = &ot
-	// }
-
-	if t.Amount.IsZero() {
-		panic("trade amount is zero")
-	}
-	if t.ExitTime.IsZero() {
-		fmt.Println("ftime", f.GetTime())
-		panic("exit time is zero")
-	}
-	if t.ExitPrice.IsZero() {
-		panic("exit price is zero")
-	}
-	if !p.bot.Settings.EnableDryRun {
-		id, err := livetrade.Update(t)
-		t.ID = int(id)
-		if err != nil || id == 0 {
-			fmt.Println("error saving to db")
-			os.Exit(2)
-		}
-	}
-	p.store.closedTrades[f.GetStrategyID()] = append(p.store.closedTrades[f.GetStrategyID()], t)
-	p.store.openTrade[f.GetStrategyID()] = nil
-	p.store.positions[f.GetStrategyID()] = &positions.Position{Active: false}
-
-	if p.bot.Settings.EnableLiveMode {
-		s, _ := p.getStrategy(f.GetStrategyID())
-
-		timeFormat := "15:05:05"
-		// fmt.Println(time.Now().Format("02-Jan-2006 15:04:05"))
-		notificationMsg := fmt.Sprintf(
-			"EXIT TRADE: %s\nEntry:%s %v@%v@%v\nExit:%v@%v\nReason: %s\nProfit: %v",
-			s.GetID(),
-			t.Side,
-			t.Amount,
-			t.EntryTime.Format(timeFormat),
-			t.EntryPrice,
-			t.ExitTime.Format(timeFormat),
-			t.ExitPrice,
-			f.GetReason(),
-			t.ProfitLossPoints,
-		)
-
-		p.bot.CommunicationsManager.PushEvent(base.Event{
-			Type:    "trade_close",
-			Message: notificationMsg,
-		})
-	}
 }
 
 // OnFill processes the event after an order has been placed by the exchange. Its purpose is to track holdings for future portfolio decisions.
@@ -710,10 +528,6 @@ func (p *Portfolio) UpdateTrades(ev eventtypes.DataEventHandler) error {
 	// 	// t, _ = trades.Create(ev)
 	// }
 
-	// p.openTrade = t
-	// t, _ = p.GetOpenTrade()
-	// p.openTrade.UpdateValue(ev)
-
 	// if t.Strategy != nil {
 	// 	// if err != nil {
 	// 	// 	return err
@@ -729,10 +543,6 @@ func (p *Portfolio) UpdateTrades(ev eventtypes.DataEventHandler) error {
 // func (p *Portfolio) GetStrategies() []strategies.Handler {
 // 	return p.Strategies
 // }
-
-func (p *Portfolio) GetPositionForStrategy(sid int) *positions.Position {
-	return p.store.positions[sid]
-}
 
 func (p *Portfolio) GetTradeForStrategy(sid int) *livetrade.Details {
 	return p.store.openTrade[sid]
@@ -760,60 +570,6 @@ func (p *Portfolio) GetAllClosedTrades() []*livetrade.Details {
 		}
 	}
 	return res
-}
-
-// UpdatePositions updates the strategy's position for the data event
-func (p *Portfolio) UpdatePositions(ev eventtypes.DataEventHandler) {
-	if ev == nil {
-		return
-	}
-
-	// for _, s := range p.GetStrategies() {
-	// 	// update the strategies positions
-	// 	fmt.Println("update position for ", s.Name)
-	// }
-
-	// portfolio has many strategies
-	// we keep the position for each strategy
-	for i, p := range p.store.positions {
-		fmt.Println(i, p)
-	}
-
-	// pos := p.GetPositionForStrategy(p.Strategies[0].ID())
-	// fmt.Println("position:", pos.Amount)
-	// pos.Amount = decimal.NewFromFloat(123.0)
-	// pos.Active = false
-
-	// return nil
-	_, ok := p.exchangeAssetPairSettings[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
-	if !ok {
-		return
-		// return fmt.Errorf("%w for %v %v %v",
-		// 	ev.GetExchange(),
-		// 	ev.GetAssetType(),
-		// 	ev.Pair())
-	}
-	// t, _ := p.GetOpenTrade()
-
-	// if err != nil {
-	// 	// fmt.Println("error", t)
-	// 	// t, _ = trades.Create(ev)
-	// }
-
-	// p.openTrade = t
-	// t, _ = p.GetOpenTrade()
-	// p.openTrade.UpdateValue(ev)
-	//
-	// if t.Strategy != nil {
-	// 	// if err != nil {
-	// 	// 	return err
-	// 	// }
-	// }
-	// err := p.setTradesForOffset(&t, true)
-	// if errors.Is(err, errNoTrades) {
-	// 	err = p.setTradesForOffset(&t, false)
-	// }
-	// return err
 }
 
 // GetLatestHoldingsForAllCurrencies will return the current holdings for all loaded currencies
@@ -893,14 +649,6 @@ func (p *Portfolio) SetupCurrencySettingsMap(exch string, a asset.Item, cp curre
 
 	return p.exchangeAssetPairSettings[exch][a][cp], nil
 }
-
-// // GetOpenTrades returns the latest holdings after being sorted by time
-// func (p *Portfolio) GetOpenTrade() (livetrade.Details, error) {
-// 	if p.openTrade.EntryPrice.IsZero() {
-// 		return livetrade.Details{}, errNoOpenTrade
-// 	}
-// 	return p.openTrade, nil
-// }
 
 func (p *Portfolio) GetLiveMode() bool {
 	return p.bot.Config.LiveMode
@@ -1144,8 +892,6 @@ func (p *Portfolio) PrintPortfolioDetails() {
 	// total PL past 24 hours
 	// num trades past 24 hours
 	// num orders past 24 hours
-
-	// current positions and their stats
 
 	// log.Infoln(log.Portfolio, "active strategies")
 	// log.Infoln(log.Portfolio, "active pairs")
@@ -1399,4 +1145,171 @@ func (p *Portfolio) getStrategy(strategyID int) (strategies.Handler, error) {
 		}
 	}
 	return nil, fmt.Errorf("strategy not found")
+}
+
+func (p *Portfolio) recordEnterTrade(ev fill.Event) {
+	s, _ := p.getStrategy(ev.GetStrategyID())
+	// fmt.Println("STRATEGY DIR", s.GetDirection())
+	// fmt.Println("EV DIR", ev.GetDirection())
+	// fmt.Println("ORDER ID", ev.GetOrderID())
+
+	if ev.GetDirection() != s.GetDirection() {
+		str := fmt.Sprintf("%s %s for %s", ev.GetDirection(), s.GetDirection(), ev.GetStrategyID())
+		panic(str)
+	}
+	foundOrd := p.GetOrderFromStore(ev.GetInternalOrderID())
+	// fmt.Println("found order", foundOrd.ID, foundOrd.InternalOrderID)
+	stopLossPrice := decimal.NewFromFloat(foundOrd.Price).Mul(decimal.NewFromFloat(0.9))
+
+	t := livetrade.Details{
+		Status:        gctorder.Open,
+		StrategyID:    ev.GetStrategyID(),
+		EntryTime:     ev.GetTime(),
+		EntryOrderID:  foundOrd.InternalOrderID,
+		EntryPrice:    decimal.NewFromFloat(foundOrd.Price),
+		StopLossPrice: stopLossPrice,
+		Side:          foundOrd.Side,
+		Pair:          foundOrd.Pair,
+		Amount:        decimal.NewFromFloat(foundOrd.Amount),
+	}
+
+	if t.EntryPrice.IsZero() {
+		panic("EntryPrice cannot be empty")
+	}
+	if t.EntryTime.IsZero() {
+		panic("EntryTime cannot be empty")
+	}
+	if t.Amount.IsZero() {
+		panic("Amount cannot be 0")
+	}
+	if t.EntryOrderID == 0 {
+		panic("trade must have entry order id")
+	}
+
+	// fmt.Println("creating trade, id", t.EntryOrderID, "entrytime:", t.EntryTime)
+
+	if !p.bot.Settings.EnableDryRun {
+		id, err := livetrade.Insert(t)
+		t.ID = id
+		if err != nil {
+			fmt.Println("error inserting trade", err)
+			os.Exit(2)
+		}
+	}
+	if p.bot.Settings.EnableLiveMode {
+		// tradeMsg := fmt.Sprintf("created trade for s:%d %v %s %s", ev.GetStrategyID(), ev.Pair(), ev.GetAmount(), ev.GetDirection())
+		// log.Warnf(log.Portfolio, tradeMsg)
+
+		// t.EntryTime.UTC().AppendFormat(e.data, l.Timestamp)
+
+		timestampFormat := " 15:04:05 UTC"
+		s, _ := p.getStrategy(ev.GetStrategyID())
+		notificationMsg := fmt.Sprintf(
+			"ENTER TRADE: %d-%s-%s\n%s %v@%v %v\n%s",
+			s.GetID(),
+			s.GetPair(),
+			s.GetDirection(),
+			t.Side,
+			t.Amount,
+			t.EntryPrice,
+			t.EntryTime.Format(timestampFormat),
+			ev.GetReason())
+
+		// fmt.Print("notification message", notificationMsg)
+		p.bot.CommunicationsManager.PushEvent(base.Event{
+			Type:    "trade_open\n",
+			Message: notificationMsg,
+		})
+	}
+
+	p.store.openTrade[ev.GetStrategyID()] = &t
+}
+
+func (p *Portfolio) recordExitTrade(f fill.Event, t *livetrade.Details) {
+
+	if t.Status == gctorder.Open {
+		t.Status = gctorder.Closed
+		t.ExitTime = f.GetTime()
+		t.ExitPrice = f.GetClosePrice()
+
+		// duplicate code from updateStrategyTrades
+		if t.Side == gctorder.Buy {
+			// fmt.Println("current price", ev.GetPrice(), "trade price", trade.EntryPrice, ev.GetPrice().Sub(trade.EntryPrice))
+			t.ProfitLossPoints = f.GetClosePrice().Sub(t.EntryPrice)
+		} else if t.Side == gctorder.Sell {
+			t.ProfitLossPoints = t.EntryPrice.Sub(f.GetClosePrice())
+		} else {
+			fmt.Println("trade is not sell or buy")
+			os.Exit(2)
+		}
+
+		// msg := fmt.Sprintf("Order manager: Strategy=%s Exchange=%s submitted order ID=%v [Ours: %v] pair=%v price=%v amount=%v side=%v type=%v for time %v.",
+		// 	newOrder.StrategyID,
+		// 	newOrder.Exchange,
+		// 	result.OrderID,
+		// 	newOrder.ID,
+		// 	newOrder.Pair,
+		// 	newOrder.Price,
+		// 	newOrder.Amount,
+		// 	newOrder.Side,
+		// 	newOrder.Type,
+		// 	newOrder.Date)
+		// log.Debugln(log.OrderMgr, msg)
+
+		// get order for trade
+
+	} else {
+		fmt.Println("TRYING TO CLOSE  ALREADY CLOSED TRADE. TRADE IS NOT OPEN")
+		os.Exit(1)
+	}
+	// Velse if t.Status == livetrade.Pending {
+	// 	ot := *p.store.openTrade[f.GetStrategyID()]
+	// 	ot.Status = livetrade.Open
+	// 	p.store.openTrade[f.GetStrategyID()] = &ot
+	// }
+
+	if t.Amount.IsZero() {
+		panic("trade amount is zero")
+	}
+	if t.ExitTime.IsZero() {
+		fmt.Println("ftime", f.GetTime())
+		panic("exit time is zero")
+	}
+	if t.ExitPrice.IsZero() {
+		panic("exit price is zero")
+	}
+	if !p.bot.Settings.EnableDryRun {
+		id, err := livetrade.Update(t)
+		t.ID = int(id)
+		if err != nil || id == 0 {
+			fmt.Println("error saving to db")
+			os.Exit(2)
+		}
+	}
+	p.store.closedTrades[f.GetStrategyID()] = append(p.store.closedTrades[f.GetStrategyID()], t)
+	p.store.openTrade[f.GetStrategyID()] = nil
+
+	if p.bot.Settings.EnableLiveMode {
+		s, _ := p.getStrategy(f.GetStrategyID())
+
+		timeFormat := "15:05:05"
+		// fmt.Println(time.Now().Format("02-Jan-2006 15:04:05"))
+		notificationMsg := fmt.Sprintf(
+			"EXIT TRADE: %s\nEntry:%s %v@%v@%v\nExit:%v@%v\nReason: %s\nProfit: %v",
+			s.GetID(),
+			t.Side,
+			t.Amount,
+			t.EntryTime.Format(timeFormat),
+			t.EntryPrice,
+			t.ExitTime.Format(timeFormat),
+			t.ExitPrice,
+			f.GetReason(),
+			t.ProfitLossPoints,
+		)
+
+		p.bot.CommunicationsManager.PushEvent(base.Event{
+			Type:    "trade_close",
+			Message: notificationMsg,
+		})
+	}
 }

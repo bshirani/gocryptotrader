@@ -179,8 +179,12 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 				// check database name to ensure we don't delete anything
 				panic("trying to delete production")
 			}
-			liveorder.DeleteAll()
-			livetrade.DeleteAll()
+			err := liveorder.DeleteAll()
+			err = livetrade.DeleteAll()
+			if err != nil {
+				fmt.Println("did not delete", err)
+				os.Exit(123)
+			}
 		}
 
 		p, err := SetupPortfolio(tm.Strategies, tm.bot, tm.bot.Config)
@@ -325,6 +329,10 @@ dataLoadingIssue:
 						tm.hasHandledEvent = true
 						count += 1
 						// fmt.Println("data event", d)
+
+						if !tm.bot.Config.ProductionMode {
+							tm.OrderManager.UpdateFakeOrders(d)
+						}
 						tm.EventQueue.AppendEvent(d)
 					}
 				}
@@ -546,17 +554,18 @@ func (tm *TradeManager) processLiveMinute() error {
 	loc, _ := time.LoadLocation("UTC")
 	t := tm.GetCurrentTime()
 	thisMinute = time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, loc)
-	if thisMinute != lastMinute {
+	if !lastMinute.IsZero() && thisMinute != lastMinute {
 		lastMinute = thisMinute
 	}
 
 	for _, cs := range tm.bot.CurrencySettings {
-		fmt.Println("update CS")
 		if tm.lastUpdateMin[cs] != thisMinute {
 			dbData, err := tm.loadLatestCandleFromDatabase(cs)
 			if err != nil {
+				fmt.Println("error loading latest candle", err)
 				continue
 			}
+			fmt.Println("loaded latest candle")
 
 			dataEvent := dbData.Next()
 			for ; ; dataEvent = dbData.Next() {
@@ -575,6 +584,7 @@ func (tm *TradeManager) processLiveMinute() error {
 				log.Error(log.TradeMgr, "doesnt have data in range")
 				os.Exit(123)
 			}
+			fmt.Println("updating with event", dataEvent)
 			tm.lastUpdateMin[cs] = dataEvent.GetTime().UTC()
 			tm.EventQueue.AppendEvent(dataEvent)
 		}

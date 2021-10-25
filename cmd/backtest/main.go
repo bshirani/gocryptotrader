@@ -14,8 +14,8 @@ import (
 )
 
 func main() {
-	var startDate, endDate, configPath, templatePath, reportOutput, pairsArg string
-	var printLogo, generateReport, dryrun, darkReport bool
+	var startDate, endDate, strategy, configPath, templatePath, reportOutput, pairsArg string
+	var clearDB, printLogo, generateReport, dryrun, darkReport bool
 	wd, err := os.Getwd()
 	if err != nil {
 		fmt.Printf("Could not get working directory. Error: %v.\n", err)
@@ -23,7 +23,10 @@ func main() {
 	}
 	flag.BoolVar(&dryrun, "dryrun", true, "write orders/trades to db")
 	flag.BoolVar(&generateReport, "generatereport", false, "whether to generate the report file")
-	flag.StringVar(&configPath, "strategy", "all", "the config containing strategy params")
+	flag.StringVar(&strategy, "strategy", "all", "the config containing strategy params")
+	path := "backtest.json"
+	flag.StringVar(&configPath, "config", path, "the config containing strategy params")
+	flag.BoolVar(&clearDB, "cleardb", true, "the config containing strategy params")
 	flag.StringVar(&templatePath, "templatepath", filepath.Join(wd, "../portfolio/tradereport", "tpl.gohtml"), "the report template to use")
 	flag.StringVar(&reportOutput, "outputpath", filepath.Join(wd, "results"), "the path where to output results")
 	flag.StringVar(&startDate, "start", "", "start date")
@@ -33,18 +36,20 @@ func main() {
 	flag.BoolVar(&darkReport, "darkreport", false, "sets the initial rerport to use a dark theme")
 	flag.Parse()
 
+	configPath = filepath.Join(wd, "../confs/dev", configPath)
+
 	if printLogo {
 		fmt.Print(common.ASCIILogo)
 	}
 
 	var cfg *config.Config
 
-	configPath = filepath.Join(wd, "../confs/dev/strategy", fmt.Sprintf("%s.strat", configPath))
-	fmt.Println("Loading TradeManager Config", configPath)
+	strategy = filepath.Join(wd, "../confs/dev/strategy", fmt.Sprintf("%s.strat", strategy))
+	fmt.Println("Loading TradeManager Config", strategy)
 
-	cfg, err = config.ReadConfigFromFile(configPath)
+	cfg, err = config.ReadConfigFromFile(strategy)
 	if err != nil {
-		fmt.Printf("Could not read config. Error: %v. Path: %s\n", err, configPath)
+		fmt.Printf("Could not read config. Error: %v. Path: %s\n", err, strategy)
 		os.Exit(1)
 	}
 	tformat := "2006-01-02"
@@ -69,7 +74,6 @@ func main() {
 	// if cfg.GoCryptoTraderConfigPath != "" {
 	// 	path = cfg.GoCryptoTraderConfigPath
 	// }
-	path := "/home/bijan/work/crypto/gocryptotrader/cmd/confs/dev/backtest.json"
 
 	var bot *engine.Engine
 	flags := map[string]bool{
@@ -81,9 +85,10 @@ func main() {
 		"enablecommsrelayer": false,
 	}
 	bot, err = engine.NewFromSettings(&engine.Settings{
-		ConfigFile:                    path,
+		ConfigFile:                    configPath,
 		EnableDryRun:                  dryrun,
 		EnableAllPairs:                false,
+		EnableClearDB:                 clearDB,
 		EnableExchangeHTTPRateLimiter: true,
 		EnableLiveMode:                false,
 	}, flags)

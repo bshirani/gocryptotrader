@@ -1,7 +1,7 @@
 {
  "productionMode": false,
  "liveMode": false,
- "dryRun": true,
+ "dryRun": false,
  "script": false,
  "nickname": "",
  "goal": "",

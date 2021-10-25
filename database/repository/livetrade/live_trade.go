@@ -252,6 +252,23 @@ func insertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int, err 
 	return tempInsert.ID, nil
 }
 
+// func Upsert(f fill.Event) error {
+// 	// update trades and orders here
+// 	t := openTrade[f.GetStrategyID()]
+//
+// 	// get the open trade here
+//
+// 	if t == nil {
+// 		// fmt.Println("PF ON fILL creating NEW TRADE")
+// 		recordEnterTrade(f)
+//
+// 	} else if t.Status == gctorder.Open {
+// 		// fmt.Println("PF ONFILL CLOSING TRADE")
+// 		recordExitTrade(f, t)
+// 	}
+// 	return nil
+// }
+
 func updatePostgresql(ctx context.Context, tx *sql.Tx, in []Details) (id int64, err error) {
 	// boil.DebugMode = true
 	for x := range in {

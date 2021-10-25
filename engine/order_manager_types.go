@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"gocryptotrader/currency"
+	"gocryptotrader/eventtypes"
 	"gocryptotrader/exchange"
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/order"
@@ -84,6 +85,7 @@ type OrderManagerHandler interface {
 	IsRunning() bool
 	Start() error
 	Stop() error
+	UpdateFakeOrders(eventtypes.DataEventHandler) error
 	Update()
 
 	Add(o *order.Detail) error

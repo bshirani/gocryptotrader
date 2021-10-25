@@ -14,6 +14,7 @@ import (
 	"gocryptotrader/communications/base"
 	"gocryptotrader/currency"
 	"gocryptotrader/database/repository/liveorder"
+	"gocryptotrader/eventtypes"
 	"gocryptotrader/exchange"
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/order"
@@ -71,7 +72,9 @@ func (m *OrderManager) Start() error {
 	}
 	log.Debugln(log.OrderMgr, "Order manager starting...")
 	m.shutdown = make(chan struct{})
-	go m.run()
+	if m.useRealOrders {
+		go m.run()
+	}
 	return nil
 }
 
@@ -108,6 +111,20 @@ func (m *OrderManager) gracefulShutdown() {
 		}
 		m.CancelAllOrders(context.TODO(), exchanges)
 	}
+}
+
+// run will periodically process orders
+func (m *OrderManager) UpdateFakeOrders(d eventtypes.DataEventHandler) error {
+	if m.useRealOrders {
+		panic("updating fake orders in production")
+	}
+
+	// get the current price
+	// fmt.Println("updating pair", d.Pair(), d.ClosePrice())
+
+	// get all orders for this pair
+
+	return nil
 }
 
 // run will periodically process orders
@@ -379,6 +396,7 @@ func (m *OrderManager) Modify(ctx context.Context, mod *order.Modify) (*order.Mo
 // populate it in the OrderManager if successful
 func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*OrderSubmitResponse, error) {
 	// if m.liveMode {
+	// fmt.Println("submitting order")
 	if m.liveMode {
 		log.Warnln(log.OrderMgr, "Order manager: Order", newOrder.Side, newOrder.Date, newOrder.StrategyID, newOrder.ID)
 	}
@@ -614,10 +632,6 @@ func (m *OrderManager) processOrders() {
 	defer func() {
 		atomic.StoreInt32(&m.processingOrders, 0)
 	}()
-
-	if !m.useRealOrders {
-		return
-	}
 
 	exchanges, err := m.orderStore.exchangeManager.GetExchanges()
 	if err != nil {

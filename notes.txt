@@ -209,3 +209,8 @@ portfolio backtest
 deciding which strategies to deploy on a daily basis
 dynamically enabling/disabling pairs/strategies
 
+
+when in backtest mode:
+- on every data point, we need to update the order manager
+- this is to check for stop loss or take profits that have been activated
+- thus we can notify the portfolio to record the trade as closed
