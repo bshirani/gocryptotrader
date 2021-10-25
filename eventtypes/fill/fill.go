@@ -71,6 +71,11 @@ func (f *Fill) GetInternalOrderID() int {
 	return f.InternalOrderID
 }
 
+// GetOrder returns the order
+func (f *Fill) GetStopLossOrderID() int {
+	return f.StopLossOrderID
+}
+
 // GetSlippageRate returns the slippage rate
 func (f *Fill) GetSlippageRate() decimal.Decimal {
 	return f.Slippage

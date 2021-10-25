@@ -3,6 +3,8 @@ package submit
 import (
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/event"
+
+	"github.com/shopspring/decimal"
 )
 
 // Submit is an event that details the events from placing an order
@@ -12,6 +14,9 @@ type Submit struct {
 	OrderID         string
 	StrategyID      int
 	IsOrderPlaced   bool
+	FullyMatched    bool
+	StopLossOrderID int
+	Price           float64
 }
 
 // Event holds all functions required to handle a fill event
@@ -20,4 +25,6 @@ type Event interface {
 	GetInternalOrderID() int
 	GetOrderID() string
 	GetIsOrderPlaced() bool
+	GetStopLossOrderID() int
+	GetPrice() decimal.Decimal
 }

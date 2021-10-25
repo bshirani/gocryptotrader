@@ -416,9 +416,9 @@ func (p *Portfolio) GetOrderFromStore(orderid int) *gctorder.Detail {
 	if foundOrd == nil {
 		panic("order not found in store")
 	}
-	if foundOrd.Price == 0 {
-		fmt.Println("ERROR order has no price ")
-	}
+	// if foundOrd.Price == 0 {
+	// 	fmt.Println("ERROR order has no price ")
+	// }
 
 	if foundOrd.InternalOrderID != orderid {
 		// fmt.Println("FOUND ORDER internal:", foundOrd.InternalOrderID, foundOrd.ID)
@@ -1166,6 +1166,10 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 		panic(str)
 	}
 	foundOrd := p.GetOrderFromStore(ev.GetInternalOrderID())
+	if ev.GetStopLossOrderID() == 0 {
+		panic("recordEnterTrade without a stop loss order")
+	}
+	stopOrd := p.GetOrderFromStore(ev.GetStopLossOrderID())
 	// fmt.Println("found order", foundOrd.ID, foundOrd.InternalOrderID)
 	// stopLossPrice := decimal.NewFromFloat(foundOrd.Price).Mul(decimal.NewFromFloat(0.9))
 
@@ -1174,8 +1178,8 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 		StrategyID:    ev.GetStrategyID(),
 		EntryTime:     ev.GetTime(),
 		EntryOrderID:  foundOrd.InternalOrderID,
-		EntryPrice:    decimal.NewFromFloat(foundOrd.Price),
-		StopLossPrice: decimal.NewFromFloat(foundOrd.StopLossPrice),
+		EntryPrice:    ev.GetPurchasePrice(),
+		StopLossPrice: decimal.NewFromFloat(stopOrd.StopLossPrice),
 		Side:          foundOrd.Side,
 		Pair:          foundOrd.Pair,
 		Amount:        decimal.NewFromFloat(foundOrd.Amount),

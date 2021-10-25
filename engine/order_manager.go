@@ -120,10 +120,10 @@ func (m *OrderManager) UpdateFakeOrders(d eventtypes.DataEventHandler) error {
 		panic("updating fake orders in production")
 	}
 
-	active, _ := m.GetOrdersActive(nil)
-	if len(active) > 0 {
-		fmt.Println("there are ", len(active), "active orders")
-	}
+	// active, _ := m.GetOrdersActive(nil)
+	// if len(active) > 0 {
+	// 	fmt.Println("there are ", len(active), "active orders")
+	// }
 	// _, err = m.UpsertOrder(&fetchedOrder)
 
 	// get the current price
@@ -468,8 +468,11 @@ func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*Ord
 	} else {
 		id = m.GenerateDryRunID()
 	}
+	newOrder.InternalOrderID = id
 
 	var result order.SubmitResponse
+
+	var isOrderFilled bool
 
 	// fmt.Println("order for strategy", newOrder.StrategyID)
 	if m.useRealOrders {
@@ -480,11 +483,19 @@ func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*Ord
 			return nil, err
 		}
 	} else {
+
+		if newOrder.Price != 0 {
+			fmt.Println("order has a price, it's a stop loss order", newOrder.Price, "id:", newOrder.InternalOrderID)
+			isOrderFilled = false
+		} else {
+			isOrderFilled = true
+		}
+
 		result = order.SubmitResponse{
 			IsOrderPlaced:   true,
-			Rate:            newOrder.Price, // NOTE ensure is populated from kraken add order
+			Rate:            newOrder.Price,
 			OrderID:         randString(12),
-			FullyMatched:    true,
+			FullyMatched:    isOrderFilled,
 			InternalOrderID: id,
 		}
 	}

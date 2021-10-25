@@ -24,6 +24,7 @@ type Fill struct {
 	ExchangeFee         decimal.Decimal `json:"exchange-fee"`
 	Slippage            decimal.Decimal `json:"slippage"`
 	Order               *order.Detail   `json:"-"`
+	StopLossOrderID     int             `json:"stop-loss-order-id"`
 }
 
 // Event holds all functions required to handle a fill event
@@ -43,4 +44,5 @@ type Event interface {
 	SetExchangeFee(decimal.Decimal)
 	GetOrder() *order.Detail
 	GetInternalOrderID() int
+	GetStopLossOrderID() int
 }

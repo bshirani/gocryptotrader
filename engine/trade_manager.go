@@ -219,6 +219,9 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	} else if o.GetDecision() == "" {
 		panic("order without decision")
 	}
+	if o.GetPrice().IsZero() {
+		panic("order has no price")
+	}
 
 	stopLossPrice, _ := o.GetStopLossPrice().Float64()
 
@@ -286,6 +289,19 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 		stopID = entryID + 1
 	}
 
+	// ords, _ := om.GetOrdersSnapshot("")
+	// var internalOrderID int
+	// for i := range ords {
+	// 	fmt.Println("checking order id", ords[i].InternalOrderID, o.GetID())
+	// 	if ords[i].ID != omr.InternalOrderID {
+	// 		continue
+	// 	}
+	// 	ords[i].StrategyID = o.GetStrategyID()
+	// 	ords[i].Date = o.GetTime()
+	// 	ords[i].LastUpdated = o.GetTime()
+	// 	ords[i].CloseTime = o.GetTime()
+	// }
+
 	submission.InternalOrderID = entryID
 	stopLossSubmission.InternalOrderID = stopID
 
@@ -297,6 +313,7 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 		panic("no order id")
 	}
 
+	var stopLossOrderID int
 	if !skipStop {
 		somr, err := om.Submit(context.TODO(), stopLossSubmission)
 		if err != nil {
@@ -305,6 +322,7 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 		if somr.InternalOrderID == 0 {
 			panic("no order id")
 		}
+		stopLossOrderID = somr.InternalOrderID
 	}
 
 	// fmt.Println("tm: order manager response", omr)
@@ -315,6 +333,10 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	// if o.GetStrategyID() == "" {
 	// 	return nil, fmt.Errorf("exchange: order has no strategyid")
 	// }
+
+	if omr.IsOrderPlaced && omr.Rate == 0 {
+		panic("order placed without price/rate")
+	}
 
 	ev := &submit.Submit{
 		Base: event.Base{
@@ -328,8 +350,11 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 			StrategyID:   o.GetStrategyID(),
 		},
 		InternalOrderID: omr.InternalOrderID,
+		StopLossOrderID: stopLossOrderID,
 		IsOrderPlaced:   omr.IsOrderPlaced,
 		OrderID:         omr.OrderID,
+		FullyMatched:    omr.FullyMatched,
+		Price:           omr.Rate,
 		StrategyID:      o.GetStrategyID(),
 	}
 
@@ -844,9 +869,24 @@ func (tm *TradeManager) createFillEvent(ev submit.Event) {
 	// validate the side here
 
 	o := tm.Portfolio.GetOrderFromStore(ev.GetInternalOrderID())
+	stopLossID := ev.GetStopLossOrderID()
+	var stopLossPrice float64
+	if stopLossID != 0 {
+		so := tm.Portfolio.GetOrderFromStore(ev.GetStopLossOrderID())
+		stopLossPrice = so.Price
+		if stopLossPrice == 0 {
+			panic("has 0 stop loss")
+		}
+		// else {
+		// 	fmt.Println("retrieved secondary stop loss order ID:", ev.GetStopLossOrderID(), "at price", stopLossPrice)
+		// }
+	}
 
 	if o.Amount == 0 {
 		panic("order amount is 0")
+	}
+	if o.Price == 0 {
+		panic("order price is 0 and filled")
 	}
 
 	e := &fill.Fill{
@@ -863,9 +903,11 @@ func (tm *TradeManager) createFillEvent(ev submit.Event) {
 		OrderID:         ev.GetOrderID(),
 		InternalOrderID: ev.GetInternalOrderID(),
 		ClosePrice:      decimal.NewFromFloat(o.Price),
-		StopLossPrice:   decimal.NewFromFloat(o.StopLossPrice),
+		PurchasePrice:   decimal.NewFromFloat(o.Price),
+		StopLossPrice:   decimal.NewFromFloat(stopLossPrice),
 		Direction:       o.Side,
 		Amount:          decimal.NewFromFloat(o.Amount),
+		StopLossOrderID: stopLossID,
 		// Direction:  ev.GetDirection(),
 		// Amount:     ev.GetAmount(),
 	}
