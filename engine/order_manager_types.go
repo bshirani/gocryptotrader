@@ -55,6 +55,7 @@ type OrderManager struct {
 	liveMode         bool
 	bot              *Engine
 	started          int32
+	dryRun           bool
 	processingOrders int32
 	shutdown         chan struct{}
 	orderStore       store
@@ -68,7 +69,7 @@ type OrderManager struct {
 // OrderSubmitResponse contains the order response along with an internal order ID
 type OrderSubmitResponse struct {
 	order.SubmitResponse
-	InternalOrderID string
+	InternalOrderID int
 	StrategyID      int
 }
 

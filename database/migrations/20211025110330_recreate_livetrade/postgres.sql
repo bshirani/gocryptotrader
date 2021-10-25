@@ -11,7 +11,7 @@ CREATE TABLE public.live_order (
     amount double precision DEFAULT 0 NOT NULL,
     symbol text NOT NULL,
     price double precision DEFAULT 0 NOT NULL,
-    stop_price double precision DEFAULT 0 NOT NULL,
+    stop_loss_price double precision DEFAULT 0 NOT NULL,
     take_profit_price double precision DEFAULT 0 NOT NULL,
     fee double precision DEFAULT 0 NOT NULL,
     cost double precision DEFAULT 0 NOT NULL,

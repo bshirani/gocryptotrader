@@ -126,7 +126,8 @@ func updatePostgresql(ctx context.Context, tx *sql.Tx, in []Details) (id int64, 
 	for x := range in {
 		// entryPrice, _ := in[x].EntryPrice.Float64()
 		// exitPrice, _ := in[x].ExitPrice.Float64()
-		stopLossPrice, _ := in[x].StopPrice.Float64()
+		stopLossPrice, _ := in[x].StopLossPrice.Float64()
+		takeProfitPrice, _ := in[x].TakeProfitPrice.Float64()
 		price, _ := in[x].Price.Float64()
 
 		// if in[x].EntryTime.IsZero() {
@@ -135,16 +136,17 @@ func updatePostgresql(ctx context.Context, tx *sql.Tx, in []Details) (id int64, 
 		// 	os.Exit(2)
 		// }
 		var tempUpdate = postgres.LiveOrder{
-			ID:           in[x].ID,
-			Status:       in[x].Status.String(),
-			OrderType:    in[x].OrderType.String(),
-			StopPrice:    stopLossPrice,
-			Price:        price,
-			Exchange:     in[x].Exchange,
-			InternalID:   in[x].InternalID,
-			StrategyName: in[x].StrategyName,
-			UpdatedAt:    in[x].UpdatedAt,
-			CreatedAt:    in[x].CreatedAt,
+			ID:              in[x].ID,
+			Status:          in[x].Status.String(),
+			OrderType:       in[x].OrderType.String(),
+			StopLossPrice:   stopLossPrice,
+			TakeProfitPrice: takeProfitPrice,
+			Price:           price,
+			Exchange:        in[x].Exchange,
+			InternalID:      in[x].InternalID,
+			StrategyName:    in[x].StrategyName,
+			UpdatedAt:       in[x].UpdatedAt,
+			CreatedAt:       in[x].CreatedAt,
 		}
 
 		id, err = tempUpdate.Update(ctx, tx, boil.Infer())
@@ -191,14 +193,21 @@ func Insert(in Details) (int, error) {
 }
 
 func insertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int, err error) {
+	price, _ := in.Price.Float64()
+	stopPrice, _ := in.StopLossPrice.Float64()
+	takeProfit, _ := in.TakeProfitPrice.Float64()
 	var tempInsert = postgres.LiveOrder{
-		Status:       in.Status.String(),
-		OrderType:    in.OrderType.String(),
-		Exchange:     in.Exchange,
-		InternalID:   in.InternalID,
-		StrategyName: in.StrategyName,
-		UpdatedAt:    in.UpdatedAt,
-		CreatedAt:    in.CreatedAt,
+		Status:          in.Status.String(),
+		OrderType:       in.OrderType.String(),
+		Exchange:        in.Exchange,
+		Side:            in.Side.String(),
+		Price:           price,
+		StopLossPrice:   stopPrice,
+		TakeProfitPrice: takeProfit,
+		InternalID:      in.InternalID,
+		StrategyName:    in.StrategyName,
+		UpdatedAt:       in.UpdatedAt,
+		CreatedAt:       in.CreatedAt,
 	}
 
 	err = tempInsert.Insert(ctx, tx, boil.Infer())

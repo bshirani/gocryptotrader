@@ -35,7 +35,7 @@ type LiveOrder struct {
 	Amount          float64   `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
 	Symbol          string    `boil:"symbol" json:"symbol" toml:"symbol" yaml:"symbol"`
 	Price           float64   `boil:"price" json:"price" toml:"price" yaml:"price"`
-	StopPrice       float64   `boil:"stop_price" json:"stop_price" toml:"stop_price" yaml:"stop_price"`
+	StopLossPrice   float64   `boil:"stop_loss_price" json:"stop_loss_price" toml:"stop_loss_price" yaml:"stop_loss_price"`
 	TakeProfitPrice float64   `boil:"take_profit_price" json:"take_profit_price" toml:"take_profit_price" yaml:"take_profit_price"`
 	Fee             float64   `boil:"fee" json:"fee" toml:"fee" yaml:"fee"`
 	Cost            float64   `boil:"cost" json:"cost" toml:"cost" yaml:"cost"`
@@ -62,7 +62,7 @@ var LiveOrderColumns = struct {
 	Amount          string
 	Symbol          string
 	Price           string
-	StopPrice       string
+	StopLossPrice   string
 	TakeProfitPrice string
 	Fee             string
 	Cost            string
@@ -84,7 +84,7 @@ var LiveOrderColumns = struct {
 	Amount:          "amount",
 	Symbol:          "symbol",
 	Price:           "price",
-	StopPrice:       "stop_price",
+	StopLossPrice:   "stop_loss_price",
 	TakeProfitPrice: "take_profit_price",
 	Fee:             "fee",
 	Cost:            "cost",
@@ -108,7 +108,7 @@ var LiveOrderTableColumns = struct {
 	Amount          string
 	Symbol          string
 	Price           string
-	StopPrice       string
+	StopLossPrice   string
 	TakeProfitPrice string
 	Fee             string
 	Cost            string
@@ -130,7 +130,7 @@ var LiveOrderTableColumns = struct {
 	Amount:          "live_order.amount",
 	Symbol:          "live_order.symbol",
 	Price:           "live_order.price",
-	StopPrice:       "live_order.stop_price",
+	StopLossPrice:   "live_order.stop_loss_price",
 	TakeProfitPrice: "live_order.take_profit_price",
 	Fee:             "live_order.fee",
 	Cost:            "live_order.cost",
@@ -156,7 +156,7 @@ var LiveOrderWhere = struct {
 	Amount          whereHelperfloat64
 	Symbol          whereHelperstring
 	Price           whereHelperfloat64
-	StopPrice       whereHelperfloat64
+	StopLossPrice   whereHelperfloat64
 	TakeProfitPrice whereHelperfloat64
 	Fee             whereHelperfloat64
 	Cost            whereHelperfloat64
@@ -178,7 +178,7 @@ var LiveOrderWhere = struct {
 	Amount:          whereHelperfloat64{field: "\"live_order\".\"amount\""},
 	Symbol:          whereHelperstring{field: "\"live_order\".\"symbol\""},
 	Price:           whereHelperfloat64{field: "\"live_order\".\"price\""},
-	StopPrice:       whereHelperfloat64{field: "\"live_order\".\"stop_price\""},
+	StopLossPrice:   whereHelperfloat64{field: "\"live_order\".\"stop_loss_price\""},
 	TakeProfitPrice: whereHelperfloat64{field: "\"live_order\".\"take_profit_price\""},
 	Fee:             whereHelperfloat64{field: "\"live_order\".\"fee\""},
 	Cost:            whereHelperfloat64{field: "\"live_order\".\"cost\""},
@@ -211,9 +211,9 @@ func (*liveOrderR) NewStruct() *liveOrderR {
 type liveOrderL struct{}
 
 var (
-	liveOrderAllColumns            = []string{"id", "status", "order_type", "exchange", "strategy_name", "internal_id", "side", "client_order_id", "amount", "symbol", "price", "stop_price", "take_profit_price", "fee", "cost", "filled_at", "asset_type", "submitted_at", "cancelled_at", "created_at", "updated_at"}
+	liveOrderAllColumns            = []string{"id", "status", "order_type", "exchange", "strategy_name", "internal_id", "side", "client_order_id", "amount", "symbol", "price", "stop_loss_price", "take_profit_price", "fee", "cost", "filled_at", "asset_type", "submitted_at", "cancelled_at", "created_at", "updated_at"}
 	liveOrderColumnsWithoutDefault = []string{"status", "order_type", "exchange", "strategy_name", "internal_id", "side", "symbol", "filled_at", "submitted_at", "cancelled_at"}
-	liveOrderColumnsWithDefault    = []string{"id", "client_order_id", "amount", "price", "stop_price", "take_profit_price", "fee", "cost", "asset_type", "created_at", "updated_at"}
+	liveOrderColumnsWithDefault    = []string{"id", "client_order_id", "amount", "price", "stop_loss_price", "take_profit_price", "fee", "cost", "asset_type", "created_at", "updated_at"}
 	liveOrderPrimaryKeyColumns     = []string{"id"}
 )
 

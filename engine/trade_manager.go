@@ -139,6 +139,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 			bot.Settings.Verbose,
 			bot.Config.ProductionMode,
 			bot.Config.LiveMode,
+			bot.Config.DryRun,
 		)
 
 		if err != nil {
@@ -241,19 +242,6 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	// 	return nil, fmt.Errorf("exchange: order has no strategyid")
 	// }
 
-	// update the store with the submission ID
-	ords, _ := om.GetOrdersSnapshot("")
-	var internalOrderID string
-	for i := range ords {
-		if ords[i].ID != o.GetID() {
-			continue
-		}
-		internalOrderID = ords[i].InternalOrderID
-		ords[i].StrategyID = o.GetStrategyID()
-		ords[i].Date = o.GetTime()
-		ords[i].LastUpdated = o.GetTime()
-		ords[i].CloseTime = o.GetTime()
-	}
 	if o.GetID() == "" {
 		panic("no order id")
 	}
@@ -274,7 +262,7 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 		},
 		OrderID:         o.GetID(),
 		IsOrderPlaced:   omr.IsOrderPlaced,
-		InternalOrderID: internalOrderID,
+		InternalOrderID: omr.InternalOrderID,
 		StrategyID:      o.GetStrategyID(),
 	}
 
@@ -770,11 +758,14 @@ func (tm *TradeManager) createFillEvent(ev submit.Event) {
 	if ev.GetTime().IsZero() {
 		panic("event has no time")
 	}
+	if ev.GetInternalOrderID() == 0 {
+		panic("event has no internal order id")
+	}
 
 	// fmt.Println("decision", ev.GetDecision(), "evdir", ev.GetDirection())
 
 	// fmt.Println("CREATE FILL EVENT REFERENCING ORDER", ev.GetOrderID(), "for strategy", ev.GetStrategyID())
-	o := tm.Portfolio.GetOrderFromStore(ev.GetOrderID())
+	o := tm.Portfolio.GetOrderFromStore(ev.GetInternalOrderID())
 	// fmt.Println("returned order id:", o.ID, "internal", o.InternalOrderID)
 
 	// if err != nil {
@@ -963,6 +954,7 @@ func (tm *TradeManager) startOfflineServices() error {
 		tm.bot.Settings.Verbose,
 		tm.bot.Config.ProductionMode,
 		tm.liveMode,
+		tm.bot.Settings.EnableDryRun,
 	)
 	if err != nil {
 		gctlog.Errorf(gctlog.Global, "Order manager unable to setup: %s", err)

@@ -28,13 +28,14 @@ var (
 // Each exchange has their own requirements, so not all fields
 // are required to be populated
 type Submit struct {
-	AssetType  asset.Item
-	Side       Side
-	Exchange   string
-	Pair       currency.Pair
-	StrategyID int
-	Type       Type
-	Status     Status
+	AssetType    asset.Item
+	Side         Side
+	Exchange     string
+	Pair         currency.Pair
+	StrategyID   int
+	StrategyName string
+	Type         Type
+	Status       Status
 
 	Price     float64
 	Amount    float64
@@ -55,7 +56,7 @@ type Submit struct {
 	ReduceOnly        bool
 	Leverage          float64
 
-	InternalOrderID string
+	InternalOrderID int
 	ID              string
 	AccountID       string
 	ClientID        string
@@ -70,13 +71,14 @@ type Submit struct {
 
 // SubmitResponse is what is returned after submitting an order to an exchange
 type SubmitResponse struct {
-	IsOrderPlaced bool
-	FullyMatched  bool
-	OrderID       string
-	Rate          float64
-	Fee           float64
-	Cost          float64
-	Trades        []TradeHistory
+	IsOrderPlaced   bool
+	FullyMatched    bool
+	OrderID         string
+	InternalOrderID int
+	Rate            float64
+	Fee             float64
+	Cost            float64
+	Trades          []TradeHistory
 }
 
 // Modify contains all properties of an order
@@ -99,7 +101,7 @@ type Modify struct {
 	RemainingAmount   float64
 	Fee               float64
 	Exchange          string
-	InternalOrderID   string
+	InternalOrderID   int
 	ID                string
 	ClientOrderID     string
 	AccountID         string
@@ -142,7 +144,7 @@ type Detail struct {
 	HiddenOrder          bool
 	ID                   string
 	ImmediateOrCancel    bool
-	InternalOrderID      string
+	InternalOrderID      int
 	LastUpdated          time.Time
 	Leverage             float64
 	LimitPriceLower      float64
@@ -166,7 +168,7 @@ type Detail struct {
 // empty strings indicate to ignore the property otherwise all need to match
 type Filter struct {
 	Exchange        string
-	InternalOrderID string
+	InternalOrderID int
 	ID              string
 	ClientOrderID   string
 	AccountID       string

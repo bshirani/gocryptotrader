@@ -3,6 +3,7 @@ package order
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"sort"
 	"strings"
 	"time"
@@ -10,8 +11,6 @@ import (
 	"gocryptotrader/common"
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange/validate"
-
-	"github.com/gofrs/uuid"
 )
 
 // Validate checks the supplied data and returns whether or not it's valid
@@ -210,7 +209,7 @@ func (d *Detail) UpdateOrderFromDetail(m *Detail) {
 	if d.ID == "" {
 		d.ID = m.ID
 	}
-	if d.InternalOrderID == "" {
+	if d.InternalOrderID == 0 {
 		d.InternalOrderID = m.InternalOrderID
 	}
 }
@@ -398,7 +397,7 @@ func (d *Detail) MatchFilter(f *Filter) bool {
 	if f.ClientID != "" && d.ClientID != f.ClientID {
 		return false
 	}
-	if f.InternalOrderID != "" && d.InternalOrderID != f.InternalOrderID {
+	if f.InternalOrderID != 0 && d.InternalOrderID != f.InternalOrderID {
 		return false
 	}
 	if f.AccountID != "" && d.AccountID != f.AccountID {
@@ -434,15 +433,20 @@ func (d *Detail) IsInactive() bool {
 // GenerateInternalOrderID sets a new V4 order ID or a V5 order ID if
 // the V4 function returns an error
 func (d *Detail) GenerateInternalOrderID() {
-	if d.InternalOrderID == "" {
-		var id uuid.UUID
-		id, err := uuid.NewV4()
-		if err != nil {
-			id = uuid.NewV5(uuid.UUID{}, d.ID)
-		}
-		d.InternalOrderID = id.String()
+	if d.InternalOrderID == 0 {
+		s1 := rand.NewSource(time.Now().UnixNano())
+		r1 := rand.New(s1)
+		r1.Intn(100)
+		d.InternalOrderID = r1.Intn(100000000)
 	}
 }
+
+// // generate random number
+// var id uuid.UUID
+// id, err := uuid.NewV4()
+// if err != nil {
+// 	id = uuid.NewV5(uuid.UUID{}, d.ID)
+// }
 
 // Copy will return a copy of Detail
 func (d *Detail) Copy() Detail {

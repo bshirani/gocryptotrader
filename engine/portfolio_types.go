@@ -115,7 +115,7 @@ type PortfolioHandler interface {
 	OnSignal(signal.Event, *ExchangeAssetPairSettings) (*order.Order, error)
 	GetOpenOrdersForStrategy(int) []*liveorder.Details
 
-	GetOrderFromStore(orderid string) *gctorder.Detail
+	GetOrderFromStore(orderid int) *gctorder.Detail
 
 	OnFill(fill.Event)
 	OnSubmit(submit.Event)

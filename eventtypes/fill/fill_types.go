@@ -13,7 +13,7 @@ type Fill struct {
 	event.Base
 	OrderID string
 
-	InternalOrderID     string          `json:"internal-order-id"`
+	InternalOrderID     int             `json:"internal-order-id"`
 	Direction           order.Side      `json:"side"`
 	Amount              decimal.Decimal `json:"amount"`
 	ClosePrice          decimal.Decimal `json:"close-price"`
@@ -41,4 +41,5 @@ type Event interface {
 	GetExchangeFee() decimal.Decimal
 	SetExchangeFee(decimal.Decimal)
 	GetOrder() *order.Detail
+	GetInternalOrderID() int
 }

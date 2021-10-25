@@ -547,6 +547,7 @@ func (bot *Engine) Start() error {
 			bot.Config.OrderManager.Verbose,
 			bot.Config.ProductionMode,
 			bot.Config.LiveMode,
+			bot.Config.DryRun,
 		)
 		if err != nil {
 			log.Errorf(log.Global, "Order manager unable to setup: %s", err)

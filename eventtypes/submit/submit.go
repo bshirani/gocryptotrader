@@ -1,6 +1,6 @@
 package submit
 
-func (s *Submit) GetInternalOrderID() string {
+func (s *Submit) GetInternalOrderID() int {
 	return s.InternalOrderID
 }
 

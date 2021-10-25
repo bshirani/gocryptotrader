@@ -8,7 +8,7 @@ import (
 // Submit is an event that details the events from placing an order
 type Submit struct {
 	event.Base
-	InternalOrderID string
+	InternalOrderID int
 	OrderID         string
 	StrategyID      int
 	IsOrderPlaced   bool
@@ -17,7 +17,7 @@ type Submit struct {
 // Event holds all functions required to handle a fill event
 type Event interface {
 	eventtypes.EventHandler
-	GetInternalOrderID() string
-	GetOrderID() int
+	GetInternalOrderID() int
+	GetOrderID() string
 	GetIsOrderPlaced() bool
 }

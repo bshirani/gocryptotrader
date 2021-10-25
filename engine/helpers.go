@@ -143,6 +143,7 @@ func (bot *Engine) SetSubsystem(subSystemName string, enable bool) error {
 					bot.Settings.Verbose,
 					bot.Config.ProductionMode,
 					bot.Config.LiveMode,
+					bot.Config.DryRun,
 				)
 				if err != nil {
 					return err
