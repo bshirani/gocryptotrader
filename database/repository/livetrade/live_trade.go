@@ -96,7 +96,7 @@ func ByStatus(status order.Status) (out []Details, err error) {
 			EntryTime:       x.EntryTime,
 			Amount:          decimal.NewFromFloat(x.Amount),
 			ID:              x.ID,
-			StrategyID:      x.StrategyID,
+			StrategyName:    x.StrategyName,
 			Status:          order.Status(x.Status),
 			Side:            order.Side(x.Side),
 			UpdatedAt:       x.UpdatedAt,

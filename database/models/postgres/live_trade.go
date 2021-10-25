@@ -32,6 +32,7 @@ type LiveTrade struct {
 	StopLossPrice    float64   `boil:"stop_loss_price" json:"stop_loss_price" toml:"stop_loss_price" yaml:"stop_loss_price"`
 	StrategyID       string    `boil:"strategy_id" json:"strategy_id" toml:"strategy_id" yaml:"strategy_id"`
 	Status           string    `boil:"status" json:"status" toml:"status" yaml:"status"`
+	Amount           float64   `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
 	Pair             string    `boil:"pair" json:"pair" toml:"pair" yaml:"pair"`
 	Exchange         string    `boil:"exchange" json:"exchange" toml:"exchange" yaml:"exchange"`
 	TakeProfitPrice  float64   `boil:"take_profit_price" json:"take_profit_price" toml:"take_profit_price" yaml:"take_profit_price"`
@@ -54,6 +55,7 @@ var LiveTradeColumns = struct {
 	StopLossPrice    string
 	StrategyID       string
 	Status           string
+	Amount           string
 	Pair             string
 	Exchange         string
 	TakeProfitPrice  string
@@ -71,6 +73,7 @@ var LiveTradeColumns = struct {
 	StopLossPrice:    "stop_loss_price",
 	StrategyID:       "strategy_id",
 	Status:           "status",
+	Amount:           "amount",
 	Pair:             "pair",
 	Exchange:         "exchange",
 	TakeProfitPrice:  "take_profit_price",
@@ -90,6 +93,7 @@ var LiveTradeTableColumns = struct {
 	StopLossPrice    string
 	StrategyID       string
 	Status           string
+	Amount           string
 	Pair             string
 	Exchange         string
 	TakeProfitPrice  string
@@ -107,6 +111,7 @@ var LiveTradeTableColumns = struct {
 	StopLossPrice:    "live_trade.stop_loss_price",
 	StrategyID:       "live_trade.strategy_id",
 	Status:           "live_trade.status",
+	Amount:           "live_trade.amount",
 	Pair:             "live_trade.pair",
 	Exchange:         "live_trade.exchange",
 	TakeProfitPrice:  "live_trade.take_profit_price",
@@ -128,6 +133,7 @@ var LiveTradeWhere = struct {
 	StopLossPrice    whereHelperfloat64
 	StrategyID       whereHelperstring
 	Status           whereHelperstring
+	Amount           whereHelperfloat64
 	Pair             whereHelperstring
 	Exchange         whereHelperstring
 	TakeProfitPrice  whereHelperfloat64
@@ -145,6 +151,7 @@ var LiveTradeWhere = struct {
 	StopLossPrice:    whereHelperfloat64{field: "\"live_trade\".\"stop_loss_price\""},
 	StrategyID:       whereHelperstring{field: "\"live_trade\".\"strategy_id\""},
 	Status:           whereHelperstring{field: "\"live_trade\".\"status\""},
+	Amount:           whereHelperfloat64{field: "\"live_trade\".\"amount\""},
 	Pair:             whereHelperstring{field: "\"live_trade\".\"pair\""},
 	Exchange:         whereHelperstring{field: "\"live_trade\".\"exchange\""},
 	TakeProfitPrice:  whereHelperfloat64{field: "\"live_trade\".\"take_profit_price\""},
@@ -175,9 +182,9 @@ func (*liveTradeR) NewStruct() *liveTradeR {
 type liveTradeL struct{}
 
 var (
-	liveTradeAllColumns            = []string{"id", "side", "entry_order_id", "entry_price", "entry_time", "exit_time", "stop_loss_price", "strategy_id", "status", "pair", "exchange", "take_profit_price", "profit_loss_points", "exit_price", "created_at", "updated_at"}
+	liveTradeAllColumns            = []string{"id", "side", "entry_order_id", "entry_price", "entry_time", "exit_time", "stop_loss_price", "strategy_id", "status", "amount", "pair", "exchange", "take_profit_price", "profit_loss_points", "exit_price", "created_at", "updated_at"}
 	liveTradeColumnsWithoutDefault = []string{"side", "entry_order_id", "entry_price", "entry_time", "exit_time", "stop_loss_price", "strategy_id", "status", "pair", "exchange", "take_profit_price", "profit_loss_points", "exit_price"}
-	liveTradeColumnsWithDefault    = []string{"id", "created_at", "updated_at"}
+	liveTradeColumnsWithDefault    = []string{"id", "amount", "created_at", "updated_at"}
 	liveTradePrimaryKeyColumns     = []string{"id"}
 )
 

@@ -23,8 +23,8 @@ type Details struct {
 	EntryPrice       decimal.Decimal
 	ExitPrice        decimal.Decimal
 	Amount           decimal.Decimal
-	EntryOrderID     string
-	StrategyID       int
+	EntryOrderID     int
+	StrategyName     string
 	Name             string
 	EntryTime        time.Time
 	ExitTime         time.Time
