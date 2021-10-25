@@ -213,6 +213,13 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	a, _ := o.GetAmount().Float64()
 	fee, _ := o.GetExchangeFee().Float64()
 
+	var skipStop bool
+	if o.GetDecision() == signal.Exit {
+		skipStop = true
+	} else if o.GetDecision() == "" {
+		panic("order without decision")
+	}
+
 	entrySubmission := &gctorder.Submit{
 		Status:      gctorder.New,
 		Price:       priceFloat,
@@ -265,10 +272,12 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 			return nil, err
 		}
 
-		stopID, err = liveorder.Insert(stopLossSubmission)
-		if err != nil {
-			fmt.Println("error inserted order", err)
-			return nil, err
+		if !skipStop {
+			stopID, err = liveorder.Insert(stopLossSubmission)
+			if err != nil {
+				fmt.Println("error inserted order", err)
+				return nil, err
+			}
 		}
 	} else {
 		entryID = om.GenerateDryRunID()
@@ -286,12 +295,14 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 		panic("no order id")
 	}
 
-	somr, err := om.Submit(context.TODO(), stopLossSubmission)
-	if err != nil {
-		fmt.Println("tm: ERROR order manager submission", err, stopLossSubmission.Side, omr)
-	}
-	if somr.InternalOrderID == 0 {
-		panic("no order id")
+	if !skipStop {
+		somr, err := om.Submit(context.TODO(), stopLossSubmission)
+		if err != nil {
+			fmt.Println("tm: ERROR order manager submission", err, stopLossSubmission.Side, omr)
+		}
+		if somr.InternalOrderID == 0 {
+			panic("no order id")
+		}
 	}
 
 	// fmt.Println("tm: order manager response", omr)
@@ -302,10 +313,6 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	// if o.GetStrategyID() == "" {
 	// 	return nil, fmt.Errorf("exchange: order has no strategyid")
 	// }
-
-	if somr.InternalOrderID == 0 {
-		panic("no order id")
-	}
 
 	ev := &submit.Submit{
 		Base: event.Base{

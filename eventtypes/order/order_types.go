@@ -3,6 +3,7 @@ package order
 import (
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/event"
+	"gocryptotrader/eventtypes/signal"
 	"gocryptotrader/exchange/order"
 
 	"github.com/shopspring/decimal"
@@ -13,6 +14,7 @@ type Order struct {
 	event.Base
 	ID             string
 	Direction      order.Side
+	Decision       signal.Decision
 	StrategyID     int
 	Status         order.Status
 	Price          decimal.Decimal
@@ -31,20 +33,21 @@ type Order struct {
 type Event interface {
 	eventtypes.EventHandler
 	eventtypes.Directioner
-	GetBuyLimit() decimal.Decimal
-	GetSellLimit() decimal.Decimal
-	SetPrice(decimal.Decimal)
-	GetPrice() decimal.Decimal
-	SetStopLossPrice(decimal.Decimal)
-	GetStopLossPrice() decimal.Decimal
-	SetExchangeFee(decimal.Decimal)
-	GetExchangeFee() decimal.Decimal
-	SetAmount(decimal.Decimal)
-	GetAmount() decimal.Decimal
-	IsOrder() bool
-	GetStatus() order.Status
-	SetID(id string)
-	GetID() string
-	IsLeveraged() bool
 	GetAllocatedFunds() decimal.Decimal
+	GetAmount() decimal.Decimal
+	GetBuyLimit() decimal.Decimal
+	GetDecision() signal.Decision
+	GetExchangeFee() decimal.Decimal
+	GetID() string
+	GetPrice() decimal.Decimal
+	GetSellLimit() decimal.Decimal
+	GetStatus() order.Status
+	GetStopLossPrice() decimal.Decimal
+	IsLeveraged() bool
+	IsOrder() bool
+	SetAmount(decimal.Decimal)
+	SetExchangeFee(decimal.Decimal)
+	SetID(id string)
+	SetPrice(decimal.Decimal)
+	SetStopLossPrice(decimal.Decimal)
 }

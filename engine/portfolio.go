@@ -333,6 +333,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		},
 		Amount:     ev.GetAmount(),
 		StrategyID: ev.GetStrategyID(),
+		Decision:   ev.GetDecision(),
 	}
 
 	lookup, _ := p.bot.GetCurrencySettings(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
@@ -1167,13 +1168,14 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 	foundOrd := p.GetOrderFromStore(ev.GetInternalOrderID())
 	// fmt.Println("found order", foundOrd.ID, foundOrd.InternalOrderID)
 	stopLossPrice := decimal.NewFromFloat(foundOrd.Price).Mul(decimal.NewFromFloat(0.9))
+	fmt.Println("setting trade entry", ev.GetClosePrice())
 
 	t := livetrade.Details{
 		Status:        gctorder.Open,
 		StrategyID:    ev.GetStrategyID(),
 		EntryTime:     ev.GetTime(),
 		EntryOrderID:  foundOrd.InternalOrderID,
-		EntryPrice:    decimal.NewFromFloat(foundOrd.Price),
+		EntryPrice:    ev.GetClosePrice(),
 		StopLossPrice: stopLossPrice,
 		Side:          foundOrd.Side,
 		Pair:          foundOrd.Pair,

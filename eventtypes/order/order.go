@@ -2,6 +2,7 @@ package order
 
 import (
 	"gocryptotrader/currency"
+	"gocryptotrader/eventtypes/signal"
 	"gocryptotrader/exchange/order"
 
 	"github.com/shopspring/decimal"
@@ -50,6 +51,11 @@ func (o *Order) SetStopLossPrice(i decimal.Decimal) {
 // GetPrice returns the amount
 func (o *Order) GetStopLossPrice() decimal.Decimal {
 	return o.StopLossPrice
+}
+
+// GetPrice returns the amount
+func (o *Order) GetDecision() signal.Decision {
+	return o.Decision
 }
 
 // SetExchangeFee sets the amount

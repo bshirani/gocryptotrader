@@ -120,9 +120,10 @@ func (m *OrderManager) UpdateFakeOrders(d eventtypes.DataEventHandler) error {
 		panic("updating fake orders in production")
 	}
 
-	// active, _ := m.GetOrdersActive(nil)
-	// fmt.Println("there are ", len(active), "active orders")
-
+	active, _ := m.GetOrdersActive(nil)
+	if len(active) > 0 {
+		fmt.Println("there are ", len(active), "active orders")
+	}
 	// _, err = m.UpsertOrder(&fetchedOrder)
 
 	// get the current price
@@ -451,8 +452,8 @@ func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*Ord
 			err)
 	}
 
-	// store order
-
+	// retrieve order from db
+	// if dry run, skip and generate fake id
 	var id int
 	if !m.dryRun {
 		// retrieve the already created order in the database
@@ -470,6 +471,7 @@ func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*Ord
 
 	var result order.SubmitResponse
 
+	fmt.Println("order for strategy", newOrder.StrategyID)
 	if m.useRealOrders {
 		exch.GetBase().Verbose = true
 		result, err = exch.SubmitOrder(ctx, newOrder)
@@ -480,6 +482,7 @@ func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*Ord
 	} else {
 		result = order.SubmitResponse{
 			IsOrderPlaced:   true,
+			Rate:            newOrder.Price, // NOTE ensure is populated from kraken add order
 			OrderID:         randString(12),
 			FullyMatched:    true,
 			InternalOrderID: id,
