@@ -54,6 +54,7 @@ type store struct {
 type OrderManager struct {
 	useRealOrders    bool
 	liveMode         bool
+	debug            bool
 	bot              *Engine
 	started          int32
 	dryRun           bool

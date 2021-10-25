@@ -214,3 +214,8 @@ when in backtest mode:
 - on every data point, we need to update the order manager
 - this is to check for stop loss or take profits that have been activated
 - thus we can notify the portfolio to record the trade as closed
+
+when we add an order to the store
+
+when we create a submit order, we also create orders that represent the stop loss and take profit
+

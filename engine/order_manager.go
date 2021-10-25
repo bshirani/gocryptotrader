@@ -119,8 +119,14 @@ func (m *OrderManager) UpdateFakeOrders(d eventtypes.DataEventHandler) error {
 		panic("updating fake orders in production")
 	}
 
+	active, _ := m.GetOrdersActive(nil)
+	fmt.Println("there are ", len(active), "active orders")
+
+	// _, err = m.UpsertOrder(&fetchedOrder)
+
 	// get the current price
 	// fmt.Println("updating pair", d.Pair(), d.ClosePrice())
+	// fmt.Println(active)
 
 	// get all orders for this pair
 
@@ -396,7 +402,9 @@ func (m *OrderManager) Modify(ctx context.Context, mod *order.Modify) (*order.Mo
 // populate it in the OrderManager if successful
 func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*OrderSubmitResponse, error) {
 	// if m.liveMode {
-	// fmt.Println("submitting order")
+	if m.debug {
+		fmt.Println("submitting order")
+	}
 	if m.liveMode {
 		log.Warnln(log.OrderMgr, "Order manager: Order", newOrder.Side, newOrder.Date, newOrder.StrategyID, newOrder.ID)
 	}
@@ -452,7 +460,10 @@ func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*Ord
 			return nil, err
 		}
 	} else {
-		id = 123 // FIXME
+		orders, _ := m.GetOrdersSnapshot("")
+		fmt.Println("orders count", len(orders))
+		fmt.Println("orders", orders)
+		id = len(orders) + 1
 	}
 
 	var result order.SubmitResponse
@@ -1020,14 +1031,15 @@ func (s *store) add(det *order.Detail) error {
 	s.m.Lock()
 	defer s.m.Unlock()
 
-	// fmt.Println(
-	// 	"add order to store id:",
-	// 	det.ID,
-	// 	"internal:",
-	// 	det.InternalOrderID)
+	fmt.Println(
+		"add order to store id:",
+		det.ID,
+		"internal:",
+		det.InternalOrderID)
 
 	orders := s.Orders[strings.ToLower(det.Exchange)]
 	orders = append(orders, det)
+	fmt.Println("len orders now", len(orders))
 	s.Orders[strings.ToLower(det.Exchange)] = orders
 
 	return nil

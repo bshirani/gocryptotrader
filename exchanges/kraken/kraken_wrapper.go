@@ -738,6 +738,9 @@ func (k *Kraken) SubmitOrder(ctx context.Context, s *order.Submit) (order.Submit
 	case asset.Spot:
 		if k.Websocket.CanUseAuthenticatedWebsocketForWrapper() {
 			var resp string
+			if s.Type == order.StopMarket {
+				s.Type = "stop-loss"
+			}
 			s.Pair.Delimiter = "/" // required pair format: ISO 4217-A3
 			resp, err = k.wsAddOrder(&WsAddOrderRequest{
 				OrderType: s.Type.Lower(),

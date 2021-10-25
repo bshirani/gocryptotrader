@@ -156,7 +156,6 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 			}
 		}
 	}
-	tm.OrderManager = bot.OrderManager
 	tm.syncManager = bot.currencyPairSyncer
 
 	tm.Datas = &data.HandlerPerCurrency{}
@@ -204,8 +203,6 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 	// 	log.Error(log.TradeMgr, "!!no currency settings")
 	// 	os.Exit(123)
 	// }
-
-	tm.setOrderManagerCallbacks()
 
 	return tm, err
 }
@@ -331,7 +328,7 @@ dataLoadingIssue:
 						// fmt.Println("data event", d)
 
 						if !tm.bot.Config.ProductionMode {
-							tm.OrderManager.UpdateFakeOrders(d)
+							tm.bot.OrderManager.UpdateFakeOrders(d)
 						}
 						tm.EventQueue.AppendEvent(d)
 					}
@@ -1043,13 +1040,6 @@ func (tm *TradeManager) initializeFactorEngines() error {
 		}
 	}
 	return nil
-}
-
-func (tm *TradeManager) setOrderManagerCallbacks() {
-	if tm.OrderManager != nil {
-		// tm.bot.OrderManager.SetOnSubmit(tm.onSubmit) // this is synchronous
-		// tm.OrderManager.SetOnFill(tm.onFill)
-	}
 }
 
 // Series returns candle data
