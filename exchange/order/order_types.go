@@ -161,6 +161,10 @@ type Detail struct {
 	TargetAmount         float64
 	Trades               []TradeHistory
 	TriggerPrice         float64
+	StrategyName         string
+	StrategyId           int
+	StopLossPrice        float64
+	TakeProfitPrice      float64
 	Type                 Type
 	WalletAddress        string
 }

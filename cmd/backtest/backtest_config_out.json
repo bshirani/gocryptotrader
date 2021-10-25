@@ -41,7 +41,7 @@
   "data-type": "candle",
   "database-data": {
    "start-date": "2021-10-01T00:00:00Z",
-   "end-date": "2021-10-03T00:00:00Z",
+   "end-date": "2021-10-05T00:00:00Z",
    "config-override": {
     "enabled": true,
     "verbose": false,

@@ -56,6 +56,7 @@ type TradeManager struct {
 	isSimulation       bool
 	debug              bool
 	liveMode           bool
+	dryRun             bool
 	tradingEnabled     bool
 	cfg                config.Config
 	hasHandledEvent    bool
@@ -84,7 +85,7 @@ type ExecutionHandler interface {
 	// SetExchangeAssetCurrencySettings(string, asset.Item, currency.Pair, *ExchangeAssetPairSettings)
 	// GetAllCurrencySettings() ([]ExchangeAssetPairSettings, error)
 	// GetCurrencySettings(string, asset.Item, currency.Pair) (ExchangeAssetPairSettings, error)
-
+	GenerateDryRunID() int
 	GetOrdersSnapshot(order.Status) ([]order.Detail, time.Time)
 	Submit(context.Context, *gctorder.Submit) (*OrderSubmitResponse, error)
 	// Reset()

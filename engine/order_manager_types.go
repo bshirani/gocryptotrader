@@ -48,6 +48,7 @@ type store struct {
 	commsManager    iCommsManager
 	exchangeManager iExchangeManager
 	wg              *sync.WaitGroup
+	dryRun          bool
 }
 
 // OrderManager processes and stores orders across enabled exchanges
@@ -89,6 +90,7 @@ type OrderManagerHandler interface {
 	UpdateFakeOrders(eventtypes.DataEventHandler) error
 	Update()
 
+	GenerateDryRunID() int
 	Add(o *order.Detail) error
 	Cancel(ctx context.Context, cancel *order.Cancel) error
 	CancelAllOrders(ctx context.Context, exchangeNames []exchange.IBotExchange)

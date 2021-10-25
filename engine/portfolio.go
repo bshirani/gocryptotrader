@@ -358,7 +358,14 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		return nil, nil
 	}
 
+	// we have an order
+	if ev.GetStopLossPrice().IsZero() && ev.GetDecision() == signal.Enter {
+		fmt.Println("stop loss is zero")
+		panic(ev.GetDecision())
+	}
+
 	o.Price = ev.GetPrice()
+	o.StopLossPrice = ev.GetStopLossPrice()
 	o.Direction = ev.GetDirection()
 
 	if o.Direction == gctorder.Buy {

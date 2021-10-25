@@ -19,16 +19,17 @@ const (
 // Signal contains everything needed for a strategy to raise a signal event
 type Signal struct {
 	event.Base
-	Direction  order.Side
-	Decision   Decision
-	Amount     decimal.Decimal
-	OpenPrice  decimal.Decimal
-	HighPrice  decimal.Decimal
-	LowPrice   decimal.Decimal
-	ClosePrice decimal.Decimal
-	Volume     decimal.Decimal
-	BuyLimit   decimal.Decimal
-	SellLimit  decimal.Decimal
+	StopLossPrice decimal.Decimal
+	Direction     order.Side
+	Decision      Decision
+	Amount        decimal.Decimal
+	OpenPrice     decimal.Decimal
+	HighPrice     decimal.Decimal
+	LowPrice      decimal.Decimal
+	ClosePrice    decimal.Decimal
+	Volume        decimal.Decimal
+	BuyLimit      decimal.Decimal
+	SellLimit     decimal.Decimal
 }
 
 // Event handler is used for getting trade signal details
@@ -45,4 +46,6 @@ type Event interface {
 	GetBuyLimit() decimal.Decimal
 	GetDecision() Decision
 	SetDecision(Decision)
+	SetStopLossPrice(decimal.Decimal)
+	GetStopLossPrice() decimal.Decimal
 }

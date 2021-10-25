@@ -16,6 +16,7 @@ type Order struct {
 	StrategyID     int
 	Status         order.Status
 	Price          decimal.Decimal
+	StopLossPrice  decimal.Decimal
 	StopPrice      decimal.Decimal
 	ExchangeFee    decimal.Decimal
 	Amount         decimal.Decimal
@@ -34,6 +35,8 @@ type Event interface {
 	GetSellLimit() decimal.Decimal
 	SetPrice(decimal.Decimal)
 	GetPrice() decimal.Decimal
+	SetStopLossPrice(decimal.Decimal)
+	GetStopLossPrice() decimal.Decimal
 	SetExchangeFee(decimal.Decimal)
 	GetExchangeFee() decimal.Decimal
 	SetAmount(decimal.Decimal)

@@ -91,10 +91,8 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 
 	tm.cfg = *cfg
 	tm.verbose = bot.Config.TradeManager.Verbose
-	if tm.verbose {
-		panic("verbose")
-	}
 	tm.tradingEnabled = bot.Settings.EnableTrading
+	tm.dryRun = bot.Settings.EnableDryRun
 	tm.liveSimulationCfg = bot.Config.TradeManager.LiveSimulation
 	tm.isSimulation = tm.liveSimulationCfg.Enabled
 	tm.liveMode = bot.Config.LiveMode
@@ -215,7 +213,8 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	a, _ := o.GetAmount().Float64()
 	fee, _ := o.GetExchangeFee().Float64()
 
-	submission := &gctorder.Submit{
+	entrySubmission := &gctorder.Submit{
+		Status:      gctorder.New,
 		Price:       priceFloat,
 		Amount:      a,
 		Fee:         fee,
@@ -233,9 +232,66 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	if om == nil {
 		panic("there is no order manager and trying to execute order")
 	}
-	omr, err := om.Submit(context.TODO(), submission)
+
+	stopLossPrice, _ := o.GetStopLossPrice().Float64()
+	var stopSide gctorder.Side
+	if o.GetDirection() == gctorder.Buy {
+		stopSide = gctorder.Sell
+	} else if o.GetDirection() == gctorder.Sell {
+		stopSide = gctorder.Buy
+	}
+	stopLossSubmission := &gctorder.Submit{
+		Status:      gctorder.New,
+		Price:       stopLossPrice,
+		Amount:      a,
+		Fee:         fee,
+		Exchange:    o.GetExchange(),
+		ID:          o.GetID(),
+		Side:        stopSide,
+		AssetType:   o.GetAssetType(),
+		Date:        o.GetTime(),
+		LastUpdated: o.GetTime(),
+		Pair:        o.Pair(),
+		Type:        gctorder.Market,
+		StrategyID:  o.GetStrategyID(),
+	}
+
+	var entryID, stopID int
+	var err error
+	if !tm.dryRun {
+		entryID, err = liveorder.Insert(entrySubmission)
+		if err != nil {
+			fmt.Println("error inserted order", err)
+			return nil, err
+		}
+
+		stopID, err = liveorder.Insert(stopLossSubmission)
+		if err != nil {
+			fmt.Println("error inserted order", err)
+			return nil, err
+		}
+	} else {
+		entryID = om.GenerateDryRunID()
+		stopID = entryID + 1
+	}
+
+	entrySubmission.InternalOrderID = entryID
+	stopLossSubmission.InternalOrderID = stopID
+
+	omr, err := om.Submit(context.TODO(), entrySubmission)
 	if err != nil {
-		fmt.Println("tm: ERROR order manager submission", err, submission.Side, omr)
+		fmt.Println("tm: ERROR order manager submission", err, entrySubmission.Side, omr)
+	}
+	if omr.InternalOrderID == 0 {
+		panic("no order id")
+	}
+
+	somr, err := om.Submit(context.TODO(), stopLossSubmission)
+	if err != nil {
+		fmt.Println("tm: ERROR order manager submission", err, stopLossSubmission.Side, omr)
+	}
+	if somr.InternalOrderID == 0 {
+		panic("no order id")
 	}
 
 	// fmt.Println("tm: order manager response", omr)
@@ -247,7 +303,7 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	// 	return nil, fmt.Errorf("exchange: order has no strategyid")
 	// }
 
-	if omr.InternalOrderID == 0 {
+	if somr.InternalOrderID == 0 {
 		panic("no order id")
 	}
 

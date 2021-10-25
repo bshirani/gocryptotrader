@@ -46,6 +46,7 @@ func SetupOrderManager(exchangeManager iExchangeManager, communicationsManager i
 			exchangeManager: exchangeManager,
 			commsManager:    communicationsManager,
 			wg:              wg,
+			dryRun:          dryRun,
 		},
 		useRealOrders: realOrders,
 		verbose:       verbose,
@@ -119,8 +120,8 @@ func (m *OrderManager) UpdateFakeOrders(d eventtypes.DataEventHandler) error {
 		panic("updating fake orders in production")
 	}
 
-	active, _ := m.GetOrdersActive(nil)
-	fmt.Println("there are ", len(active), "active orders")
+	// active, _ := m.GetOrdersActive(nil)
+	// fmt.Println("there are ", len(active), "active orders")
 
 	// _, err = m.UpsertOrder(&fetchedOrder)
 
@@ -454,16 +455,17 @@ func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*Ord
 
 	var id int
 	if !m.dryRun {
-		id, err = liveorder.Insert(newOrder)
-		if err != nil {
-			fmt.Println("error inserted order", err)
-			return nil, err
+		// retrieve the already created order in the database
+		// fail if you can't find it
+		// in case system fails after creating orders
+		// we can recover using the orders in the databse
+		id = newOrder.InternalOrderID
+		lo, err := liveorder.OneByID(id)
+		if lo.ID != id || err != nil {
+			panic(err)
 		}
 	} else {
-		orders, _ := m.GetOrdersSnapshot("")
-		fmt.Println("orders count", len(orders))
-		fmt.Println("orders", orders)
-		id = len(orders) + 1
+		id = m.GenerateDryRunID()
 	}
 
 	var result order.SubmitResponse
@@ -940,7 +942,6 @@ func (s *store) upsert(od *order.Detail) (resp *OrderUpsertResponse, err error) 
 	defer s.m.Unlock()
 	r, ok := s.Orders[lName]
 	if !ok {
-		od.GenerateInternalOrderID()
 		s.Orders[lName] = []*order.Detail{od}
 		resp = &OrderUpsertResponse{
 			OrderDetails: od.Copy(),
@@ -959,7 +960,6 @@ func (s *store) upsert(od *order.Detail) (resp *OrderUpsertResponse, err error) 
 		}
 	}
 	// Untracked websocket orders will not have internalIDs yet
-	od.GenerateInternalOrderID()
 	s.Orders[lName] = append(s.Orders[lName], od)
 	resp = &OrderUpsertResponse{
 		OrderDetails: od.Copy(),
@@ -1027,19 +1027,26 @@ func (s *store) add(det *order.Detail) error {
 		return ErrOrdersAlreadyExists
 	}
 	// Untracked websocket orders will not have internalIDs yet
-	det.GenerateInternalOrderID()
 	s.m.Lock()
 	defer s.m.Unlock()
 
-	fmt.Println(
-		"add order to store id:",
-		det.ID,
-		"internal:",
-		det.InternalOrderID)
+	// fmt.Println(
+	// 	"add order to store id:",
+	// 	det.ID,
+	// 	"internal:",
+	// 	det.InternalOrderID)
+
+	if !s.dryRun {
+		_, err = liveorder.Upsert(det)
+		if err != nil {
+			errMsg := fmt.Sprintf("error upserting order", err)
+			panic(errMsg)
+			return err
+		}
+	}
 
 	orders := s.Orders[strings.ToLower(det.Exchange)]
 	orders = append(orders, det)
-	fmt.Println("len orders now", len(orders))
 	s.Orders[strings.ToLower(det.Exchange)] = orders
 
 	return nil
@@ -1268,3 +1275,8 @@ func randString(n int) string {
 // 	// 	}
 // 	// }
 // }
+
+func (m *OrderManager) GenerateDryRunID() int {
+	orders, _ := m.GetOrdersSnapshot("")
+	return len(orders) + 1
+}

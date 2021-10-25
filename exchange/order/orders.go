@@ -3,7 +3,6 @@ package order
 import (
 	"errors"
 	"fmt"
-	"math/rand"
 	"sort"
 	"strings"
 	"time"
@@ -428,17 +427,6 @@ func (d *Detail) IsInactive() bool {
 	}
 	return d.Status == Filled || d.Status == Cancelled || d.Status == InsufficientBalance || d.Status == MarketUnavailable ||
 		d.Status == Rejected || d.Status == PartiallyCancelled || d.Status == Expired || d.Status == Closed
-}
-
-// GenerateInternalOrderID sets a new V4 order ID or a V5 order ID if
-// the V4 function returns an error
-func (d *Detail) GenerateInternalOrderID() {
-	if d.InternalOrderID == 0 {
-		s1 := rand.NewSource(time.Now().UnixNano())
-		r1 := rand.New(s1)
-		r1.Intn(100)
-		d.InternalOrderID = r1.Intn(100000000)
-	}
 }
 
 // // generate random number

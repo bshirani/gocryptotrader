@@ -60,6 +60,16 @@ func (s *Signal) GetPrice() decimal.Decimal {
 	return s.ClosePrice
 }
 
+// GetPrice returns the price
+func (s *Signal) GetStopLossPrice() decimal.Decimal {
+	return s.StopLossPrice
+}
+
+// GetPrice returns the price
+func (s *Signal) SetStopLossPrice(stop decimal.Decimal) {
+	s.StopLossPrice = stop
+}
+
 func (s *Signal) GetDecision() Decision {
 	return s.Decision
 }

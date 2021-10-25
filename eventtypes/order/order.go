@@ -42,6 +42,16 @@ func (o *Order) GetPrice() decimal.Decimal {
 	return o.Price
 }
 
+// SetPrice sets the amount
+func (o *Order) SetStopLossPrice(i decimal.Decimal) {
+	o.StopLossPrice = i
+}
+
+// GetPrice returns the amount
+func (o *Order) GetStopLossPrice() decimal.Decimal {
+	return o.StopLossPrice
+}
+
 // SetExchangeFee sets the amount
 func (o *Order) SetExchangeFee(i decimal.Decimal) {
 	o.ExchangeFee = i

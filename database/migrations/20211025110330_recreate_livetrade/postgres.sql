@@ -1,8 +1,9 @@
 -- +goose Up
+CREATE TYPE order_type AS ENUM ('MARKET', 'LIMIT');
 CREATE TABLE public.live_order (
     id SERIAL PRIMARY KEY,
-    status text NOT NULL,
-    order_type text NOT NULL,
+    status order_status NOT NULL,
+    order_type order_type NOT NULL,
     exchange text NOT NULL,
     strategy_name text NOT NULL,
     internal_id text NOT NULL,

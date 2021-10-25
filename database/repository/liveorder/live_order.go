@@ -193,7 +193,37 @@ func Insert(in *order.Submit) (int, error) {
 	return id, nil
 }
 
+// Insert writes a single entry into database
+func Upsert(in *order.Detail) (int, error) {
+	if database.DB.SQL == nil {
+		return 0, database.ErrDatabaseSupportDisabled
+	}
+
+	ctx := context.Background()
+	tx, err := database.DB.SQL.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+	id, err := upsertPostgresql(ctx, tx, in)
+
+	if err != nil {
+		errRB := tx.Rollback()
+		if errRB != nil {
+			log.Errorln(log.DatabaseMgr, errRB)
+		}
+		return id, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return id, err
+	}
+
+	return id, nil
+}
+
 func insertPostgresql(ctx context.Context, tx *sql.Tx, in *order.Submit) (id int, err error) {
+	// fmt.Println("insert order", in.Type, in.StopLossPrice, in.Status)
 	var tempInsert = postgres.LiveOrder{
 		Status:          in.Status.String(),
 		OrderType:       in.Type.String(),
@@ -207,6 +237,37 @@ func insertPostgresql(ctx context.Context, tx *sql.Tx, in *order.Submit) (id int
 	}
 
 	err = tempInsert.Insert(ctx, tx, boil.Infer())
+	// err = tempInsert.Upsert(ctx, tx, true, []string{"id"}, boil.Infer(), boil.Infer())
+	if err != nil {
+		log.Errorln(log.DatabaseMgr, err)
+		errRB := tx.Rollback()
+		panic(err)
+		if errRB != nil {
+			log.Errorln(log.DatabaseMgr, errRB)
+		}
+		return 0, err
+	}
+
+	return tempInsert.ID, nil
+}
+
+func upsertPostgresql(ctx context.Context, tx *sql.Tx, in *order.Detail) (id int, err error) {
+	// fmt.Println("upsert order", in.Type, in.StopLossPrice, in.Status)
+	var tempInsert = postgres.LiveOrder{
+		ID:              in.InternalOrderID,
+		Status:          in.Status.String(),
+		OrderType:       in.Type.String(),
+		Exchange:        in.Exchange,
+		Side:            in.Side.String(),
+		Price:           in.Price,
+		StopLossPrice:   in.StopLossPrice,
+		TakeProfitPrice: in.TakeProfitPrice,
+		ClientOrderID:   in.ID,
+		StrategyName:    in.StrategyName,
+	}
+
+	// err = tempInsert.Insert(ctx, tx, boil.Infer())
+	err = tempInsert.Upsert(ctx, tx, true, []string{"id"}, boil.Infer(), boil.Infer())
 	if err != nil {
 		log.Errorln(log.DatabaseMgr, err)
 		errRB := tx.Rollback()

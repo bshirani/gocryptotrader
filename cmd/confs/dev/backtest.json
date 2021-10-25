@@ -46,8 +46,8 @@
  },
  "tradeManager": {
   "enabled": true,
-  "verbose": false,
-  "debug":  false,
+  "verbose": true,
+  "debug":  true,
   "trading": true,
   "clearDB": false,
   "strategies": []
