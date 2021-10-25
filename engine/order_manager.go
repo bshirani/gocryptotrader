@@ -13,6 +13,7 @@ import (
 	"gocryptotrader/common"
 	"gocryptotrader/communications/base"
 	"gocryptotrader/currency"
+	"gocryptotrader/database/repository/liveorder"
 	"gocryptotrader/exchange"
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/order"
@@ -423,6 +424,19 @@ func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*Ord
 			err)
 	}
 
+	// store order
+
+	var id int
+	if !m.dryRun {
+		id, err = liveorder.Insert(newOrder)
+		if err != nil {
+			fmt.Println("error inserted order", err)
+			return nil, err
+		}
+	} else {
+		id = 123 // FIXME
+	}
+
 	var result order.SubmitResponse
 
 	if m.useRealOrders {
@@ -437,7 +451,7 @@ func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*Ord
 			IsOrderPlaced:   true,
 			OrderID:         randString(12),
 			FullyMatched:    true,
-			InternalOrderID: 123,
+			InternalOrderID: id,
 		}
 	}
 

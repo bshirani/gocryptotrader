@@ -1,7 +1,7 @@
 {
  "productionMode": false,
  "liveMode": false,
- "dryRun": true,
+ "dryRun": false,
  "script": false,
  "nickname": "",
  "goal": "",
@@ -19,7 +19,7 @@
   "data-type": ""
  },
  "portfolio-settings": {
-  "verbose": true,
+  "verbose": false,
   "leverage": {
    "can-use-leverage": false,
    "maximum-orders-with-leverage-ratio": "0",

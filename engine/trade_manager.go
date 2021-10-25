@@ -324,13 +324,13 @@ dataLoadingIssue:
 						}
 						tm.hasHandledEvent = true
 						count += 1
+						// fmt.Println("data event", d)
 						tm.EventQueue.AppendEvent(d)
 					}
 				}
 			}
 		}
 		if ev != nil {
-			// fmt.Println("handle event", ev.GetTime())
 			err := tm.handleEvent(ev)
 			if err != nil {
 				fmt.Println("error handling event", err)
@@ -535,10 +535,6 @@ func (tm *TradeManager) runLive() error {
 
 			if err != nil {
 				fmt.Println("error live min process", err)
-			} else {
-				if tm.isSimulation {
-					tm.incrementMinute()
-				}
 			}
 		}
 	}
@@ -555,6 +551,7 @@ func (tm *TradeManager) processLiveMinute() error {
 	}
 
 	for _, cs := range tm.bot.CurrencySettings {
+		fmt.Println("update CS")
 		if tm.lastUpdateMin[cs] != thisMinute {
 			dbData, err := tm.loadLatestCandleFromDatabase(cs)
 			if err != nil {
@@ -568,7 +565,6 @@ func (tm *TradeManager) processLiveMinute() error {
 				}
 			}
 			dataEvent = dbData.Latest()
-			fmt.Println("handle event")
 
 			if !common.IsSameMinute(thisMinute, dataEvent.GetTime()) {
 				fmt.Println("skipping already seen bar", dataEvent.GetTime(), thisMinute)
@@ -998,7 +994,9 @@ func (tm *TradeManager) initializeFactorEngines() error {
 		var dbData *datakline.DataFromKline
 		var err error
 		if tm.bot.Settings.EnableLiveMode {
-			fmt.Println("initialize factor engine", cs.CurrencyPair)
+			if tm.debug {
+				fmt.Println("initialize factor engine", cs.CurrencyPair)
+			}
 			// fmt.Println("get data for live", cs.CurrencyPair)
 			dbData, err = database.LoadData(
 				tm.GetCurrentTime().Add(time.Minute*-300),

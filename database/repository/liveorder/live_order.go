@@ -7,6 +7,7 @@ import (
 
 	"gocryptotrader/database"
 	"gocryptotrader/database/models/postgres"
+	"gocryptotrader/exchange/order"
 	"gocryptotrader/log"
 
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -164,7 +165,7 @@ func updatePostgresql(ctx context.Context, tx *sql.Tx, in []Details) (id int64, 
 }
 
 // Insert writes a single entry into database
-func Insert(in Details) (int, error) {
+func Insert(in *order.Submit) (int, error) {
 	if database.DB.SQL == nil {
 		return 0, database.ErrDatabaseSupportDisabled
 	}
@@ -192,22 +193,17 @@ func Insert(in Details) (int, error) {
 	return id, nil
 }
 
-func insertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int, err error) {
-	price, _ := in.Price.Float64()
-	stopPrice, _ := in.StopLossPrice.Float64()
-	takeProfit, _ := in.TakeProfitPrice.Float64()
+func insertPostgresql(ctx context.Context, tx *sql.Tx, in *order.Submit) (id int, err error) {
 	var tempInsert = postgres.LiveOrder{
 		Status:          in.Status.String(),
-		OrderType:       in.OrderType.String(),
+		OrderType:       in.Type.String(),
 		Exchange:        in.Exchange,
 		Side:            in.Side.String(),
-		Price:           price,
-		StopLossPrice:   stopPrice,
-		TakeProfitPrice: takeProfit,
-		InternalID:      in.InternalID,
+		Price:           in.Price,
+		StopLossPrice:   in.StopLossPrice,
+		TakeProfitPrice: in.TakeProfitPrice,
+		ClientOrderID:   in.ID,
 		StrategyName:    in.StrategyName,
-		UpdatedAt:       in.UpdatedAt,
-		CreatedAt:       in.CreatedAt,
 	}
 
 	err = tempInsert.Insert(ctx, tx, boil.Infer())

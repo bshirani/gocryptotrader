@@ -415,7 +415,6 @@ func (p *Portfolio) GetOrderFromStore(orderid int) *gctorder.Detail {
 		if ord.InternalOrderID != orderid {
 			continue
 		}
-		// fmt.Println("FOUND", ord.InternalOrderID)
 		foundOrd = &ord
 		break
 	}
@@ -449,7 +448,7 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 	stopLossPrice := decimal.NewFromFloat(foundOrd.Price).Mul(decimal.NewFromFloat(0.9))
 	p.store.positions[ev.GetStrategyID()] = &positions.Position{Active: true}
 
-	lt := livetrade.Details{
+	t := livetrade.Details{
 		Status:        gctorder.Open,
 		StrategyID:    ev.GetStrategyID(),
 		EntryTime:     ev.GetTime(),
@@ -461,22 +460,24 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 		Amount:        decimal.NewFromFloat(foundOrd.Amount),
 	}
 
-	if lt.EntryPrice.IsZero() {
+	if t.EntryPrice.IsZero() {
 		panic("EntryPrice cannot be empty")
 	}
-	if lt.EntryTime.IsZero() {
+	if t.EntryTime.IsZero() {
 		panic("EntryTime cannot be empty")
 	}
-	if lt.Amount.IsZero() {
+	if t.Amount.IsZero() {
 		panic("Amount cannot be 0")
 	}
-	// else {
-	// 	fmt.Println("creating trade, entrytime:", lt.EntryTime)
-	// }
+	if t.EntryOrderID == 0 {
+		panic("trade must have entry order id")
+	}
+
+	fmt.Println("creating trade, id", t.EntryOrderID, "entrytime:", t.EntryTime)
 
 	if !p.bot.Settings.EnableDryRun {
-		id, err := livetrade.Insert(lt)
-		lt.ID = id
+		id, err := livetrade.Insert(t)
+		t.ID = id
 		if err != nil {
 			fmt.Println("error inserting trade", err)
 			os.Exit(2)
@@ -486,7 +487,7 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 		// tradeMsg := fmt.Sprintf("created trade for s:%d %v %s %s", ev.GetStrategyID(), ev.Pair(), ev.GetAmount(), ev.GetDirection())
 		// log.Warnf(log.Portfolio, tradeMsg)
 
-		// lt.EntryTime.UTC().AppendFormat(e.data, l.Timestamp)
+		// t.EntryTime.UTC().AppendFormat(e.data, l.Timestamp)
 
 		timestampFormat := " 15:04:05 UTC"
 		s, _ := p.getStrategy(ev.GetStrategyID())
@@ -495,10 +496,10 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 			s.GetID(),
 			s.GetPair(),
 			s.GetDirection(),
-			lt.Side,
-			lt.Amount,
-			lt.EntryPrice,
-			lt.EntryTime.Format(timestampFormat),
+			t.Side,
+			t.Amount,
+			t.EntryPrice,
+			t.EntryTime.Format(timestampFormat),
 			ev.GetReason())
 
 		// fmt.Print("notification message", notificationMsg)
@@ -508,7 +509,7 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 		})
 	}
 
-	p.store.openTrade[ev.GetStrategyID()] = &lt
+	p.store.openTrade[ev.GetStrategyID()] = &t
 }
 
 func (p *Portfolio) recordExitTrade(f fill.Event, t *livetrade.Details) {

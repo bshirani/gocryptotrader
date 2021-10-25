@@ -37,9 +37,10 @@ type Submit struct {
 	Type         Type
 	Status       Status
 
-	Price     float64
-	Amount    float64
-	StopPrice float64
+	Price           float64
+	Amount          float64
+	StopLossPrice   float64
+	TakeProfitPrice float64
 
 	LimitPriceUpper float64
 	LimitPriceLower float64
