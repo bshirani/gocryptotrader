@@ -19,7 +19,7 @@
   "data-type": ""
  },
  "portfolio-settings": {
-  "verbose": false,
+  "verbose": true,
   "leverage": {
    "can-use-leverage": false,
    "maximum-orders-with-leverage-ratio": "0",
@@ -46,7 +46,8 @@
  },
  "tradeManager": {
   "enabled": true,
-  "verbose": true,
+  "verbose": false,
+  "debug":  false,
   "trading": true,
   "clearDB": false,
   "strategies": []

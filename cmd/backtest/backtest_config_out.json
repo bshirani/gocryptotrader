@@ -41,7 +41,7 @@
   "data-type": "candle",
   "database-data": {
    "start-date": "2021-10-01T00:00:00Z",
-   "end-date": "2021-10-10T00:00:00Z",
+   "end-date": "2021-10-10T10:00:00Z",
    "config-override": {
     "enabled": true,
     "verbose": false,
@@ -96,20 +96,9 @@
   "enabled": false,
   "verbose": false,
   "trading": false,
+  "debug": false,
   "clearDB": false,
   "strategies": [
-   {
-    "Weight": "1",
-    "side": "SELL",
-    "pair": {
-     "exchange": "kraken",
-     "symbol": "XBT_USDT",
-     "backtestExchange": "gateio",
-     "backtestSymbol": "BTC_USDT"
-    },
-    "capture": "trend",
-    "debug": false
-   },
    {
     "Weight": "1",
     "side": "BUY",

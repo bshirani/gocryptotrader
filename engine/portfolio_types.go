@@ -7,14 +7,12 @@ import (
 
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
-	"gocryptotrader/database/repository/liveorder"
 	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/cancel"
 	"gocryptotrader/eventtypes/fill"
 	"gocryptotrader/eventtypes/order"
 	"gocryptotrader/eventtypes/signal"
-	"gocryptotrader/eventtypes/submit"
 	"gocryptotrader/exchange/asset"
 	gctorder "gocryptotrader/exchange/order"
 	"gocryptotrader/portfolio/compliance"
@@ -48,8 +46,6 @@ var (
 type portfolioStore struct {
 	m            sync.RWMutex
 	positions    map[int]*positions.Position
-	openOrders   map[int][]*liveorder.Details
-	closedOrders map[int][]*liveorder.Details
 	openTrade    map[int]*livetrade.Details
 	closedTrades map[int][]*livetrade.Details
 	wg           *sync.WaitGroup
@@ -113,12 +109,10 @@ type ExchangeAssetPairSettings struct {
 type PortfolioHandler interface {
 	GetVerbose() bool
 	OnSignal(signal.Event, *ExchangeAssetPairSettings) (*order.Order, error)
-	GetOpenOrdersForStrategy(int) []*liveorder.Details
-
-	GetOrderFromStore(orderid int) *gctorder.Detail
+	GetOpenOrdersForStrategy(int) []*gctorder.Detail
+	GetOrderFromStore(int) *gctorder.Detail
 
 	OnFill(fill.Event)
-	OnSubmit(submit.Event)
 	OnCancel(cancel.Event)
 
 	GetLiveMode() bool

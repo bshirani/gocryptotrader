@@ -4,9 +4,9 @@ import (
 	"errors"
 
 	"gocryptotrader/data"
-	"gocryptotrader/database/repository/liveorder"
 	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/eventtypes"
+	"gocryptotrader/exchange/order"
 	"gocryptotrader/factors"
 	"gocryptotrader/portfolio/holdings"
 	"gocryptotrader/portfolio/positions"
@@ -31,7 +31,7 @@ type StrategyPortfolioHandler interface {
 	GetLiveMode() bool
 	ViewHoldingAtTimePeriod(eventtypes.EventHandler) (*holdings.Holding, error)
 	GetPositionForStrategy(int) *positions.Position
-	GetOpenOrdersForStrategy(int) []*liveorder.Details
+	GetOpenOrdersForStrategy(int) []*order.Detail
 	GetVerbose() bool
 	GetTradeForStrategy(int) *livetrade.Details
 }

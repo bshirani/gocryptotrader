@@ -91,10 +91,14 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 
 	tm.cfg = *cfg
 	tm.verbose = bot.Config.TradeManager.Verbose
+	if tm.verbose {
+		panic("verbose")
+	}
 	tm.tradingEnabled = bot.Settings.EnableTrading
 	tm.liveSimulationCfg = bot.Config.TradeManager.LiveSimulation
 	tm.isSimulation = tm.liveSimulationCfg.Enabled
 	tm.liveMode = bot.Config.LiveMode
+	tm.debug = bot.Config.TradeManager.Debug
 
 	if tm.isSimulation {
 		tm.currentTime = tm.liveSimulationCfg.StartDate
@@ -242,11 +246,8 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	// 	return nil, fmt.Errorf("exchange: order has no strategyid")
 	// }
 
-	if o.GetID() == "" {
+	if omr.InternalOrderID == 0 {
 		panic("no order id")
-	}
-	if tm.debug {
-		fmt.Println("submitting order ID:", o.GetID())
 	}
 
 	ev := &submit.Submit{
@@ -260,9 +261,9 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 			Reason:       o.GetReason(),
 			StrategyID:   o.GetStrategyID(),
 		},
-		OrderID:         o.GetID(),
-		IsOrderPlaced:   omr.IsOrderPlaced,
 		InternalOrderID: omr.InternalOrderID,
+		IsOrderPlaced:   omr.IsOrderPlaced,
+		OrderID:         omr.OrderID,
 		StrategyID:      o.GetStrategyID(),
 	}
 
@@ -567,6 +568,7 @@ func (tm *TradeManager) processLiveMinute() error {
 				}
 			}
 			dataEvent = dbData.Latest()
+			fmt.Println("handle event")
 
 			if !common.IsSameMinute(thisMinute, dataEvent.GetTime()) {
 				fmt.Println("skipping already seen bar", dataEvent.GetTime(), thisMinute)
@@ -789,10 +791,11 @@ func (tm *TradeManager) createFillEvent(ev submit.Event) {
 			Reason:       ev.GetReason(),
 			StrategyID:   ev.GetStrategyID(),
 		},
-		OrderID:    ev.GetOrderID(),
-		ClosePrice: decimal.NewFromFloat(o.Price),
-		Direction:  o.Side,
-		Amount:     decimal.NewFromFloat(o.Amount),
+		OrderID:         ev.GetOrderID(),
+		InternalOrderID: ev.GetInternalOrderID(),
+		ClosePrice:      decimal.NewFromFloat(o.Price),
+		Direction:       o.Side,
+		Amount:          decimal.NewFromFloat(o.Amount),
 		// Direction:  ev.GetDirection(),
 		// Amount:     ev.GetAmount(),
 	}
@@ -826,7 +829,7 @@ func (tm *TradeManager) onCancel(o *OrderSubmitResponse) {
 
 func (tm *TradeManager) processSubmitEvent(ev submit.Event) {
 	if tm.debug {
-		fmt.Println("processing submit event", ev.GetStrategyID())
+		fmt.Println("processing submit event strategy:", ev.GetStrategyID())
 	}
 	if ev.GetStrategyID() == 0 {
 		log.Error(log.TradeMgr, "submit event has no strategy ID")
@@ -837,7 +840,6 @@ func (tm *TradeManager) processSubmitEvent(ev submit.Event) {
 		panic("no order id")
 		return
 	}
-	tm.Portfolio.OnSubmit(ev)
 
 	if ev.GetIsOrderPlaced() {
 		// fmt.Println("creating fill", ev.GetStrategyID(), "orderid", ev.GetOrderID(), "internalID", ev.GetInternalOrderID())
@@ -1039,7 +1041,6 @@ func (tm *TradeManager) setOrderManagerCallbacks() {
 	if tm.OrderManager != nil {
 		// tm.bot.OrderManager.SetOnSubmit(tm.onSubmit) // this is synchronous
 		// tm.OrderManager.SetOnFill(tm.onFill)
-		tm.OrderManager.SetOnCancel(tm.onCancel)
 	}
 }
 

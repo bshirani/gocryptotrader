@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
-	"os"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -14,12 +13,9 @@ import (
 	"gocryptotrader/common"
 	"gocryptotrader/communications/base"
 	"gocryptotrader/currency"
-	"gocryptotrader/database/repository/liveorder"
-	"gocryptotrader/eventtypes/submit"
 	"gocryptotrader/exchange"
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/order"
-	gctorder "gocryptotrader/exchange/order"
 	"gocryptotrader/log"
 )
 
@@ -36,10 +32,10 @@ func SetupOrderManager(exchangeManager iExchangeManager, communicationsManager i
 	}
 
 	// load orders from database
-	activeOrders, _ := liveorder.Active()
-	for _, t := range activeOrders {
-		p.store.openOrders[t.StrategyID] = append(p.store.openOrders[t.StrategyID], &t)
-	}
+	// activeOrders, _ := liveorder.Active()
+	// for _, t := range activeOrders {
+	// 	p.store.openOrders[t.StrategyID] = append(p.store.openOrders[t.StrategyID], &t)
+	// }
 
 	return &OrderManager{
 		shutdown: make(chan struct{}),
@@ -54,38 +50,6 @@ func SetupOrderManager(exchangeManager iExchangeManager, communicationsManager i
 		liveMode:      liveMode,
 		dryRun:        dryRun,
 	}, nil
-}
-
-func (p *Portfolio) completeOrder(ev submit.Event) {
-	// if p.verbose {
-	// 	log.Infoln(log.Portfolio, "completing order", ev.GetStrategyID())
-	// }
-	// fmt.Println("COMPLETING ORDER for:", ev.GetStrategyID())
-	// fmt.Println("open orders", len(p.store.openOrders[ev.GetStrategyID()]))
-	order := p.store.openOrders[ev.GetStrategyID()][0]
-	p.store.closedOrders[ev.GetStrategyID()] = append(p.store.closedOrders[ev.GetStrategyID()], order)
-	p.store.openOrders[ev.GetStrategyID()] = make([]*liveorder.Details, 0)
-	// fmt.Println(ev.GetStrategyID(), " now has ", len(p.store.closedOrders[ev.GetStrategyID()]))
-
-	// p.store.positions[ev.GetStrategyID()] = &positions.Position{Active: false}
-	// // create or update position
-	// for _, pos := range p.store.positions {
-	// 	if f.GetDirection() == gctorder.Sell {
-	// 		pos.Amount = pos.Amount.Sub(f.GetAmount())
-	// 	} else if f.GetDirection() == gctorder.Buy {
-	// 		pos.Amount = pos.Amount.Add(f.GetAmount())
-	// 	}
-	//
-	// 	if !pos.Amount.IsZero() {
-	// 		pos.Active = true
-	// 	} else {
-	// 		pos.Active = false
-	// 	}
-	// }
-}
-
-func (p *Portfolio) GetOpenOrdersForStrategy(sid int) []*liveorder.Details {
-	// get from order manager
 }
 
 // IsRunning safely checks whether the subsystem is running
@@ -166,58 +130,6 @@ func (m *OrderManager) run() {
 			go m.processOrders()
 		}
 	}
-}
-
-// NOTE update
-func (p *Portfolio) OnSubmit(ev submit.Event) {
-	if p.debug {
-		fmt.Println("portfolio.OnSubmit", ev.GetStrategyID(), "orderID", ev.GetOrderID())
-	}
-	var openOrder *liveorder.Details
-	if len(p.store.openOrders[ev.GetStrategyID()]) == 0 {
-		for i := range p.store.openOrders {
-			fmt.Println(i)
-		}
-		panic(fmt.Sprintf("did not store open order for strategy %d", ev.GetStrategyID()))
-	}
-
-	for _, ord := range p.store.openOrders[ev.GetStrategyID()] {
-		if ord.ID == ev.GetInternalOrderID() {
-			openOrder = ord
-			break
-		}
-	}
-	if openOrder == nil {
-		fmt.Println("error !!!!!! no interal openOrder id")
-		return
-	}
-
-	if ev.GetIsOrderPlaced() {
-		p.completeOrder(ev)
-	}
-
-	openOrder.Status = gctorder.Closed
-
-	if !p.bot.Settings.EnableDryRun {
-
-		id, err := liveorder.Update(openOrder)
-		if err != nil || id == 0 {
-			fmt.Println("error saving to db")
-			os.Exit(2)
-		}
-	}
-}
-
-func (m *OrderManager) SetOnSubmit(onSubmit func(*OrderSubmitResponse)) {
-	m.onSubmit = onSubmit
-}
-
-func (m *OrderManager) SetOnFill(onFill func(*OrderSubmitResponse)) {
-	m.onFill = onFill
-}
-
-func (m *OrderManager) SetOnCancel(onCancel func(*OrderSubmitResponse)) {
-	m.onCancel = onCancel
 }
 
 // CancelAllOrders iterates and cancels all orders for each exchange provided
@@ -466,7 +378,9 @@ func (m *OrderManager) Modify(ctx context.Context, mod *order.Modify) (*order.Mo
 // populate it in the OrderManager if successful
 func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*OrderSubmitResponse, error) {
 	// if m.liveMode {
-	log.Warnln(log.OrderMgr, "Order manager: Order", newOrder.Side, newOrder.Date, newOrder.StrategyID, newOrder.ID)
+	if m.liveMode {
+		log.Warnln(log.OrderMgr, "Order manager: Order", newOrder.Side, newOrder.Date, newOrder.StrategyID, newOrder.ID)
+	}
 	// }
 
 	if m == nil {
@@ -511,8 +425,6 @@ func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*Ord
 
 	var result order.SubmitResponse
 
-	m.recordOrder(newOrder)
-
 	if m.useRealOrders {
 		exch.GetBase().Verbose = true
 		result, err = exch.SubmitOrder(ctx, newOrder)
@@ -525,64 +437,12 @@ func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*Ord
 			IsOrderPlaced:   true,
 			OrderID:         randString(12),
 			FullyMatched:    true,
-			InternalOrderID: newOrder.InternalOrderID,
+			InternalOrderID: 123,
 		}
 	}
 
 	return m.processSubmittedOrder(newOrder, result)
 
-}
-
-// ADD LIVE ORDER TO PORTFOLIO STORE
-func (m *OrderManager) recordOrder(o *order.Submit) error {
-	fmt.Println("insert side", o.Side)
-	lo := liveorder.Details{
-		Status:       order.New,
-		OrderType:    order.Market,
-		Exchange:     o.Exchange,
-		StrategyID:   o.StrategyID,
-		StrategyName: o.StrategyName,
-		Pair:         o.Pair,
-		Side:         o.Side,
-	}
-
-	// store the order
-	if !m.dryRun {
-		id, err := liveorder.Insert(lo)
-		if err != nil {
-			log.Errorln(log.Portfolio, "Unable to store order in database", err)
-			// ev.SetDirection(signal.DoNothing)
-			// ev.AppendReason(fmt.Sprintf("unable to store in database. err: %s", err))
-			panic(fmt.Sprintf("unable to store order in database", err))
-			return fmt.Errorf("unable to store in database. %v", err)
-		}
-		lo.ID = id
-		o.InternalOrderID = lo.ID
-	} else {
-		// generate random lo ID to keep track
-		// or lookup using another way (side/name/pair)
-		o.ID = fmt.Sprintf("%s-%s-%s", lo.StrategyName, lo.Pair, lo.Side)
-		o.InternalOrderID = 1234
-	}
-
-	// if m.debug {
-	// 	fmt.Println("adding order for strategy:", o.StrategyName)
-	// }
-	// beforeLen := len(p.store.openOrders[ev.GetStrategyID()])
-	// p.store.openOrders[ev.GetStrategyID()] = append(p.store.openOrders[ev.GetStrategyID()], &lo)
-	// afterLen := len(p.store.openOrders[ev.GetStrategyID()])
-	// // fmt.Println("store now has", afterLen, "orders for", ev.GetStrategyID())
-	//
-	// if afterLen > 1 {
-	// 	panic(fmt.Sprintf("more than one open order for strategy: %d", ev.GetStrategyID()))
-	// }
-	//
-	// // verify open order exists
-	// if afterLen <= beforeLen {
-	// 	fmt.Println("ERROR did not add open order")
-	// 	return fmt.Errorf("did not return open order")
-	// }
-	return nil
 }
 
 // GetOrdersSnapshot returns a snapshot of all orders in the orderstore. It optionally filters any orders that do not match the status
@@ -644,26 +504,6 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 		return nil, errors.New("order unable to be placed")
 	}
 
-	// // update the store with the submission ID
-	// ords, _ := om.GetOrdersSnapshot("")
-	// var internalOrderID int
-	// for i := range ords {
-	// 	fmt.Println("checking order id", ords[i].InternalOrderID, o.GetID())
-	// 	if ords[i].ID != omr.InternalOrderID {
-	// 		continue
-	// 	}
-	// 	ords[i].StrategyID = o.GetStrategyID()
-	// 	ords[i].Date = o.GetTime()
-	// 	ords[i].LastUpdated = o.GetTime()
-	// 	ords[i].CloseTime = o.GetTime()
-	// }
-
-	// id, err := uuid.NewV4()
-	// if err != nil {
-	// 	log.Warnf(log.OrderMgr,
-	// 		"Order manager: Unable to generate UUID. Err: %s",
-	// 		err)
-	// }
 	if newOrder.Date.IsZero() {
 		newOrder.Date = time.Now()
 	}
@@ -722,7 +562,7 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 		RemainingAmount:   newOrder.RemainingAmount,
 		Fee:               newOrder.Fee,
 		Exchange:          newOrder.Exchange,
-		InternalOrderID:   newOrder.InternalOrderID,
+		InternalOrderID:   result.InternalOrderID,
 		ID:                result.OrderID,
 		AccountID:         newOrder.AccountID,
 		ClientID:          newOrder.ClientID,
@@ -740,8 +580,6 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 	if err != nil {
 		return nil, fmt.Errorf("unable to add %v order %v to orderStore: %s", newOrder.Exchange, result.OrderID, err)
 	}
-
-	// fmt.Println("returning order id", newOrder.ID, "for strategy", newOrder.StrategyID)
 
 	return &OrderSubmitResponse{
 		SubmitResponse: order.SubmitResponse{
@@ -762,6 +600,11 @@ func (m *OrderManager) processOrders() {
 	defer func() {
 		atomic.StoreInt32(&m.processingOrders, 0)
 	}()
+
+	if !m.useRealOrders {
+		return
+	}
+
 	exchanges, err := m.orderStore.exchangeManager.GetExchanges()
 	if err != nil {
 		log.Errorf(log.OrderMgr, "Order manager cannot get exchanges: %v", err)
@@ -1148,12 +991,129 @@ func (s *store) add(det *order.Detail) error {
 	det.GenerateInternalOrderID()
 	s.m.Lock()
 	defer s.m.Unlock()
+
+	// fmt.Println(
+	// 	"add order to store id:",
+	// 	det.ID,
+	// 	"internal:",
+	// 	det.InternalOrderID)
+
 	orders := s.Orders[strings.ToLower(det.Exchange)]
 	orders = append(orders, det)
 	s.Orders[strings.ToLower(det.Exchange)] = orders
 
 	return nil
 }
+
+// SAVE THE TRADE TO THE DATABASE HERE?
+// m.recordOrder(newOrder)
+// // ADD LIVE ORDER TO PORTFOLIO STORE
+// func (m *OrderManager) recordOrder(o *order.Submit) error {
+// 	fmt.Println("insert side", o.Side)
+//
+// 	// store the order
+// 	lo := liveorder.Details{
+// 		Status:       order.New,
+// 		OrderType:    order.Market,
+// 		Exchange:     o.Exchange,
+// 		StrategyID:   o.StrategyID,
+// 		StrategyName: o.StrategyName,
+// 		Pair:         o.Pair,
+// 		Side:         o.Side,
+// 	}
+//
+// 	var openOrder *liveorder.Details
+// 	if len(p.store.openOrders[ev.GetStrategyID()]) == 0 {
+// 		for i := range p.store.openOrders {
+// 			fmt.Println(i)
+// 		}
+// 		panic(fmt.Sprintf("did not store open order for strategy %d", ev.GetStrategyID()))
+// 	}
+// 	for _, ord := range p.store.openOrders[ev.GetStrategyID()] {
+// 		if ord.ID == ev.GetInternalOrderID() {
+// 			openOrder = ord
+// 			break
+// 		}
+// 	}
+// 	if openOrder == nil {
+// 		fmt.Println("error !!!!!! no interal openOrder id")
+// 		return
+// 	}
+//
+// 	if ev.GetIsOrderPlaced() {
+// 		m.completeOrder(ev)
+// 	}
+// 	openOrder.Status = gctorder.Closed
+// 	if !p.bot.Settings.EnableDryRun {
+// 		id, err := liveorder.Update(openOrder)
+// 		if err != nil || id == 0 {
+// 			fmt.Println("error saving to db")
+// 			os.Exit(2)
+// 		}
+// 	}
+// 	if !m.dryRun {
+// 		id, err := liveorder.Insert(lo)
+// 		if err != nil {
+// 			log.Errorln(log.Portfolio, "Unable to store order in database", err)
+// 			// ev.SetDirection(signal.DoNothing)
+// 			// ev.AppendReason(fmt.Sprintf("unable to store in database. err: %s", err))
+// 			panic(fmt.Sprintf("unable to store order in database", err))
+// 			return fmt.Errorf("unable to store in database. %v", err)
+// 		}
+// 		lo.ID = id
+// 		o.InternalOrderID = lo.ID
+// 	} else {
+// 		// generate random lo ID to keep track
+// 		// or lookup using another way (side/name/pair)
+// 		o.ID = fmt.Sprintf("%s-%s-%s", lo.StrategyName, lo.Pair, lo.Side)
+// 		o.InternalOrderID = 1234
+// 	}
+//
+// 	if m.debug {
+// 		fmt.Println("portfolio.OnSubmit", o.StrategyName, "orderID", o.ID, "internal", o.InternalOrderID)
+// 	}
+//
+// 	// validate write
+// 	// if m.debug {
+// 	// 	fmt.Println("adding order for strategy:", o.StrategyName)
+// 	// }
+// 	// beforeLen := len(p.store.openOrders[ev.GetStrategyID()])
+// 	// p.store.openOrders[ev.GetStrategyID()] = append(p.store.openOrders[ev.GetStrategyID()], &lo)
+// 	// afterLen := len(p.store.openOrders[ev.GetStrategyID()])
+// 	// // fmt.Println("store now has", afterLen, "orders for", ev.GetStrategyID())
+// 	//
+// 	// if afterLen > 1 {
+// 	// 	panic(fmt.Sprintf("more than one open order for strategy: %d", ev.GetStrategyID()))
+// 	// }
+// 	//
+// 	// // verify open order exists
+// 	// if afterLen <= beforeLen {
+// 	// 	fmt.Println("ERROR did not add open order")
+// 	// 	return fmt.Errorf("did not return open order")
+// 	// }
+// 	return nil
+// }
+
+// // update the store with the submission ID
+// ords, _ := om.GetOrdersSnapshot("")
+// var internalOrderID int
+// for i := range ords {
+// 	fmt.Println("checking order id", ords[i].InternalOrderID, o.GetID())
+// 	if ords[i].ID != omr.InternalOrderID {
+// 		continue
+// 	}
+// 	ords[i].StrategyID = o.GetStrategyID()
+// 	ords[i].Date = o.GetTime()
+// 	ords[i].LastUpdated = o.GetTime()
+// 	ords[i].CloseTime = o.GetTime()
+// }
+
+// id, err := uuid.NewV4()
+// if err != nil {
+// 	log.Warnf(log.OrderMgr,
+// 		"Order manager: Unable to generate UUID. Err: %s",
+// 		err)
+// }
 
 // getFilteredOrders returns a filtered copy of the orders
 func (s *store) getFilteredOrders(f *order.Filter) ([]order.Detail, error) {
@@ -1240,3 +1200,31 @@ func randString(n int) string {
 	}
 	return string(b)
 }
+
+// func (p *Portfolio) completeOrder(ev submit.Event) {
+// 	// if p.verbose {
+// 	// 	log.Infoln(log.Portfolio, "completing order", ev.GetStrategyID())
+// 	// }
+// 	// fmt.Println("COMPLETING ORDER for:", ev.GetStrategyID())
+// 	// fmt.Println("open orders", len(p.store.openOrders[ev.GetStrategyID()]))
+// 	order := p.store.openOrders[ev.GetStrategyID()][0]
+// 	p.store.closedOrders[ev.GetStrategyID()] = append(p.store.closedOrders[ev.GetStrategyID()], order)
+// 	p.store.openOrders[ev.GetStrategyID()] = make([]*liveorder.Details, 0)
+// 	// fmt.Println(ev.GetStrategyID(), " now has ", len(p.store.closedOrders[ev.GetStrategyID()]))
+//
+// 	// p.store.positions[ev.GetStrategyID()] = &positions.Position{Active: false}
+// 	// // create or update position
+// 	// for _, pos := range p.store.positions {
+// 	// 	if f.GetDirection() == gctorder.Sell {
+// 	// 		pos.Amount = pos.Amount.Sub(f.GetAmount())
+// 	// 	} else if f.GetDirection() == gctorder.Buy {
+// 	// 		pos.Amount = pos.Amount.Add(f.GetAmount())
+// 	// 	}
+// 	//
+// 	// 	if !pos.Amount.IsZero() {
+// 	// 		pos.Active = true
+// 	// 	} else {
+// 	// 		pos.Active = false
+// 	// 	}
+// 	// }
+// }

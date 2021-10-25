@@ -97,9 +97,6 @@ type OrderManagerHandler interface {
 	GetOrdersFiltered(f *order.Filter) ([]order.Detail, error)
 	GetOrdersSnapshot(s order.Status) ([]order.Detail, time.Time)
 	Modify(ctx context.Context, mod *order.Modify) (*order.ModifyResponse, error)
-	SetOnCancel(onCancel func(*OrderSubmitResponse))
-	SetOnFill(onFill func(*OrderSubmitResponse))
-	SetOnSubmit(onSubmit func(*OrderSubmitResponse))
 	Submit(ctx context.Context, newOrder *order.Submit) (*OrderSubmitResponse, error)
 	UpdateExistingOrder(od *order.Detail) error
 	UpsertOrder(od *order.Detail) (resp *OrderUpsertResponse, err error)

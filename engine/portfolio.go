@@ -11,7 +11,6 @@ import (
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/database/repository/candle"
-	"gocryptotrader/database/repository/liveorder"
 	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/cancel"
@@ -135,7 +134,6 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 	// you need the strategy IDS here
 	p.store.positions = make(map[int]*positions.Position)
 	p.store.openTrade = make(map[int]*livetrade.Details)
-	p.store.closedOrders = make(map[int][]*liveorder.Details)
 	p.store.closedTrades = make(map[int][]*livetrade.Details)
 
 	p.orderManager = bot.OrderManager
@@ -165,7 +163,11 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 			pos.Active = true
 		}
 
-		log.Infof(log.Portfolio, "Started Portfolio w/ %d Strategies, %d Currencies. Loaded Trades %d Orders %d", len(st), len(p.bot.CurrencySettings), len(activeTrades), len(activeOrders))
+		log.Infof(log.Portfolio,
+			"Started Portfolio  ~~~ | %d Strategies | %d Currencies | Trades %d | Orders  ~~~~ ",
+			len(st),
+			len(p.bot.CurrencySettings),
+			len(activeTrades))
 	}
 
 	for _, cs := range p.bot.CurrencySettings {
@@ -407,7 +409,6 @@ func (p *Portfolio) updatePosition(pos *positions.Position, amount decimal.Decim
 }
 
 func (p *Portfolio) GetOrderFromStore(orderid int) *gctorder.Detail {
-	// fmt.Printf("getorderfromstore LOOKUP", orderid)
 	var foundOrd *gctorder.Detail
 	ords, _ := p.bot.OrderManager.GetOrdersSnapshot("")
 	for _, ord := range ords {
@@ -736,8 +737,8 @@ func (p *Portfolio) GetTradeForStrategy(sid int) *livetrade.Details {
 	return p.store.openTrade[sid]
 }
 
-func (p *Portfolio) GetOpenOrdersForStrategy(sid int) []*liveorder.Details {
-	// get from order manager
+func (p *Portfolio) GetOpenOrdersForStrategy(sid int) (order []*gctorder.Detail) {
+	return order
 }
 
 func (p *Portfolio) GetAllClosedTrades() []*livetrade.Details {
