@@ -3,11 +3,17 @@ package livetrade
 import (
 	"context"
 	"database/sql"
+	"encoding/csv"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
+	"gocryptotrader/common"
+	"gocryptotrader/currency"
 	"gocryptotrader/database"
 	"gocryptotrader/exchange/order"
 
@@ -303,11 +309,107 @@ func WriteTradesCSV(trades []*Details) {
 		fmt.Println("error", err)
 	}
 
-	header := "strategy"
+	header := "strategy,pair,direction,entry_time,exit_time,entry_price,exit_price\n"
 	file.WriteString(header)
 	for _, t := range trades {
-		s := fmt.Sprintf("%v\n", t.StrategyID)
+		s := fmt.Sprintf(
+			"%d,%s,%s,%v,%v,%v,%v\n",
+			t.StrategyID,
+			t.Pair,
+			t.Side,
+			t.EntryTime.Format(common.SimpleTimeFormat),
+			t.ExitTime.Format(common.SimpleTimeFormat),
+			t.EntryPrice,
+			t.ExitPrice,
+		)
 		file.WriteString(s)
 	}
+	fmt.Println("wrote trades CSV", newpath)
 	file.Close()
+}
+
+func LastResult() string {
+	// return os.MkdirAll(dir, 0770)
+	wd, err := os.Getwd()
+	dir := filepath.Join(wd, "../backtest/results")
+	lf := lastFileInDir(dir)
+	fmt.Println("last:", lf)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+	return filepath.Join(wd, "../backtest/results", lf)
+}
+
+func lastFileInDir(dir string) string {
+	files, _ := ioutil.ReadDir(dir)
+	var modTime time.Time
+	var names []string
+	for _, fi := range files {
+		if fi.Mode().IsRegular() {
+			if !fi.ModTime().Before(modTime) {
+				if fi.ModTime().After(modTime) {
+					modTime = fi.ModTime()
+					names = names[:0]
+				}
+				names = append(names, fi.Name())
+			}
+		}
+	}
+	if len(names) > 0 {
+		fmt.Println(modTime, names)
+	}
+	return names[len(names)-1]
+}
+
+// LoadCSV loads & parses a CSV list of exchanges
+func LoadCSV(file string) (out []Details, err error) {
+	csvFile, err := os.Open(file)
+	if err != nil {
+		return out, err
+	}
+
+	defer func() {
+		err = csvFile.Close()
+		if err != nil {
+			log.Errorln(log.Global, err)
+		}
+	}()
+
+	csvData := csv.NewReader(csvFile)
+	count := 0
+	for {
+		row, errCSV := csvData.Read()
+		if errCSV != nil {
+			if errCSV == io.EOF {
+				return out, err
+			}
+			return out, errCSV
+		}
+
+		if count == 0 {
+			count += 1
+			continue
+		}
+		count += 1
+		id, _ := strconv.ParseInt(row[0], 10, 64)
+		pair, err := currency.NewPairFromString(row[1])
+		entryTime, err := time.Parse(common.SimpleTimeFormat, row[3])
+		exitTime, err := time.Parse(common.SimpleTimeFormat, row[4])
+		entryPrice, err := decimal.NewFromString(row[5])
+		exitPrice, err := decimal.NewFromString(row[6])
+		out = append(out, Details{
+			StrategyID: int(id),
+			Pair:       pair,
+			Side:       order.Side(row[2]),
+			EntryTime:  entryTime,
+			ExitTime:   exitTime,
+			EntryPrice: entryPrice,
+			ExitPrice:  exitPrice,
+		})
+		if err != nil {
+			fmt.Println("error", err)
+		}
+	}
+	return out, err
 }

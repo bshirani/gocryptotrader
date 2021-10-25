@@ -91,10 +91,24 @@ func main() {
 		}
 	}
 
-	syncer := SetupSyncer(bot)
+	// syncer := SetupSyncer(bot)
 	// syncer.insertGateIOPairs()
 	// res, _ := syncer.downloadCMCMap()
 	// syncer.saveCMCLatestListings()
+
+	// load the trades csv
+	// generate the statistics
+	// output a report and the weight configuration
+
+	err = analyzeTrades("test.csv")
+	if err != nil {
+		fmt.Println("error analyzeTrades", err)
+	}
+}
+
+func analyzeTrades(filepath string) error {
+	fmt.Println("analyze trades")
+	return nil
 }
 
 func SetupSyncer(bot *engine.Engine) Syncer {
