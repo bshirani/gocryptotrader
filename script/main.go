@@ -14,13 +14,12 @@ import (
 	"gocryptotrader/database"
 	gctdatabase "gocryptotrader/database"
 	"gocryptotrader/database/models/postgres"
-	"gocryptotrader/database/repository/instrument"
+	currencysql "gocryptotrader/database/repository/currency"
 	"gocryptotrader/engine"
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/log"
 
 	"github.com/volatiletech/sqlboiler/v4/boil"
-	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
 type Syncer struct {
@@ -95,7 +94,7 @@ func main() {
 	syncer := SetupSyncer(bot)
 	// syncer.insertGateIOPairs()
 	// res, _ := syncer.downloadCMCMap()
-	syncer.saveCMCLatestListings()
+	// syncer.saveCMCLatestListings()
 }
 
 func SetupSyncer(bot *engine.Engine) Syncer {
@@ -113,16 +112,6 @@ func SetupSyncer(bot *engine.Engine) Syncer {
 	return Syncer{
 		bot: bot,
 		cmc: cmc,
-	}
-}
-
-func (s *Syncer) listAllInstruments() {
-	whereQM := qm.Where("1=1")
-	ins, _ := postgres.Instruments(whereQM).All(context.Background(), database.DB.SQL)
-	for _, i := range ins {
-		fmt.Println(i)
-		// pair, _ := currency.NewPairFromStrings(i.Base, i.Quote)
-		// fmt.Println(pair)
 	}
 }
 
@@ -145,7 +134,6 @@ func (s *Syncer) insertGateIOPairs() {
 }
 
 func (s *Syncer) downloadCMCMap() ([]coinmarketcap.CryptoCurrencyMap, error) {
-
 	res, err := s.cmc.GetCryptocurrencyIDMap()
 	if err != nil {
 		fmt.Println("error getting map", err)
@@ -155,7 +143,7 @@ func (s *Syncer) downloadCMCMap() ([]coinmarketcap.CryptoCurrencyMap, error) {
 		// if err != nil {
 		// 	fmt.Println("error creating pair from string", err, coin.Symbol)
 		// }
-		details := instrument.Details{
+		details := currencysql.Details{
 			CMCID: coin.ID,
 			// Base:                p.Base,
 			// Quote:               p.Quote,
@@ -166,7 +154,7 @@ func (s *Syncer) downloadCMCMap() ([]coinmarketcap.CryptoCurrencyMap, error) {
 			LastHistoricalData:  coin.LastHistoricalData,
 			Active:              coin.IsActive == 1,
 		}
-		err = instrument.Insert(details)
+		err = currencysql.Insert(details)
 		if err != nil {
 			// fmt.Println(err)
 			os.Exit(123)

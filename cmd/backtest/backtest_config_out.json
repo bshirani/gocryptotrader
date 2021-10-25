@@ -1,0 +1,322 @@
+{
+ "productionMode": false,
+ "liveMode": false,
+ "dryRun": false,
+ "script": false,
+ "nickname": "TrendStrategy",
+ "goal": "Trend Exploit",
+ "currency-settings": [
+  {
+   "exchange-name": "gateio",
+   "asset": "spot",
+   "base": "BTC",
+   "quote": "USDT",
+   "initial-quote-funds": "1000",
+   "leverage": {
+    "can-use-leverage": false,
+    "maximum-orders-with-leverage-ratio": "0",
+    "maximum-leverage-rate": "0"
+   },
+   "buy-side": {
+    "minimum-size": "0",
+    "maximum-size": "0",
+    "maximum-total": "0"
+   },
+   "sell-side": {
+    "minimum-size": "0",
+    "maximum-size": "0",
+    "maximum-total": "0"
+   },
+   "min-slippage-percent": "0",
+   "max-slippage-percent": "0",
+   "maker-fee-override": "0",
+   "taker-fee-override": "0",
+   "maximum-holdings-ratio": "0",
+   "use-exchange-order-limits": false,
+   "skip-candle-volume-fitting": false
+  }
+ ],
+ "data-settings": {
+  "interval": 60000000000,
+  "data-type": "candle",
+  "database-data": {
+   "start-date": "2021-10-01T00:00:00Z",
+   "end-date": "2021-10-30T00:00:00Z",
+   "config-override": {
+    "enabled": true,
+    "verbose": false,
+    "driver": "postgres",
+    "connectionDetails": {
+     "host": "localhost",
+     "port": 5432,
+     "username": "bijan",
+     "password": "",
+     "database": "gct-dev",
+     "sslmode": ""
+    }
+   },
+   "inclusive-end-date": false
+  },
+  "live-data": {
+   "api-key-override": "",
+   "api-secret-override": "",
+   "api-client-id-override": "",
+   "api-2fa-override": "",
+   "api-sub-account-override": "",
+   "real-orders": false
+  }
+ },
+ "portfolio-settings": {
+  "verbose": false,
+  "leverage": {
+   "can-use-leverage": false,
+   "maximum-orders-with-leverage-ratio": "0",
+   "maximum-leverage-rate": "0"
+  },
+  "buy-side": {
+   "minimum-size": "0",
+   "maximum-size": "0",
+   "maximum-total": "0"
+  },
+  "sell-side": {
+   "minimum-size": "0",
+   "maximum-size": "0",
+   "maximum-total": "0"
+  }
+ },
+ "gocryptotrader-config-path": "/home/bijan/work/crypto/gocryptotrader/cmd/confs/dev/backtest.json",
+ "statisticSettings": {
+  "risk-free-rate": "0"
+ },
+ "syncManager": {
+  "verbose": false,
+  "enabled": false
+ },
+ "tradeManager": {
+  "enabled": false,
+  "verbose": false,
+  "trading": false,
+  "clearDB": false,
+  "strategies": [
+   {
+    "Weight": "1",
+    "side": "SELL",
+    "pair": {
+     "exchange": "kraken",
+     "symbol": "XBT_USDT",
+     "backtestExchange": "gateio",
+     "backtestSymbol": "BTC_USDT"
+    },
+    "capture": "trend",
+    "debug": false
+   },
+   {
+    "Weight": "1",
+    "side": "BUY",
+    "pair": {
+     "exchange": "kraken",
+     "symbol": "XBT_USDT",
+     "backtestExchange": "gateio",
+     "backtestSymbol": "BTC_USDT"
+    },
+    "capture": "trend",
+    "debug": false
+   },
+   {
+    "Weight": "1",
+    "side": "SELL",
+    "pair": {
+     "exchange": "kraken",
+     "symbol": "ETH_USDT",
+     "backtestExchange": "gateio",
+     "backtestSymbol": "ETH_USDT"
+    },
+    "capture": "trend",
+    "debug": false
+   },
+   {
+    "Weight": "1",
+    "side": "BUY",
+    "pair": {
+     "exchange": "kraken",
+     "symbol": "ETH_USDT",
+     "backtestExchange": "gateio",
+     "backtestSymbol": "ETH_USDT"
+    },
+    "capture": "trend",
+    "debug": false
+   }
+  ],
+  "liveSimulation": {
+   "enabled": false,
+   "start-date": "0001-01-01T00:00:00Z",
+   "end-date": "0001-01-01T00:00:00Z"
+  }
+ },
+ "factorEngine": {
+  "verbose": false
+ },
+ "orderManager": {
+  "verbose": false,
+  "enabled": false
+ },
+ "dataImporter": {
+  "enabled": false,
+  "verbose": false,
+  "dataDirectory": "",
+  "fromDate": "",
+  "toDate": "",
+  "numWorkers": 0
+ },
+ "name": "",
+ "dataDirectory": "",
+ "encryptConfig": 0,
+ "globalHTTPTimeout": 0,
+ "database": {
+  "enabled": false,
+  "verbose": false,
+  "driver": "",
+  "connectionDetails": {
+   "host": "",
+   "port": 0,
+   "username": "",
+   "password": "",
+   "database": "",
+   "sslmode": ""
+  }
+ },
+ "logging": {
+  "enabled": null,
+  "level": "",
+  "output": "",
+  "advancedSettings": {
+   "showLogSystemName": null,
+   "spacer": "",
+   "timeStampFormat": "",
+   "headers": {
+    "info": "",
+    "warn": "",
+    "debug": "",
+    "error": ""
+   }
+  }
+ },
+ "connectionMonitor": {
+  "preferredDNSList": null,
+  "preferredDomainList": null,
+  "checkInterval": 0
+ },
+ "dataHistoryManager": {
+  "enabled": false,
+  "verbose": false,
+  "checkInterval": 0,
+  "maxJobsPerCycle": 0,
+  "maxResultInsertions": 0,
+  "daysBack": 0
+ },
+ "currencyStateManager": {
+  "enabled": null,
+  "delay": 0
+ },
+ "watcher": {
+  "enabled": null,
+  "delay": 0
+ },
+ "profiler": {
+  "enabled": false,
+  "mutex_profile_fraction": 0
+ },
+ "ntpclient": {
+  "enabled": 0,
+  "pool": null,
+  "allowedDifference": null,
+  "allowedNegativeDifference": null
+ },
+ "gctscript": {
+  "enabled": false,
+  "timeout": 0,
+  "max_virtual_machines": 0,
+  "allow_imports": false,
+  "auto_load": null,
+  "verbose": false
+ },
+ "currencyConfig": {
+  "forexProviders": null,
+  "cryptocurrencyProvider": {
+   "name": "",
+   "enabled": false,
+   "verbose": false,
+   "apiKey": "",
+   "accountPlan": ""
+  },
+  "cryptocurrencies": "",
+  "currencyPairFormat": null,
+  "fiatDisplayCurrency": "",
+  "currencyFileUpdateDuration": 0,
+  "foreignExchangeUpdateDuration": 0
+ },
+ "communications": {
+  "slack": {
+   "name": "",
+   "enabled": false,
+   "verbose": false,
+   "targetChannel": "",
+   "verificationToken": ""
+  },
+  "smsGlobal": {
+   "name": "",
+   "from": "",
+   "enabled": false,
+   "verbose": false,
+   "username": "",
+   "password": "",
+   "contacts": null
+  },
+  "smtp": {
+   "name": "",
+   "enabled": false,
+   "verbose": false,
+   "host": "",
+   "port": "",
+   "accountName": "",
+   "accountPassword": "",
+   "from": "",
+   "recipientList": ""
+  },
+  "telegram": {
+   "name": "",
+   "enabled": false,
+   "verbose": false,
+   "verificationToken": "",
+   "authorisedClients": 0
+  }
+ },
+ "remoteControl": {
+  "username": "",
+  "password": "",
+  "gRPC": {
+   "enabled": false,
+   "listenAddress": "",
+   "grpcProxyEnabled": false,
+   "grpcProxyListenAddress": "",
+   "timeInNanoSeconds": false
+  },
+  "deprecatedRPC": {
+   "enabled": false,
+   "listenAddress": ""
+  },
+  "websocketRPC": {
+   "enabled": false,
+   "listenAddress": "",
+   "connectionLimit": 0,
+   "maxAuthFailures": 0,
+   "allowInsecureOrigin": false
+  }
+ },
+ "portfolioAddresses": {
+  "addresses": null,
+  "Verbose": false
+ },
+ "exchanges": null,
+ "bankAccounts": null
+}
