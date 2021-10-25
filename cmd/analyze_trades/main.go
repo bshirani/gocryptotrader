@@ -11,7 +11,10 @@ import (
 	gctdatabase "gocryptotrader/database"
 	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/engine"
+	"gocryptotrader/exchange/order"
 	"gocryptotrader/log"
+
+	"github.com/shopspring/decimal"
 )
 
 type Syncer struct {
@@ -105,8 +108,29 @@ func analyzeTrades(filepath string) error {
 	// load all the trades from the csv into trade details
 	lf := livetrade.LastResult()
 	trades, err := livetrade.LoadCSV(lf)
+	fmt.Println("loaded", len(trades), "trades from", lf)
 	for _, t := range trades {
-		fmt.Println(t)
+		fmt.Printf("enter=%v exit=%v enter=%v exit=%v profit=%v minutes=%d\n",
+			t.EntryTime,
+			t.ExitTime,
+			t.EntryPrice,
+			t.ExitPrice,
+			getProfit(t),
+			getDurationMin(t),
+		)
 	}
 	return err
+}
+
+func getProfit(trade livetrade.Details) decimal.Decimal {
+	if trade.Side == order.Buy {
+		return trade.ExitPrice.Sub(trade.EntryPrice)
+	} else if trade.Side == order.Sell {
+		return trade.EntryPrice.Sub(trade.ExitPrice)
+	}
+	return decimal.Decimal{}
+}
+
+func getDurationMin(trade livetrade.Details) int {
+	return int(trade.ExitTime.Sub(trade.EntryTime).Minutes())
 }

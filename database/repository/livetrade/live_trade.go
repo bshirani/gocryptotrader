@@ -313,7 +313,7 @@ func WriteTradesCSV(trades []*Details) {
 	file.WriteString(header)
 	for _, t := range trades {
 		s := fmt.Sprintf(
-			"%d,%s,%s,%v,%v,%v,%v\n",
+			"%d,%s,%s,%v,%v,%v,%v,%v\n",
 			t.StrategyID,
 			t.Pair,
 			t.Side,
@@ -321,6 +321,7 @@ func WriteTradesCSV(trades []*Details) {
 			t.ExitTime.Format(common.SimpleTimeFormat),
 			t.EntryPrice,
 			t.ExitPrice,
+			t.Amount,
 		)
 		file.WriteString(s)
 	}
@@ -333,7 +334,6 @@ func LastResult() string {
 	wd, err := os.Getwd()
 	dir := filepath.Join(wd, "../backtest/results")
 	lf := lastFileInDir(dir)
-	fmt.Println("last:", lf)
 
 	if err != nil {
 		fmt.Println(err)
@@ -376,6 +376,7 @@ func LoadCSV(file string) (out []Details, err error) {
 		}
 	}()
 
+	fmt.Println("rading", file)
 	csvData := csv.NewReader(csvFile)
 	count := 0
 	for {
@@ -389,15 +390,18 @@ func LoadCSV(file string) (out []Details, err error) {
 
 		if count == 0 {
 			count += 1
+			fmt.Println("HERE", row)
 			continue
 		}
+		fmt.Println("row", row)
 		count += 1
-		id, _ := strconv.ParseInt(row[0], 10, 64)
+		id, err := strconv.ParseInt(row[0], 10, 64)
 		pair, err := currency.NewPairFromString(row[1])
 		entryTime, err := time.Parse(common.SimpleTimeFormat, row[3])
 		exitTime, err := time.Parse(common.SimpleTimeFormat, row[4])
 		entryPrice, err := decimal.NewFromString(row[5])
 		exitPrice, err := decimal.NewFromString(row[6])
+		amount, err := decimal.NewFromString(row[7])
 		out = append(out, Details{
 			StrategyID: int(id),
 			Pair:       pair,
@@ -406,6 +410,7 @@ func LoadCSV(file string) (out []Details, err error) {
 			ExitTime:   exitTime,
 			EntryPrice: entryPrice,
 			ExitPrice:  exitPrice,
+			Amount:     amount,
 		})
 		if err != nil {
 			fmt.Println("error", err)
