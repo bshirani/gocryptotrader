@@ -25,6 +25,7 @@ type Details struct {
 	Amount           decimal.Decimal
 	EntryOrderID     int
 	StrategyName     string
+	StrategyID       int
 	Name             string
 	EntryTime        time.Time
 	ExitTime         time.Time

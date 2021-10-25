@@ -18,6 +18,6 @@ type Submit struct {
 type Event interface {
 	eventtypes.EventHandler
 	GetInternalOrderID() string
-	GetOrderID() string
+	GetOrderID() int
 	GetIsOrderPlaced() bool
 }

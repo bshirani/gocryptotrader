@@ -135,16 +135,16 @@ func updatePostgresql(ctx context.Context, tx *sql.Tx, in []Details) (id int64, 
 		// 	os.Exit(2)
 		// }
 		var tempUpdate = postgres.LiveOrder{
-			ID:         in[x].ID,
-			Status:     in[x].Status.String(),
-			OrderType:  in[x].OrderType.String(),
-			StopPrice:  stopLossPrice,
-			Price:      price,
-			Exchange:   in[x].Exchange,
-			InternalID: in[x].InternalID,
-			StrategyID: in[x].StrategyID,
-			UpdatedAt:  in[x].UpdatedAt,
-			CreatedAt:  in[x].CreatedAt,
+			ID:           in[x].ID,
+			Status:       in[x].Status.String(),
+			OrderType:    in[x].OrderType.String(),
+			StopPrice:    stopLossPrice,
+			Price:        price,
+			Exchange:     in[x].Exchange,
+			InternalID:   in[x].InternalID,
+			StrategyName: in[x].StrategyName,
+			UpdatedAt:    in[x].UpdatedAt,
+			CreatedAt:    in[x].CreatedAt,
 		}
 
 		id, err = tempUpdate.Update(ctx, tx, boil.Infer())
@@ -192,13 +192,13 @@ func Insert(in Details) (int, error) {
 
 func insertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int, err error) {
 	var tempInsert = postgres.LiveOrder{
-		Status:     in.Status.String(),
-		OrderType:  in.OrderType.String(),
-		Exchange:   in.Exchange,
-		InternalID: in.InternalID,
-		StrategyID: in.StrategyID,
-		UpdatedAt:  in.UpdatedAt,
-		CreatedAt:  in.CreatedAt,
+		Status:       in.Status.String(),
+		OrderType:    in.OrderType.String(),
+		Exchange:     in.Exchange,
+		InternalID:   in.InternalID,
+		StrategyName: in.StrategyName,
+		UpdatedAt:    in.UpdatedAt,
+		CreatedAt:    in.CreatedAt,
 	}
 
 	err = tempInsert.Insert(ctx, tx, boil.Infer())

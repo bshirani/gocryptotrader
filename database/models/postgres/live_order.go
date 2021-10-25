@@ -28,7 +28,7 @@ type LiveOrder struct {
 	Status          string    `boil:"status" json:"status" toml:"status" yaml:"status"`
 	OrderType       string    `boil:"order_type" json:"order_type" toml:"order_type" yaml:"order_type"`
 	Exchange        string    `boil:"exchange" json:"exchange" toml:"exchange" yaml:"exchange"`
-	StrategyID      int       `boil:"strategy_id" json:"strategy_id" toml:"strategy_id" yaml:"strategy_id"`
+	StrategyName    string    `boil:"strategy_name" json:"strategy_name" toml:"strategy_name" yaml:"strategy_name"`
 	InternalID      string    `boil:"internal_id" json:"internal_id" toml:"internal_id" yaml:"internal_id"`
 	Side            string    `boil:"side" json:"side" toml:"side" yaml:"side"`
 	ClientOrderID   string    `boil:"client_order_id" json:"client_order_id" toml:"client_order_id" yaml:"client_order_id"`
@@ -55,7 +55,7 @@ var LiveOrderColumns = struct {
 	Status          string
 	OrderType       string
 	Exchange        string
-	StrategyID      string
+	StrategyName    string
 	InternalID      string
 	Side            string
 	ClientOrderID   string
@@ -77,7 +77,7 @@ var LiveOrderColumns = struct {
 	Status:          "status",
 	OrderType:       "order_type",
 	Exchange:        "exchange",
-	StrategyID:      "strategy_id",
+	StrategyName:    "strategy_name",
 	InternalID:      "internal_id",
 	Side:            "side",
 	ClientOrderID:   "client_order_id",
@@ -101,7 +101,7 @@ var LiveOrderTableColumns = struct {
 	Status          string
 	OrderType       string
 	Exchange        string
-	StrategyID      string
+	StrategyName    string
 	InternalID      string
 	Side            string
 	ClientOrderID   string
@@ -123,7 +123,7 @@ var LiveOrderTableColumns = struct {
 	Status:          "live_order.status",
 	OrderType:       "live_order.order_type",
 	Exchange:        "live_order.exchange",
-	StrategyID:      "live_order.strategy_id",
+	StrategyName:    "live_order.strategy_name",
 	InternalID:      "live_order.internal_id",
 	Side:            "live_order.side",
 	ClientOrderID:   "live_order.client_order_id",
@@ -149,7 +149,7 @@ var LiveOrderWhere = struct {
 	Status          whereHelperstring
 	OrderType       whereHelperstring
 	Exchange        whereHelperstring
-	StrategyID      whereHelperint
+	StrategyName    whereHelperstring
 	InternalID      whereHelperstring
 	Side            whereHelperstring
 	ClientOrderID   whereHelperstring
@@ -171,7 +171,7 @@ var LiveOrderWhere = struct {
 	Status:          whereHelperstring{field: "\"live_order\".\"status\""},
 	OrderType:       whereHelperstring{field: "\"live_order\".\"order_type\""},
 	Exchange:        whereHelperstring{field: "\"live_order\".\"exchange\""},
-	StrategyID:      whereHelperint{field: "\"live_order\".\"strategy_id\""},
+	StrategyName:    whereHelperstring{field: "\"live_order\".\"strategy_name\""},
 	InternalID:      whereHelperstring{field: "\"live_order\".\"internal_id\""},
 	Side:            whereHelperstring{field: "\"live_order\".\"side\""},
 	ClientOrderID:   whereHelperstring{field: "\"live_order\".\"client_order_id\""},
@@ -211,8 +211,8 @@ func (*liveOrderR) NewStruct() *liveOrderR {
 type liveOrderL struct{}
 
 var (
-	liveOrderAllColumns            = []string{"id", "status", "order_type", "exchange", "strategy_id", "internal_id", "side", "client_order_id", "amount", "symbol", "price", "stop_price", "take_profit_price", "fee", "cost", "filled_at", "asset_type", "submitted_at", "cancelled_at", "created_at", "updated_at"}
-	liveOrderColumnsWithoutDefault = []string{"status", "order_type", "exchange", "strategy_id", "internal_id", "side", "symbol", "filled_at", "submitted_at", "cancelled_at"}
+	liveOrderAllColumns            = []string{"id", "status", "order_type", "exchange", "strategy_name", "internal_id", "side", "client_order_id", "amount", "symbol", "price", "stop_price", "take_profit_price", "fee", "cost", "filled_at", "asset_type", "submitted_at", "cancelled_at", "created_at", "updated_at"}
+	liveOrderColumnsWithoutDefault = []string{"status", "order_type", "exchange", "strategy_name", "internal_id", "side", "symbol", "filled_at", "submitted_at", "cancelled_at"}
 	liveOrderColumnsWithDefault    = []string{"id", "client_order_id", "amount", "price", "stop_price", "take_profit_price", "fee", "cost", "asset_type", "created_at", "updated_at"}
 	liveOrderPrimaryKeyColumns     = []string{"id"}
 )

@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strconv"
 	"time"
 
 	"gocryptotrader/common"
@@ -227,7 +226,7 @@ func insertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int, err 
 		StopLossPrice:   stopLossPrice,
 		TakeProfitPrice: takeProfitPrice,
 		Status:          fmt.Sprintf("%s", in.Status),
-		StrategyID:      in.StrategyID,
+		StrategyName:    in.StrategyName,
 		Pair:            in.Pair.String(),
 		EntryOrderID:    in.EntryOrderID,
 		Side:            in.Side.String(),
@@ -277,7 +276,7 @@ func updatePostgresql(ctx context.Context, tx *sql.Tx, in []Details) (id int64, 
 			TakeProfitPrice: takeProfitPrice,
 			StopLossPrice:   stopLossPrice,
 			Status:          fmt.Sprintf("%s", in[x].Status),
-			StrategyID:      in[x].StrategyID,
+			StrategyName:    in[x].StrategyName,
 			Pair:            in[x].Pair.String(),
 			EntryOrderID:    in[x].EntryOrderID,
 			Side:            in[x].Side.String(),
@@ -318,8 +317,8 @@ func WriteCSV(trades []*Details) {
 	file.WriteString(header)
 	for _, t := range trades {
 		s := fmt.Sprintf(
-			"%d,%s,%s,%v,%v,%v,%v,%v,%v,%v\n",
-			t.StrategyID,
+			"%s,%s,%s,%v,%v,%v,%v,%v,%v,%v\n",
+			t.StrategyName,
 			t.Pair,
 			t.Side,
 			t.EntryTime.Format(common.SimpleTimeFormat),
@@ -365,7 +364,6 @@ func LoadCSV(file string) (out []Details, err error) {
 			continue
 		}
 		count += 1
-		id, err := strconv.ParseInt(row[0], 10, 64)
 		pair, err := currency.NewPairFromString(row[1])
 		entryTime, err := time.Parse(common.SimpleTimeFormat, row[3])
 		exitTime, err := time.Parse(common.SimpleTimeFormat, row[4])
@@ -375,7 +373,7 @@ func LoadCSV(file string) (out []Details, err error) {
 		amount, err := decimal.NewFromString(row[8])
 		takeProfit, err := decimal.NewFromString(row[9])
 		out = append(out, Details{
-			StrategyID:      int(id),
+			StrategyName:    row[0],
 			Pair:            pair,
 			Side:            order.Side(row[2]),
 			EntryTime:       entryTime,

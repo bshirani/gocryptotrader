@@ -480,7 +480,7 @@ func (p *Portfolio) recordOrder(ev signal.Event, lo liveorder.Details, o *order.
 				"Order manager: Unable to generate UUID. Err: %s",
 				err)
 		}
-		lo.ID = id.String()
+		// lo.ID = id.String()
 		o.ID = id.String()
 	}
 
