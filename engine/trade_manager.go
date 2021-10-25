@@ -51,11 +51,7 @@ func NewTradeManager(bot *Engine) (*TradeManager, error) {
 	wd, err := os.Getwd()
 	if configPath == "" {
 		if bot.Config.LiveMode {
-			if bot.Config.ProductionMode {
-				configPath = filepath.Join(wd, "cmd/confs/prod.strat")
-			} else {
-				configPath = filepath.Join(wd, "cmd/confs/dev/strategy/live-1.strat")
-			}
+			configPath = filepath.Join(wd, "cmd/confs/prod.strat")
 		} else {
 			configPath = filepath.Join(wd, "cmd/confs/dev/backtest.strat")
 		}

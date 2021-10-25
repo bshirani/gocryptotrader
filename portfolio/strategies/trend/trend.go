@@ -115,7 +115,7 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 
 			// CHECK EXIT BUY
 			if s.Strategy.GetDirection() == order.Buy {
-				if m60PctChg.LessThan(decimal.NewFromFloat(-1)) {
+				if m60PctChg.LessThan(decimal.NewFromFloat(0)) {
 					es.SetDecision(signal.Exit)
 					es.AppendReason(fmt.Sprintf("Strategy: t >. %d min and M60PctChange is negative.", minutesInTrade))
 				} else {
@@ -126,7 +126,7 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 
 			// CHECK EXIT SELL
 			if s.Strategy.GetDirection() == order.Sell {
-				if m60PctChg.GreaterThan(decimal.NewFromFloat(1)) {
+				if m60PctChg.GreaterThan(decimal.NewFromFloat(0)) {
 					es.SetDecision(signal.Exit)
 					es.AppendReason(fmt.Sprintf("Strategy.go says: exiting t > (%d) min and M60PctChange is positive.", minutesInTrade))
 				} else {

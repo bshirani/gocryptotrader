@@ -30,6 +30,50 @@
          {
              "weight": 1,
              "side": "SELL",
+             "capture": "trend2day",
+             "pair": {
+                 "exchange": "kraken",
+                 "symbol": "XBT_USDT",
+                 "backtestExchange": "gateio",
+                 "backtestSymbol": "BTC_USDT"
+             }
+         },
+         {
+             "weight": 1,
+             "side": "BUY",
+             "capture": "trend2day",
+             "pair": {
+                 "exchange": "kraken",
+                 "symbol": "XBT_USDT",
+                 "backtestExchange": "gateio",
+                 "backtestSymbol": "BTC_USDT"
+             }
+         },
+         {
+             "weight": 1,
+             "side": "SELL",
+             "capture": "trend3day",
+             "pair": {
+                 "exchange": "kraken",
+                 "symbol": "XBT_USDT",
+                 "backtestExchange": "gateio",
+                 "backtestSymbol": "BTC_USDT"
+             }
+         },
+         {
+             "weight": 1,
+             "side": "BUY",
+             "capture": "trend3day",
+             "pair": {
+                 "exchange": "kraken",
+                 "symbol": "XBT_USDT",
+                 "backtestExchange": "gateio",
+                 "backtestSymbol": "BTC_USDT"
+             }
+         },
+         {
+             "weight": 1,
+             "side": "SELL",
              "capture": "trend",
              "pair": {
                  "exchange": "kraken",

@@ -28,7 +28,7 @@ func main() {
 	versionFlag := flag.Bool("version", false, "retrieves current GoCryptoTrader version")
 
 	flag.StringVar(&settings.ConfigFile, "config", config.DefaultFilePath(), "config file to load")
-	flag.StringVar(&settings.TradeConfigFile, "tradeconfig", "", "config file to load")
+	flag.StringVar(&settings.TradeConfigFile, "strategies", "", "config file to load")
 	flag.StringVar(&settings.DataDir, "datadir", common.GetDefaultDataDir(runtime.GOOS), "default data directory for GoCryptoTrader files")
 
 	// Core settings
@@ -66,7 +66,6 @@ func main() {
 	// trading settings
 	flag.BoolVar(&settings.EnableWatcher, "watcher", false, "enables the system watcher")
 	flag.BoolVar(&settings.EnableTradeManager, "trade", false, "enables trading manager")
-	flag.BoolVar(&settings.EnableTrading, "strategies", false, "enables trading")
 	flag.BoolVar(&settings.EnableClearDB, "cleardb", false, "enable clear db")
 
 	// Exchange syncer settings
