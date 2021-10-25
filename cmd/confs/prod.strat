@@ -22,24 +22,6 @@
                  "exchange": "kraken",
                  "symbol": "XBT_USDT"
              }
-         },
-         {
-             "weight": 1,
-             "side": "SELL",
-             "capture": "trend",
-             "pair": {
-                 "exchange": "kraken",
-                 "symbol": "ETH_USDT"
-             }
-         },
-         {
-             "weight": 1,
-             "side": "BUY",
-             "capture": "trend",
-             "pair": {
-                 "exchange": "kraken",
-                 "symbol": "ETH_USDT"
-             }
          }
      ]
  },

@@ -90,7 +90,7 @@ func ByStatus(status order.Status) (out []Details, err error) {
 			// ExitPrice:     decimal.NewFromFloat(x.ExitPrice),
 			// ExitTime:      x.ExitTime,
 			// ExitPrice:     null.Float64{Float64: x.ExitPrice},
-			// StopLossPrice: stopLossPrice,
+			StopLossPrice: decimal.NewFromFloat(x.StopLossPrice),
 			// Pair:         x.Pair,
 			EntryTime:    x.EntryTime,
 			Amount:       decimal.NewFromFloat(x.Amount),
@@ -293,7 +293,7 @@ func updatePostgresql(ctx context.Context, tx *sql.Tx, in []Details) (id int64, 
 	return id, nil
 }
 
-func WriteTradesCSV(trades []*Details) {
+func WriteCSV(trades []*Details) {
 	// var nickName string
 	// if d.Config.Nickname != "" {
 	// 	nickName = d.Config.Nickname + "-"
@@ -309,11 +309,11 @@ func WriteTradesCSV(trades []*Details) {
 		fmt.Println("error", err)
 	}
 
-	header := "strategy,pair,direction,entry_time,exit_time,entry_price,exit_price,amount\n"
+	header := "strategy,pair,direction,entry_time,exit_time,entry_price,exit_price,stop_loss,amount\n"
 	file.WriteString(header)
 	for _, t := range trades {
 		s := fmt.Sprintf(
-			"%d,%s,%s,%v,%v,%v,%v,%v\n",
+			"%d,%s,%s,%v,%v,%v,%v,%v,%v\n",
 			t.StrategyID,
 			t.Pair,
 			t.Side,
@@ -321,45 +321,13 @@ func WriteTradesCSV(trades []*Details) {
 			t.ExitTime.Format(common.SimpleTimeFormat),
 			t.EntryPrice,
 			t.ExitPrice,
+			t.StopLossPrice,
 			t.Amount,
 		)
 		file.WriteString(s)
 	}
 	fmt.Println("wrote trades CSV", newpath)
 	file.Close()
-}
-
-func LastResult() string {
-	// return os.MkdirAll(dir, 0770)
-	wd, err := os.Getwd()
-	dir := filepath.Join(wd, "../backtest/results")
-	lf := lastFileInDir(dir)
-
-	if err != nil {
-		fmt.Println(err)
-	}
-	return filepath.Join(wd, "../backtest/results", lf)
-}
-
-func lastFileInDir(dir string) string {
-	files, _ := ioutil.ReadDir(dir)
-	var modTime time.Time
-	var names []string
-	for _, fi := range files {
-		if fi.Mode().IsRegular() {
-			if !fi.ModTime().Before(modTime) {
-				if fi.ModTime().After(modTime) {
-					modTime = fi.ModTime()
-					names = names[:0]
-				}
-				names = append(names, fi.Name())
-			}
-		}
-	}
-	if len(names) > 0 {
-		fmt.Println(modTime, names)
-	}
-	return names[len(names)-1]
 }
 
 // LoadCSV loads & parses a CSV list of exchanges
@@ -401,20 +369,56 @@ func LoadCSV(file string) (out []Details, err error) {
 		exitTime, err := time.Parse(common.SimpleTimeFormat, row[4])
 		entryPrice, err := decimal.NewFromString(row[5])
 		exitPrice, err := decimal.NewFromString(row[6])
-		amount, err := decimal.NewFromString(row[7])
+		stop, err := decimal.NewFromString(row[7])
+		amount, err := decimal.NewFromString(row[8])
+		fmt.Println("amount", amount)
 		out = append(out, Details{
-			StrategyID: int(id),
-			Pair:       pair,
-			Side:       order.Side(row[2]),
-			EntryTime:  entryTime,
-			ExitTime:   exitTime,
-			EntryPrice: entryPrice,
-			ExitPrice:  exitPrice,
-			Amount:     amount,
+			StrategyID:    int(id),
+			Pair:          pair,
+			Side:          order.Side(row[2]),
+			EntryTime:     entryTime,
+			ExitTime:      exitTime,
+			EntryPrice:    entryPrice,
+			ExitPrice:     exitPrice,
+			StopLossPrice: stop,
+			Amount:        amount,
 		})
 		if err != nil {
 			fmt.Println("error", err)
 		}
 	}
 	return out, err
+}
+
+func LastResult() string {
+	// return os.MkdirAll(dir, 0770)
+	wd, err := os.Getwd()
+	dir := filepath.Join(wd, "../backtest/results")
+	lf := lastFileInDir(dir)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+	return filepath.Join(wd, "../backtest/results", lf)
+}
+
+func lastFileInDir(dir string) string {
+	files, _ := ioutil.ReadDir(dir)
+	var modTime time.Time
+	var names []string
+	for _, fi := range files {
+		if fi.Mode().IsRegular() {
+			if !fi.ModTime().Before(modTime) {
+				if fi.ModTime().After(modTime) {
+					modTime = fi.ModTime()
+					names = names[:0]
+				}
+				names = append(names, fi.Name())
+			}
+		}
+	}
+	if len(names) > 0 {
+		fmt.Println(modTime, names)
+	}
+	return names[len(names)-1]
 }

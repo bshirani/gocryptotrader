@@ -360,7 +360,7 @@ dataLoadingIssue:
 	if tm.liveMode {
 		fmt.Println("done running", count, "data events")
 	} else {
-		livetrade.WriteTradesCSV(tm.Portfolio.GetAllClosedTrades())
+		livetrade.WriteCSV(tm.Portfolio.GetAllClosedTrades())
 		log.Debugln(log.TradeMgr, "TradeManager Writing Config to File")
 		tm.cfg.SaveConfigToFile("backtest_config_out.json")
 	}
