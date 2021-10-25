@@ -220,27 +220,29 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 		panic("order without decision")
 	}
 
-	entrySubmission := &gctorder.Submit{
-		Status:      gctorder.New,
-		Price:       priceFloat,
-		Amount:      a,
-		Fee:         fee,
-		Exchange:    o.GetExchange(),
-		ID:          o.GetID(),
-		Side:        o.GetDirection(),
-		AssetType:   o.GetAssetType(),
-		Date:        o.GetTime(),
-		LastUpdated: o.GetTime(),
-		Pair:        o.Pair(),
-		Type:        gctorder.Market,
-		StrategyID:  o.GetStrategyID(),
+	stopLossPrice, _ := o.GetStopLossPrice().Float64()
+
+	submission := &gctorder.Submit{
+		Status:        gctorder.New,
+		Price:         priceFloat,
+		Amount:        a,
+		Fee:           fee,
+		Exchange:      o.GetExchange(),
+		ID:            o.GetID(),
+		Side:          o.GetDirection(),
+		AssetType:     o.GetAssetType(),
+		Date:          o.GetTime(),
+		LastUpdated:   o.GetTime(),
+		Pair:          o.Pair(),
+		Type:          gctorder.Market,
+		StrategyID:    o.GetStrategyID(),
+		StopLossPrice: stopLossPrice,
 	}
 
 	if om == nil {
 		panic("there is no order manager and trying to execute order")
 	}
 
-	stopLossPrice, _ := o.GetStopLossPrice().Float64()
 	var stopSide gctorder.Side
 	if o.GetDirection() == gctorder.Buy {
 		stopSide = gctorder.Sell
@@ -266,7 +268,7 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	var entryID, stopID int
 	var err error
 	if !tm.dryRun {
-		entryID, err = liveorder.Insert(entrySubmission)
+		entryID, err = liveorder.Insert(submission)
 		if err != nil {
 			fmt.Println("error inserted order", err)
 			return nil, err
@@ -284,12 +286,12 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 		stopID = entryID + 1
 	}
 
-	entrySubmission.InternalOrderID = entryID
+	submission.InternalOrderID = entryID
 	stopLossSubmission.InternalOrderID = stopID
 
-	omr, err := om.Submit(context.TODO(), entrySubmission)
+	omr, err := om.Submit(context.TODO(), submission)
 	if err != nil {
-		fmt.Println("tm: ERROR order manager submission", err, entrySubmission.Side, omr)
+		fmt.Println("tm: ERROR order manager submission", err, submission.Side, omr)
 	}
 	if omr.InternalOrderID == 0 {
 		panic("no order id")
@@ -833,7 +835,6 @@ func (tm *TradeManager) createFillEvent(ev submit.Event) {
 	// fmt.Println("decision", ev.GetDecision(), "evdir", ev.GetDirection())
 
 	// fmt.Println("CREATE FILL EVENT REFERENCING ORDER", ev.GetOrderID(), "for strategy", ev.GetStrategyID())
-	o := tm.Portfolio.GetOrderFromStore(ev.GetInternalOrderID())
 	// fmt.Println("returned order id:", o.ID, "internal", o.InternalOrderID)
 
 	// if err != nil {
@@ -841,6 +842,8 @@ func (tm *TradeManager) createFillEvent(ev submit.Event) {
 	// }
 
 	// validate the side here
+
+	o := tm.Portfolio.GetOrderFromStore(ev.GetInternalOrderID())
 
 	if o.Amount == 0 {
 		panic("order amount is 0")
@@ -860,6 +863,7 @@ func (tm *TradeManager) createFillEvent(ev submit.Event) {
 		OrderID:         ev.GetOrderID(),
 		InternalOrderID: ev.GetInternalOrderID(),
 		ClosePrice:      decimal.NewFromFloat(o.Price),
+		StopLossPrice:   decimal.NewFromFloat(o.StopLossPrice),
 		Direction:       o.Side,
 		Amount:          decimal.NewFromFloat(o.Amount),
 		// Direction:  ev.GetDirection(),

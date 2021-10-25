@@ -20,6 +20,7 @@ type Fill struct {
 	VolumeAdjustedPrice decimal.Decimal `json:"volume-adjusted-price"`
 	PurchasePrice       decimal.Decimal `json:"purchase-price"`
 	Total               decimal.Decimal `json:"total"`
+	StopLossPrice       decimal.Decimal `json:"total"`
 	ExchangeFee         decimal.Decimal `json:"exchange-fee"`
 	Slippage            decimal.Decimal `json:"slippage"`
 	Order               *order.Detail   `json:"-"`

@@ -1167,26 +1167,28 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 	}
 	foundOrd := p.GetOrderFromStore(ev.GetInternalOrderID())
 	// fmt.Println("found order", foundOrd.ID, foundOrd.InternalOrderID)
-	stopLossPrice := decimal.NewFromFloat(foundOrd.Price).Mul(decimal.NewFromFloat(0.9))
-	fmt.Println("setting trade entry", ev.GetClosePrice())
+	// stopLossPrice := decimal.NewFromFloat(foundOrd.Price).Mul(decimal.NewFromFloat(0.9))
 
 	t := livetrade.Details{
 		Status:        gctorder.Open,
 		StrategyID:    ev.GetStrategyID(),
 		EntryTime:     ev.GetTime(),
 		EntryOrderID:  foundOrd.InternalOrderID,
-		EntryPrice:    ev.GetClosePrice(),
-		StopLossPrice: stopLossPrice,
+		EntryPrice:    decimal.NewFromFloat(foundOrd.Price),
+		StopLossPrice: decimal.NewFromFloat(foundOrd.StopLossPrice),
 		Side:          foundOrd.Side,
 		Pair:          foundOrd.Pair,
 		Amount:        decimal.NewFromFloat(foundOrd.Amount),
 	}
 
 	if t.EntryPrice.IsZero() {
-		panic("EntryPrice cannot be empty")
+		panic("EntryPrice cannot be 0")
 	}
 	if t.EntryTime.IsZero() {
 		panic("EntryTime cannot be empty")
+	}
+	if t.StopLossPrice.IsZero() {
+		panic("Stop Loss cannot be 0")
 	}
 	if t.Amount.IsZero() {
 		panic("Amount cannot be 0")

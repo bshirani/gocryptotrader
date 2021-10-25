@@ -471,7 +471,7 @@ func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*Ord
 
 	var result order.SubmitResponse
 
-	fmt.Println("order for strategy", newOrder.StrategyID)
+	// fmt.Println("order for strategy", newOrder.StrategyID)
 	if m.useRealOrders {
 		exch.GetBase().Verbose = true
 		result, err = exch.SubmitOrder(ctx, newOrder)
@@ -624,6 +624,7 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 		LastUpdated:       time.Now(),
 		Pair:              newOrder.Pair,
 		Leverage:          newOrder.Leverage,
+		StopLossPrice:     newOrder.StopLossPrice,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("unable to add %v order %v to orderStore: %s", newOrder.Exchange, result.OrderID, err)
