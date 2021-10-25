@@ -4,10 +4,11 @@ import (
 	"errors"
 	"time"
 
-	"github.com/gofrs/uuid"
 	"gocryptotrader/common/cache"
 	"gocryptotrader/currency"
 	"gocryptotrader/portfolio/banking"
+
+	"github.com/gofrs/uuid"
 )
 
 // RequestType used for easy matching of int type to Word

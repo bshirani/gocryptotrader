@@ -3,10 +3,11 @@ package trades
 import (
 	"time"
 
-	"github.com/shopspring/decimal"
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/order"
+
+	"github.com/shopspring/decimal"
 )
 
 type Status string

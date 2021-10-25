@@ -863,7 +863,7 @@ func (tm *TradeManager) processCancelEvent(ev cancel.Event) {
 
 func (tm *TradeManager) processFillEvent(ev fill.Event) {
 	tm.Portfolio.OnFill(ev)
-
+	// do it like this
 	// t, err := bt.Portfolio.OnFill(ev, funds)
 	// if err != nil {
 	// 	log.Error(log.BackTester, err)
@@ -897,7 +897,6 @@ func (tm *TradeManager) processFillEvent(ev fill.Event) {
 	if err != nil {
 		log.Error(log.TradeMgr, err)
 	}
-
 }
 
 func (tm *TradeManager) processOrderEvent(o order.Event) {

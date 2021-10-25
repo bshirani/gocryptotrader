@@ -4,9 +4,10 @@ import (
 	"errors"
 	"time"
 
-	"github.com/shopspring/decimal"
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange/asset"
+
+	"github.com/shopspring/decimal"
 )
 
 // ErrInitialFundsZero is an error when initial funds are zero or less
