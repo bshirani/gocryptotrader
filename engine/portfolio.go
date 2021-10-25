@@ -427,7 +427,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	o.SellLimit = ev.GetSellLimit()
 	o.StrategyID = ev.GetStrategyID()
 	o = p.sizeOrder(ev, cs, o, decimal.NewFromFloat(1.1))
-	o.Amount = decimal.NewFromFloat(0.0001)
+	o.Amount = decimal.NewFromFloat(0.0005)
 	p.recordOrder(ev, lo, o)
 	p.recordTrade(ev)
 	return o, nil
