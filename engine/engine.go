@@ -137,6 +137,7 @@ func loadConfigWithSettings(settings *Settings, flagSet map[string]bool) (*confi
 		return nil, fmt.Errorf(config.ErrFailureOpeningConfig, filePath, err)
 	}
 
+	fmt.Printf("Loading strategies file %s\n", settings.TradeConfigFile)
 	ss, err := config.ReadStrategyConfigFromFile(settings.TradeConfigFile)
 	if err != nil {
 		return nil, fmt.Errorf(config.ErrFailureOpeningConfig, settings.TradeConfigFile, err)
@@ -144,15 +145,17 @@ func loadConfigWithSettings(settings *Settings, flagSet map[string]bool) (*confi
 	conf.TradeManager.Strategies = ss
 	fmt.Println("loaded", len(ss), "strategies")
 
+	for _, s := range ss {
+		fmt.Println("pair", s.Pair)
+	}
+
 	fmt.Println("is production?", settings.EnableProductionMode)
 	for _, ex := range conf.Exchanges {
 		if ex.Enabled {
-
 			// get list of pairs from strategy config
 			for _, s := range ss {
 				ex.CurrencyPairs.EnablePair(asset.Spot, s.Pair)
 			}
-
 			// fmt.Println("ENABLED EXXX", ex.Name, pairs)
 		}
 	}

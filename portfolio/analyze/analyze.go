@@ -56,7 +56,7 @@ func (p *PortfolioAnalysis) loadAllStrategies() {
 		if err != nil {
 			fmt.Println("error hydrating pair", pair)
 		}
-		pairs = append(pairs, pair)
+		pairs = append(pairs, pair.Upper())
 	}
 	// pairs, _ := p.Config.GetEnabledPairs("gateio", asset.Spot)
 

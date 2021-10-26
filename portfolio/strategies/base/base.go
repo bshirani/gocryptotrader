@@ -43,7 +43,7 @@ func (s *Strategy) GetSettings() *config.StrategySetting {
 	return &config.StrategySetting{
 		Side:    order.Side(s.GetDirection()),
 		Capture: s.Name,
-		Pair:    s.pair,
+		Pair:    s.pair.Upper(),
 	}
 }
 
@@ -161,14 +161,4 @@ func getPairForExchange(ex string, pair currency.Pair) currency.Pair {
 		pair.Base = currency.NewCode("XBT")
 	}
 	return pair
-
-	// 	fmt.Println("pair", exp.Base, exp.Quote)
-	// 	if strings.EqualFold(exp.Base.String(), "XBT") {
-	// 		exp.Base = currency.NewCode("XBT")
-	// 	}
-	// }
-	//
-	// if err != nil {
-	// 	fmt.Println("error", err)
-	// }
 }

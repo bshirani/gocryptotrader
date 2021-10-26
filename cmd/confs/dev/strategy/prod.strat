@@ -2,14 +2,14 @@
  {
   "weight": "1",
   "side": "BUY",
-  "pair": "doge_usdt",
+  "pair": "DOGE_USDT",
   "capture": "trend",
   "debug": false
  },
  {
   "weight": "1",
   "side": "BUY",
-  "pair": "eth_usdt",
+  "pair": "ETH_USDT",
   "capture": "trend",
   "debug": false
  }
