@@ -226,3 +226,12 @@ that's the responsibility of the trademanager
 - callback from om to tm when stop loss is hit
 
 - when the stop loss is hit, the trade manager needs to cancel the stop loss order
+
+
+backtesting
+strategy statistics
+portfolio statistics
+get all the backtests in a single CSV
+or get the backtests in separate CSVs
+combine them together into a portfolio analysis
+output the results json and prod configuration json

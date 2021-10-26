@@ -35,6 +35,7 @@ import (
 	"gocryptotrader/log"
 
 	gctlog "gocryptotrader/log"
+	"gocryptotrader/portfolio/analyze"
 	"gocryptotrader/portfolio/compliance"
 	"gocryptotrader/portfolio/holdings"
 	"gocryptotrader/portfolio/report"
@@ -441,7 +442,8 @@ dataLoadingIssue:
 		fmt.Println("done running", count, "data events")
 	} else {
 		livetrade.WriteCSV(tm.Portfolio.GetAllClosedTrades())
-		livetrade.AnalyzeTrades("")
+		pf := &analyze.PortfolioAnalysis{}
+		pf.Analyze("")
 		log.Debugln(log.TradeMgr, "TradeManager Writing Config to File")
 		tm.cfg.SaveConfigToFile("backtest_config_out.json")
 	}

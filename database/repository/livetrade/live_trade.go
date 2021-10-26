@@ -6,9 +6,9 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"gocryptotrader/common"
@@ -381,6 +381,8 @@ func LoadCSV(file string) (out []*Details, err error) {
 			continue
 		}
 		count += 1
+
+		sid, err := strconv.ParseInt(row[0], 10, 32)
 		pair, err := currency.NewPairFromString(row[1])
 		entryTime, err := time.Parse(common.SimpleTimeFormat, row[3])
 		exitTime, err := time.Parse(common.SimpleTimeFormat, row[4])
@@ -391,7 +393,7 @@ func LoadCSV(file string) (out []*Details, err error) {
 		takeProfit, err := decimal.NewFromString(row[9])
 
 		out = append(out, &Details{
-			StrategyName:    row[0],
+			StrategyID:      int(sid),
 			Pair:            pair,
 			Side:            order.Side(row[2]),
 			EntryTime:       entryTime,
@@ -407,120 +409,4 @@ func LoadCSV(file string) (out []*Details, err error) {
 		}
 	}
 	return out, err
-}
-
-func AnalyzeTrades(filepath string) error {
-	// load all the trades from the csv into trade details
-	lf := LastResult()
-	trades, err := LoadCSV(lf)
-
-	tradesByStrategy := make(map[int][]*Details)
-
-	for _, lt := range trades {
-		if tradesByStrategy[lt.StrategyID] == nil {
-			tradesByStrategy[lt.StrategyID] = make([]*Details, 0)
-		}
-		tradesByStrategy[lt.StrategyID] = append(tradesByStrategy[lt.StrategyID], lt)
-	}
-
-	fmt.Println("trades from", len(tradesByStrategy), "strategies")
-	fmt.Println("net profit", netProfit(trades))
-	fmt.Println("net points", netProfitPoints(trades))
-	calculateDuration(trades)
-
-	sumDurationMin := 0.0
-	for _, lt := range trades {
-		sumDurationMin += lt.DurationMinutes
-	}
-	fmt.Println("average duration min", sumDurationMin/float64(len(trades)))
-
-	// for _, t := range trades {
-	// 	fmt.Printf("enter=%v exit=%v enter=%v exit=%v profit=%v minutes=%d amount=%v stop=%v\n",
-	// 		t.EntryTime.Format(common.SimpleTimeFormat),
-	// 		t.ExitTime.Format(common.SimpleTimeFormat),
-	// 		t.EntryPrice,
-	// 		t.ExitPrice,
-	// 		getProfit(t),
-	// 		getDurationMin(t),
-	// 		t.Amount,
-	// 		t.StopLossPrice,
-	// 	)
-	// }
-	return err
-}
-
-func netProfitPoints(trades []*Details) (netProfit decimal.Decimal) {
-	for _, t := range trades {
-		if t.Side == order.Buy {
-			t.ProfitLossPoints = t.ExitPrice.Sub(t.EntryPrice)
-		} else if t.Side == order.Sell {
-			t.ProfitLossPoints = t.EntryPrice.Sub(t.ExitPrice)
-		}
-		netProfit = netProfit.Add(t.ProfitLossPoints)
-	}
-	return netProfit
-}
-
-func netProfit(trades []*Details) (netProfit decimal.Decimal) {
-	for _, t := range trades {
-		if t.Side == order.Buy {
-			t.ProfitLossPoints = t.ExitPrice.Sub(t.EntryPrice)
-		} else if t.Side == order.Sell {
-			t.ProfitLossPoints = t.EntryPrice.Sub(t.ExitPrice)
-		}
-		netProfit = netProfit.Add(t.Amount.Mul(t.ProfitLossPoints))
-	}
-	return netProfit
-}
-
-func calculateDuration(trades []*Details) {
-	for _, t := range trades {
-		t.DurationMinutes = t.ExitTime.Sub(t.EntryTime).Minutes()
-	}
-}
-
-func LastResult() string {
-	// return os.MkdirAll(dir, 0770)
-	wd, err := os.Getwd()
-	dir := filepath.Join(wd, "../backtest/results")
-	lf := lastFileInDir(dir)
-
-	if err != nil {
-		fmt.Println(err)
-	}
-	return filepath.Join(wd, "../backtest/results", lf)
-}
-
-func lastFileInDir(dir string) string {
-	files, _ := ioutil.ReadDir(dir)
-	var modTime time.Time
-	var names []string
-	for _, fi := range files {
-		if fi.Mode().IsRegular() {
-			if !fi.ModTime().Before(modTime) {
-				if fi.ModTime().After(modTime) {
-					modTime = fi.ModTime()
-					names = names[:0]
-				}
-				names = append(names, fi.Name())
-			}
-		}
-	}
-	// if len(names) > 0 {
-	// 	fmt.Println(modTime, names)
-	// }
-	return names[len(names)-1]
-}
-
-func getProfit(trade Details) decimal.Decimal {
-	if trade.Side == order.Buy {
-		return trade.ExitPrice.Sub(trade.EntryPrice)
-	} else if trade.Side == order.Sell {
-		return trade.EntryPrice.Sub(trade.ExitPrice)
-	}
-	return decimal.Decimal{}
-}
-
-func getDurationMin(trade Details) int {
-	return int(trade.ExitTime.Sub(trade.EntryTime).Minutes())
 }
