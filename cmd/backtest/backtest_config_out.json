@@ -101,6 +101,18 @@
   "strategies": [
    {
     "Weight": "1",
+    "side": "SELL",
+    "pair": {
+     "exchange": "kraken",
+     "symbol": "XBT_USDT",
+     "backtestExchange": "gateio",
+     "backtestSymbol": "BTC_USDT"
+    },
+    "capture": "trend",
+    "debug": false
+   },
+   {
+    "Weight": "1",
     "side": "BUY",
     "pair": {
      "exchange": "kraken",

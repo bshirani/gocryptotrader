@@ -19,6 +19,7 @@ func LoadStrategyByName(name string) (Handler, error) {
 		if !strings.EqualFold(name, strats[i].Name()) {
 			continue
 		}
+		// strats[i].Name = name
 		// if useSimultaneousProcessing {
 		// 	if !strats[i].SupportsSimultaneousProcessing() {
 		// 		return nil, fmt.Errorf(

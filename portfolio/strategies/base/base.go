@@ -1,6 +1,7 @@
 package base
 
 import (
+	"fmt"
 	"gocryptotrader/currency"
 	"gocryptotrader/data"
 	"gocryptotrader/eventtypes"
@@ -22,6 +23,14 @@ type Strategy struct {
 	useSimultaneousProcessing bool
 	usingExchangeLevelFunding bool
 	Debug                     bool
+}
+
+func (s *Strategy) SetName(name string) {
+	s.Name = name
+}
+
+func (s *Strategy) GetLabel() string {
+	return fmt.Sprintf("%s-%s-%s", s.Name, s.pair, s.direction)
 }
 
 func (s *Strategy) GetNumID() int {

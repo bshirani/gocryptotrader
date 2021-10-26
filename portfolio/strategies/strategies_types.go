@@ -12,6 +12,8 @@ import (
 
 // Handler defines all functions required to run strategies against data events
 type Handler interface {
+	GetLabel() string
+	SetName(string)
 	SetID(int)
 	GetID() int
 	GetWeight() decimal.Decimal

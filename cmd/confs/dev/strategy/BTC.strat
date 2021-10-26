@@ -12,7 +12,8 @@
              "pair": {
                  "exchange": "kraken",
                  "backtestExchange": "gateio",
-                 "symbol": "XBT_USDT"
+                 "symbol": "XBT_USDT",
+                 "backtestSymbol": "BTC_USDT"
              }
          },
          {
@@ -22,7 +23,8 @@
              "pair": {
                  "exchange": "kraken",
                  "backtestExchange": "gateio",
-                 "symbol": "XBT_USDT"
+                 "symbol": "XBT_USDT",
+                 "backtestSymbol": "BTC_USDT"
              }
          }
      ]

@@ -2,9 +2,7 @@ package analyze
 
 import (
 	"gocryptotrader/config"
-	"gocryptotrader/currency"
 	"gocryptotrader/database/repository/livetrade"
-	"gocryptotrader/exchange/asset"
 	"gocryptotrader/portfolio/compliance"
 	"gocryptotrader/portfolio/holdings"
 	"gocryptotrader/portfolio/strategies"
@@ -14,11 +12,13 @@ import (
 )
 
 type PortfolioAnalysis struct {
+	AllSettings   []*config.StrategySetting `json:"strategies"`
 	Strategies    []strategies.Handler
 	Report        *PortfolioReport
 	Weights       *PortfolioWeights
-	groupedTrades map[string]map[asset.Item]map[currency.Pair]map[string][]*livetrade.Details
+	groupedTrades map[string][]*livetrade.Details
 	trades        []*livetrade.Details
+	Config        *config.Config
 }
 
 type TradeCSVData struct {

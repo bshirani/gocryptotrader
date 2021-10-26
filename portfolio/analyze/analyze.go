@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"gocryptotrader/common/file"
 	"gocryptotrader/config"
-	"gocryptotrader/currency"
 	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/order"
@@ -21,6 +20,11 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+const (
+	prodExchange     = "kraken"
+	backtestExchange = "gateio"
+)
+
 func (p *PortfolioAnalysis) Analyze(filepath string) error {
 	p.Report = &PortfolioReport{}
 	lf := lastResult()
@@ -29,10 +33,45 @@ func (p *PortfolioAnalysis) Analyze(filepath string) error {
 	p.trades = enhanced
 	p.groupedTrades = groupByStrategyID(enhanced)
 
+	p.loadAllStrategies()
+
 	p.calculateReport()
 	p.calculateProductionWeights()
 
 	return err
+}
+
+func (p *PortfolioAnalysis) loadAllStrategies() {
+	// get a list of all the strategy names
+	all := strategies.GetStrategies()
+	fmt.Println(len(all))
+
+	names := []string{"trend", "trend2day", "trend3day"}
+
+	pairs, _ := p.Config.GetEnabledPairs("gateio", asset.Spot)
+
+	for _, name := range names {
+		fmt.Println("create all settings for", name)
+		// for each direction
+		for _, dir := range []order.Side{order.Buy, order.Sell} {
+			for _, pair := range pairs {
+				fmt.Println("create strategy config for", dir, pair, name)
+				pairS := config.PairSetting{
+					Exchange:         prodExchange,
+					Symbol:           p.getPairForExchange(prodExchange, pair).Upper().String(),
+					BacktestExchange: backtestExchange,
+					BacktestSymbol:   pair.Upper().String(),
+				}
+				ss := &config.StrategySetting{
+					Weight:  decimal.NewFromFloat(1.5),
+					Side:    dir,
+					Capture: name,
+					Pair:    pairS,
+				}
+				p.AllSettings = append(p.AllSettings, ss)
+			}
+		}
+	}
 }
 
 func (p *PortfolioAnalysis) calculateReport() {
@@ -46,30 +85,6 @@ func (p *PortfolioAnalysis) calculateReport() {
 		sumDurationMin += lt.DurationMinutes
 	}
 	p.Report.AverageDurationMin = sumDurationMin / float64(len(p.trades))
-}
-
-func (p *PortfolioAnalysis) calculateProductionWeights() {
-	p.Weights = &PortfolioWeights{}
-	p.Weights.Strategies = make([]*config.StrategySetting, 0)
-	fmt.Println("there are", len(p.groupedTrades), "strategies")
-	// write all strategies for now
-	for ex, exmap := range p.groupedTrades {
-		for a, amap := range exmap {
-			for p, pmap := range amap {
-				for s := range pmap {
-					// trades[0].StrategyName
-					loadStrategy(ex, a, p, s)
-					fmt.Println("handle", ex, a, p, s)
-					ss := &config.StrategySetting{
-						Weight:  decimal.NewFromFloat(1.5),
-						Side:    s.GetDirection(),
-						Capture: "trend",
-					}
-					p.Weights.Strategies = append(p.Weights.Strategies, ss)
-				}
-			}
-		}
-	}
 }
 
 func (p *PortfolioAnalysis) PrintResults() {
@@ -100,53 +115,22 @@ func PrintTradeResults() {
 	// }
 }
 
-func loadStrategy(ex string, a asset.Item, p currency.Pair, side order.Side, s string) strategies.Handler {
-	strat, _ := strategies.LoadStrategyByName(s)
-	// strat.SetExchange(ex)
-	strat.SetDirection(side)
-	strat.SetPair(p)
-	strat.SetID(t.StrategyID)
-	// strat.SetName("trend")
-	// s := base.Strategy{}
-	// s.ID = 1
-	// if err != nil {
-	// 	fmt.Println("error", err)
-	// }
-	return strat
-}
-
 func loadStrategyFromTrade(t *livetrade.Details) strategies.Handler {
-	strat, _ := strategies.LoadStrategyByName("trend")
-	strat.SetDirection(t.Side)
-	strat.SetPair(t.Pair)
-	strat.SetID(t.StrategyID)
-	// strat.SetName("trend")
-	// s := base.Strategy{}
-	// s.ID = 1
-	// if err != nil {
-	// 	fmt.Println("error", err)
-	// }
-	return strat
+	s, _ := strategies.LoadStrategyByName("trend")
+	s.SetName("trend")
+	s.SetDirection(t.Side)
+	s.SetPair(t.Pair)
+	s.SetID(t.StrategyID)
+	// fmt.Println("strategy label", s.GetLabel(), s.Name())
+	return s
 }
 
-func groupByStrategyID(trades []*livetrade.Details) (grouped map[string]map[asset.Item]map[currency.Pair]map[string][]*livetrade.Details) {
-	grouped = make(map[string]map[asset.Item]map[currency.Pair]map[string][]*livetrade.Details)
+func groupByStrategyID(trades []*livetrade.Details) (grouped map[string][]*livetrade.Details) {
+	grouped = make(map[string][]*livetrade.Details)
 
 	for _, lt := range trades {
 		s := loadStrategyFromTrade(lt)
-		if grouped[s.Exchange] == nil {
-			grouped[s.Exchange] = make(map[asset.Item]map[currency.Pair]map[string][]*livetrade.Details)
-			if grouped[s.Exchange][asset.Spot] == nil {
-				grouped[s.Exchange][asset.Spot] = make(map[currency.Pair]map[string][]*livetrade.Details)
-			}
-			if grouped[s.Exchange][asset.Spot][t.Pair] == nil {
-				grouped[s.Exchange][asset.Spot][t.Pair] = make(map[string][]*livetrade.Details)
-			}
-			if grouped[s.Exchange][asset.Spot][t.Pair][t.StrategyName] == nil {
-				grouped[s.Exchange][asset.Spot][t.Pair][t.StrategyName] = make([]*livetrade.Details, 0)
-			}
-		}
-		grouped[s.Exchange][asset.Spot][t.Pair][t.StrategyName] = append(grouped[s.Exchange][asset.Spot][t.Pair][t.StrategyName], &lt)
+		grouped[s.GetLabel()] = append(grouped[s.GetLabel()], lt)
 	}
 	return grouped
 }
@@ -381,8 +365,9 @@ func (p *PortfolioAnalysis) Save(filepath string) error {
 	return err
 }
 
-func (w *PortfolioWeights) Save(filepath string) error {
-	writer, err := file.Writer(filepath)
+func (p *PortfolioAnalysis) SaveAllStrategiesConfigFile(outpath string) error {
+	fmt.Println("saving all strategies config", outpath)
+	writer, err := file.Writer(outpath)
 	defer func() {
 		if writer != nil {
 			err = writer.Close()
@@ -391,7 +376,7 @@ func (w *PortfolioWeights) Save(filepath string) error {
 			}
 		}
 	}()
-	payload, err := json.MarshalIndent(w, "", " ")
+	payload, err := json.MarshalIndent(p.AllSettings, "", " ")
 	if err != nil {
 		return err
 	}

@@ -15,19 +15,21 @@ func SetupStrategies(cfg *config.Config, liveMode bool) (slit []strategies.Handl
 		count += 1
 		strat, _ := strategies.LoadStrategyByName(cs.Capture)
 
-		// fmt.Println("load pair", cs.Pair)
-
 		var pair currency.Pair
 		var err error
 
 		if liveMode {
 			pair, err = currency.NewPairFromString(cs.Pair.Symbol)
 		} else {
+			if cs.Pair.BacktestSymbol == "" {
+				fmt.Println("backtest symbol cannot be blank")
+				os.Exit(123)
+			}
 			pair, err = currency.NewPairFromString(cs.Pair.BacktestSymbol)
 		}
 
 		if err != nil {
-			fmt.Println("error hydrating pair:", pair, err)
+			fmt.Println("error hydrating pair:", pair, "error:", err)
 			os.Exit(123)
 			return
 		}
