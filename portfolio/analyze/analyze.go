@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"gocryptotrader/common/file"
 	"gocryptotrader/config"
+	"gocryptotrader/currency"
 	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/order"
@@ -15,6 +16,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -32,13 +34,16 @@ func (p *PortfolioAnalysis) Analyze(filepath string) error {
 	enhanced := enhanceTrades(trades)
 	p.trades = enhanced
 	p.groupedTrades = groupByStrategyID(enhanced)
-
 	p.loadAllStrategies()
-
+	p.loadGroupedStrategies()
+	p.analyzeGroupedStrategies()
 	p.calculateReport()
 	p.calculateProductionWeights()
 
 	return err
+}
+
+func (p *PortfolioAnalysis) analyzeGroupedStrategies() {
 }
 
 func (p *PortfolioAnalysis) loadAllStrategies() {
@@ -70,11 +75,45 @@ func (p *PortfolioAnalysis) loadAllStrategies() {
 	}
 }
 
+func (p *PortfolioAnalysis) loadGroupedStrategies() {
+	for label, trades := range p.groupedTrades {
+		strat := loadStrategyFromLabel(label)
+		a := analyzeStrategy(strat, trades)
+		p.StrategiesAnalyses = append(p.StrategiesAnalyses, a)
+		pair := strat.GetPair()
+		pairS := config.PairSetting{
+			Exchange:         prodExchange,
+			BacktestExchange: backtestExchange,
+			Symbol:           p.getPairForExchange(prodExchange, pair).Upper().String(),
+			BacktestSymbol:   pair.Upper().String(),
+		}
+		ss := &config.StrategySetting{
+			Side:    order.Side(strat.GetDirection()),
+			Capture: strat.Name(),
+			Pair:    pairS,
+		}
+		p.GroupedSettings = append(p.GroupedSettings, ss)
+	}
+}
+
+func (p *PortfolioAnalysis) GetStrategyAnalysis(s strategies.Handler) *StrategyAnalysis {
+	return p.StrategiesAnalyses[0]
+}
+
 func (p *PortfolioAnalysis) calculateReport() {
 	// fmt.Println("pfloaded", len(trades), "trades from", len(grouped), "strategies")
 	// p.Report.StrategiesAnalyses = make(map[strategies.Handler]*StrategyAnalysis)
 	// for id := range grouped {
-	// 	p.Report.StrategiesAnalyses[id] = analyzeStrategy(id, grouped[id])
+
+	for range p.AllSettings {
+		// if the strategy is in the trades group
+
+		// for i := range p.groupedTrades {
+		// 	fmt.Println("check", i, ss.Capture, ss.Pair.Symbol, ss.Side)
+		// }
+
+		// p.Report.StrategiesAnalyses[id] = analyzeStrategy(id, grouped[id])
+	}
 	// }
 	sumDurationMin := 0.0
 	for _, lt := range p.trades {
@@ -121,6 +160,23 @@ func loadStrategyFromTrade(t *livetrade.Details) strategies.Handler {
 	return s
 }
 
+func loadStrategyFromLabel(label string) strategies.Handler {
+	l := strings.Split(label, ":")
+	name := l[0]
+	symbol := l[1]
+	dir := l[2]
+
+	s, _ := strategies.LoadStrategyByName(name)
+	s.SetName(name)
+	s.SetDirection(order.Side(dir))
+	pair, _ := currency.NewPairFromString(symbol)
+
+	s.SetPair(pair)
+	// s.SetID(t.StrategyID)
+	// fmt.Println("strategy label", s.GetLabel(), s.Name())
+	return s
+}
+
 func groupByStrategyID(trades []*livetrade.Details) (grouped map[string][]*livetrade.Details) {
 	grouped = make(map[string][]*livetrade.Details)
 
@@ -158,7 +214,7 @@ func enhanceTrades(trades []*livetrade.Details) []*livetrade.Details {
 	// return enhanced
 }
 
-func analyzeStrategy(id int, trades []*livetrade.Details) (a *StrategyAnalysis) {
+func analyzeStrategy(strat strategies.Handler, trades []*livetrade.Details) (a *StrategyAnalysis) {
 	a = &StrategyAnalysis{}
 	// a.Trades = trades
 	a.NumTrades = len(trades)

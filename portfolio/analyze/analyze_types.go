@@ -2,7 +2,9 @@ package analyze
 
 import (
 	"gocryptotrader/config"
+	"gocryptotrader/currency"
 	"gocryptotrader/database/repository/livetrade"
+	"gocryptotrader/exchange/order"
 	"gocryptotrader/portfolio/compliance"
 	"gocryptotrader/portfolio/holdings"
 	"gocryptotrader/portfolio/strategies"
@@ -12,13 +14,15 @@ import (
 )
 
 type PortfolioAnalysis struct {
-	AllSettings   []*config.StrategySetting `json:"strategies"`
-	Strategies    []strategies.Handler
-	Report        *PortfolioReport
-	Weights       *PortfolioWeights
-	groupedTrades map[string][]*livetrade.Details
-	trades        []*livetrade.Details
-	Config        *config.Config
+	AllSettings        []*config.StrategySetting `json:"strategies"`
+	GroupedSettings    []*config.StrategySetting `json:"strategies"`
+	Strategies         []strategies.Handler
+	Report             *PortfolioReport
+	Weights            *PortfolioWeights
+	groupedTrades      map[string][]*livetrade.Details
+	trades             []*livetrade.Details
+	Config             *config.Config
+	StrategiesAnalyses []*StrategyAnalysis
 }
 
 type TradeCSVData struct {
@@ -36,7 +40,6 @@ type PortfolioWeights struct {
 }
 
 type PortfolioReport struct {
-	StrategiesAnalyses map[strategies.Handler]*StrategyAnalysis
 	NumTrades          int64
 	NumStrategies      int64
 	AverageDurationMin float64
@@ -45,6 +48,11 @@ type PortfolioReport struct {
 // CurrencyStatistic Holds all events and statistics relevant to an exchange, asset type and currency pair
 type StrategyAnalysis struct {
 	// Trades                       []*livetrade.Details
+	Exchange  string        `json:"exchange"`
+	Pair      currency.Pair `json:"pair"`
+	Direction order.Side    `json:"direction"`
+	Capture   string        `json:"capture"`
+
 	NumTrades                    int                   `json:"num-trades"`
 	MaxDrawdown                  Swing                 `json:"max-drawdown,omitempty"`
 	StartingClosePrice           decimal.Decimal       `json:"starting-close-price"`

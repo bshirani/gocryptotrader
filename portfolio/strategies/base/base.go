@@ -2,6 +2,7 @@ package base
 
 import (
 	"fmt"
+	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/data"
 	"gocryptotrader/eventtypes"
@@ -29,8 +30,12 @@ func (s *Strategy) SetName(name string) {
 	s.Name = name
 }
 
+func (s *Strategy) GetSettings() *config.StrategySetting {
+	return &config.StrategySetting{}
+}
+
 func (s *Strategy) GetLabel() string {
-	return fmt.Sprintf("%s-%s-%s", s.Name, s.pair, s.direction)
+	return fmt.Sprintf("%s:%s:%s", s.Name, s.pair, s.direction)
 }
 
 func (s *Strategy) GetNumID() int {
