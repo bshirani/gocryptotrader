@@ -16,6 +16,7 @@ import (
 func main() {
 	var startDate, endDate, strategy, configPath, templatePath, reportOutput, pairsArg string
 	var clearDB, printLogo, generateReport, dryrun, darkReport bool
+	path := "backtest.json"
 	wd, err := os.Getwd()
 	if err != nil {
 		fmt.Printf("Could not get working directory. Error: %v.\n", err)
@@ -23,8 +24,7 @@ func main() {
 	}
 	flag.BoolVar(&dryrun, "dryrun", true, "write orders/trades to db")
 	flag.BoolVar(&generateReport, "generatereport", false, "whether to generate the report file")
-	flag.StringVar(&strategy, "strategy", "all", "the config containing strategy params")
-	path := "backtest.json"
+	flag.StringVar(&strategy, "trade", "all", "the config containing strategy params")
 	flag.StringVar(&configPath, "config", path, "the config containing strategy params")
 	flag.BoolVar(&clearDB, "cleardb", true, "the config containing strategy params")
 	flag.StringVar(&templatePath, "templatepath", filepath.Join(wd, "../portfolio/tradereport", "tpl.gohtml"), "the report template to use")

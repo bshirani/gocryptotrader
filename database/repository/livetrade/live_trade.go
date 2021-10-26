@@ -334,8 +334,8 @@ func WriteCSV(trades []*Details) {
 	file.WriteString(header)
 	for _, t := range trades {
 		s := fmt.Sprintf(
-			"%s,%s,%s,%v,%v,%v,%v,%v,%v,%v\n",
-			t.StrategyName,
+			"%d,%s,%s,%v,%v,%v,%v,%v,%v,%v\n",
+			t.StrategyID,
 			t.Pair,
 			t.Side,
 			t.EntryTime.Format(common.SimpleTimeFormat),
@@ -352,7 +352,7 @@ func WriteCSV(trades []*Details) {
 }
 
 // LoadCSV loads & parses a CSV list of exchanges
-func LoadCSV(file string) (out []Details, err error) {
+func LoadCSV(file string) (out []*Details, err error) {
 	csvFile, err := os.Open(file)
 	if err != nil {
 		return out, err
@@ -389,7 +389,8 @@ func LoadCSV(file string) (out []Details, err error) {
 		stop, err := decimal.NewFromString(row[7])
 		amount, err := decimal.NewFromString(row[8])
 		takeProfit, err := decimal.NewFromString(row[9])
-		out = append(out, Details{
+
+		out = append(out, &Details{
 			StrategyName:    row[0],
 			Pair:            pair,
 			Side:            order.Side(row[2]),
@@ -412,8 +413,26 @@ func AnalyzeTrades(filepath string) error {
 	// load all the trades from the csv into trade details
 	lf := LastResult()
 	trades, err := LoadCSV(lf)
+
+	tradesByStrategy := make(map[int][]*Details)
+
+	for _, lt := range trades {
+		if tradesByStrategy[lt.StrategyID] == nil {
+			tradesByStrategy[lt.StrategyID] = make([]*Details, 0)
+		}
+		tradesByStrategy[lt.StrategyID] = append(tradesByStrategy[lt.StrategyID], lt)
+	}
+
+	fmt.Println("trades from", len(tradesByStrategy), "strategies")
 	fmt.Println("net profit", netProfit(trades))
 	fmt.Println("net points", netProfitPoints(trades))
+	calculateDuration(trades)
+
+	sumDurationMin := 0.0
+	for _, lt := range trades {
+		sumDurationMin += lt.DurationMinutes
+	}
+	fmt.Println("average duration min", sumDurationMin/float64(len(trades)))
 
 	// for _, t := range trades {
 	// 	fmt.Printf("enter=%v exit=%v enter=%v exit=%v profit=%v minutes=%d amount=%v stop=%v\n",
@@ -430,7 +449,7 @@ func AnalyzeTrades(filepath string) error {
 	return err
 }
 
-func netProfitPoints(trades []Details) (netProfit decimal.Decimal) {
+func netProfitPoints(trades []*Details) (netProfit decimal.Decimal) {
 	for _, t := range trades {
 		if t.Side == order.Buy {
 			t.ProfitLossPoints = t.ExitPrice.Sub(t.EntryPrice)
@@ -442,7 +461,7 @@ func netProfitPoints(trades []Details) (netProfit decimal.Decimal) {
 	return netProfit
 }
 
-func netProfit(trades []Details) (netProfit decimal.Decimal) {
+func netProfit(trades []*Details) (netProfit decimal.Decimal) {
 	for _, t := range trades {
 		if t.Side == order.Buy {
 			t.ProfitLossPoints = t.ExitPrice.Sub(t.EntryPrice)
@@ -452,6 +471,12 @@ func netProfit(trades []Details) (netProfit decimal.Decimal) {
 		netProfit = netProfit.Add(t.Amount.Mul(t.ProfitLossPoints))
 	}
 	return netProfit
+}
+
+func calculateDuration(trades []*Details) {
+	for _, t := range trades {
+		t.DurationMinutes = t.ExitTime.Sub(t.EntryTime).Minutes()
+	}
 }
 
 func LastResult() string {
