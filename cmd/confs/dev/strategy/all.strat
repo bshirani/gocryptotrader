@@ -1,131 +1,146 @@
-{
- "nickname": "TrendStrategy",
- "goal": "Trend Exploit",
- "gocryptotrader-config-path": "/home/bijan/work/crypto/gocryptotrader/cmd/confs/dev/backtest.json",
- "tradeManager" : {
-     "verbose": false,
-     "strategies": [
-         {
-             "weight": 1,
-             "side": "SELL",
-             "capture": "trend",
-             "pair": {
-                 "exchange": "kraken",
-                 "symbol": "XBT_USDT",
-                 "backtestExchange": "gateio",
-                 "backtestSymbol": "BTC_USDT"
-             }
-         },
-         {
-             "weight": 1,
-             "side": "BUY",
-             "capture": "trend",
-             "pair": {
-                 "exchange": "kraken",
-                 "symbol": "XBT_USDT",
-                 "backtestExchange": "gateio",
-                 "backtestSymbol": "BTC_USDT"
-             }
-         },
-         {
-             "weight": 1,
-             "side": "SELL",
-             "capture": "trend2day",
-             "pair": {
-                 "exchange": "kraken",
-                 "symbol": "XBT_USDT",
-                 "backtestExchange": "gateio",
-                 "backtestSymbol": "BTC_USDT"
-             }
-         },
-         {
-             "weight": 1,
-             "side": "BUY",
-             "capture": "trend2day",
-             "pair": {
-                 "exchange": "kraken",
-                 "symbol": "XBT_USDT",
-                 "backtestExchange": "gateio",
-                 "backtestSymbol": "BTC_USDT"
-             }
-         },
-         {
-             "weight": 1,
-             "side": "SELL",
-             "capture": "trend3day",
-             "pair": {
-                 "exchange": "kraken",
-                 "symbol": "XBT_USDT",
-                 "backtestExchange": "gateio",
-                 "backtestSymbol": "BTC_USDT"
-             }
-         },
-         {
-             "weight": 1,
-             "side": "BUY",
-             "capture": "trend3day",
-             "pair": {
-                 "exchange": "kraken",
-                 "symbol": "XBT_USDT",
-                 "backtestExchange": "gateio",
-                 "backtestSymbol": "BTC_USDT"
-             }
-         },
-         {
-             "weight": 1,
-             "side": "SELL",
-             "capture": "trend",
-             "pair": {
-                 "exchange": "kraken",
-                 "symbol": "ETH_USDT",
-                 "backtestExchange": "gateio",
-                 "backtestSymbol": "ETH_USDT"
-             }
-         },
-         {
-             "weight": 1,
-             "side": "BUY",
-             "capture": "trend",
-             "pair": {
-                 "exchange": "kraken",
-                 "symbol": "ETH_USDT",
-                 "backtestExchange": "gateio",
-                 "backtestSymbol": "ETH_USDT"
-             }
-         }
-     ]
- },
- "currency-settings": [
-  {
-   "exchange-name": "gateio",
-   "asset": "spot",
-   "base": "BTC",
-   "quote": "USDT",
-   "initial-quote-funds": "1000"
-  }
- ],
- "data-settings": {
-  "interval": 60000000000,
-  "data-type": "candle",
-  "live-data": {
-   "real-orders": false
+[
+ {
+  "Weight": "1.5",
+  "side": "BUY",
+  "pair": {
+   "exchange": "kraken",
+   "symbol": "XBT_USDT",
+   "backtestExchange": "gateio",
+   "backtestSymbol": "BTC_USDT"
   },
-  "database-data": {
-   "start-date": "2021-10-01T00:00:00+00:00",
-   "end-date": "2021-10-02T00:00:00+00:00",
-   "config-override": {
-    "enabled": true,
-    "verbose": false,
-    "driver": "postgres",
-    "connectionDetails": {
-     "host": "localhost",
-     "port": 5432,
-     "username": "bijan",
-     "password": "",
-     "database": "gct-dev",
-     "sslmode": ""
-    }
-   }
-  }
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "Weight": "1.5",
+  "side": "BUY",
+  "pair": {
+   "exchange": "kraken",
+   "symbol": "ETH_USDT",
+   "backtestExchange": "gateio",
+   "backtestSymbol": "ETH_USDT"
+  },
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "Weight": "1.5",
+  "side": "SELL",
+  "pair": {
+   "exchange": "kraken",
+   "symbol": "XBT_USDT",
+   "backtestExchange": "gateio",
+   "backtestSymbol": "BTC_USDT"
+  },
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "Weight": "1.5",
+  "side": "SELL",
+  "pair": {
+   "exchange": "kraken",
+   "symbol": "ETH_USDT",
+   "backtestExchange": "gateio",
+   "backtestSymbol": "ETH_USDT"
+  },
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "Weight": "1.5",
+  "side": "BUY",
+  "pair": {
+   "exchange": "kraken",
+   "symbol": "XBT_USDT",
+   "backtestExchange": "gateio",
+   "backtestSymbol": "BTC_USDT"
+  },
+  "capture": "trend2day",
+  "debug": false
+ },
+ {
+  "Weight": "1.5",
+  "side": "BUY",
+  "pair": {
+   "exchange": "kraken",
+   "symbol": "ETH_USDT",
+   "backtestExchange": "gateio",
+   "backtestSymbol": "ETH_USDT"
+  },
+  "capture": "trend2day",
+  "debug": false
+ },
+ {
+  "Weight": "1.5",
+  "side": "SELL",
+  "pair": {
+   "exchange": "kraken",
+   "symbol": "XBT_USDT",
+   "backtestExchange": "gateio",
+   "backtestSymbol": "BTC_USDT"
+  },
+  "capture": "trend2day",
+  "debug": false
+ },
+ {
+  "Weight": "1.5",
+  "side": "SELL",
+  "pair": {
+   "exchange": "kraken",
+   "symbol": "ETH_USDT",
+   "backtestExchange": "gateio",
+   "backtestSymbol": "ETH_USDT"
+  },
+  "capture": "trend2day",
+  "debug": false
+ },
+ {
+  "Weight": "1.5",
+  "side": "BUY",
+  "pair": {
+   "exchange": "kraken",
+   "symbol": "XBT_USDT",
+   "backtestExchange": "gateio",
+   "backtestSymbol": "BTC_USDT"
+  },
+  "capture": "trend3day",
+  "debug": false
+ },
+ {
+  "Weight": "1.5",
+  "side": "BUY",
+  "pair": {
+   "exchange": "kraken",
+   "symbol": "ETH_USDT",
+   "backtestExchange": "gateio",
+   "backtestSymbol": "ETH_USDT"
+  },
+  "capture": "trend3day",
+  "debug": false
+ },
+ {
+  "Weight": "1.5",
+  "side": "SELL",
+  "pair": {
+   "exchange": "kraken",
+   "symbol": "XBT_USDT",
+   "backtestExchange": "gateio",
+   "backtestSymbol": "BTC_USDT"
+  },
+  "capture": "trend3day",
+  "debug": false
+ },
+ {
+  "Weight": "1.5",
+  "side": "SELL",
+  "pair": {
+   "exchange": "kraken",
+   "symbol": "ETH_USDT",
+   "backtestExchange": "gateio",
+   "backtestSymbol": "ETH_USDT"
+  },
+  "capture": "trend3day",
+  "debug": false
  }
-}
+]

@@ -42,30 +42,15 @@ func main() {
 		fmt.Print(common.ASCIILogo)
 	}
 
-	var cfg *config.Config
+	var cfg []*config.StrategySetting
 
 	strategy = filepath.Join(wd, "../confs/dev/strategy", fmt.Sprintf("%s.strat", strategy))
 	fmt.Println("Loading TradeManager Config", strategy)
 
-	cfg, err = config.ReadConfigFromFile(strategy)
+	cfg, err = config.ReadStrategyConfigFromFile(strategy)
 	if err != nil {
 		fmt.Printf("Could not read config. Error: %v. Path: %s\n", err, strategy)
 		os.Exit(1)
-	}
-	tformat := "2006-01-02"
-	if startDate != "" {
-		start, err := time.Parse(tformat, startDate)
-		if err != nil {
-			fmt.Println("error date", err)
-		}
-		cfg.DataSettings.DatabaseData.StartDate = start
-	}
-	if endDate != "" {
-		end, err := time.Parse(tformat, endDate)
-		if err != nil {
-			fmt.Println("error date", err)
-		}
-		cfg.DataSettings.DatabaseData.EndDate = end
 	}
 	// if endDate != "" {
 	// 	cfg.DataSettings.DatabaseData.EndDate = endDate
@@ -96,13 +81,23 @@ func main() {
 		fmt.Printf("Could not load backtester. Error: %v.\n", err)
 		os.Exit(-1)
 	}
-	var tm *engine.TradeManager
-
-	err = cfg.Validate()
-	if err != nil {
-		fmt.Printf("Could not read config. Error: %v.\n", err)
-		os.Exit(1)
+	tformat := "2006-01-02"
+	if startDate != "" {
+		start, err := time.Parse(tformat, startDate)
+		if err != nil {
+			fmt.Println("error date", err)
+		}
+		bot.Config.DataSettings.DatabaseData.StartDate = start
 	}
+	if endDate != "" {
+		end, err := time.Parse(tformat, endDate)
+		if err != nil {
+			fmt.Println("error date", err)
+		}
+		bot.Config.DataSettings.DatabaseData.EndDate = end
+	}
+
+	var tm *engine.TradeManager
 	tm, err = engine.NewTradeManagerFromConfig(cfg, templatePath, reportOutput, bot)
 	if err != nil {
 		fmt.Printf("Could not setup trade manager from config. Error: %v.\n", err)

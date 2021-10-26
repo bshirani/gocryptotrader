@@ -44,7 +44,7 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	}
 
 	if s.Strategy.Debug {
-		fmt.Println("trend2day on data")
+		fmt.Println("trend on data")
 	}
 
 	es.SetPrice(d.Latest().ClosePrice())
@@ -67,9 +67,13 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	orders := p.GetOpenOrdersForStrategy(s.GetID())
 	trade := p.GetTradeForStrategy(s.GetID())
 
+	// fmt.Println("trend.go has", len(orders), "orders", trade)
+
 	if trade == nil && len(orders) == 0 {
 		return s.checkEntry(es, p, d, fe)
-	} else {
+	}
+
+	if trade != nil {
 		return s.checkExit(es, p, d, fe)
 	}
 
@@ -116,12 +120,14 @@ func (s *Strategy) SetDefaults() {
 }
 
 func (s *Strategy) checkEntry(es signal.Signal, p base.StrategyPortfolioHandler, d data.Handler, fe base.FactorEngineHandler) (signal.Event, error) {
-	m60Chg := fe.Minute().M60PctChange.Last(1)
+	m60Chg := fe.Minute().M60PctChange.Last(0)
+	price := d.Latest().ClosePrice()
 
 	if s.Strategy.GetDirection() == order.Buy { // check for buy strategy
 		if m60Chg.GreaterThan(decimal.NewFromInt(0)) {
 			es.AppendReason("Strategy: m60Chg greater than zero")
 			es.SetDecision(signal.Enter)
+			es.SetStopLossPrice(price.Mul(decimal.NewFromFloat(0.9)))
 		} else {
 			es.AppendReason("Strategy: m60Chg less than zero")
 			es.SetDecision(signal.DoNothing)
@@ -131,6 +137,7 @@ func (s *Strategy) checkEntry(es signal.Signal, p base.StrategyPortfolioHandler,
 		if m60Chg.LessThan(decimal.NewFromInt(0)) {
 			es.AppendReason("Strategy: m60Chg less than zero")
 			es.SetDecision(signal.Enter)
+			es.SetStopLossPrice(price.Mul(decimal.NewFromFloat(1.1)))
 		} else {
 			es.AppendReason("Strategy: m60Chg greater than zero")
 			es.SetDecision(signal.DoNothing)
@@ -158,9 +165,11 @@ func (s *Strategy) checkExit(es signal.Signal, p base.StrategyPortfolioHandler, 
 		// handle exit
 		m60PctChg := fe.Minute().M60PctChange.Last(1)
 
+		// fmt.Println("check exit", es.GetTime(), minutesInTrade, m60PctChg)
+
 		// CHECK EXIT BUY
 		if s.Strategy.GetDirection() == order.Buy {
-			if m60PctChg.LessThan(decimal.NewFromFloat(-1)) {
+			if m60PctChg.LessThan(decimal.NewFromFloat(0)) {
 				es.SetDecision(signal.Exit)
 				es.AppendReason(fmt.Sprintf("Strategy: t >. %d min and M60PctChange is negative.", minutesInTrade))
 			} else {

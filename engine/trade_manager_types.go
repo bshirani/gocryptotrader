@@ -58,7 +58,7 @@ type TradeManager struct {
 	liveMode           bool
 	dryRun             bool
 	tradingEnabled     bool
-	cfg                config.Config
+	cfg                []*config.StrategySetting
 	hasHandledEvent    bool
 	shutdown           chan struct{}
 	started            int32

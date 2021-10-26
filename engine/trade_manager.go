@@ -35,13 +35,10 @@ import (
 	"gocryptotrader/log"
 
 	gctlog "gocryptotrader/log"
-	"gocryptotrader/portfolio/analyze"
 	"gocryptotrader/portfolio/compliance"
 	"gocryptotrader/portfolio/holdings"
-	"gocryptotrader/portfolio/report"
 	"gocryptotrader/portfolio/statistics"
 	"gocryptotrader/portfolio/statistics/currencystatistics"
-	"gocryptotrader/portfolio/tradereport"
 
 	"github.com/fatih/color"
 	"github.com/shopspring/decimal"
@@ -59,7 +56,7 @@ func NewTradeManager(bot *Engine) (*TradeManager, error) {
 	} else {
 		configPath = filepath.Join(wd, "cmd/confs/dev/strategy", fmt.Sprintf("%s.strat", configPath))
 	}
-	btcfg, err := config.ReadConfigFromFile(configPath)
+	btcfg, err := config.ReadStrategyConfigFromFile(configPath)
 	if err != nil {
 		fmt.Println("error", configPath, err)
 		return nil, err
@@ -77,7 +74,7 @@ func (tm *TradeManager) Reset() {
 	// tm.bot = nil
 }
 
-func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, bot *Engine) (*TradeManager, error) {
+func NewTradeManagerFromConfig(cfg []*config.StrategySetting, templatePath, output string, bot *Engine) (*TradeManager, error) {
 	log.Debugln(log.TradeMgr, "TradeManager: Initializing...")
 
 	if cfg == nil {
@@ -90,7 +87,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 		shutdown: make(chan struct{}),
 	}
 
-	tm.cfg = *cfg
+	tm.cfg = cfg
 	tm.verbose = bot.Config.TradeManager.Verbose
 	tm.tradingEnabled = bot.Settings.EnableTrading
 	tm.dryRun = bot.Settings.EnableDryRun
@@ -106,30 +103,20 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 
 	stats := &statistics.Statistic{
 		StrategyName:                "ok",
-		StrategyNickname:            cfg.Nickname,
+		StrategyNickname:            "trend",
 		StrategyDescription:         "ok",
-		StrategyGoal:                cfg.Goal,
+		StrategyGoal:                "make money",
 		ExchangeAssetPairStatistics: make(map[string]map[asset.Item]map[currency.Pair]*currencystatistics.CurrencyStatistic),
-		RiskFreeRate:                cfg.StatisticSettings.RiskFreeRate,
+		RiskFreeRate:                decimal.NewFromFloat(3.0),
 	}
 	tm.Statistic = stats
 
 	tm.EventQueue = &Holder{}
-	reports := &report.Data{
-		Config:       cfg,
-		TemplatePath: templatePath,
-		OutputPath:   output,
-	}
-	tm.Reports = reports
-
-	tradereports := &tradereport.Data{
-		Config:       cfg,
-		TemplatePath: templatePath,
-		OutputPath:   output,
-	}
-	tm.TradeReports = tradereports
-	reports.Statistics = stats
-	tradereports.Statistics = stats
+	// reports := &report.Data{
+	// 	Config:       cfg,
+	// 	TemplatePath: templatePath,
+	// 	OutputPath:   output,
+	// }
 
 	tm.bot = bot
 	var err error
@@ -374,8 +361,8 @@ func (tm *TradeManager) Run() error {
 		if err != nil {
 			fmt.Println("error loadBacktestData:", err)
 		}
-		t1 := tm.cfg.DataSettings.DatabaseData.StartDate
-		t2 := tm.cfg.DataSettings.DatabaseData.EndDate
+		t1 := tm.bot.Config.DataSettings.DatabaseData.StartDate
+		t2 := tm.bot.Config.DataSettings.DatabaseData.EndDate
 		dayDuration := int(t2.Sub(t1).Minutes()) / 60 / 24
 		if dayDuration > 30 {
 			panic("more than 30 days")
@@ -442,10 +429,6 @@ dataLoadingIssue:
 		fmt.Println("done running", count, "data events")
 	} else {
 		livetrade.WriteCSV(tm.Portfolio.GetAllClosedTrades())
-		pf := &analyze.PortfolioAnalysis{}
-		pf.Analyze("")
-		log.Debugln(log.TradeMgr, "TradeManager Writing Config to File")
-		tm.cfg.SaveConfigToFile("backtest_config_out.json")
 	}
 
 	return nil
@@ -1213,8 +1196,8 @@ func (tm *TradeManager) loadBacktestData() (err error) {
 		a := eap.AssetType
 		p := eap.CurrencyPair
 		// fmt.Println("loading data for", p)
-		startDate := tm.cfg.DataSettings.DatabaseData.StartDate
-		endDate := tm.cfg.DataSettings.DatabaseData.EndDate
+		startDate := tm.bot.Config.DataSettings.DatabaseData.StartDate
+		endDate := tm.bot.Config.DataSettings.DatabaseData.EndDate
 		dbData, err := database.LoadData(
 			startDate,
 			endDate,
@@ -1228,6 +1211,8 @@ func (tm *TradeManager) loadBacktestData() (err error) {
 			return err
 		}
 
+		fmt.Println("loaded backtest data for", p, startDate, endDate)
+
 		tm.Datas.SetDataForCurrency(e, a, p, dbData)
 		dbData.RangeHolder, err = kline.CalculateCandleDateRanges(
 			startDate,
@@ -1236,9 +1221,6 @@ func (tm *TradeManager) loadBacktestData() (err error) {
 			0)
 		// fmt.Println("load data for currency", p)
 		dbData.Load()
-		tm.Reports.AddKlineItem(&dbData.Item)
-		// tm.TradeReports.AddKlineItem(&dbData.Item)
-		tm.originalCandles = dbData
 
 		if err != nil {
 			return fmt.Errorf("error creating range holder. error: %s", err)

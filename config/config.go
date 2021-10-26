@@ -1813,6 +1813,21 @@ func ReadConfigFromFile(path string) (*Config, error) {
 	return LoadConfig(fileData)
 }
 
+// ReadConfigFromFile will take a config from a path
+func ReadStrategyConfigFromFile(path string) (resp []*StrategySetting, err error) {
+	if !file.Exists(path) {
+		return nil, errors.New("file not found")
+	}
+
+	fileData, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(fileData, &resp)
+	return resp, err
+}
+
 // LoadConfig unmarshalls byte data into a config struct
 func LoadConfig(data []byte) (resp *Config, err error) {
 	err = json.Unmarshal(data, &resp)

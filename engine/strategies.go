@@ -9,9 +9,9 @@ import (
 )
 
 // loads active strategies from the database
-func SetupStrategies(cfg *config.Config, liveMode bool) (slit []strategies.Handler) {
+func SetupStrategies(cfg []*config.StrategySetting, liveMode bool) (slit []strategies.Handler) {
 	count := 0
-	for _, cs := range cfg.TradeManager.Strategies {
+	for _, cs := range cfg {
 		count += 1
 		strat, _ := strategies.LoadStrategyByName(cs.Capture)
 
