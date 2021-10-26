@@ -390,11 +390,13 @@ dataLoadingIssue:
 		}
 	}
 
-	if tm.liveMode {
-		fmt.Println("done running", count, "data events")
-	} else {
+	if !tm.liveMode {
 		livetrade.WriteCSV(tm.Portfolio.GetAllClosedTrades())
 		// &analyze.PortfolioAnalysis{}.Analyze("")
+	}
+
+	if tm.debug {
+		fmt.Println("done running", count, "data events")
 	}
 
 	return nil
@@ -596,7 +598,7 @@ func (tm *TradeManager) processLiveMinute() error {
 		lastMinute = thisMinute
 	}
 
-	fmt.Println("lencs", len(tm.bot.CurrencySettings))
+	// fmt.Println("lencs", len(tm.bot.CurrencySettings))
 
 	for _, cs := range tm.bot.CurrencySettings {
 		if tm.lastUpdateMin[cs] != thisMinute {
@@ -624,7 +626,7 @@ func (tm *TradeManager) processLiveMinute() error {
 				log.Error(log.TradeMgr, "doesnt have data in range")
 				os.Exit(123)
 			}
-			fmt.Println("updating with event", dataEvent)
+			// fmt.Println("updating with event", dataEvent)
 			tm.lastUpdateMin[cs] = dataEvent.GetTime().UTC()
 			tm.EventQueue.AppendEvent(dataEvent)
 		}

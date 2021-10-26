@@ -16,7 +16,7 @@
  {
   "weight": "0",
   "side": "BUY",
-  "pair": "DOGE_USDT",
+  "pair": "DAI_USDT",
   "capture": "trend",
   "debug": false
  },
@@ -37,7 +37,7 @@
  {
   "weight": "0",
   "side": "SELL",
-  "pair": "DOGE_USDT",
+  "pair": "DAI_USDT",
   "capture": "trend",
   "debug": false
  },
@@ -58,7 +58,7 @@
  {
   "weight": "0",
   "side": "BUY",
-  "pair": "DOGE_USDT",
+  "pair": "DAI_USDT",
   "capture": "trend2day",
   "debug": false
  },
@@ -79,7 +79,7 @@
  {
   "weight": "0",
   "side": "SELL",
-  "pair": "DOGE_USDT",
+  "pair": "DAI_USDT",
   "capture": "trend2day",
   "debug": false
  },
@@ -100,7 +100,7 @@
  {
   "weight": "0",
   "side": "BUY",
-  "pair": "DOGE_USDT",
+  "pair": "DAI_USDT",
   "capture": "trend3day",
   "debug": false
  },
@@ -121,7 +121,7 @@
  {
   "weight": "0",
   "side": "SELL",
-  "pair": "DOGE_USDT",
+  "pair": "DAI_USDT",
   "capture": "trend3day",
   "debug": false
  }

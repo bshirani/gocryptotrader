@@ -28,6 +28,7 @@ const (
 func (p *PortfolioAnalysis) Analyze(filepath string) error {
 	p.Report = &PortfolioReport{}
 	lf := lastResult()
+	fmt.Println("analyzing trades csv:", lf)
 	trades, err := livetrade.LoadCSV(lf)
 	enhanced := enhanceTrades(trades)
 	p.trades = enhanced
@@ -49,7 +50,7 @@ func (p *PortfolioAnalysis) loadAllStrategies() {
 	// all := strategies.GetStrategies()
 
 	names := []string{"trend", "trend2day", "trend3day"}
-	symbols := []string{"ETH_USDT", "XBT_USDT", "DOGE_USDT"}
+	symbols := []string{"ETH_USDT", "XBT_USDT", "DAI_USDT"}
 	pairs := make([]currency.Pair, 0)
 	for _, s := range symbols {
 		pair, err := currency.NewPairFromString(s)

@@ -143,13 +143,11 @@ func loadConfigWithSettings(settings *Settings, flagSet map[string]bool) (*confi
 		return nil, fmt.Errorf(config.ErrFailureOpeningConfig, settings.TradeConfigFile, err)
 	}
 	conf.TradeManager.Strategies = ss
-	fmt.Println("loaded", len(ss), "strategies")
+	// fmt.Println("loaded", len(ss), "strategies")
+	// for _, s := range ss {
+	// 	fmt.Println("pair", s.Pair)
+	// }
 
-	for _, s := range ss {
-		fmt.Println("pair", s.Pair)
-	}
-
-	fmt.Println("is production?", settings.EnableProductionMode)
 	for _, ex := range conf.Exchanges {
 		if ex.Enabled {
 			// get list of pairs from strategy config
@@ -1046,7 +1044,7 @@ func (bot *Engine) SetupExchanges() error {
 		}
 		wg.Add(1)
 
-		fmt.Println("enabling config", configs[x])
+		// fmt.Println("enabling config", configs[x])
 
 		// enablePair(exMgr, pair)
 		// func enablePair(exMgr iExchangeManager, pair currency.Pair) {
@@ -1093,7 +1091,6 @@ func (bot *Engine) WaitForInitialCurrencySync() error {
 }
 
 func (bot *Engine) SetupExchangeSettings() error {
-	fmt.Println("SET EXCHANGE SETTINGSSSSSSSSSSSSSSSSSSSSS")
 	for _, e := range bot.Config.GetEnabledExchanges() {
 		enabledPairs, _ := bot.Config.GetEnabledPairs(e, asset.Spot)
 		for _, pair := range enabledPairs {
@@ -1102,7 +1099,7 @@ func (bot *Engine) SetupExchangeSettings() error {
 				fmt.Println("error enabling pair", err)
 				return err
 			}
-			fmt.Println("setup pair", pair, "exchange", e)
+			// fmt.Println("setup pair", pair, "exchange", e)
 			// fmt.Println("setting pair", pair)
 			bot.CurrencySettings = append(bot.CurrencySettings, &ExchangeAssetPairSettings{
 				ExchangeName: e,

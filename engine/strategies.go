@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"fmt"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/portfolio/strategies"
@@ -39,7 +38,7 @@ func isActivePair(pairs currency.Pairs, mypair currency.Pair) bool {
 }
 
 func printStrategies(strategies []strategies.Handler) {
-	for _, x := range strategies {
-		fmt.Println("Loaded Strategy:", x.Name(), x.GetPair(), x.GetDirection(), x.GetWeight())
-	}
+	// for _, x := range strategies {
+	// 	fmt.Println("Loaded Strategy:", x.Name(), x.GetPair(), x.GetDirection(), x.GetWeight())
+	// }
 }
