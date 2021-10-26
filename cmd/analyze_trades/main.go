@@ -41,11 +41,11 @@ func main() {
 	filename := fmt.Sprintf(
 		"portfolio_analysis_%v.json",
 		time.Now().Format("2006-01-02-15-04-05"))
-	filename = filepath.Join(wd, "../backtest/results", filename)
+	filename = filepath.Join(wd, "results", filename)
 	pf.Save(filename)
 
-	prodWeighted := filepath.Join(wd, "../confs/prod.strat")
-	fmt.Println("saving pf weights to", prodWeighted)
+	prodWeighted := filepath.Join(wd, "../confs/dev/strategy/prod.strat")
+	fmt.Println("saving", len(pf.Weights.Strategies), "pf weights to", prodWeighted)
 	pf.Weights.Save(prodWeighted)
 
 	allPath := filepath.Join(wd, "../confs/dev/strategy/all.strat")

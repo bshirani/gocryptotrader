@@ -4,9 +4,9 @@
   "side": "BUY",
   "pair": {
    "exchange": "kraken",
-   "symbol": "ETH_USDT",
+   "symbol": "DOGE_USDT",
    "backtestExchange": "gateio",
-   "backtestSymbol": "ETH_USDT"
+   "backtestSymbol": "DOGE_USDT"
   },
   "capture": "trend",
   "debug": false
@@ -40,9 +40,9 @@
   "side": "BUY",
   "pair": {
    "exchange": "kraken",
-   "symbol": "DOGE_USDT",
+   "symbol": "ETH_USDT",
    "backtestExchange": "gateio",
-   "backtestSymbol": "DOGE_USDT"
+   "backtestSymbol": "ETH_USDT"
   },
   "capture": "trend",
   "debug": false

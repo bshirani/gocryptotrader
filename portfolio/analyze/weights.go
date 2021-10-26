@@ -15,7 +15,6 @@ import (
 func (p *PortfolioAnalysis) calculateProductionWeights() {
 	p.Weights = &PortfolioWeights{}
 	p.Weights.Strategies = make([]*config.StrategySetting, 0)
-	fmt.Println("here")
 
 	// get the performance for this strategy
 	for _, s := range p.Strategies {
@@ -47,7 +46,7 @@ func (w *PortfolioWeights) Save(filepath string) error {
 			}
 		}
 	}()
-	payload, err := json.MarshalIndent(w, "", " ")
+	payload, err := json.MarshalIndent(w.Strategies, "", " ")
 	if err != nil {
 		return err
 	}
