@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"gocryptotrader/common/file"
+	"gocryptotrader/config"
 	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/exchange/order"
 	"gocryptotrader/log"
@@ -18,40 +19,54 @@ import (
 )
 
 func (p *PortfolioAnalysis) Analyze(filepath string) error {
-	lf := LastResult()
+	p.Report = &PortfolioReport{}
+	lf := lastResult()
 	trades, err := livetrade.LoadCSV(lf)
-	fmt.Println("pfloaded", len(trades), "trades")
 	enhanced := enhanceTrades(trades)
 	grouped := groupByStrategyID(enhanced)
-	p.StrategiesAnalyses = make(map[int]*StrategyAnalysis)
+	fmt.Println("pfloaded", len(trades), "trades from", len(grouped), "strategies")
+	p.Report.StrategiesAnalyses = make(map[int]*StrategyAnalysis)
 	for id := range grouped {
-		p.StrategiesAnalyses[id] = analyzeStrategy(id, grouped[id])
+		p.Report.StrategiesAnalyses[id] = analyzeStrategy(id, grouped[id])
 	}
-
-	p.SaveAnalysisToFile()
 
 	sumDurationMin := 0.0
 	for _, lt := range trades {
 		sumDurationMin += lt.DurationMinutes
 	}
-	p.AverageDurationMin = sumDurationMin / float64(len(trades))
+	p.Report.AverageDurationMin = sumDurationMin / float64(len(trades))
+
+	p.calculateProductionWeights()
 
 	return err
 }
 
+func (p *PortfolioAnalysis) calculateProductionWeights() {
+	p.Weights = &PortfolioWeights{}
+	p.Weights.Strategies = make([]*config.StrategySetting, 0)
+	// write all strategies for now
+	for _, s := range p.Strategies {
+		ss := &config.StrategySetting{
+			Weight:  decimal.NewFromFloat(1.5),
+			Side:    s.GetDirection(),
+			Capture: "trend",
+		}
+		p.Weights.Strategies = append(p.Weights.Strategies, ss)
+	}
+}
+
 func (p *PortfolioAnalysis) PrintResults() {
-	fmt.Println("analyzing", len(p.StrategiesAnalyses), "strategies")
-	for sid, sa := range p.StrategiesAnalyses {
+	for sid, sa := range p.Report.StrategiesAnalyses {
 		fmt.Println("strategy", sid, "num trades", sa.NumTrades)
 	}
 }
 
-func (p *PortfolioAnalysis) WriteOutput() {
-	fmt.Println("analyzing", len(p.StrategiesAnalyses), "strategies")
-	for sid, sa := range p.StrategiesAnalyses {
-		fmt.Println("strategy", sid, "num trades", sa.NumTrades)
-	}
-}
+// func (p *PortfolioAnalysis) WriteOutput() {
+// 	fmt.Println("analyzing", len(p.StrategiesAnalyses), "strategies")
+// 	for sid, sa := range p.StrategiesAnalyses {
+// 		fmt.Println("strategy", sid, "num trades", sa.NumTrades)
+// 	}
+// }
 
 func PrintTradeResults() {
 	// for _, t := range trades {
@@ -147,7 +162,7 @@ func calculateDuration(trades []*livetrade.Details) {
 	}
 }
 
-func LastResult() string {
+func lastResult() string {
 	// return os.MkdirAll(dir, 0770)
 	wd, err := os.Getwd()
 	dir := filepath.Join(wd, "../backtest/results")
@@ -295,13 +310,8 @@ func getDurationMin(trade livetrade.Details) int {
 // 	}
 // }
 
-// SaveConfigToFile saves your configuration to your desired path as a JSON object.
-// The function encrypts the data and prompts for encryption key, if necessary
-func (p *PortfolioAnalysis) SaveAnalysisToFile() error {
-	defaultPath := "portfolio_analysis.json"
-	fmt.Println("writing output", defaultPath)
-	writer, err := file.Writer(defaultPath)
-
+func (p *PortfolioAnalysis) Save(filepath string) error {
+	writer, err := file.Writer(filepath)
 	defer func() {
 		if writer != nil {
 			err = writer.Close()
@@ -310,12 +320,28 @@ func (p *PortfolioAnalysis) SaveAnalysisToFile() error {
 			}
 		}
 	}()
-
 	payload, err := json.MarshalIndent(p, "", " ")
 	if err != nil {
 		return err
 	}
+	_, err = io.Copy(writer, bytes.NewReader(payload))
+	return err
+}
 
+func (w *PortfolioWeights) Save(filepath string) error {
+	writer, err := file.Writer(filepath)
+	defer func() {
+		if writer != nil {
+			err = writer.Close()
+			if err != nil {
+				log.Error(log.Global, err)
+			}
+		}
+	}()
+	payload, err := json.MarshalIndent(w, "", " ")
+	if err != nil {
+		return err
+	}
 	_, err = io.Copy(writer, bytes.NewReader(payload))
 	return err
 }

@@ -1,9 +1,11 @@
 package analyze
 
 import (
+	"gocryptotrader/config"
 	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/portfolio/compliance"
 	"gocryptotrader/portfolio/holdings"
+	"gocryptotrader/portfolio/strategies"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -20,6 +22,16 @@ type DetailedTrade struct {
 }
 
 type PortfolioAnalysis struct {
+	Strategies map[int]strategies.Handler
+	Report     *PortfolioReport
+	Weights    *PortfolioWeights
+}
+
+type PortfolioWeights struct {
+	Strategies []*config.StrategySetting `json:"strategies"`
+}
+
+type PortfolioReport struct {
 	StrategiesAnalyses map[int]*StrategyAnalysis
 	NumTrades          int64
 	NumStrategies      int64
