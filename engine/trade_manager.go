@@ -61,6 +61,7 @@ func NewTradeManager(bot *Engine) (*TradeManager, error) {
 		fmt.Println("error", configPath, err)
 		return nil, err
 	}
+	fmt.Println("tm using config", configPath)
 	return NewTradeManagerFromConfig(btcfg, "xx", "xx", bot)
 }
 
@@ -156,7 +157,7 @@ func NewTradeManagerFromConfig(cfg []*config.StrategySetting, templatePath, outp
 	}
 
 	if tm.tradingEnabled {
-		tm.Strategies = SetupStrategies(cfg, tm.liveMode)
+		tm.Strategies = SetupStrategies(bot.ExchangeManager, cfg, tm.liveMode)
 
 		if tm.bot.Settings.EnableClearDB {
 			log.Warn(log.TradeMgr, "clearing DB")
@@ -635,10 +636,10 @@ func (tm *TradeManager) processLiveMinute() error {
 		if tm.lastUpdateMin[cs] != thisMinute {
 			dbData, err := tm.loadLatestCandleFromDatabase(cs)
 			if err != nil {
-				fmt.Println("error loading latest candle", err)
+				// fmt.Println("error loading latest candle", err)
 				continue
 			}
-			fmt.Println("loaded latest candle")
+			// fmt.Println("loaded latest candle")
 
 			dataEvent := dbData.Next()
 			for ; ; dataEvent = dbData.Next() {

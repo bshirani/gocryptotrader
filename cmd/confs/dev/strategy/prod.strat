@@ -4,30 +4,6 @@
   "side": "BUY",
   "pair": {
    "exchange": "kraken",
-   "symbol": "DOGE_USDT",
-   "backtestExchange": "gateio",
-   "backtestSymbol": "DOGE_USDT"
-  },
-  "capture": "trend",
-  "debug": false
- },
- {
-  "weight": "1",
-  "side": "BUY",
-  "pair": {
-   "exchange": "kraken",
-   "symbol": "XRP_USDT",
-   "backtestExchange": "gateio",
-   "backtestSymbol": "XRP_USDT"
-  },
-  "capture": "trend",
-  "debug": false
- },
- {
-  "weight": "1",
-  "side": "BUY",
-  "pair": {
-   "exchange": "kraken",
    "symbol": "XBT_USDT",
    "backtestExchange": "gateio",
    "backtestSymbol": "BTC_USDT"
