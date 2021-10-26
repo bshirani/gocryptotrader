@@ -2,24 +2,14 @@
  {
   "weight": "1",
   "side": "BUY",
-  "pair": {
-   "exchange": "kraken",
-   "symbol": "XBT_USDT",
-   "backtestExchange": "gateio",
-   "backtestSymbol": "BTC_USDT"
-  },
+  "pair": "btc_usdt",
   "capture": "trend",
   "debug": false
  },
  {
   "weight": "1",
   "side": "BUY",
-  "pair": {
-   "exchange": "kraken",
-   "symbol": "ETH_USDT",
-   "backtestExchange": "gateio",
-   "backtestSymbol": "ETH_USDT"
-  },
+  "pair": "eth_usdt",
   "capture": "trend",
   "debug": false
  }

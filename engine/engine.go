@@ -32,7 +32,7 @@ import (
 type Engine struct {
 	CommunicationsManager   *CommunicationManager
 	Config                  *config.Config
-	TradeManagerConfig      *config.Config
+	StrategiesConfig        []*config.StrategySetting
 	CurrencySettings        []*ExchangeAssetPairSettings
 	DatabaseManager         *DatabaseConnectionManager
 	DepositAddressManager   *DepositAddressManager
@@ -136,6 +136,27 @@ func loadConfigWithSettings(settings *Settings, flagSet map[string]bool) (*confi
 	if err != nil {
 		return nil, fmt.Errorf(config.ErrFailureOpeningConfig, filePath, err)
 	}
+
+	ss, err := config.ReadStrategyConfigFromFile(settings.TradeConfigFile)
+	if err != nil {
+		return nil, fmt.Errorf(config.ErrFailureOpeningConfig, settings.TradeConfigFile, err)
+	}
+	conf.TradeManager.Strategies = ss
+	fmt.Println("loaded", len(ss), "strategies")
+
+	fmt.Println("is production?", settings.EnableProductionMode)
+	for _, ex := range conf.Exchanges {
+		if ex.Enabled {
+
+			// get list of pairs from strategy config
+			for _, s := range ss {
+				ex.CurrencyPairs.EnablePair(asset.Spot, s.Pair)
+			}
+
+			// fmt.Println("ENABLED EXXX", ex.Name, pairs)
+		}
+	}
+
 	// Apply overrides from settings
 	if flagSet["datadir"] {
 		// warn if dryrun isn't enabled
@@ -834,6 +855,7 @@ func (bot *Engine) Stop() {
 		}
 	}
 
+	bot.Config.TradeManager.Strategies = nil
 	err := bot.Config.SaveConfigToFile(bot.Settings.ConfigFile)
 	if err != nil {
 		log.Errorln(log.Global, "Unable to save config.")
@@ -1020,6 +1042,25 @@ func (bot *Engine) SetupExchanges() error {
 			continue
 		}
 		wg.Add(1)
+
+		fmt.Println("enabling config", configs[x])
+
+		// enablePair(exMgr, pair)
+		// func enablePair(exMgr iExchangeManager, pair currency.Pair) {
+		// 	exs, _ := exMgr.GetExchanges()
+		// 	// fmt.Println("loaded", len(exs), "exchanges")
+		// 	if len(exs) == 0 {
+		// 		panic(123)
+		// 	}
+		//
+		// 	// err = c.SetPairs(exchName, assetTypes[0], true, currency.Pairs{newPair})
+		// 	for _, ex := range exs {
+		// 		fmt.Println("~~~~~~~~~~enabling", pair)
+		// 		ex.SetPairs(currency.Pairs{pair}, asset.Spot, true)
+		// 	}
+		// }
+		//
+
 		go func(c config.ExchangeConfig) {
 			defer wg.Done()
 			err := bot.LoadExchange(c.Name, &wg)
@@ -1049,16 +1090,16 @@ func (bot *Engine) WaitForInitialCurrencySync() error {
 }
 
 func (bot *Engine) SetupExchangeSettings() error {
+	fmt.Println("SET EXCHANGE SETTINGSSSSSSSSSSSSSSSSSSSSS")
 	for _, e := range bot.Config.GetEnabledExchanges() {
 		enabledPairs, _ := bot.Config.GetEnabledPairs(e, asset.Spot)
-		fmt.Println("enabled", e, enabledPairs)
 		for _, pair := range enabledPairs {
 			_, pair, a, err := bot.loadExchangePairAssetBase(e, pair.Base.String(), pair.Quote.String(), "spot")
 			if err != nil {
-				fmt.Println("enabled", err)
+				fmt.Println("error enabling pair", err)
 				return err
 			}
-			// fmt.Println("setup pair", pair, "exchange", e)
+			fmt.Println("setup pair", pair, "exchange", e)
 			// fmt.Println("setting pair", pair)
 			bot.CurrencySettings = append(bot.CurrencySettings, &ExchangeAssetPairSettings{
 				ExchangeName: e,

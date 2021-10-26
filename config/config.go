@@ -1598,12 +1598,6 @@ func (c *Config) SaveConfigToFile(configPath string) error {
 		return writer, err
 	}
 
-	// sProvider := func() (io.Writer, error) {
-	// 	writer, err = file.Writer("strategies_out.json")
-	// 	return writer, err
-	// }
-	// c.SaveStrategies(sProvider, func() ([]byte, error) { return PromptForConfigKey(true) })
-
 	defer func() {
 		if writer != nil {
 			err = writer.Close()

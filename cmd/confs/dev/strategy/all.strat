@@ -2,144 +2,84 @@
  {
   "weight": "0",
   "side": "BUY",
-  "pair": {
-   "exchange": "kraken",
-   "symbol": "XBT_USDT",
-   "backtestExchange": "gateio",
-   "backtestSymbol": "BTC_USDT"
-  },
+  "pair": "BTC_USDT",
   "capture": "trend",
   "debug": false
  },
  {
   "weight": "0",
   "side": "BUY",
-  "pair": {
-   "exchange": "kraken",
-   "symbol": "ETH_USDT",
-   "backtestExchange": "gateio",
-   "backtestSymbol": "ETH_USDT"
-  },
+  "pair": "ETH_USDT",
   "capture": "trend",
   "debug": false
  },
  {
   "weight": "0",
   "side": "SELL",
-  "pair": {
-   "exchange": "kraken",
-   "symbol": "XBT_USDT",
-   "backtestExchange": "gateio",
-   "backtestSymbol": "BTC_USDT"
-  },
+  "pair": "BTC_USDT",
   "capture": "trend",
   "debug": false
  },
  {
   "weight": "0",
   "side": "SELL",
-  "pair": {
-   "exchange": "kraken",
-   "symbol": "ETH_USDT",
-   "backtestExchange": "gateio",
-   "backtestSymbol": "ETH_USDT"
-  },
+  "pair": "ETH_USDT",
   "capture": "trend",
   "debug": false
  },
  {
   "weight": "0",
   "side": "BUY",
-  "pair": {
-   "exchange": "kraken",
-   "symbol": "XBT_USDT",
-   "backtestExchange": "gateio",
-   "backtestSymbol": "BTC_USDT"
-  },
+  "pair": "BTC_USDT",
   "capture": "trend2day",
   "debug": false
  },
  {
   "weight": "0",
   "side": "BUY",
-  "pair": {
-   "exchange": "kraken",
-   "symbol": "ETH_USDT",
-   "backtestExchange": "gateio",
-   "backtestSymbol": "ETH_USDT"
-  },
+  "pair": "ETH_USDT",
   "capture": "trend2day",
   "debug": false
  },
  {
   "weight": "0",
   "side": "SELL",
-  "pair": {
-   "exchange": "kraken",
-   "symbol": "XBT_USDT",
-   "backtestExchange": "gateio",
-   "backtestSymbol": "BTC_USDT"
-  },
+  "pair": "BTC_USDT",
   "capture": "trend2day",
   "debug": false
  },
  {
   "weight": "0",
   "side": "SELL",
-  "pair": {
-   "exchange": "kraken",
-   "symbol": "ETH_USDT",
-   "backtestExchange": "gateio",
-   "backtestSymbol": "ETH_USDT"
-  },
+  "pair": "ETH_USDT",
   "capture": "trend2day",
   "debug": false
  },
  {
   "weight": "0",
   "side": "BUY",
-  "pair": {
-   "exchange": "kraken",
-   "symbol": "XBT_USDT",
-   "backtestExchange": "gateio",
-   "backtestSymbol": "BTC_USDT"
-  },
+  "pair": "BTC_USDT",
   "capture": "trend3day",
   "debug": false
  },
  {
   "weight": "0",
   "side": "BUY",
-  "pair": {
-   "exchange": "kraken",
-   "symbol": "ETH_USDT",
-   "backtestExchange": "gateio",
-   "backtestSymbol": "ETH_USDT"
-  },
+  "pair": "ETH_USDT",
   "capture": "trend3day",
   "debug": false
  },
  {
   "weight": "0",
   "side": "SELL",
-  "pair": {
-   "exchange": "kraken",
-   "symbol": "XBT_USDT",
-   "backtestExchange": "gateio",
-   "backtestSymbol": "BTC_USDT"
-  },
+  "pair": "BTC_USDT",
   "capture": "trend3day",
   "debug": false
  },
  {
   "weight": "0",
   "side": "SELL",
-  "pair": {
-   "exchange": "kraken",
-   "symbol": "ETH_USDT",
-   "backtestExchange": "gateio",
-   "backtestSymbol": "ETH_USDT"
-  },
+  "pair": "ETH_USDT",
   "capture": "trend3day",
   "debug": false
  }

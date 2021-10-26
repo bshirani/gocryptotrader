@@ -40,16 +40,10 @@ func (s *Strategy) SetName(name string) {
 }
 
 func (s *Strategy) GetSettings() *config.StrategySetting {
-	pairS := config.PairSetting{
-		Exchange:         prodExchange,
-		BacktestExchange: backtestExchange,
-		Symbol:           getPairForExchange(prodExchange, s.pair).Upper().String(),
-		BacktestSymbol:   s.pair.Upper().String(),
-	}
 	return &config.StrategySetting{
 		Side:    order.Side(s.GetDirection()),
 		Capture: s.Name,
-		Pair:    pairS,
+		Pair:    s.pair,
 	}
 }
 

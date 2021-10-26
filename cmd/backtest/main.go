@@ -8,13 +8,12 @@ import (
 	"time"
 
 	"gocryptotrader/common"
-	"gocryptotrader/config"
 	"gocryptotrader/engine"
 	"gocryptotrader/log"
 )
 
 func main() {
-	var startDate, endDate, strategy, configPath, templatePath, reportOutput, pairsArg string
+	var startDate, endDate, tradeConfigPath, configPath, templatePath, reportOutput, pairsArg string
 	var clearDB, printLogo, generateReport, dryrun, darkReport bool
 	path := "backtest.json"
 	wd, err := os.Getwd()
@@ -24,7 +23,7 @@ func main() {
 	}
 	flag.BoolVar(&dryrun, "dryrun", true, "write orders/trades to db")
 	flag.BoolVar(&generateReport, "generatereport", false, "whether to generate the report file")
-	flag.StringVar(&strategy, "trade", "all", "the config containing strategy params")
+	flag.StringVar(&tradeConfigPath, "trade", "all", "the config containing strategy params")
 	flag.StringVar(&configPath, "config", path, "the config containing strategy params")
 	flag.BoolVar(&clearDB, "cleardb", true, "the config containing strategy params")
 	flag.StringVar(&templatePath, "templatepath", filepath.Join(wd, "../portfolio/tradereport", "tpl.gohtml"), "the report template to use")
@@ -42,16 +41,14 @@ func main() {
 		fmt.Print(common.ASCIILogo)
 	}
 
-	var cfg []*config.StrategySetting
+	tradeConfigPath = filepath.Join(wd, "../confs/dev/strategy", fmt.Sprintf("%s.strat", tradeConfigPath))
+	// fmt.Println("Loading TradeManager Config", strategy)
 
-	strategy = filepath.Join(wd, "../confs/dev/strategy", fmt.Sprintf("%s.strat", strategy))
-	fmt.Println("Loading TradeManager Config", strategy)
-
-	cfg, err = config.ReadStrategyConfigFromFile(strategy)
-	if err != nil {
-		fmt.Printf("Could not read config. Error: %v. Path: %s\n", err, strategy)
-		os.Exit(1)
-	}
+	// cfg, err = config.ReadStrategyConfigFromFile(strategy)
+	// if err != nil {
+	// 	fmt.Printf("Could not read config. Error: %v. Path: %s\n", err, strategy)
+	// 	os.Exit(1)
+	// }
 	// if endDate != "" {
 	// 	cfg.DataSettings.DatabaseData.EndDate = endDate
 	// }
@@ -71,6 +68,7 @@ func main() {
 	}
 	bot, err = engine.NewFromSettings(&engine.Settings{
 		ConfigFile:                    configPath,
+		TradeConfigFile:               tradeConfigPath,
 		EnableDryRun:                  dryrun,
 		EnableAllPairs:                false,
 		EnableClearDB:                 clearDB,
@@ -98,7 +96,7 @@ func main() {
 	}
 
 	var tm *engine.TradeManager
-	tm, err = engine.NewTradeManagerFromConfig(cfg, templatePath, reportOutput, bot)
+	tm, err = engine.NewTradeManager(bot)
 	if err != nil {
 		fmt.Printf("Could not setup trade manager from config. Error: %v.\n", err)
 		os.Exit(1)

@@ -50,7 +50,6 @@ type TradeManager struct {
 	TradeReports       tradereport.Handler
 	Statistic          statistics.Handler
 	Strategies         []strategies.Handler
-	liveSimulationCfg  config.LiveSimulationConfig
 	originalCandles    *kline.DataFromKline
 	lastUpdateMin      map[*ExchangeAssetPairSettings]time.Time
 	isSimulation       bool

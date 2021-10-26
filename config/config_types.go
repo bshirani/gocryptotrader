@@ -154,36 +154,20 @@ type DataImporterConfig struct {
 
 // DataHistoryManager holds all information required for the data history manager
 type TradeManagerConfig struct {
-	Enabled        bool                 `json:"enabled"`
-	Verbose        bool                 `json:"verbose"`
-	Trading        bool                 `json:"trading"`
-	Debug          bool                 `json:"debug"`
-	ClearDB        bool                 `json:"clearDB"`
-	Strategies     []StrategySetting    `json:"strategies"`
-	LiveSimulation LiveSimulationConfig `json:"liveSimulation"`
+	Enabled    bool               `json:"enabled"`
+	Verbose    bool               `json:"verbose"`
+	Trading    bool               `json:"trading"`
+	Debug      bool               `json:"debug"`
+	ClearDB    bool               `json:"clearDB"`
+	Strategies []*StrategySetting `json:"strategies"`
 }
 
 type StrategySetting struct {
 	Weight  decimal.Decimal `json:"weight"`
 	Side    order.Side      `json:"side"`
-	Pair    PairSetting     `json:"pair"`
+	Pair    currency.Pair   `json:"pair"`
 	Capture string          `json:"capture"`
 	Debug   bool            `json:"debug"`
-}
-
-type PairSetting struct {
-	Exchange         string `json:"exchange"`
-	Symbol           string `json:"symbol"`
-	BacktestExchange string `json:"backtestExchange"`
-	BacktestSymbol   string `json:"backtestSymbol"`
-}
-
-type LiveSimulationConfig struct {
-	Enabled   bool      `json:"enabled"`
-	StartDate time.Time `json:"start-date"`
-	EndDate   time.Time `json:"end-date"`
-	// ConfigOverride   *database.Config `json:"config-override"`
-	// InclusiveEndDate bool             `json:"inclusive-end-date"`
 }
 
 type FactorEngineConfig struct {

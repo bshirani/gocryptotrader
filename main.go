@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"runtime"
 	"time"
 
@@ -130,9 +131,30 @@ func main() {
 	flagSet := make(map[string]bool)
 	// Stores the set flags
 	flag.Visit(func(f *flag.Flag) { flagSet[f.Name] = true })
-	if !flagSet["config"] {
-		// If config file is not explicitly set, fall back to default path resolution
-		settings.ConfigFile = ""
+	wd, err := os.Getwd()
+	if err != nil {
+		fmt.Printf("Could not get working directory. Error: %v.\n", err)
+		os.Exit(1)
+	}
+
+	// if settings.ConfigFile == "" {
+	// 	if settings.EnableProductionMode {
+	// 		settings.ConfigFile = filepath.Join(wd, "cmd/confs/prod.json")
+	// 	} else {
+	// 		settings.ConfigFile = filepath.Join(wd, "cmd/confs/dev/live.json")
+	// 	}
+	// } else {
+	// 	if settings.EnableProductionMode {
+	// 		settings.ConfigFile = filepath.Join(wd, "cmd/confs/prod.json")
+	// 	} else {
+	// 	}
+	// }
+	if settings.EnableProductionMode {
+		settings.ConfigFile = filepath.Join(wd, fmt.Sprintf("cmd/confs/prod.json", settings.ConfigFile))
+		settings.TradeConfigFile = filepath.Join(wd, fmt.Sprintf("cmd/confs/prod.strat", settings.TradeConfigFile))
+	} else {
+		settings.ConfigFile = filepath.Join(wd, fmt.Sprintf("cmd/confs/dev/%s.json", settings.ConfigFile))
+		settings.TradeConfigFile = filepath.Join(wd, fmt.Sprintf("cmd/confs/dev/strategy/%s.strat", settings.TradeConfigFile))
 	}
 
 	if flagSet["trade"] {

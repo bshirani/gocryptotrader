@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"gocryptotrader/common"
-	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/data"
 	datakline "gocryptotrader/data/kline"
@@ -15,7 +14,6 @@ import (
 	"gocryptotrader/database/repository/liveorder"
 	"gocryptotrader/database/repository/livetrade"
 	"os"
-	"path/filepath"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -44,27 +42,6 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func NewTradeManager(bot *Engine) (*TradeManager, error) {
-	configPath := bot.Settings.TradeConfigFile
-	wd, err := os.Getwd()
-	if configPath == "" {
-		if bot.Config.LiveMode {
-			configPath = filepath.Join(wd, "cmd/confs/prod.strat")
-		} else {
-			configPath = filepath.Join(wd, "cmd/confs/dev/backtest.strat")
-		}
-	} else {
-		configPath = filepath.Join(wd, "cmd/confs/dev/strategy", fmt.Sprintf("%s.strat", configPath))
-	}
-	btcfg, err := config.ReadStrategyConfigFromFile(configPath)
-	if err != nil {
-		fmt.Println("error", configPath, err)
-		return nil, err
-	}
-	fmt.Println("tm using config", configPath)
-	return NewTradeManagerFromConfig(btcfg, "xx", "xx", bot)
-}
-
 func (tm *TradeManager) Reset() {
 	tm.EventQueue.Reset()
 	tm.Datas.Reset()
@@ -75,12 +52,9 @@ func (tm *TradeManager) Reset() {
 	// tm.bot = nil
 }
 
-func NewTradeManagerFromConfig(cfg []*config.StrategySetting, templatePath, output string, bot *Engine) (*TradeManager, error) {
+func NewTradeManager(bot *Engine) (*TradeManager, error) {
 	log.Debugln(log.TradeMgr, "TradeManager: Initializing...")
 
-	if cfg == nil {
-		return nil, errNilConfig
-	}
 	if bot == nil {
 		return nil, errNilBot
 	}
@@ -88,19 +62,11 @@ func NewTradeManagerFromConfig(cfg []*config.StrategySetting, templatePath, outp
 		shutdown: make(chan struct{}),
 	}
 
-	tm.cfg = cfg
 	tm.verbose = bot.Config.TradeManager.Verbose
 	tm.tradingEnabled = bot.Settings.EnableTrading
 	tm.dryRun = bot.Settings.EnableDryRun
-	tm.liveSimulationCfg = bot.Config.TradeManager.LiveSimulation
-	tm.isSimulation = tm.liveSimulationCfg.Enabled
 	tm.liveMode = bot.Config.LiveMode
 	tm.debug = bot.Config.TradeManager.Debug
-
-	if tm.isSimulation {
-		tm.currentTime = tm.liveSimulationCfg.StartDate
-	}
-	// fmt.Println("tmconfig", cfg.TradeManager, cfg.TradeManager.Verbose, cfg.TradeManager.Trading, cfg.TradeManager.Enabled)
 
 	stats := &statistics.Statistic{
 		StrategyName:                "ok",
@@ -114,8 +80,6 @@ func NewTradeManagerFromConfig(cfg []*config.StrategySetting, templatePath, outp
 
 	tm.EventQueue = &Holder{}
 	// reports := &report.Data{
-	// 	Config:       cfg,
-	// 	TemplatePath: templatePath,
 	// 	OutputPath:   output,
 	// }
 
@@ -157,7 +121,7 @@ func NewTradeManagerFromConfig(cfg []*config.StrategySetting, templatePath, outp
 	}
 
 	if tm.tradingEnabled {
-		tm.Strategies = SetupStrategies(bot.ExchangeManager, cfg, tm.liveMode)
+		tm.Strategies = SetupStrategies(tm.bot.Config.TradeManager.Strategies, tm.liveMode)
 
 		if tm.bot.Settings.EnableClearDB {
 			log.Warn(log.TradeMgr, "clearing DB")
@@ -632,6 +596,8 @@ func (tm *TradeManager) processLiveMinute() error {
 		lastMinute = thisMinute
 	}
 
+	fmt.Println("lencs", len(tm.bot.CurrencySettings))
+
 	for _, cs := range tm.bot.CurrencySettings {
 		if tm.lastUpdateMin[cs] != thisMinute {
 			dbData, err := tm.loadLatestCandleFromDatabase(cs)
@@ -1050,13 +1016,9 @@ func (tm *TradeManager) updateStatsForDataEvent(ev eventtypes.DataEventHandler) 
 }
 
 func (tm *TradeManager) startOfflineServices() error {
-	// fmt.Println("TM start offline services")
-	// for _, cs := range tm.cfg.CurrencySettings {
-	// 	err := tm.bot.LoadExchange(cs.ExchangeName, nil)
-	// 	if err != nil && !errors.Is(err, ErrExchangeAlreadyLoaded) {
-	// 		return err
-	// 	}
-	// }
+	if tm.liveMode {
+		panic("cannot run offline services in live mode")
+	}
 
 	err := tm.bot.SetupExchanges()
 	if err != nil {
@@ -1167,9 +1129,6 @@ func (tm *TradeManager) initializeFactorEngines() error {
 			barsRet := len(dbData.Item.Candles)
 			// fmt.Println("returned", barsRet, "bars")
 			if barsRet == 0 {
-				if tm.isSimulation {
-					panic("no bars returned")
-				}
 				return fmt.Errorf("no bars returned")
 			}
 			dbData.Load()
@@ -1298,9 +1257,6 @@ func (tm *TradeManager) loadLatestCandleFromDatabase(eap *ExchangeAssetPairSetti
 }
 
 func (tm *TradeManager) GetCurrentTime() time.Time {
-	if tm.isSimulation {
-		return tm.currentTime
-	}
 	return time.Now().UTC()
 }
 
