@@ -7,7 +7,6 @@ import (
 	"gocryptotrader/common/file"
 	"gocryptotrader/currency"
 	"gocryptotrader/database/repository/livetrade"
-	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/order"
 	"gocryptotrader/log"
 	"gocryptotrader/portfolio/strategies"
@@ -50,7 +49,16 @@ func (p *PortfolioAnalysis) loadAllStrategies() {
 	// all := strategies.GetStrategies()
 
 	names := []string{"trend", "trend2day", "trend3day"}
-	pairs, _ := p.Config.GetEnabledPairs("gateio", asset.Spot)
+	symbols := []string{"ETH_USDT", "XBT_USDT", "DOGE_USDT"}
+	pairs := make([]currency.Pair, 0)
+	for _, s := range symbols {
+		pair, err := currency.NewPairFromString(s)
+		if err != nil {
+			fmt.Println("error hydrating pair", pair)
+		}
+		pairs = append(pairs, pair)
+	}
+	// pairs, _ := p.Config.GetEnabledPairs("gateio", asset.Spot)
 
 	for _, name := range names {
 		// for each direction
