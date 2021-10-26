@@ -6,9 +6,12 @@ import (
 	"fmt"
 	"gocryptotrader/common/file"
 	"gocryptotrader/config"
+	"gocryptotrader/currency"
 	"gocryptotrader/database/repository/livetrade"
+	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/order"
 	"gocryptotrader/log"
+	"gocryptotrader/portfolio/strategies"
 	"io"
 	"io/ioutil"
 	"os"
@@ -23,35 +26,49 @@ func (p *PortfolioAnalysis) Analyze(filepath string) error {
 	lf := lastResult()
 	trades, err := livetrade.LoadCSV(lf)
 	enhanced := enhanceTrades(trades)
-	grouped := groupByStrategyID(enhanced)
-	fmt.Println("pfloaded", len(trades), "trades from", len(grouped), "strategies")
-	p.Report.StrategiesAnalyses = make(map[int]*StrategyAnalysis)
-	for id := range grouped {
-		p.Report.StrategiesAnalyses[id] = analyzeStrategy(id, grouped[id])
-	}
+	p.trades = enhanced
+	p.groupedTrades = groupByStrategyID(enhanced)
 
-	sumDurationMin := 0.0
-	for _, lt := range trades {
-		sumDurationMin += lt.DurationMinutes
-	}
-	p.Report.AverageDurationMin = sumDurationMin / float64(len(trades))
-
+	p.calculateReport()
 	p.calculateProductionWeights()
 
 	return err
 }
 
+func (p *PortfolioAnalysis) calculateReport() {
+	// fmt.Println("pfloaded", len(trades), "trades from", len(grouped), "strategies")
+	// p.Report.StrategiesAnalyses = make(map[strategies.Handler]*StrategyAnalysis)
+	// for id := range grouped {
+	// 	p.Report.StrategiesAnalyses[id] = analyzeStrategy(id, grouped[id])
+	// }
+	sumDurationMin := 0.0
+	for _, lt := range p.trades {
+		sumDurationMin += lt.DurationMinutes
+	}
+	p.Report.AverageDurationMin = sumDurationMin / float64(len(p.trades))
+}
+
 func (p *PortfolioAnalysis) calculateProductionWeights() {
 	p.Weights = &PortfolioWeights{}
 	p.Weights.Strategies = make([]*config.StrategySetting, 0)
+	fmt.Println("there are", len(p.groupedTrades), "strategies")
 	// write all strategies for now
-	for _, s := range p.Strategies {
-		ss := &config.StrategySetting{
-			Weight:  decimal.NewFromFloat(1.5),
-			Side:    s.GetDirection(),
-			Capture: "trend",
+	for ex, exmap := range p.groupedTrades {
+		for a, amap := range exmap {
+			for p, pmap := range amap {
+				for s := range pmap {
+					// trades[0].StrategyName
+					loadStrategy(ex, a, p, s)
+					fmt.Println("handle", ex, a, p, s)
+					ss := &config.StrategySetting{
+						Weight:  decimal.NewFromFloat(1.5),
+						Side:    s.GetDirection(),
+						Capture: "trend",
+					}
+					p.Weights.Strategies = append(p.Weights.Strategies, ss)
+				}
+			}
 		}
-		p.Weights.Strategies = append(p.Weights.Strategies, ss)
 	}
 }
 
@@ -83,17 +100,53 @@ func PrintTradeResults() {
 	// }
 }
 
-func groupByStrategyID(trades []*livetrade.Details) (grouped map[int][]*livetrade.Details) {
-	grouped = make(map[int][]*livetrade.Details)
+func loadStrategy(ex string, a asset.Item, p currency.Pair, side order.Side, s string) strategies.Handler {
+	strat, _ := strategies.LoadStrategyByName(s)
+	// strat.SetExchange(ex)
+	strat.SetDirection(side)
+	strat.SetPair(p)
+	strat.SetID(t.StrategyID)
+	// strat.SetName("trend")
+	// s := base.Strategy{}
+	// s.ID = 1
+	// if err != nil {
+	// 	fmt.Println("error", err)
+	// }
+	return strat
+}
+
+func loadStrategyFromTrade(t *livetrade.Details) strategies.Handler {
+	strat, _ := strategies.LoadStrategyByName("trend")
+	strat.SetDirection(t.Side)
+	strat.SetPair(t.Pair)
+	strat.SetID(t.StrategyID)
+	// strat.SetName("trend")
+	// s := base.Strategy{}
+	// s.ID = 1
+	// if err != nil {
+	// 	fmt.Println("error", err)
+	// }
+	return strat
+}
+
+func groupByStrategyID(trades []*livetrade.Details) (grouped map[string]map[asset.Item]map[currency.Pair]map[string][]*livetrade.Details) {
+	grouped = make(map[string]map[asset.Item]map[currency.Pair]map[string][]*livetrade.Details)
+
 	for _, lt := range trades {
-		if grouped[lt.StrategyID] == nil {
-			grouped[lt.StrategyID] = make([]*livetrade.Details, 0)
+		s := loadStrategyFromTrade(lt)
+		if grouped[s.Exchange] == nil {
+			grouped[s.Exchange] = make(map[asset.Item]map[currency.Pair]map[string][]*livetrade.Details)
+			if grouped[s.Exchange][asset.Spot] == nil {
+				grouped[s.Exchange][asset.Spot] = make(map[currency.Pair]map[string][]*livetrade.Details)
+			}
+			if grouped[s.Exchange][asset.Spot][t.Pair] == nil {
+				grouped[s.Exchange][asset.Spot][t.Pair] = make(map[string][]*livetrade.Details)
+			}
+			if grouped[s.Exchange][asset.Spot][t.Pair][t.StrategyName] == nil {
+				grouped[s.Exchange][asset.Spot][t.Pair][t.StrategyName] = make([]*livetrade.Details, 0)
+			}
 		}
-		if lt.StrategyID == 0 {
-			fmt.Println(lt)
-			panic("livetrade has no strategy id")
-		}
-		grouped[lt.StrategyID] = append(grouped[lt.StrategyID], lt)
+		grouped[s.Exchange][asset.Spot][t.Pair][t.StrategyName] = append(grouped[s.Exchange][asset.Spot][t.Pair][t.StrategyName], &lt)
 	}
 	return grouped
 }

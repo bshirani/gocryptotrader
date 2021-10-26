@@ -2,7 +2,9 @@ package analyze
 
 import (
 	"gocryptotrader/config"
+	"gocryptotrader/currency"
 	"gocryptotrader/database/repository/livetrade"
+	"gocryptotrader/exchange/asset"
 	"gocryptotrader/portfolio/compliance"
 	"gocryptotrader/portfolio/holdings"
 	"gocryptotrader/portfolio/strategies"
@@ -10,6 +12,14 @@ import (
 
 	"github.com/shopspring/decimal"
 )
+
+type PortfolioAnalysis struct {
+	Strategies    []strategies.Handler
+	Report        *PortfolioReport
+	Weights       *PortfolioWeights
+	groupedTrades map[string]map[asset.Item]map[currency.Pair]map[string][]*livetrade.Details
+	trades        []*livetrade.Details
+}
 
 type TradeCSVData struct {
 	Trades []*livetrade.Details
@@ -21,18 +31,12 @@ type DetailedTrade struct {
 	DurationMinutes int
 }
 
-type PortfolioAnalysis struct {
-	Strategies map[int]strategies.Handler
-	Report     *PortfolioReport
-	Weights    *PortfolioWeights
-}
-
 type PortfolioWeights struct {
 	Strategies []*config.StrategySetting `json:"strategies"`
 }
 
 type PortfolioReport struct {
-	StrategiesAnalyses map[int]*StrategyAnalysis
+	StrategiesAnalyses map[strategies.Handler]*StrategyAnalysis
 	NumTrades          int64
 	NumStrategies      int64
 	AverageDurationMin float64
