@@ -39,8 +39,6 @@ type orderManagerConfig struct {
 	AllowedPairs           currency.Pairs
 	AllowedExchanges       []string
 	OrderSubmissionRetries int64
-	LiveMode               bool
-	UseRealOrders          bool
 }
 
 // store holds all orders by exchange
@@ -55,7 +53,7 @@ type store struct {
 
 // OrderManager processes and stores orders across enabled exchanges
 type OrderManager struct {
-	useRealOrders    bool
+	realOrders       bool
 	liveMode         bool
 	debug            bool
 	bot              *Engine

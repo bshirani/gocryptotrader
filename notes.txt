@@ -226,4 +226,3 @@ that's the responsibility of the trademanager
 - callback from om to tm when stop loss is hit
 
 - when the stop loss is hit, the trade manager needs to cancel the stop loss order
-

@@ -83,8 +83,7 @@ type PortfolioSettings struct {
 
 // Settings allow the eventhandler to size an order within the limitations set by the config file
 type ExchangeAssetPairSettings struct {
-	ExchangeName  string
-	UseRealOrders bool
+	ExchangeName string
 
 	CurrencyPair currency.Pair
 	AssetType    asset.Item

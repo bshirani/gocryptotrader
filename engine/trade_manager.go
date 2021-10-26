@@ -207,7 +207,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 
 func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om ExecutionHandler) (submit.Event, error) {
 	if tm.debug {
-		log.Debugf(log.TradeMgr, "Executing order", o.GetDecision())
+		log.Debugln(log.TradeMgr, "Executing order", o.GetDecision())
 	}
 	priceFloat, _ := o.GetPrice().Float64()
 	a, _ := o.GetAmount().Float64()
@@ -218,11 +218,6 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 		skipStop = true
 	} else if o.GetDecision() == "" {
 		panic("order without decision")
-	} else if o.GetDecision() == signal.Exit {
-		fmt.Println("cancel the stop loss order too ey")
-		os.Exit(123)
-	} else {
-		fmt.Println("decision", o.GetDecision())
 	}
 	if o.GetPrice().IsZero() {
 		panic("order has no price")
@@ -831,9 +826,6 @@ func (tm *TradeManager) processSignalEvent(ev signal.Event) {
 	}
 	var o *order.Order
 	o, err = tm.Portfolio.OnSignal(ev, cs)
-	if o != nil {
-		fmt.Println("received order", o)
-	}
 	if err != nil {
 		log.Error(log.TradeMgr, err)
 		return
@@ -941,13 +933,6 @@ func (tm *TradeManager) createFillEvent(ev submit.Event) {
 
 }
 
-func (tm *TradeManager) onCancel(o *OrderSubmitResponse) {
-	// convert to submit event
-	fmt.Println("onCancel", o)
-	ev := &cancel.Cancel{}
-	tm.EventQueue.AppendEvent(ev)
-}
-
 func (tm *TradeManager) processSubmitEvent(ev submit.Event) {
 	if tm.debug {
 		fmt.Println("processing submit event strategy:", ev.GetStrategyID())
@@ -1020,6 +1005,28 @@ func (tm *TradeManager) processOrderEvent(o order.Event) {
 	// }
 	d := tm.Datas.GetDataForCurrency(o.GetExchange(), o.GetAssetType(), o.Pair())
 
+	if o.GetDecision() == signal.Exit {
+		// fmt.Println("RECEIVE EXIT SIGNALLLLLLLLLLLLL")
+		// cancel associate orders (take profit or stop loss)
+		// first cancel the stop loss order
+		// tm.CancelOrder(o, d, tm.bot.OrderManager)
+		// fmt.Println("cancel order id:", o.GetID())
+		openOrders := tm.Portfolio.GetOpenOrdersForStrategy(o.GetStrategyID())
+		for _, op := range openOrders {
+			cancel := &gctorder.Cancel{
+				ID:       op.ID,
+				Exchange: op.Exchange,
+			}
+
+			err := tm.bot.OrderManager.Cancel(context.TODO(), cancel)
+			if err != nil {
+				fmt.Println("error cancelling order!!!!!!!!!")
+				return
+			}
+		}
+
+		// do we need to notify the strategy? the portfolio?
+	}
 	// this blocks and returns a submission event
 	submitEvent, err := tm.ExecuteOrder(o, d, tm.bot.OrderManager)
 

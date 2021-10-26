@@ -50,7 +50,7 @@ func SetupOrderManager(exchangeManager iExchangeManager, communicationsManager i
 			wg:              wg,
 			dryRun:          dryRun,
 		},
-		useRealOrders: realOrders,
+		realOrders:    realOrders,
 		verbose:       verbose,
 		liveMode:      liveMode,
 		dryRun:        dryRun,
@@ -76,7 +76,7 @@ func (m *OrderManager) Start() error {
 	}
 	log.Debugln(log.OrderMgr, "Order manager starting...")
 	m.shutdown = make(chan struct{})
-	if m.useRealOrders {
+	if m.realOrders {
 		go m.run()
 	}
 	return nil
@@ -119,7 +119,7 @@ func (m *OrderManager) gracefulShutdown() {
 
 // run will periodically process orders
 func (m *OrderManager) UpdateFakeOrders(d eventtypes.DataEventHandler) error {
-	if m.useRealOrders {
+	if m.realOrders {
 		panic("updating fake orders in production")
 	}
 	if m.currentCloses[d.GetExchange()] == nil {
@@ -263,23 +263,26 @@ func (m *OrderManager) Cancel(ctx context.Context, cancel *order.Cancel) error {
 		return err
 	}
 
-	exch, err := m.orderStore.exchangeManager.GetExchangeByName(cancel.Exchange)
-	if err != nil {
-		return err
-	}
+	if m.realOrders {
+		panic("trying to cancel for real")
+		exch, err := m.orderStore.exchangeManager.GetExchangeByName(cancel.Exchange)
+		if err != nil {
+			return err
+		}
 
-	if cancel.AssetType.String() != "" && !exch.GetAssetTypes(false).Contains(cancel.AssetType) {
-		err = errors.New("order asset type not supported by exchange")
-		return err
-	}
+		if cancel.AssetType.String() != "" && !exch.GetAssetTypes(false).Contains(cancel.AssetType) {
+			err = errors.New("order asset type not supported by exchange")
+			return err
+		}
 
-	log.Debugf(log.OrderMgr, "Order manager: Cancelling order ID %v [%+v]",
-		cancel.ID, cancel)
+		log.Debugf(log.OrderMgr, "Order manager: Cancelling order ID %v [%+v]",
+			cancel.ID, cancel)
 
-	err = exch.CancelOrder(ctx, cancel)
-	if err != nil {
-		err = fmt.Errorf("%v - Failed to cancel order: %w", cancel.Exchange, err)
-		return err
+		err = exch.CancelOrder(ctx, cancel)
+		if err != nil {
+			err = fmt.Errorf("%v - Failed to cancel order: %w", cancel.Exchange, err)
+			return err
+		}
 	}
 	var od *order.Detail
 	od, err = m.orderStore.getByExchangeAndID(cancel.Exchange, cancel.ID)
@@ -291,12 +294,17 @@ func (m *OrderManager) Cancel(ctx context.Context, cancel *order.Cancel) error {
 	od.Status = order.Cancelled
 	msg := fmt.Sprintf("Order manager: Exchange %s order ID=%v cancelled.",
 		od.Exchange, od.ID)
-	log.Debugln(log.OrderMgr, msg)
-	m.orderStore.commsManager.PushEvent(base.Event{
-		Type:    "order",
-		Message: msg,
-	})
 
+	if m.verbose {
+		log.Debugln(log.OrderMgr, msg)
+	}
+
+	if !m.dryRun {
+		m.orderStore.commsManager.PushEvent(base.Event{
+			Type:    "order",
+			Message: msg,
+		})
+	}
 	return nil
 }
 
@@ -516,7 +524,7 @@ func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*Ord
 	var isOrderFilled bool
 
 	// fmt.Println("order for strategy", newOrder.StrategyID)
-	if m.useRealOrders {
+	if m.realOrders {
 		exch.GetBase().Verbose = true
 		result, err = exch.SubmitOrder(ctx, newOrder)
 		exch.GetBase().Verbose = false

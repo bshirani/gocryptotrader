@@ -165,12 +165,11 @@ func (s *Strategy) checkExit(es signal.Signal, p base.StrategyPortfolioHandler, 
 		// handle exit
 		m60PctChg := fe.Minute().M60PctChange.Last(1)
 
-		fmt.Println("check exit", es.GetTime(), minutesInTrade, m60PctChg)
+		// fmt.Println("check exit", es.GetTime(), minutesInTrade, m60PctChg)
 
 		// CHECK EXIT BUY
 		if s.Strategy.GetDirection() == order.Buy {
 			if m60PctChg.LessThan(decimal.NewFromFloat(0)) {
-				fmt.Println("EXIT")
 				es.SetDecision(signal.Exit)
 				es.AppendReason(fmt.Sprintf("Strategy: t >. %d min and M60PctChange is negative.", minutesInTrade))
 			} else {
@@ -182,7 +181,6 @@ func (s *Strategy) checkExit(es signal.Signal, p base.StrategyPortfolioHandler, 
 		// CHECK EXIT SELL
 		if s.Strategy.GetDirection() == order.Sell {
 			if m60PctChg.GreaterThan(decimal.NewFromFloat(1)) {
-				fmt.Println("EXIT")
 				es.SetDecision(signal.Exit)
 				es.AppendReason(fmt.Sprintf("Strategy.go says: exiting t > (%d) min and M60PctChange is positive.", minutesInTrade))
 			} else {
