@@ -429,6 +429,7 @@ dataLoadingIssue:
 		fmt.Println("done running", count, "data events")
 	} else {
 		livetrade.WriteCSV(tm.Portfolio.GetAllClosedTrades())
+		// &analyze.PortfolioAnalysis{}.Analyze("")
 	}
 
 	return nil

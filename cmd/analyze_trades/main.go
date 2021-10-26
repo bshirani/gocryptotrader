@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"gocryptotrader/config"
 	"gocryptotrader/currency/coinmarketcap"
@@ -37,12 +38,15 @@ func main() {
 		fmt.Println("error analyzeTrades", err)
 	}
 
-	outpath := "portfolio_analysis.json"
-	fmt.Println("saving analysis to", outpath)
-	pf.Save(outpath)
-	weights := "pf_weighted.json"
-	fmt.Println("saving pf weights to", weights)
-	pf.Weights.Save(weights)
+	filename := fmt.Sprintf(
+		"portfolio_analysis_%v.json",
+		time.Now().Format("2006-01-02-15-04-05"))
+	filename = filepath.Join(wd, "../backtest/results", filename)
+	pf.Save(filename)
+
+	prodWeighted := filepath.Join(wd, "../confs/prod.strat")
+	fmt.Println("saving pf weights to", prodWeighted)
+	pf.Weights.Save(prodWeighted)
 
 	allPath := filepath.Join(wd, "../confs/dev/strategy/all.strat")
 	pf.SaveAllStrategiesConfigFile(allPath)
