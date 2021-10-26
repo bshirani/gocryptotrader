@@ -305,7 +305,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	}
 
 	// logging
-	if p.verbose {
+	if p.verbose && ev.GetDecision() == signal.Exit {
 		log.Debugf(
 			log.Portfolio,
 			"onsig name=%d-%s-%s-%s decision=%s status=%s reason=%s time=%s ",
@@ -556,8 +556,14 @@ func (p *Portfolio) GetTradeForStrategy(sid int) *livetrade.Details {
 	return p.store.openTrade[sid]
 }
 
-func (p *Portfolio) GetOpenOrdersForStrategy(sid int) (order []*gctorder.Detail) {
-	return order
+func (p *Portfolio) GetOpenOrdersForStrategy(sid int) (orders []gctorder.Detail) {
+	active, _ := p.bot.OrderManager.GetOrdersActive(nil)
+	for _, ao := range active {
+		if ao.StrategyID == sid {
+			orders = append(orders, ao)
+		}
+	}
+	return orders
 }
 
 func (p *Portfolio) GetAllClosedTrades() []*livetrade.Details {

@@ -19,7 +19,7 @@
   "data-type": ""
  },
  "portfolio-settings": {
-  "verbose": false,
+  "verbose": true,
   "leverage": {
    "can-use-leverage": false,
    "maximum-orders-with-leverage-ratio": "0",

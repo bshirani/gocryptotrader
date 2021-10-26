@@ -1,5 +1,5 @@
 -- +goose Up
-CREATE TYPE order_type AS ENUM ('MARKET', 'LIMIT');
+CREATE TYPE order_type AS ENUM ('MARKET', 'LIMIT', 'STOP');
 CREATE TABLE public.live_order (
     id SERIAL PRIMARY KEY,
     status order_status NOT NULL,

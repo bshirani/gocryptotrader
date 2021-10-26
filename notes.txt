@@ -219,3 +219,5 @@ when we add an order to the store
 
 when we create a submit order, we also create orders that represent the stop loss and take profit
 
+if I receive an exit order, I should cancel the stop loss order
+that's the responsibility of the trademanager

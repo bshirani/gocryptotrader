@@ -110,7 +110,7 @@ type ExchangeAssetPairSettings struct {
 type PortfolioHandler interface {
 	GetVerbose() bool
 	OnSignal(signal.Event, *ExchangeAssetPairSettings) (*order.Order, error)
-	GetOpenOrdersForStrategy(int) []*gctorder.Detail
+	GetOpenOrdersForStrategy(int) []gctorder.Detail
 	GetOrderFromStore(int) *gctorder.Detail
 
 	OnFill(fill.Event)

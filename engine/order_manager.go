@@ -131,10 +131,35 @@ func (m *OrderManager) UpdateFakeOrders(d eventtypes.DataEventHandler) error {
 
 	m.currentCloses[d.GetExchange()][d.GetAssetType()][d.Pair()] = d.ClosePrice()
 
-	// active, _ := m.GetOrdersActive(nil)
-	// if len(active) > 0 {
-	// 	fmt.Println("there are ", len(active), "active orders")
-	// }
+	active, _ := m.GetOrdersActive(nil)
+	for _, ao := range active {
+		// fmt.Println("handle active order", ao.Type)
+		// handle stop orders only
+		if ao.Type != order.Stop {
+			continue
+		}
+		if ao.Side == order.Sell && d.ClosePrice().LessThan(decimal.NewFromFloat(ao.Price)) {
+			fmt.Println("stop loss hit", ao.Price)
+
+			ao.Status = order.Filled
+			_, err := m.orderStore.upsert(&ao)
+			if err != nil {
+				fmt.Println("error upserting stop order")
+			}
+			active, _ = m.GetOrdersActive(nil)
+
+			// upsert the order
+			// execute the order
+			// fill sell order
+			// update the trade manager
+		} else if ao.Side == order.Buy && d.ClosePrice().GreaterThan(decimal.NewFromFloat(ao.Price)) {
+			fmt.Println("stop loss hit", ao.Price)
+			// execute the order
+			// fill sell order
+			// update the trade manager
+		}
+		// fmt.Println("get pair", ao.Pair, ao.AssetType, ao.Exchange, ao.Side, d.ClosePrice())
+	}
 	// _, err = m.UpsertOrder(&fetchedOrder)
 
 	// get the current price
@@ -416,8 +441,9 @@ func (m *OrderManager) Modify(ctx context.Context, mod *order.Modify) (*order.Mo
 func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*OrderSubmitResponse, error) {
 	// if m.liveMode {
 	if m.debug {
-		fmt.Println("submitting order")
+		fmt.Println("submitting order type:", newOrder.Type)
 	}
+
 	if m.liveMode {
 		log.Warnln(log.OrderMgr, "Order manager: Order", newOrder.Side, newOrder.Date, newOrder.StrategyID, newOrder.ID)
 	}
@@ -428,6 +454,9 @@ func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*Ord
 	}
 	if atomic.LoadInt32(&m.started) == 0 {
 		return nil, fmt.Errorf("order manager %w", ErrSubSystemNotStarted)
+	}
+	if newOrder.StrategyID == 0 {
+		panic("order without strategy")
 	}
 
 	err := m.validate(newOrder)
@@ -494,7 +523,7 @@ func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*Ord
 			return nil, err
 		}
 	} else {
-		if newOrder.Price != 0 {
+		if newOrder.Type == order.Stop {
 			isOrderFilled = false
 		} else {
 			isOrderFilled = true
@@ -653,6 +682,7 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 		Pair:              newOrder.Pair,
 		Leverage:          newOrder.Leverage,
 		StopLossPrice:     newOrder.StopLossPrice,
+		StrategyID:        newOrder.StrategyID,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("unable to add %v order %v to orderStore: %s", newOrder.Exchange, result.OrderID, err)
@@ -985,6 +1015,9 @@ func (s *store) upsert(od *order.Detail) (resp *OrderUpsertResponse, err error) 
 	for x := range r {
 		if r[x].ID == od.ID {
 			r[x].UpdateOrderFromDetail(od)
+			if !s.dryRun {
+				liveorder.Upsert(r[x])
+			}
 			resp = &OrderUpsertResponse{
 				OrderDetails: r[x].Copy(),
 				IsNewOrder:   false,

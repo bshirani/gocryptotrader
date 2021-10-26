@@ -67,9 +67,13 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	orders := p.GetOpenOrdersForStrategy(s.GetID())
 	trade := p.GetTradeForStrategy(s.GetID())
 
+	// fmt.Println("trend.go has", len(orders), "orders")
+
 	if trade == nil && len(orders) == 0 {
 		return s.checkEntry(es, p, d, fe)
-	} else {
+	}
+
+	if trade != nil {
 		return s.checkExit(es, p, d, fe)
 	}
 
@@ -164,6 +168,7 @@ func (s *Strategy) checkExit(es signal.Signal, p base.StrategyPortfolioHandler, 
 		// CHECK EXIT BUY
 		if s.Strategy.GetDirection() == order.Buy {
 			if m60PctChg.LessThan(decimal.NewFromFloat(-1)) {
+				fmt.Println("EXIT")
 				es.SetDecision(signal.Exit)
 				es.AppendReason(fmt.Sprintf("Strategy: t >. %d min and M60PctChange is negative.", minutesInTrade))
 			} else {
@@ -175,6 +180,7 @@ func (s *Strategy) checkExit(es signal.Signal, p base.StrategyPortfolioHandler, 
 		// CHECK EXIT SELL
 		if s.Strategy.GetDirection() == order.Sell {
 			if m60PctChg.GreaterThan(decimal.NewFromFloat(1)) {
+				fmt.Println("EXIT")
 				es.SetDecision(signal.Exit)
 				es.AppendReason(fmt.Sprintf("Strategy.go says: exiting t > (%d) min and M60PctChange is positive.", minutesInTrade))
 			} else {

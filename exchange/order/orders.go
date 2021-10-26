@@ -33,7 +33,7 @@ func (s *Submit) Validate(opt ...validate.Checker) error {
 		return ErrSideIsInvalid
 	}
 
-	if s.Type != Market && s.Type != Limit {
+	if s.Type != Market && s.Type != Limit && s.Type != Stop {
 		return ErrTypeIsInvalid
 	}
 
@@ -412,11 +412,13 @@ func (d *Detail) MatchFilter(f *Filter) bool {
 // currently available on the exchange
 func (d *Detail) IsActive() bool {
 	if d.Amount <= 0 || d.Amount <= d.ExecutedAmount {
+		fmt.Println("no amount")
 		return false
 	}
-	return d.Status == Active || d.Status == Open || d.Status == PartiallyFilled || d.Status == New ||
+	res := d.Status == Active || d.Status == Open || d.Status == PartiallyFilled || d.Status == New ||
 		d.Status == AnyStatus || d.Status == PendingCancel || d.Status == Hidden || d.Status == UnknownStatus ||
 		d.Status == AutoDeleverage || d.Status == Pending
+	return res
 }
 
 // IsInactive returns true if an order has a status that indicates it is

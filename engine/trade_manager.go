@@ -138,7 +138,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 			bot.ExchangeManager,
 			bot.CommunicationsManager,
 			&bot.ServicesWG,
-			bot.Settings.Verbose,
+			bot.Config.OrderManager.Verbose,
 			bot.Config.ProductionMode,
 			bot.Config.LiveMode,
 			bot.Config.DryRun,
@@ -207,7 +207,7 @@ func NewTradeManagerFromConfig(cfg *config.Config, templatePath, output string, 
 
 func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om ExecutionHandler) (submit.Event, error) {
 	if tm.debug {
-		log.Debugf(log.TradeMgr, "Executing order!!!!!")
+		log.Debugf(log.TradeMgr, "Executing order", o.GetDecision())
 	}
 	priceFloat, _ := o.GetPrice().Float64()
 	a, _ := o.GetAmount().Float64()
@@ -218,6 +218,10 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 		skipStop = true
 	} else if o.GetDecision() == "" {
 		panic("order without decision")
+	} else if o.GetDecision() == signal.Exit {
+		fmt.Println("cancel the stop loss order too ey")
+	} else {
+		fmt.Println("decision", o.GetDecision())
 	}
 	if o.GetPrice().IsZero() {
 		panic("order has no price")
@@ -264,7 +268,7 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 		Date:        o.GetTime(),
 		LastUpdated: o.GetTime(),
 		Pair:        o.Pair(),
-		Type:        gctorder.Market,
+		Type:        gctorder.Stop,
 		StrategyID:  o.GetStrategyID(),
 	}
 
@@ -1065,7 +1069,7 @@ func (tm *TradeManager) startOfflineServices() error {
 		tm.bot.ExchangeManager,
 		tm.bot.CommunicationsManager,
 		&tm.bot.ServicesWG,
-		tm.bot.Settings.Verbose,
+		tm.bot.Config.OrderManager.Verbose,
 		tm.bot.Config.ProductionMode,
 		tm.liveMode,
 		tm.bot.Settings.EnableDryRun,
