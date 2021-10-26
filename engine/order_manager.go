@@ -133,6 +133,9 @@ func (m *OrderManager) UpdateFakeOrders(d eventtypes.DataEventHandler) error {
 
 	active, _ := m.GetOrdersActive(nil)
 	for _, ao := range active {
+		if ao.Pair != d.Pair() {
+			continue
+		}
 		// fmt.Println("handle active order", ao.Type)
 		// handle stop orders only
 		if ao.Type != order.Stop {
@@ -148,10 +151,8 @@ func (m *OrderManager) UpdateFakeOrders(d eventtypes.DataEventHandler) error {
 			}
 			active, _ = m.GetOrdersActive(nil)
 
-			// upsert the order
-			// execute the order
-			// fill sell order
-			// update the trade manager
+			m.onFill(ao, d)
+
 		} else if ao.Side == order.Buy && d.ClosePrice().GreaterThan(decimal.NewFromFloat(ao.Price)) {
 			fmt.Println("stop loss hit", ao.Price)
 			// execute the order
@@ -1078,6 +1079,10 @@ func (s *store) exists(det *order.Detail) bool {
 		}
 	}
 	return false
+}
+
+func (m *OrderManager) SetOnFill(onFill func(order.Detail, eventtypes.DataEventHandler)) {
+	m.onFill = onFill
 }
 
 // Add Adds an order to the orderStore for tracking the lifecycle

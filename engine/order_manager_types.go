@@ -67,9 +67,9 @@ type OrderManager struct {
 	cfg              orderManagerConfig
 	verbose          bool
 	currentCloses    map[string]map[asset.Item]map[currency.Pair]decimal.Decimal
-	onSubmit         func(*OrderSubmitResponse)
-	onFill           func(*OrderSubmitResponse)
-	onCancel         func(*OrderSubmitResponse)
+	onSubmit         func(order.Detail)
+	onFill           func(order.Detail, eventtypes.DataEventHandler)
+	onCancel         func(order.Detail)
 }
 
 // OrderSubmitResponse contains the order response along with an internal order ID
@@ -93,6 +93,7 @@ type OrderManagerHandler interface {
 	UpdateFakeOrders(eventtypes.DataEventHandler) error
 	Update()
 
+	SetOnFill(func(order.Detail, eventtypes.DataEventHandler))
 	GenerateDryRunID() int
 	Add(o *order.Detail) error
 	Cancel(ctx context.Context, cancel *order.Cancel) error

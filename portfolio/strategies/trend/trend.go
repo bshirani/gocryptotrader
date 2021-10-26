@@ -67,7 +67,7 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	orders := p.GetOpenOrdersForStrategy(s.GetID())
 	trade := p.GetTradeForStrategy(s.GetID())
 
-	// fmt.Println("trend.go has", len(orders), "orders")
+	// fmt.Println("trend.go has", len(orders), "orders", trade)
 
 	if trade == nil && len(orders) == 0 {
 		return s.checkEntry(es, p, d, fe)
@@ -165,9 +165,11 @@ func (s *Strategy) checkExit(es signal.Signal, p base.StrategyPortfolioHandler, 
 		// handle exit
 		m60PctChg := fe.Minute().M60PctChange.Last(1)
 
+		fmt.Println("check exit", es.GetTime(), minutesInTrade, m60PctChg)
+
 		// CHECK EXIT BUY
 		if s.Strategy.GetDirection() == order.Buy {
-			if m60PctChg.LessThan(decimal.NewFromFloat(-1)) {
+			if m60PctChg.LessThan(decimal.NewFromFloat(0)) {
 				fmt.Println("EXIT")
 				es.SetDecision(signal.Exit)
 				es.AppendReason(fmt.Sprintf("Strategy: t >. %d min and M60PctChange is negative.", minutesInTrade))

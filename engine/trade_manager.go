@@ -220,6 +220,7 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 		panic("order without decision")
 	} else if o.GetDecision() == signal.Exit {
 		fmt.Println("cancel the stop loss order too ey")
+		os.Exit(123)
 	} else {
 		fmt.Println("decision", o.GetDecision())
 	}
@@ -830,6 +831,9 @@ func (tm *TradeManager) processSignalEvent(ev signal.Event) {
 	}
 	var o *order.Order
 	o, err = tm.Portfolio.OnSignal(ev, cs)
+	if o != nil {
+		fmt.Println("received order", o)
+	}
 	if err != nil {
 		log.Error(log.TradeMgr, err)
 		return
@@ -904,6 +908,7 @@ func (tm *TradeManager) createFillEvent(ev submit.Event) {
 			Reason:       ev.GetReason(),
 			StrategyID:   ev.GetStrategyID(),
 		},
+		Order:           o,
 		OrderID:         ev.GetOrderID(),
 		InternalOrderID: ev.GetInternalOrderID(),
 		ClosePrice:      decimal.NewFromFloat(o.Price),
@@ -968,6 +973,7 @@ func (tm *TradeManager) processCancelEvent(ev cancel.Event) {
 }
 
 func (tm *TradeManager) processFillEvent(ev fill.Event) {
+	// fmt.Println("process fill for", ev.GetStrategyID(), ev.Pair(), ev.GetOrder().Type)
 	tm.Portfolio.OnFill(ev)
 	// do it like this
 	// t, err := bt.Portfolio.OnFill(ev, funds)
@@ -1074,6 +1080,8 @@ func (tm *TradeManager) startOfflineServices() error {
 		tm.liveMode,
 		tm.bot.Settings.EnableDryRun,
 	)
+	tm.bot.OrderManager.SetOnFill(tm.onFill)
+
 	if err != nil {
 		gctlog.Errorf(gctlog.Global, "Order manager unable to setup: %s", err)
 	} else {
@@ -1096,6 +1104,33 @@ func (tm *TradeManager) startOfflineServices() error {
 	tm.initializeFactorEngines()
 
 	return err
+}
+
+// when order manager fills an order it calls here
+func (tm *TradeManager) onFill(order gctorder.Detail, ev eventtypes.DataEventHandler) {
+	// fmt.Println("on fill called")
+
+	e := &fill.Fill{
+		Base: event.Base{
+			Offset:       ev.GetOffset(),
+			Exchange:     ev.GetExchange(),
+			Time:         ev.GetTime(),
+			CurrencyPair: ev.Pair(),
+			AssetType:    ev.GetAssetType(),
+			Interval:     ev.GetInterval(),
+			Reason:       ev.GetReason(),
+			StrategyID:   order.StrategyID,
+		},
+		Order:           &order,
+		OrderID:         order.ID,
+		InternalOrderID: order.InternalOrderID,
+		ClosePrice:      decimal.NewFromFloat(order.Price),
+		PurchasePrice:   decimal.NewFromFloat(order.Price),
+		// StopLossPrice:   decimal.NewFromFloat(order.StopLossPrice),
+		Direction: order.Side,
+		Amount:    decimal.NewFromFloat(order.Amount),
+	}
+	tm.EventQueue.AppendEvent(e)
 }
 
 func (tm *TradeManager) initializeFactorEngines() error {

@@ -486,6 +486,7 @@ func lastFileInDir(dir string) string {
 	// }
 	return names[len(names)-1]
 }
+
 func getProfit(trade Details) decimal.Decimal {
 	if trade.Side == order.Buy {
 		return trade.ExitPrice.Sub(trade.EntryPrice)

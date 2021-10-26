@@ -221,3 +221,9 @@ when we create a submit order, we also create orders that represent the stop los
 
 if I receive an exit order, I should cancel the stop loss order
 that's the responsibility of the trademanager
+
+- cancel the stop loss order when we exit in trade_manager.execute_order
+- callback from om to tm when stop loss is hit
+
+- when the stop loss is hit, the trade manager needs to cancel the stop loss order
+

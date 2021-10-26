@@ -260,7 +260,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 			ev.SetDirection(gctorder.Buy)
 		} else if strategyDirection == gctorder.Buy {
 			// ev.Base.SetDirection(gctorder.Sell)
-			// fmt.Println("STRATEGY DIRECTION BUY , EXIT w SELL", ev.GetStrategyID())
+			fmt.Println("STRATEGY DIRECTION BUY , EXIT w SELL", ev.GetStrategyID())
 			ev.SetDirection(gctorder.Sell)
 		} else {
 			panic("no valid strategy side")
@@ -430,6 +430,7 @@ func (p *Portfolio) GetOrderFromStore(orderid int) *gctorder.Detail {
 
 // OnFill processes the event after an order has been placed by the exchange. Its purpose is to track holdings for future portfolio decisions.
 func (p *Portfolio) OnFill(f fill.Event) {
+	fmt.Println("pf on fill")
 	if f.GetStrategyID() == 0 {
 		fmt.Println("fill has no strategy ID")
 		os.Exit(2)
@@ -440,13 +441,15 @@ func (p *Portfolio) OnFill(f fill.Event) {
 	}
 
 	// update trades and orders here
-	t := p.store.openTrade[f.GetStrategyID()]
+	// t := p.store.openTrade[f.GetStrategyID()]
+	t := p.GetTradeForStrategy(f.GetStrategyID())
+
 	if t == nil {
-		// fmt.Println("PF ON fILL creating NEW TRADE")
+		fmt.Println("PF ON fILL creating NEW TRADE")
 		p.recordEnterTrade(f)
 
 	} else if t.Status == gctorder.Open {
-		// fmt.Println("PF ONFILL CLOSING TRADE")
+		fmt.Println("PF ONFILL CLOSING TRADE")
 		p.recordExitTrade(f, t)
 	}
 
@@ -1162,6 +1165,7 @@ func (p *Portfolio) getStrategy(strategyID int) (strategies.Handler, error) {
 }
 
 func (p *Portfolio) recordEnterTrade(ev fill.Event) {
+	fmt.Println("ENTER TRADE RECORD")
 	s, _ := p.getStrategy(ev.GetStrategyID())
 	// fmt.Println("STRATEGY DIR", s.GetDirection())
 	// fmt.Println("EV DIR", ev.GetDirection())
@@ -1247,7 +1251,6 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 }
 
 func (p *Portfolio) recordExitTrade(f fill.Event, t *livetrade.Details) {
-
 	if t.Status == gctorder.Open {
 		t.Status = gctorder.Closed
 		t.ExitTime = f.GetTime()
