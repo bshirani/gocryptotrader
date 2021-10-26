@@ -3,7 +3,6 @@ package analyze
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"gocryptotrader/common/file"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
@@ -15,10 +14,6 @@ import (
 func (p *PortfolioAnalysis) calculateProductionWeights() {
 	p.Weights = &PortfolioWeights{}
 	p.Weights.Strategies = make([]*config.StrategySetting, 0)
-	fmt.Println("there are", len(p.groupedTrades), "strategies")
-	for i := range p.groupedTrades {
-		fmt.Println("strategy", i)
-	}
 }
 
 func (w *PortfolioWeights) Save(filepath string) error {

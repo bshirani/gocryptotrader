@@ -43,19 +43,15 @@ func (p *PortfolioAnalysis) Analyze(filepath string) error {
 
 func (p *PortfolioAnalysis) loadAllStrategies() {
 	// get a list of all the strategy names
-	all := strategies.GetStrategies()
-	fmt.Println(len(all))
+	// all := strategies.GetStrategies()
 
 	names := []string{"trend", "trend2day", "trend3day"}
-
 	pairs, _ := p.Config.GetEnabledPairs("gateio", asset.Spot)
 
 	for _, name := range names {
-		fmt.Println("create all settings for", name)
 		// for each direction
 		for _, dir := range []order.Side{order.Buy, order.Sell} {
 			for _, pair := range pairs {
-				fmt.Println("create strategy config for", dir, pair, name)
 				pairS := config.PairSetting{
 					Exchange:         prodExchange,
 					Symbol:           p.getPairForExchange(prodExchange, pair).Upper().String(),
@@ -88,9 +84,9 @@ func (p *PortfolioAnalysis) calculateReport() {
 }
 
 func (p *PortfolioAnalysis) PrintResults() {
-	for sid, sa := range p.Report.StrategiesAnalyses {
-		fmt.Println("strategy", sid, "num trades", sa.NumTrades)
-	}
+	// for sid, sa := range p.Report.StrategiesAnalyses {
+	// 	fmt.Println("strategy", sid, "num trades", sa.NumTrades)
+	// }
 }
 
 // func (p *PortfolioAnalysis) WriteOutput() {
@@ -366,7 +362,6 @@ func (p *PortfolioAnalysis) Save(filepath string) error {
 }
 
 func (p *PortfolioAnalysis) SaveAllStrategiesConfigFile(outpath string) error {
-	fmt.Println("saving all strategies config", outpath)
 	writer, err := file.Writer(outpath)
 	defer func() {
 		if writer != nil {

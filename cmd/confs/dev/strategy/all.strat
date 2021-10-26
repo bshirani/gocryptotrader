@@ -25,6 +25,30 @@
  },
  {
   "Weight": "1.5",
+  "side": "BUY",
+  "pair": {
+   "exchange": "kraken",
+   "symbol": "DOGE_USDT",
+   "backtestExchange": "gateio",
+   "backtestSymbol": "DOGE_USDT"
+  },
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "Weight": "1.5",
+  "side": "BUY",
+  "pair": {
+   "exchange": "kraken",
+   "symbol": "XRP_USDT",
+   "backtestExchange": "gateio",
+   "backtestSymbol": "XRP_USDT"
+  },
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "Weight": "1.5",
   "side": "SELL",
   "pair": {
    "exchange": "kraken",
@@ -49,6 +73,30 @@
  },
  {
   "Weight": "1.5",
+  "side": "SELL",
+  "pair": {
+   "exchange": "kraken",
+   "symbol": "DOGE_USDT",
+   "backtestExchange": "gateio",
+   "backtestSymbol": "DOGE_USDT"
+  },
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "Weight": "1.5",
+  "side": "SELL",
+  "pair": {
+   "exchange": "kraken",
+   "symbol": "XRP_USDT",
+   "backtestExchange": "gateio",
+   "backtestSymbol": "XRP_USDT"
+  },
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "Weight": "1.5",
   "side": "BUY",
   "pair": {
    "exchange": "kraken",
@@ -73,6 +121,30 @@
  },
  {
   "Weight": "1.5",
+  "side": "BUY",
+  "pair": {
+   "exchange": "kraken",
+   "symbol": "DOGE_USDT",
+   "backtestExchange": "gateio",
+   "backtestSymbol": "DOGE_USDT"
+  },
+  "capture": "trend2day",
+  "debug": false
+ },
+ {
+  "Weight": "1.5",
+  "side": "BUY",
+  "pair": {
+   "exchange": "kraken",
+   "symbol": "XRP_USDT",
+   "backtestExchange": "gateio",
+   "backtestSymbol": "XRP_USDT"
+  },
+  "capture": "trend2day",
+  "debug": false
+ },
+ {
+  "Weight": "1.5",
   "side": "SELL",
   "pair": {
    "exchange": "kraken",
@@ -91,6 +163,30 @@
    "symbol": "ETH_USDT",
    "backtestExchange": "gateio",
    "backtestSymbol": "ETH_USDT"
+  },
+  "capture": "trend2day",
+  "debug": false
+ },
+ {
+  "Weight": "1.5",
+  "side": "SELL",
+  "pair": {
+   "exchange": "kraken",
+   "symbol": "DOGE_USDT",
+   "backtestExchange": "gateio",
+   "backtestSymbol": "DOGE_USDT"
+  },
+  "capture": "trend2day",
+  "debug": false
+ },
+ {
+  "Weight": "1.5",
+  "side": "SELL",
+  "pair": {
+   "exchange": "kraken",
+   "symbol": "XRP_USDT",
+   "backtestExchange": "gateio",
+   "backtestSymbol": "XRP_USDT"
   },
   "capture": "trend2day",
   "debug": false
@@ -121,6 +217,30 @@
  },
  {
   "Weight": "1.5",
+  "side": "BUY",
+  "pair": {
+   "exchange": "kraken",
+   "symbol": "DOGE_USDT",
+   "backtestExchange": "gateio",
+   "backtestSymbol": "DOGE_USDT"
+  },
+  "capture": "trend3day",
+  "debug": false
+ },
+ {
+  "Weight": "1.5",
+  "side": "BUY",
+  "pair": {
+   "exchange": "kraken",
+   "symbol": "XRP_USDT",
+   "backtestExchange": "gateio",
+   "backtestSymbol": "XRP_USDT"
+  },
+  "capture": "trend3day",
+  "debug": false
+ },
+ {
+  "Weight": "1.5",
   "side": "SELL",
   "pair": {
    "exchange": "kraken",
@@ -139,6 +259,30 @@
    "symbol": "ETH_USDT",
    "backtestExchange": "gateio",
    "backtestSymbol": "ETH_USDT"
+  },
+  "capture": "trend3day",
+  "debug": false
+ },
+ {
+  "Weight": "1.5",
+  "side": "SELL",
+  "pair": {
+   "exchange": "kraken",
+   "symbol": "DOGE_USDT",
+   "backtestExchange": "gateio",
+   "backtestSymbol": "DOGE_USDT"
+  },
+  "capture": "trend3day",
+  "debug": false
+ },
+ {
+  "Weight": "1.5",
+  "side": "SELL",
+  "pair": {
+   "exchange": "kraken",
+   "symbol": "XRP_USDT",
+   "backtestExchange": "gateio",
+   "backtestSymbol": "XRP_USDT"
   },
   "capture": "trend3day",
   "debug": false
