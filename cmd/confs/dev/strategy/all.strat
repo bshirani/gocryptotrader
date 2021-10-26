@@ -1,6 +1,6 @@
 [
  {
-  "Weight": "1.5",
+  "weight": "0",
   "side": "BUY",
   "pair": {
    "exchange": "kraken",
@@ -12,7 +12,7 @@
   "debug": false
  },
  {
-  "Weight": "1.5",
+  "weight": "0",
   "side": "BUY",
   "pair": {
    "exchange": "kraken",
@@ -24,7 +24,7 @@
   "debug": false
  },
  {
-  "Weight": "1.5",
+  "weight": "0",
   "side": "BUY",
   "pair": {
    "exchange": "kraken",
@@ -36,7 +36,7 @@
   "debug": false
  },
  {
-  "Weight": "1.5",
+  "weight": "0",
   "side": "BUY",
   "pair": {
    "exchange": "kraken",
@@ -48,7 +48,7 @@
   "debug": false
  },
  {
-  "Weight": "1.5",
+  "weight": "0",
   "side": "SELL",
   "pair": {
    "exchange": "kraken",
@@ -60,7 +60,7 @@
   "debug": false
  },
  {
-  "Weight": "1.5",
+  "weight": "0",
   "side": "SELL",
   "pair": {
    "exchange": "kraken",
@@ -72,7 +72,7 @@
   "debug": false
  },
  {
-  "Weight": "1.5",
+  "weight": "0",
   "side": "SELL",
   "pair": {
    "exchange": "kraken",
@@ -84,7 +84,7 @@
   "debug": false
  },
  {
-  "Weight": "1.5",
+  "weight": "0",
   "side": "SELL",
   "pair": {
    "exchange": "kraken",
@@ -96,7 +96,7 @@
   "debug": false
  },
  {
-  "Weight": "1.5",
+  "weight": "0",
   "side": "BUY",
   "pair": {
    "exchange": "kraken",
@@ -108,7 +108,7 @@
   "debug": false
  },
  {
-  "Weight": "1.5",
+  "weight": "0",
   "side": "BUY",
   "pair": {
    "exchange": "kraken",
@@ -120,7 +120,7 @@
   "debug": false
  },
  {
-  "Weight": "1.5",
+  "weight": "0",
   "side": "BUY",
   "pair": {
    "exchange": "kraken",
@@ -132,7 +132,7 @@
   "debug": false
  },
  {
-  "Weight": "1.5",
+  "weight": "0",
   "side": "BUY",
   "pair": {
    "exchange": "kraken",
@@ -144,7 +144,7 @@
   "debug": false
  },
  {
-  "Weight": "1.5",
+  "weight": "0",
   "side": "SELL",
   "pair": {
    "exchange": "kraken",
@@ -156,7 +156,7 @@
   "debug": false
  },
  {
-  "Weight": "1.5",
+  "weight": "0",
   "side": "SELL",
   "pair": {
    "exchange": "kraken",
@@ -168,7 +168,7 @@
   "debug": false
  },
  {
-  "Weight": "1.5",
+  "weight": "0",
   "side": "SELL",
   "pair": {
    "exchange": "kraken",
@@ -180,7 +180,7 @@
   "debug": false
  },
  {
-  "Weight": "1.5",
+  "weight": "0",
   "side": "SELL",
   "pair": {
    "exchange": "kraken",
@@ -192,7 +192,7 @@
   "debug": false
  },
  {
-  "Weight": "1.5",
+  "weight": "0",
   "side": "BUY",
   "pair": {
    "exchange": "kraken",
@@ -204,7 +204,7 @@
   "debug": false
  },
  {
-  "Weight": "1.5",
+  "weight": "0",
   "side": "BUY",
   "pair": {
    "exchange": "kraken",
@@ -216,7 +216,7 @@
   "debug": false
  },
  {
-  "Weight": "1.5",
+  "weight": "0",
   "side": "BUY",
   "pair": {
    "exchange": "kraken",
@@ -228,7 +228,7 @@
   "debug": false
  },
  {
-  "Weight": "1.5",
+  "weight": "0",
   "side": "BUY",
   "pair": {
    "exchange": "kraken",
@@ -240,7 +240,7 @@
   "debug": false
  },
  {
-  "Weight": "1.5",
+  "weight": "0",
   "side": "SELL",
   "pair": {
    "exchange": "kraken",
@@ -252,7 +252,7 @@
   "debug": false
  },
  {
-  "Weight": "1.5",
+  "weight": "0",
   "side": "SELL",
   "pair": {
    "exchange": "kraken",
@@ -264,7 +264,7 @@
   "debug": false
  },
  {
-  "Weight": "1.5",
+  "weight": "0",
   "side": "SELL",
   "pair": {
    "exchange": "kraken",
@@ -276,7 +276,7 @@
   "debug": false
  },
  {
-  "Weight": "1.5",
+  "weight": "0",
   "side": "SELL",
   "pair": {
    "exchange": "kraken",

@@ -5,25 +5,33 @@ import (
 	"encoding/json"
 	"fmt"
 	"gocryptotrader/common/file"
-	"gocryptotrader/currency"
+	"gocryptotrader/config"
 	"gocryptotrader/log"
 	"io"
-	"strings"
+
+	"github.com/shopspring/decimal"
 )
 
 func (p *PortfolioAnalysis) calculateProductionWeights() {
 	p.Weights = &PortfolioWeights{}
-	p.Weights.Strategies = p.GroupedSettings
+	p.Weights.Strategies = make([]*config.StrategySetting, 0)
+	fmt.Println("here")
 
 	// get the performance for this strategy
 	for _, s := range p.Strategies {
 		analysis := p.GetStrategyAnalysis(s)
-		fmt.Println("analysis for :",
-			analysis.Pair,
-			analysis.Capture,
-			analysis.Direction,
-			analysis.NumTrades)
-		// ss.Weight = decimal.NewFromFloat(1.5)
+		fmt.Println("analysis",
+			analysis.Label,
+			analysis.NumTrades,
+			analysis.NetProfit,
+		)
+
+		if analysis.NetProfit.IsZero() {
+			panic("net profit is zero")
+		}
+		ss := s.GetSettings()
+		ss.Weight = decimal.NewFromFloat(1.5)
+		p.Weights.Strategies = append(p.Weights.Strategies, ss)
 	}
 }
 
@@ -43,23 +51,4 @@ func (w *PortfolioWeights) Save(filepath string) error {
 	}
 	_, err = io.Copy(writer, bytes.NewReader(payload))
 	return err
-}
-
-func (p *PortfolioAnalysis) getPairForExchange(ex string, pair currency.Pair) currency.Pair {
-	// pairs, err := p.Config.GetEnabledPairs(ex, asset.Spot)
-
-	if strings.EqualFold(pair.Base.String(), "BTC") {
-		pair.Base = currency.NewCode("XBT")
-	}
-	return pair
-
-	// 	fmt.Println("pair", exp.Base, exp.Quote)
-	// 	if strings.EqualFold(exp.Base.String(), "XBT") {
-	// 		exp.Base = currency.NewCode("XBT")
-	// 	}
-	// }
-	//
-	// if err != nil {
-	// 	fmt.Println("error", err)
-	// }
 }

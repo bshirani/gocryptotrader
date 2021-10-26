@@ -1,6 +1,7 @@
 package strategies
 
 import (
+	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/data"
 	"gocryptotrader/eventtypes/signal"
@@ -14,6 +15,7 @@ import (
 type Handler interface {
 	GetLabel() string
 	SetName(string)
+	GetSettings() *config.StrategySetting
 	SetID(int)
 	GetID() int
 	GetWeight() decimal.Decimal

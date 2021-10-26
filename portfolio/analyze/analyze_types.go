@@ -52,8 +52,10 @@ type StrategyAnalysis struct {
 	Pair      currency.Pair `json:"pair"`
 	Direction order.Side    `json:"direction"`
 	Capture   string        `json:"capture"`
+	Label     string        `json:"label"`
 
 	NumTrades                    int                   `json:"num-trades"`
+	NetProfit                    decimal.Decimal       `json:"net-profit"`
 	MaxDrawdown                  Swing                 `json:"max-drawdown,omitempty"`
 	StartingClosePrice           decimal.Decimal       `json:"starting-close-price"`
 	EndingClosePrice             decimal.Decimal       `json:"ending-close-price"`

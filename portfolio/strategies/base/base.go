@@ -9,8 +9,14 @@ import (
 	"gocryptotrader/eventtypes/event"
 	"gocryptotrader/eventtypes/signal"
 	"gocryptotrader/exchange/order"
+	"strings"
 
 	"github.com/shopspring/decimal"
+)
+
+const (
+	prodExchange     = "kraken"
+	backtestExchange = "gateio"
 )
 
 // Strategy is base implementation of the Handler interface
@@ -19,6 +25,9 @@ type Strategy struct {
 	ID                        int
 	NumID                     int
 	pair                      currency.Pair
+	backtestPair              currency.Pair
+	backtestExchange          string
+	exchange                  string
 	weight                    decimal.Decimal
 	direction                 order.Side
 	useSimultaneousProcessing bool
@@ -31,7 +40,17 @@ func (s *Strategy) SetName(name string) {
 }
 
 func (s *Strategy) GetSettings() *config.StrategySetting {
-	return &config.StrategySetting{}
+	pairS := config.PairSetting{
+		Exchange:         prodExchange,
+		BacktestExchange: backtestExchange,
+		Symbol:           getPairForExchange(prodExchange, s.pair).Upper().String(),
+		BacktestSymbol:   s.pair.Upper().String(),
+	}
+	return &config.StrategySetting{
+		Side:    order.Side(s.GetDirection()),
+		Capture: s.Name,
+		Pair:    pairS,
+	}
 }
 
 func (s *Strategy) GetLabel() string {
@@ -138,5 +157,24 @@ func (s *Strategy) Stop() {
 	// for i := range s.indicatorValues {
 	// 	x := s.indicatorValues[i]
 	// 	fmt.Printf("%d,%s,%s\n", x.Timestamp.Unix(), x.rsiValue, x.maValue)
+	// }
+}
+
+func getPairForExchange(ex string, pair currency.Pair) currency.Pair {
+	// pairs, err := p.Config.GetEnabledPairs(ex, asset.Spot)
+
+	if strings.EqualFold(pair.Base.String(), "BTC") {
+		pair.Base = currency.NewCode("XBT")
+	}
+	return pair
+
+	// 	fmt.Println("pair", exp.Base, exp.Quote)
+	// 	if strings.EqualFold(exp.Base.String(), "XBT") {
+	// 		exp.Base = currency.NewCode("XBT")
+	// 	}
+	// }
+	//
+	// if err != nil {
+	// 	fmt.Println("error", err)
 	// }
 }

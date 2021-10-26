@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"gocryptotrader/common/file"
-	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/exchange/asset"
@@ -57,47 +56,35 @@ func (p *PortfolioAnalysis) loadAllStrategies() {
 		// for each direction
 		for _, dir := range []order.Side{order.Buy, order.Sell} {
 			for _, pair := range pairs {
-				pairS := config.PairSetting{
-					Exchange:         prodExchange,
-					Symbol:           p.getPairForExchange(prodExchange, pair).Upper().String(),
-					BacktestExchange: backtestExchange,
-					BacktestSymbol:   pair.Upper().String(),
-				}
-				ss := &config.StrategySetting{
-					Weight:  decimal.NewFromFloat(1.5),
-					Side:    dir,
-					Capture: name,
-					Pair:    pairS,
-				}
-				p.AllSettings = append(p.AllSettings, ss)
+				strat, _ := strategies.LoadStrategyByName(name)
+				strat.SetDirection(dir)
+				strat.SetPair(pair)
+				strat.SetName(name)
+				p.AllSettings = append(p.AllSettings, strat.GetSettings())
 			}
 		}
 	}
 }
 
 func (p *PortfolioAnalysis) loadGroupedStrategies() {
+	p.Strategies = make([]strategies.Handler, 0)
 	for label, trades := range p.groupedTrades {
 		strat := loadStrategyFromLabel(label)
 		a := analyzeStrategy(strat, trades)
 		p.StrategiesAnalyses = append(p.StrategiesAnalyses, a)
-		pair := strat.GetPair()
-		pairS := config.PairSetting{
-			Exchange:         prodExchange,
-			BacktestExchange: backtestExchange,
-			Symbol:           p.getPairForExchange(prodExchange, pair).Upper().String(),
-			BacktestSymbol:   pair.Upper().String(),
-		}
-		ss := &config.StrategySetting{
-			Side:    order.Side(strat.GetDirection()),
-			Capture: strat.Name(),
-			Pair:    pairS,
-		}
-		p.GroupedSettings = append(p.GroupedSettings, ss)
+		p.GroupedSettings = append(p.GroupedSettings, strat.GetSettings())
+		p.Strategies = append(p.Strategies, strat)
 	}
 }
 
 func (p *PortfolioAnalysis) GetStrategyAnalysis(s strategies.Handler) *StrategyAnalysis {
-	return p.StrategiesAnalyses[0]
+	for _, a := range p.StrategiesAnalyses {
+		if strings.EqualFold(a.Label, s.GetLabel()) {
+			return a
+		}
+	}
+	panic("could not find strategy analysis")
+	return nil
 }
 
 func (p *PortfolioAnalysis) calculateReport() {
@@ -191,6 +178,8 @@ func enhanceTrades(trades []*livetrade.Details) []*livetrade.Details {
 	// create detailed trades
 	// run preparation
 	calculateDuration(trades)
+	netProfitPoints(trades)
+	netProfit(trades)
 	return trades
 
 	// enhance
@@ -214,13 +203,6 @@ func enhanceTrades(trades []*livetrade.Details) []*livetrade.Details {
 	// return enhanced
 }
 
-func analyzeStrategy(strat strategies.Handler, trades []*livetrade.Details) (a *StrategyAnalysis) {
-	a = &StrategyAnalysis{}
-	// a.Trades = trades
-	a.NumTrades = len(trades)
-	return a
-}
-
 func netProfitPoints(trades []*livetrade.Details) (netProfit decimal.Decimal) {
 	for _, t := range trades {
 		if t.Side == order.Buy {
@@ -236,9 +218,9 @@ func netProfitPoints(trades []*livetrade.Details) (netProfit decimal.Decimal) {
 func netProfit(trades []*livetrade.Details) (netProfit decimal.Decimal) {
 	for _, t := range trades {
 		if t.Side == order.Buy {
-			t.ProfitLossPoints = t.ExitPrice.Sub(t.EntryPrice)
+			t.ProfitLoss = t.ExitPrice.Sub(t.EntryPrice)
 		} else if t.Side == order.Sell {
-			t.ProfitLossPoints = t.EntryPrice.Sub(t.ExitPrice)
+			t.ProfitLoss = t.EntryPrice.Sub(t.ExitPrice)
 		}
 		netProfit = netProfit.Add(t.Amount.Mul(t.ProfitLossPoints))
 	}
