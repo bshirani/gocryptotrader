@@ -112,6 +112,9 @@ func NewTradeManager(bot *Engine) (*TradeManager, error) {
 	tm.Datas = &data.HandlerPerCurrency{}
 	tm.Datas.Setup()
 	if !tm.liveMode {
+		// validate that we have teh data for all pairs requested
+		tm.validateBacktestData()
+
 		// log.Debug(log.TradeMgr, "starting offline services")
 		err = tm.startOfflineServices()
 	}
@@ -1171,7 +1174,7 @@ func (tm *TradeManager) loadBacktestData() (err error) {
 			a)
 		if err != nil {
 			fmt.Println("loaddata err", err)
-			return err
+			panic(fmt.Sprintf("no candles for", p))
 		}
 
 		fmt.Println("loaded backtest data for", p, startDate, endDate)
@@ -1182,7 +1185,9 @@ func (tm *TradeManager) loadBacktestData() (err error) {
 			endDate,
 			kline.Interval(kline.OneMin),
 			0)
-		// fmt.Println("load data for currency", p)
+		candlesLen := len(dbData.Item.Candles)
+		fmt.Println("loaded for currency", p, "candles:", candlesLen)
+
 		dbData.Load()
 
 		if err != nil {
@@ -1256,6 +1261,12 @@ func (tm *TradeManager) loadLatestCandleFromDatabase(eap *ExchangeAssetPairSetti
 	}
 
 	return dbData, err
+}
+
+func (tm *TradeManager) validateBacktestData() {
+	for _, x := range tm.bot.CurrencySettings {
+		fmt.Println("is data there for", x)
+	}
 }
 
 func (tm *TradeManager) GetCurrentTime() time.Time {
