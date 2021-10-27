@@ -15,7 +15,6 @@ import (
 func main() {
 	var startDate, endDate, tradeConfigPath, configPath, templatePath, reportOutput, pairsArg string
 	var clearDB, printLogo, generateReport, dryrun, darkReport bool
-	path := "backtest.json"
 	wd, err := os.Getwd()
 	if err != nil {
 		fmt.Printf("Could not get working directory. Error: %v.\n", err)
@@ -23,8 +22,8 @@ func main() {
 	}
 	flag.BoolVar(&dryrun, "dryrun", true, "write orders/trades to db")
 	flag.BoolVar(&generateReport, "generatereport", false, "whether to generate the report file")
-	flag.StringVar(&tradeConfigPath, "trade", "prod", "the config containing strategy params")
-	flag.StringVar(&configPath, "config", path, "the config containing strategy params")
+	flag.StringVar(&configPath, "config", "backtest", "the config containing strategy params")
+	flag.StringVar(&tradeConfigPath, "trade", "", "the config containing strategy params")
 	flag.BoolVar(&clearDB, "cleardb", true, "the config containing strategy params")
 	flag.StringVar(&templatePath, "templatepath", filepath.Join(wd, "../portfolio/tradereport", "tpl.gohtml"), "the report template to use")
 	flag.StringVar(&reportOutput, "outputpath", filepath.Join(wd, "results"), "the path where to output results")
@@ -35,13 +34,17 @@ func main() {
 	flag.BoolVar(&darkReport, "darkreport", false, "sets the initial rerport to use a dark theme")
 	flag.Parse()
 
-	configPath = filepath.Join(wd, "../confs/dev", configPath)
+	configPath = filepath.Join(wd, "../confs/dev", fmt.Sprintf("%s.json", configPath))
 
 	if printLogo {
 		fmt.Print(common.ASCIILogo)
 	}
 
-	tradeConfigPath = filepath.Join(wd, "../confs/dev/strategy", fmt.Sprintf("%s.strat", tradeConfigPath))
+	if tradeConfigPath == "" {
+		tradeConfigPath = filepath.Join(wd, "../confs/prod.strat")
+	} else {
+		tradeConfigPath = filepath.Join(wd, "../confs/dev/strategy", fmt.Sprintf("%s.strat", tradeConfigPath))
+	}
 	// fmt.Println("Loading TradeManager Config", strategy)
 
 	// cfg, err = config.ReadStrategyConfigFromFile(strategy)

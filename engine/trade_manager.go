@@ -199,6 +199,7 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 		Type:          gctorder.Market,
 		StrategyID:    o.GetStrategyID(),
 		StopLossPrice: stopLossPrice,
+		StrategyName:  o.GetStrategyName(),
 	}
 
 	if om == nil {
@@ -212,19 +213,20 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 		stopSide = gctorder.Buy
 	}
 	stopLossSubmission := &gctorder.Submit{
-		Status:      gctorder.New,
-		Price:       stopLossPrice,
-		Amount:      a,
-		Fee:         fee,
-		Exchange:    o.GetExchange(),
-		ID:          o.GetID(),
-		Side:        stopSide,
-		AssetType:   o.GetAssetType(),
-		Date:        o.GetTime(),
-		LastUpdated: o.GetTime(),
-		Pair:        o.Pair(),
-		Type:        gctorder.Stop,
-		StrategyID:  o.GetStrategyID(),
+		Status:       gctorder.New,
+		Price:        stopLossPrice,
+		Amount:       a,
+		Fee:          fee,
+		Exchange:     o.GetExchange(),
+		ID:           o.GetID(),
+		Side:         stopSide,
+		AssetType:    o.GetAssetType(),
+		Date:         o.GetTime(),
+		LastUpdated:  o.GetTime(),
+		Pair:         o.Pair(),
+		Type:         gctorder.Stop,
+		StrategyID:   o.GetStrategyID(),
+		StrategyName: o.GetStrategyName(),
 	}
 
 	var entryID, stopID int
@@ -264,24 +266,26 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	submission.InternalOrderID = entryID
 	stopLossSubmission.InternalOrderID = stopID
 
+	var stopLossOrderID int
+	if !skipStop {
+		somr, err := om.Submit(context.TODO(), stopLossSubmission)
+		if err != nil {
+			fmt.Println("tm: ERROR order manager submission", err, stopLossSubmission.Side, somr)
+		}
+		if somr.InternalOrderID == 0 {
+			panic("no order id")
+		}
+		stopLossOrderID = somr.InternalOrderID
+	}
+
+	// only continue if there are no new orders for the strategy
+
 	omr, err := om.Submit(context.TODO(), submission)
 	if err != nil {
 		fmt.Println("tm: ERROR order manager submission", err, submission.Side, omr)
 	}
 	if omr.InternalOrderID == 0 {
 		panic("no order id")
-	}
-
-	var stopLossOrderID int
-	if !skipStop {
-		somr, err := om.Submit(context.TODO(), stopLossSubmission)
-		if err != nil {
-			fmt.Println("tm: ERROR order manager submission", err, stopLossSubmission.Side, omr)
-		}
-		if somr.InternalOrderID == 0 {
-			panic("no order id")
-		}
-		stopLossOrderID = somr.InternalOrderID
 	}
 
 	// fmt.Println("tm: order manager response", omr)
@@ -306,7 +310,6 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 			AssetType:    o.GetAssetType(),
 			Interval:     o.GetInterval(),
 			Reason:       o.GetReason(),
-			StrategyID:   o.GetStrategyID(),
 		},
 		InternalOrderID: omr.InternalOrderID,
 		StopLossOrderID: stopLossOrderID,
@@ -732,11 +735,11 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 			}
 
 			for _, strategy := range tm.Strategies {
-				fmt.Println("looping strategies")
+				// fmt.Println("looping strategies")
 				sp := strategy.GetPair()
 				ep := ev.Pair()
 				if currency.ArePairsEqual(sp, ep) {
-					fmt.Println("ON DATA", d.Latest().Pair())
+					// fmt.Println("ON DATA", d.Latest().Pair())
 					s, err := strategy.OnData(d, tm.Portfolio, fe)
 					s.SetStrategyID(strategy.GetID())
 					if err != nil {
@@ -863,7 +866,6 @@ func (tm *TradeManager) createFillEvent(ev submit.Event) {
 			AssetType:    ev.GetAssetType(),
 			Interval:     ev.GetInterval(),
 			Reason:       ev.GetReason(),
-			StrategyID:   ev.GetStrategyID(),
 		},
 		Order:           o,
 		OrderID:         ev.GetOrderID(),
@@ -874,8 +876,8 @@ func (tm *TradeManager) createFillEvent(ev submit.Event) {
 		Direction:       o.Side,
 		Amount:          decimal.NewFromFloat(o.Amount),
 		StopLossOrderID: stopLossID,
-		// Direction:  ev.GetDirection(),
-		// Amount:     ev.GetAmount(),
+		StrategyID:      ev.GetStrategyID(),
+		StrategyName:    ev.GetStrategyName(),
 	}
 	tm.EventQueue.AppendEvent(e)
 	// if o.InternalOrderID == "" {
@@ -964,6 +966,11 @@ func (tm *TradeManager) processFillEvent(ev fill.Event) {
 func (tm *TradeManager) processOrderEvent(o order.Event) {
 	if o.GetStrategyID() == 0 {
 		log.Error(log.TradeMgr, "order event has no strategy ID")
+		panic(123)
+	}
+	if o.GetStrategyName() == "" {
+		log.Error(log.TradeMgr, "order event has no strategy ID")
+		panic(123)
 	}
 	// else {
 	// 	// gctlog.Debugln(log.TradeMgr, "creating order for", o.GetStrategyID())
@@ -996,6 +1003,29 @@ func (tm *TradeManager) processOrderEvent(o order.Event) {
 
 		// do we need to notify the strategy? the portfolio?
 	}
+
+	// only continue if the strategy has no NEW or ACTIVE orders
+
+	active, err := liveorder.ActiveForStrategyName(o.GetStrategyName())
+	if err != nil {
+		fmt.Println("error getting active ")
+		panic(err)
+	}
+	if len(active) > 0 {
+		fmt.Println("active orders for strategy, trying to create", o.GetStrategyName())
+		panic(err)
+	}
+
+	activeT, err := livetrade.ActiveForStrategyName(o.GetStrategyName())
+	if err != nil {
+		fmt.Println("error getting active ")
+		panic(err)
+	}
+	if len(activeT) > 0 {
+		fmt.Println("active trade for stratgey, trying to create", o.GetStrategyName())
+		panic(err)
+	}
+
 	// this blocks and returns a submission event
 	submitEvent, err := tm.ExecuteOrder(o, d, tm.bot.OrderManager)
 
@@ -1094,7 +1124,6 @@ func (tm *TradeManager) onFill(order gctorder.Detail, ev eventtypes.DataEventHan
 			AssetType:    ev.GetAssetType(),
 			Interval:     ev.GetInterval(),
 			Reason:       ev.GetReason(),
-			StrategyID:   order.StrategyID,
 		},
 		Order:           &order,
 		OrderID:         order.ID,
@@ -1102,8 +1131,10 @@ func (tm *TradeManager) onFill(order gctorder.Detail, ev eventtypes.DataEventHan
 		ClosePrice:      decimal.NewFromFloat(order.Price),
 		PurchasePrice:   decimal.NewFromFloat(order.Price),
 		// StopLossPrice:   decimal.NewFromFloat(order.StopLossPrice),
-		Direction: order.Side,
-		Amount:    decimal.NewFromFloat(order.Amount),
+		Direction:    order.Side,
+		Amount:       decimal.NewFromFloat(order.Amount),
+		StrategyID:   order.StrategyID,
+		StrategyName: order.StrategyName,
 	}
 	tm.EventQueue.AppendEvent(e)
 }

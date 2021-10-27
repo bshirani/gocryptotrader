@@ -80,3 +80,21 @@ func (f *Fill) GetStopLossOrderID() int {
 func (f *Fill) GetSlippageRate() decimal.Decimal {
 	return f.Slippage
 }
+
+// GetStrategy returns the strategy
+func (b *Fill) GetStrategyID() int {
+	return b.StrategyID
+}
+
+// GetStrategy returns the strategy
+func (b *Fill) SetStrategyID(s int) {
+	b.StrategyID = s
+}
+
+func (o *Fill) GetStrategyName() string {
+	return o.StrategyName
+}
+
+func (o *Fill) SetStrategyName(s string) {
+	o.StrategyName = s
+}

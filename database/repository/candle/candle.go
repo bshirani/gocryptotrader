@@ -18,8 +18,8 @@ import (
 	"gocryptotrader/log"
 
 	"github.com/volatiletech/null/v8"
-	"github.com/volatiletech/sqlboiler/queries"
 	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 

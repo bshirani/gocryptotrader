@@ -211,7 +211,7 @@ func (p *Portfolio) updateStrategyTrades(ev signal.Event) {
 // the portfolio manager's recommendations
 func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*order.Order, error) {
 	// if p.GetLiveMode() {
-	// 	fmt.Println("UPDATE STRATEGY TRADES", ev.GetStrategyID())
+	fmt.Println("UPDATE STRATEGY TRADES", ev.GetStrategyID(), ev.GetDecision())
 	// }
 	// if p.verbose {
 
@@ -332,11 +332,11 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 			AssetType:    ev.GetAssetType(),
 			Interval:     ev.GetInterval(),
 			Reason:       ev.GetReason(),
-			StrategyID:   ev.GetStrategyID(),
 		},
-		Amount:     ev.GetAmount(),
-		StrategyID: ev.GetStrategyID(),
-		Decision:   ev.GetDecision(),
+		Amount:       ev.GetAmount(),
+		StrategyID:   ev.GetStrategyID(),
+		Decision:     ev.GetDecision(),
+		StrategyName: s.GetLabel(),
 	}
 
 	lookup, _ := p.bot.GetCurrencySettings(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
@@ -1195,6 +1195,7 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 	t := livetrade.Details{
 		Status:        gctorder.Open,
 		StrategyID:    ev.GetStrategyID(),
+		StrategyName:  s.GetLabel(),
 		EntryTime:     ev.GetTime(),
 		EntryOrderID:  foundOrd.InternalOrderID,
 		EntryPrice:    ev.GetPurchasePrice(),
@@ -1219,6 +1220,9 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 	if t.EntryOrderID == 0 {
 		panic("trade must have entry order id")
 	}
+	if t.StrategyName == "" {
+		panic("trade must have entry strategy name")
+	}
 
 	// fmt.Println("creating trade, id", t.EntryOrderID, "entrytime:", t.EntryTime)
 
@@ -1239,11 +1243,8 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 		timestampFormat := " 15:04:05 UTC"
 		s, _ := p.getStrategy(ev.GetStrategyID())
 		notificationMsg := fmt.Sprintf(
-			"ENTER TRADE: %d-%s-%s\n%s %v@%v %v\n%s",
-			s.GetID(),
-			s.GetPair(),
-			s.GetDirection(),
-			t.Side,
+			"ENTER TRADE: %s\n%s %v@%v\n%s",
+			s.GetLabel(),
 			t.Amount,
 			t.EntryPrice,
 			t.EntryTime.Format(timestampFormat),
@@ -1260,6 +1261,7 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 }
 
 func (p *Portfolio) recordExitTrade(f fill.Event, t *livetrade.Details) {
+	fmt.Println("EXIT TRADE")
 	if t.Status == gctorder.Open {
 		t.Status = gctorder.Closed
 		t.ExitTime = f.GetTime()
@@ -1311,6 +1313,7 @@ func (p *Portfolio) recordExitTrade(f fill.Event, t *livetrade.Details) {
 	if t.ExitPrice.IsZero() {
 		panic("exit price is zero")
 	}
+
 	if !p.bot.Settings.EnableDryRun {
 		id, err := livetrade.Update(t)
 		t.ID = int(id)
@@ -1329,7 +1332,7 @@ func (p *Portfolio) recordExitTrade(f fill.Event, t *livetrade.Details) {
 		// fmt.Println(time.Now().Format("02-Jan-2006 15:04:05"))
 		notificationMsg := fmt.Sprintf(
 			"EXIT TRADE: %s\nEntry:%s %v@%v@%v\nExit:%v@%v\nReason: %s\nProfit: %v",
-			s.GetID(),
+			s.GetLabel(),
 			t.Side,
 			t.Amount,
 			t.EntryTime.Format(timeFormat),

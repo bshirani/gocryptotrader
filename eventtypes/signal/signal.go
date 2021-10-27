@@ -23,11 +23,11 @@ func (s *Signal) GetDirection() order.Side {
 }
 
 func (s *Signal) GetStrategyID() int {
-	return s.Base.StrategyID
+	return s.StrategyID
 }
 
 func (s *Signal) SetStrategyID(st int) {
-	s.Base.StrategyID = st
+	s.StrategyID = st
 }
 
 // SetBuyLimit sets the buy limit
@@ -89,4 +89,12 @@ func (s *Signal) GetAmount() decimal.Decimal {
 
 func (s *Signal) SetAmount(d decimal.Decimal) {
 	s.Amount = d
+}
+
+func (o *Signal) GetStrategyName() string {
+	return o.StrategyName
+}
+
+func (o *Signal) SetStrategyName(s string) {
+	o.StrategyName = s
 }

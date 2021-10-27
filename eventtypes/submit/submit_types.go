@@ -13,6 +13,7 @@ type Submit struct {
 	InternalOrderID int
 	OrderID         string
 	StrategyID      int
+	StrategyName    string
 	IsOrderPlaced   bool
 	FullyMatched    bool
 	StopLossOrderID int
@@ -27,4 +28,8 @@ type Event interface {
 	GetIsOrderPlaced() bool
 	GetStopLossOrderID() int
 	GetPrice() decimal.Decimal
+	GetStrategyName() string
+	SetStrategyName(string)
+	GetStrategyID() int
+	SetStrategyID(int)
 }

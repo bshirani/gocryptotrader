@@ -58,6 +58,14 @@ func (o *Order) GetDecision() signal.Decision {
 	return o.Decision
 }
 
+func (o *Order) GetStrategyName() string {
+	return o.StrategyName
+}
+
+func (o *Order) SetStrategyName(s string) {
+	o.StrategyName = s
+}
+
 // SetExchangeFee sets the amount
 func (o *Order) SetExchangeFee(i decimal.Decimal) {
 	o.ExchangeFee = i
@@ -117,4 +125,14 @@ func (o *Order) SetLeverage(l decimal.Decimal) {
 // has allocated to this potential position
 func (o *Order) GetAllocatedFunds() decimal.Decimal {
 	return o.AllocatedFunds
+}
+
+// GetStrategy returns the strategy
+func (b *Order) GetStrategyID() int {
+	return b.StrategyID
+}
+
+// GetStrategy returns the strategy
+func (b *Order) SetStrategyID(s int) {
+	b.StrategyID = s
 }

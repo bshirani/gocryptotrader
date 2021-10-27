@@ -25,3 +25,15 @@ func (s *Submit) GetStopLossOrderID() int {
 func (s *Submit) GetPrice() decimal.Decimal {
 	return decimal.NewFromFloat(s.Price)
 }
+
+func (o *Submit) GetStrategyName() string {
+	return o.StrategyName
+}
+
+func (o *Submit) SetStrategyName(s string) {
+	o.StrategyName = s
+}
+
+func (o *Submit) SetStrategyID(s int) {
+	o.StrategyID = s
+}

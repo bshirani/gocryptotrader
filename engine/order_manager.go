@@ -306,7 +306,7 @@ func (m *OrderManager) Cancel(ctx context.Context, cancel *order.Cancel) error {
 
 	if !m.dryRun {
 		id, err := liveorder.Upsert(od)
-		fmt.Println("lookup order id", id, "oid", od.ID, "internalid", od.InternalOrderID)
+		// fmt.Println("lookup order id", id, "oid", od.ID, "internalid", od.InternalOrderID)
 		dblo, err := liveorder.OneByID(id)
 		if dblo.ID == 0 || err != nil {
 			fmt.Println("database not recorded as cancelled")
@@ -321,10 +321,10 @@ func (m *OrderManager) Cancel(ctx context.Context, cancel *order.Cancel) error {
 			fmt.Println("error upserting cancelled order", err)
 			panic(err)
 		}
-		m.orderStore.commsManager.PushEvent(base.Event{
-			Type:    "order",
-			Message: msg,
-		})
+		// m.orderStore.commsManager.PushEvent(base.Event{
+		// 	Type:    "order",
+		// 	Message: msg,
+		// })
 	}
 	return nil
 }
@@ -683,12 +683,16 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 		if filledAt.IsZero() {
 			panic("filled at cannot be empty")
 		}
+	} else {
+		status = order.Active
 	}
 	if newOrder.Price == 0 {
 		panic("new order doesnt have a price")
 	}
+	if status != order.Active && status != order.Filled {
+		panic("did not fill or submit the order")
+	}
 
-	fmt.Println("setting filled at to", filledAt, newOrder.Status)
 	err := m.orderStore.add(&order.Detail{
 		Status:            status,
 		FilledAt:          filledAt,
@@ -721,6 +725,7 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 		Leverage:          newOrder.Leverage,
 		StopLossPrice:     newOrder.StopLossPrice,
 		StrategyID:        newOrder.StrategyID,
+		StrategyName:      newOrder.StrategyName,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("unable to add %v order %v to orderStore: %s", newOrder.Exchange, result.OrderID, err)
@@ -1145,7 +1150,7 @@ func (s *store) add(det *order.Detail) error {
 	// 	det.InternalOrderID)
 
 	if !s.dryRun {
-		fmt.Println("status", det.Status, "filedat", det.FilledAt)
+		// fmt.Println("status", det.Status, "filedat", det.FilledAt)
 		_, err = liveorder.Upsert(det)
 		if err != nil {
 			errMsg := fmt.Sprintf("error upserting order", err)

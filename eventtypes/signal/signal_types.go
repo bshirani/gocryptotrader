@@ -19,6 +19,8 @@ const (
 // Signal contains everything needed for a strategy to raise a signal event
 type Signal struct {
 	event.Base
+	StrategyID    int
+	StrategyName  string
 	StopLossPrice decimal.Decimal
 	Direction     order.Side
 	Decision      Decision
@@ -42,6 +44,10 @@ type Event interface {
 	IsSignal() bool
 	GetAmount() decimal.Decimal
 	SetAmount(decimal.Decimal)
+	GetStrategyName() string
+	SetStrategyName(string)
+	GetStrategyID() int
+	SetStrategyID(int)
 	GetSellLimit() decimal.Decimal
 	GetBuyLimit() decimal.Decimal
 	GetDecision() Decision

@@ -23,8 +23,10 @@ type Fill struct {
 	StopLossPrice       decimal.Decimal `json:"total"`
 	ExchangeFee         decimal.Decimal `json:"exchange-fee"`
 	Slippage            decimal.Decimal `json:"slippage"`
-	Order               *order.Detail   `json:"-"`
-	StopLossOrderID     int             `json:"stop-loss-order-id"`
+	StrategyID          int
+	StrategyName        string
+	Order               *order.Detail `json:"-"`
+	StopLossOrderID     int           `json:"stop-loss-order-id"`
 }
 
 // Event holds all functions required to handle a fill event
@@ -45,4 +47,8 @@ type Event interface {
 	GetOrder() *order.Detail
 	GetInternalOrderID() int
 	GetStopLossOrderID() int
+	GetStrategyID() int
+	SetStrategyID(int)
+	GetStrategyName(string)
+	SetStrategyName()
 }

@@ -20,6 +20,10 @@ func GetPairTranslation(exch string, pair Pair) Pair {
 		p, _ := NewPairFromString("XBT_USDT")
 		return p
 	}
+	if strings.EqualFold(exch, "gateio") && strings.EqualFold(pair.Upper().String(), "XBT_USDT") {
+		p, _ := NewPairFromString("BTC_USDT")
+		return p
+	}
 	return pair
 }
 

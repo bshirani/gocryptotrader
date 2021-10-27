@@ -16,6 +16,7 @@ type Order struct {
 	Direction      order.Side
 	Decision       signal.Decision
 	StrategyID     int
+	StrategyName   string
 	Status         order.Status
 	Price          decimal.Decimal
 	StopLossPrice  decimal.Decimal
@@ -44,6 +45,10 @@ type Event interface {
 	GetStatus() order.Status
 	GetStopLossPrice() decimal.Decimal
 	IsLeveraged() bool
+	GetStrategyName() string
+	SetStrategyName(string)
+	GetStrategyID() int
+	SetStrategyID(int)
 	IsOrder() bool
 	SetAmount(decimal.Decimal)
 	SetExchangeFee(decimal.Decimal)

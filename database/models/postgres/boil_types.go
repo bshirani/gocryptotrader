@@ -54,7 +54,7 @@ func makeCacheKey(cols boil.Columns, nzDefaults []string) string {
 // Enum values for order_status
 const (
 	OrderStatusNEW       = "NEW"
-	OrderStatusSUBMITTED = "SUBMITTED"
+	OrderStatusACTIVE    = "ACTIVE"
 	OrderStatusFILLED    = "FILLED"
 	OrderStatusCANCELLED = "CANCELLED"
 )
@@ -74,7 +74,7 @@ const (
 
 // Enum values for trade_status
 const (
-	TradeStatusACTIVE = "ACTIVE"
+	TradeStatusOPEN   = "OPEN"
 	TradeStatusCLOSED = "CLOSED"
 )
 

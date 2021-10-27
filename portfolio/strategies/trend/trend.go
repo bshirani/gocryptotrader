@@ -67,9 +67,12 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	orders := p.GetOpenOrdersForStrategy(s.GetID())
 	trade := p.GetTradeForStrategy(s.GetID())
 
-	// fmt.Println("trend.go has", len(orders), "orders", trade)
+	if trade != nil {
+		fmt.Println("trend.go has", len(orders), "orders", "has trade")
+	}
 
 	if trade == nil && len(orders) == 0 {
+		fmt.Println("has no trade")
 		return s.checkEntry(es, p, d, fe)
 	}
 

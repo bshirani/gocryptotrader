@@ -74,8 +74,6 @@ type EventHandler interface {
 	GetAssetType() asset.Item
 	GetReason() string
 	AppendReason(string)
-	GetStrategyID() int
-	SetStrategyID(int)
 }
 
 // DataEventHandler interface used for loading and interacting with Data

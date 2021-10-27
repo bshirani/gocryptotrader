@@ -37,7 +37,6 @@ require (
 	github.com/urfave/cli/v2 v2.3.0
 	github.com/volatiletech/inflect v0.0.1 // indirect
 	github.com/volatiletech/null/v8 v8.1.2 // indirect
-	github.com/volatiletech/sqlboiler v3.7.1+incompatible // indirect
 	github.com/volatiletech/sqlboiler/v4 v4.7.1 // indirect
 	github.com/volatiletech/strmangle v0.0.1 // indirect
 	go.starlark.net v0.0.0-20211013185944-b0039bd2cfe3 // indirect
