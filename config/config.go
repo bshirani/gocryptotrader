@@ -646,12 +646,7 @@ func (c *Config) GetEnabledPairs(exchName string, assetType asset.Item) (currenc
 
 	for _, ss := range c.TradeManager.Strategies {
 		enabled := exchCfg.CurrencyPairs.Pairs[asset.Spot].Enabled
-		var pair currency.Pair
-		if c.LiveMode {
-			pair = currency.GetPairTranslation(exchName, ss.Pair)
-		} else {
-			pair = ss.Pair
-		}
+		pair := currency.GetPairTranslation(exchName, ss.Pair)
 
 		if !enabled.Contains(pair, true) {
 			exchCfg.CurrencyPairs.Pairs[asset.Spot].Enabled = append(exchCfg.CurrencyPairs.Pairs[asset.Spot].Enabled, pair)

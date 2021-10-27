@@ -43,13 +43,24 @@ func DeleteAll() error {
 		}
 	}()
 
-	query := postgres.LiveOrders(qm.Where(`1=1`))
+	query := postgres.LiveOrders()
 	_, err = query.DeleteAll(ctx, tx)
 	if err != nil {
+		panic(err)
 		return err
 	}
 
-	return tx.Commit()
+	err = tx.Commit()
+	if err != nil {
+		panic(err)
+		return err
+	}
+
+	if Count() > 0 {
+		panic("did not delete")
+	}
+
+	return nil
 }
 
 func one(in int, clause string) (out Details, err error) {

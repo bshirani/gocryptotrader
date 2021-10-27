@@ -1,13 +1,14 @@
 package engine
 
 import (
+	"fmt"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/portfolio/strategies"
 )
 
 // loads active strategies from the database
-func SetupStrategies(cfg []*config.StrategySetting, liveMode bool) (slit []strategies.Handler) {
+func SetupStrategies(cfg []*config.StrategySetting, exch string) (slit []strategies.Handler) {
 	count := 0
 	for _, cs := range cfg {
 		count += 1
@@ -16,10 +17,11 @@ func SetupStrategies(cfg []*config.StrategySetting, liveMode bool) (slit []strat
 		strat.SetID(count)
 		strat.SetWeight(cs.Weight)
 		strat.SetDirection(cs.Side)
-		strat.SetPair(cs.Pair)
+		pair := currency.GetPairTranslation(exch, cs.Pair)
+		fmt.Println("setting pair", pair, "for exchange", exch)
+		strat.SetPair(pair)
 		strat.SetName(cs.Capture)
 		strat.SetDefaults()
-		// fmt.Println("created strategy", strat.GetLabel(), strat.GetWeight())
 		slit = append(slit, strat)
 	}
 
@@ -31,7 +33,7 @@ func SetupStrategies(cfg []*config.StrategySetting, liveMode bool) (slit []strat
 
 func isActivePair(pairs currency.Pairs, mypair currency.Pair) bool {
 	for _, p := range pairs {
-		if arePairsEqual(p, mypair) {
+		if currency.ArePairsEqual(p, mypair) {
 			return true
 		}
 	}

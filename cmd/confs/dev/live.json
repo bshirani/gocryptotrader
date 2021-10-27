@@ -11,7 +11,7 @@
   "data-type": ""
  },
  "portfolio-settings": {
-  "verbose": false,
+  "verbose": true,
   "leverage": {
    "can-use-leverage": false,
    "maximum-orders-with-leverage-ratio": "0",
@@ -266,7 +266,7 @@
   "username": "admin",
   "password": "Password",
   "gRPC": {
-   "enabled": false,
+   "enabled": true,
    "listenAddress": "localhost:9052",
    "grpcProxyEnabled": false,
    "grpcProxyListenAddress": "localhost:9053",

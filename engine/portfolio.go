@@ -307,7 +307,8 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	}
 
 	// logging
-	if p.verbose && ev.GetDecision() == signal.Exit {
+	if p.verbose {
+		// && ev.GetDecision() == signal.Exit {
 		log.Debugf(
 			log.Portfolio,
 			"onsig name=%d-%s-%s-%s decision=%s status=%s reason=%s time=%s ",

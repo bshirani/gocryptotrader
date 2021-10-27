@@ -1002,6 +1002,7 @@ func (s *store) modifyExisting(id string, mod *order.Modify) error {
 // upsert (1) checks if such an exchange exists in the exchangeManager, (2) checks if
 // order exists and updates/creates it.
 func (s *store) upsert(od *order.Detail) (resp *OrderUpsertResponse, err error) {
+	fmt.Println("UPSERTING ORDERRRRRRRRRRRRRRRRRRRRR")
 	if od == nil {
 		return nil, errNilOrder
 	}

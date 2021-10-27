@@ -122,7 +122,13 @@ func NewTradeManager(bot *Engine) (*TradeManager, error) {
 	}
 
 	if tm.tradingEnabled {
-		tm.Strategies = SetupStrategies(tm.bot.Config.TradeManager.Strategies, tm.liveMode)
+		ex := tm.bot.Config.GetEnabledExchanges()[0]
+		tm.Strategies = SetupStrategies(tm.bot.Config.TradeManager.Strategies, ex)
+
+		fmt.Println("-----------created strategies---------------")
+		for _, st := range tm.Strategies {
+			fmt.Println(st.GetLabel())
+		}
 
 		if tm.bot.Settings.EnableClearDB {
 			log.Warn(log.TradeMgr, "clearing DB")
@@ -130,12 +136,8 @@ func NewTradeManager(bot *Engine) (*TradeManager, error) {
 				// check database name to ensure we don't delete anything
 				panic("trying to delete production")
 			}
-			err := liveorder.DeleteAll()
-			err = livetrade.DeleteAll()
-			if err != nil {
-				fmt.Println("did not delete", err)
-				os.Exit(123)
-			}
+			livetrade.DeleteAll()
+			liveorder.DeleteAll()
 		}
 
 		p, err := SetupPortfolio(tm.Strategies, tm.bot, tm.bot.Config)
@@ -725,9 +727,11 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 			}
 
 			for _, strategy := range tm.Strategies {
+				fmt.Println("looping strategies")
 				sp := strategy.GetPair()
 				ep := ev.Pair()
-				if arePairsEqual(sp, ep) {
+				if currency.ArePairsEqual(sp, ep) {
+					fmt.Println("ON DATA", d.Latest().Pair())
 					s, err := strategy.OnData(d, tm.Portfolio, fe)
 					s.SetStrategyID(strategy.GetID())
 					if err != nil {
@@ -1276,8 +1280,4 @@ func (tm *TradeManager) GetCurrentTime() time.Time {
 
 func (tm *TradeManager) incrementMinute() {
 	tm.currentTime = tm.currentTime.Add(time.Minute)
-}
-
-func arePairsEqual(p1, p2 currency.Pair) bool {
-	return strings.EqualFold(p1.Quote.String(), p2.Quote.String()) && strings.EqualFold(p1.Base.String(), p2.Base.String())
 }

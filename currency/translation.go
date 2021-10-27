@@ -23,6 +23,10 @@ func GetPairTranslation(exch string, pair Pair) Pair {
 	return pair
 }
 
+func ArePairsEqual(p1, p2 Pair) bool {
+	return strings.EqualFold(p1.Quote.String(), p2.Quote.String()) && strings.EqualFold(p1.Base.String(), p2.Base.String())
+}
+
 var translations = map[Code]Code{
 	BTC:  XBT,
 	ETH:  XETH,

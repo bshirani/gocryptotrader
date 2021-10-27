@@ -44,7 +44,7 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	}
 
 	if s.Strategy.Debug {
-		fmt.Println("trenddev on data")
+		fmt.Println("trend on data")
 	}
 
 	es.SetPrice(d.Latest().ClosePrice())
@@ -67,15 +67,13 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	orders := p.GetOpenOrdersForStrategy(s.GetID())
 	trade := p.GetTradeForStrategy(s.GetID())
 
+	// fmt.Println("trend.go has", len(orders), "orders", trade)
+
 	if trade == nil && len(orders) == 0 {
-		es.SetDecision(signal.Enter)
-		es.AppendReason("test")
-		return &es, nil
 		return s.checkEntry(es, p, d, fe)
-	} else {
-		es.SetDecision(signal.Exit)
-		es.AppendReason("test")
-		return &es, nil
+	}
+
+	if trade != nil {
 		return s.checkExit(es, p, d, fe)
 	}
 
@@ -122,34 +120,23 @@ func (s *Strategy) SetDefaults() {
 }
 
 func (s *Strategy) checkEntry(es signal.Signal, p base.StrategyPortfolioHandler, d data.Handler, fe base.FactorEngineHandler) (signal.Event, error) {
-	m60Chg := fe.Minute().M60PctChange.Last(1)
-
+	price := d.Latest().ClosePrice()
 	if s.Strategy.GetDirection() == order.Buy { // check for buy strategy
-		if m60Chg.GreaterThan(decimal.NewFromInt(0)) {
-			es.AppendReason("Strategy: m60Chg greater than zero")
-			es.SetDecision(signal.Enter)
-		} else {
-			es.AppendReason("Strategy: m60Chg less than zero")
-			es.SetDecision(signal.DoNothing)
-		}
+		es.AppendReason("Strategy: m60Chg greater than zero")
+		es.SetDecision(signal.Enter)
+		es.SetStopLossPrice(price.Mul(decimal.NewFromFloat(0.9)))
 
 	} else if s.Strategy.GetDirection() == order.Sell { // check sell strategy
-		if m60Chg.LessThan(decimal.NewFromInt(0)) {
-			es.AppendReason("Strategy: m60Chg less than zero")
-			es.SetDecision(signal.Enter)
-		} else {
-			es.AppendReason("Strategy: m60Chg greater than zero")
-			es.SetDecision(signal.DoNothing)
-		}
+		es.AppendReason("Strategy: m60Chg less than zero")
+		es.SetDecision(signal.Enter)
+		es.SetStopLossPrice(price.Mul(decimal.NewFromFloat(1.1)))
 	}
 	return &es, nil
 }
 
 func (s *Strategy) checkExit(es signal.Signal, p base.StrategyPortfolioHandler, d data.Handler, fe base.FactorEngineHandler) (signal.Event, error) {
-
 	// if trade.ProfitLossPoints.GreaterThan(decimal.NewFromFloat(10)) {
 	// 	fmt.Println("trade profit greater than 10, exiting")
-
 	currentTime := d.Latest().GetTime()
 	trade := p.GetTradeForStrategy(s.GetID())
 	minutesInTrade := int(currentTime.Sub(trade.EntryTime).Minutes())
@@ -160,30 +147,15 @@ func (s *Strategy) checkExit(es signal.Signal, p base.StrategyPortfolioHandler, 
 		es.AppendReason(reason)
 		os.Exit(2)
 
-	} else if minutesInTrade > 60 {
-		// handle exit
-		m60PctChg := fe.Minute().M60PctChange.Last(1)
-
-		// CHECK EXIT BUY
+	} else if minutesInTrade > 0 {
 		if s.Strategy.GetDirection() == order.Buy {
-			if m60PctChg.LessThan(decimal.NewFromFloat(-1)) {
-				es.SetDecision(signal.Exit)
-				es.AppendReason(fmt.Sprintf("Strategy: t >. %d min and M60PctChange is negative.", minutesInTrade))
-			} else {
-				es.SetDecision(signal.DoNothing)
-				es.AppendReason(fmt.Sprintf("Strategy: Stay in long. M60PctChange is positive. (%d).", minutesInTrade))
-			}
+			es.SetDecision(signal.Exit)
+			es.AppendReason(fmt.Sprintf("Strategy: t >. %d min and M60PctChange is negative.", minutesInTrade))
 		}
 
-		// CHECK EXIT SELL
 		if s.Strategy.GetDirection() == order.Sell {
-			if m60PctChg.GreaterThan(decimal.NewFromFloat(1)) {
-				es.SetDecision(signal.Exit)
-				es.AppendReason(fmt.Sprintf("Strategy.go says: exiting t > (%d) min and M60PctChange is positive.", minutesInTrade))
-			} else {
-				es.SetDecision(signal.DoNothing)
-				es.AppendReason(fmt.Sprintf("Strategy.go says: Stay in short. M60PctChange is negative. (%d).", minutesInTrade))
-			}
+			es.SetDecision(signal.Exit)
+			es.AppendReason(fmt.Sprintf("Strategy.go says: exiting t > (%d) min and M60PctChange is positive.", minutesInTrade))
 		}
 
 	} else {
