@@ -62,7 +62,7 @@
  },
  "syncManager": {
   "verbose": false,
-  "enabled": true
+  "enabled": false
  },
  "tradeManager": {
   "enabled": true,
