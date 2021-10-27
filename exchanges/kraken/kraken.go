@@ -22,6 +22,24 @@ import (
 )
 
 const (
+	MinimumREP  = 0.3
+	MinimumXBT  = 0.002
+	MinimumBCH  = 0.002
+	MinimumDASH = 0.03
+	MinimumDOGE = 3000.0
+	MinimumEOS  = 3.0
+	MinimumETH  = 0.02
+	MinimumETC  = 0.3
+	MinimumGNO  = 0.03
+	MinimumICN  = 2.0
+	MinimumLTC  = 0.1
+	MinimumMLN  = 0.1
+	MinimumXMR  = 0.1
+	MinimumXRP  = 30.0
+	MinimumXLM  = 300.0
+	MinimumZEC  = 0.02
+	MinimumUSDT = 5.0
+
 	krakenAPIURL         = "https://api.kraken.com"
 	krakenFuturesURL     = "https://futures.kraken.com"
 	futuresURL           = "https://futures.kraken.com/derivatives"

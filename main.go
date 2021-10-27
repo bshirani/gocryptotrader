@@ -28,7 +28,7 @@ func main() {
 	var settings engine.Settings
 	versionFlag := flag.Bool("version", false, "retrieves current GoCryptoTrader version")
 
-	flag.StringVar(&settings.ConfigFile, "config", config.DefaultFilePath(), "config file to load")
+	flag.StringVar(&settings.ConfigFile, "config", "", "config file to load")
 	flag.StringVar(&settings.TradeConfigFile, "trade", "", "config file to load")
 	flag.StringVar(&settings.DataDir, "datadir", common.GetDefaultDataDir(runtime.GOOS), "default data directory for GoCryptoTrader files")
 
@@ -137,28 +137,22 @@ func main() {
 		os.Exit(1)
 	}
 
-	// if settings.ConfigFile == "" {
-	// 	if settings.EnableProductionMode {
-	// 		settings.ConfigFile = filepath.Join(wd, "cmd/confs/prod.json")
-	// 	} else {
-	// 		settings.ConfigFile = filepath.Join(wd, "cmd/confs/dev/live.json")
-	// 	}
-	// } else {
-	// 	if settings.EnableProductionMode {
-	// 		settings.ConfigFile = filepath.Join(wd, "cmd/confs/prod.json")
-	// 	} else {
-	// 	}
-	// }
+	configDir := filepath.Join(wd, "confs")
 	if settings.EnableProductionMode {
-		settings.ConfigFile = filepath.Join(wd, fmt.Sprintf("cmd/confs/prod.json", settings.ConfigFile))
-		settings.TradeConfigFile = filepath.Join(wd, fmt.Sprintf("cmd/confs/prod.strat", settings.TradeConfigFile))
+		settings.ConfigFile = filepath.Join(configDir, fmt.Sprintf("prod.json", settings.ConfigFile))
+		settings.TradeConfigFile = filepath.Join(configDir, fmt.Sprintf("prod.strat", settings.TradeConfigFile))
 	} else {
 		if settings.TradeConfigFile == "" {
-			settings.TradeConfigFile = filepath.Join(wd, "cmd/confs/prod.strat")
+			settings.TradeConfigFile = filepath.Join(configDir, "prod.strat")
 		} else {
-			settings.TradeConfigFile = filepath.Join(wd, fmt.Sprintf("cmd/confs/dev/strategy/%s.strat", settings.TradeConfigFile))
+			settings.TradeConfigFile = filepath.Join(configDir, fmt.Sprintf("dev/strategy/%s.strat", settings.TradeConfigFile))
 		}
-		settings.ConfigFile = filepath.Join(wd, fmt.Sprintf("cmd/confs/dev/%s.json", settings.ConfigFile))
+
+		if settings.ConfigFile == "" {
+			settings.ConfigFile = filepath.Join(configDir, "dev/live.json")
+		} else {
+			settings.ConfigFile = filepath.Join(configDir, fmt.Sprintf("dev/%s.json", settings.ConfigFile))
+		}
 	}
 
 	if flagSet["trade"] {
