@@ -126,6 +126,9 @@ func backtest(c *cli.Context) error {
 		os.Exit(1)
 	}
 
+	// interrupt := signaler.WaitForInterrupt()
+	// log.Infof(log.Global, "Captured %v, shutdown requested.\n", interrupt)
+
 	err = tm.Run()
 	if err != nil {
 		fmt.Printf("Could not complete run. Error: %v.\n", err)

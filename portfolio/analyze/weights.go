@@ -3,7 +3,6 @@ package analyze
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"gocryptotrader/common/file"
 	"gocryptotrader/config"
 	"gocryptotrader/log"
@@ -19,11 +18,11 @@ func (p *PortfolioAnalysis) calculateProductionWeights() {
 	// get the performance for this strategy
 	for _, s := range p.Strategies {
 		analysis := p.GetStrategyAnalysis(s)
-		fmt.Println("analysis",
-			analysis.Label,
-			analysis.NumTrades,
-			analysis.NetProfit,
-		)
+		// fmt.Println("analysis",
+		// 	analysis.Label,
+		// 	analysis.NumTrades,
+		// 	analysis.NetProfit,
+		// )
 
 		if analysis.NetProfit.IsZero() {
 			panic("net profit is zero")

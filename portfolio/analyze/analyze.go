@@ -52,7 +52,7 @@ func (p *PortfolioAnalysis) loadAllStrategies() {
 	// all := strategies.GetStrategies()
 
 	names := []string{"trend", "trend2day", "trend3day"}
-	symbols := []string{"ETH_USDT", "XBT_USDT", "DAI_USDT"}
+	symbols := []string{"ETH_USDT", "XBT_USDT", "XRP_USDT"}
 	pairs := make([]currency.Pair, 0)
 	for _, s := range symbols {
 		pair, err := currency.NewPairFromString(s)

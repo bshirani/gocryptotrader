@@ -142,7 +142,7 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 	p.riskFreeRate = riskFreeRate
 	p.Strategies = st
 
-	p.PrintPortfolioStrategiesConfig()
+	// p.PrintPortfolioStrategiesConfig()
 
 	if !p.bot.Settings.EnableDryRun {
 		activeTrades, _ := livetrade.Active()

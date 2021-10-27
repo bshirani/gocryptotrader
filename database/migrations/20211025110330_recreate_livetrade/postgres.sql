@@ -67,6 +67,9 @@ CREATE TABLE public.live_trade (
     profit_loss_quote double precision,
     created_at timestamp without time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at timestamp without time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    CONSTRAINT risk_check CHECK(
+        (risked_points != 0 AND risked_quote != 0)
+    ),
     CONSTRAINT exit_check CHECK(
         (exit_time IS NULL and exit_price IS NULL) OR
         (exit_time IS NOT NULL and exit_price IS NOT NULL)
