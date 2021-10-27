@@ -250,3 +250,4 @@ analyze the performance of the strategies
 
 - one month long backtest on all strategies
 
+- make position sizing respect account balance and risk threshold

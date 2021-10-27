@@ -369,9 +369,9 @@ func (tm *TradeManager) Run() error {
 		log.Warnln(log.TradeMgr, "enddate:", t2)
 		log.Warnln(log.TradeMgr, "duration:", dayDuration, "days")
 		log.Warnln(log.TradeMgr, "strategies:", len(tm.Strategies))
-		for _, s := range tm.Strategies {
-			log.Debugln(log.TradeMgr, s.GetPair(), s.Name(), s.GetDirection(), s.GetID())
-		}
+		// for _, s := range tm.Strategies {
+		// 	log.Debugln(log.TradeMgr, s.GetPair(), s.Name(), s.GetDirection(), s.GetID())
+		// }
 		// pairs, err := tm.bot.Config.GetEnabledPairs("gateio", asset.Spot)
 		// for _, p := range pairs {
 		// 	log.Debugln(log.TradeMgr, "Active Pair:", p)

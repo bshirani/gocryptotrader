@@ -5,38 +5,58 @@
  "script": false,
  "nickname": "",
  "goal": "",
- "strategy-settings": {
+ "strategySettings": {
   "name": "",
   "direction": "",
-  "use-simultaneous-signal-processing": false,
-  "use-exchange-level-funding": false
+  "useSimultaneousSignalProcessing": false,
+  "useExchangeLevelFunding": false
  },
- "strategies-settings": null,
- "currency-settings": null,
- "strategy-currency-settings": null,
- "data-settings": {
-  "interval": 0,
-  "data-type": ""
- },
- "portfolio-settings": {
-  "verbose": false,
-  "leverage": {
-   "can-use-leverage": false,
-   "maximum-orders-with-leverage-ratio": "0",
-   "maximum-leverage-rate": "0"
+ "strategiesSettings": null,
+ "currencySettings": [],
+ "strategyCurrencySettings": null,
+ "dataSettings": {
+  "interval": 60000000000,
+  "dataType": "candle",
+  "liveData": {
+   "realOrders": false
   },
-  "buy-side": {
-   "minimum-size": "0",
-   "maximum-size": "0",
-   "maximum-total": "0"
-  },
-  "sell-side": {
-   "minimum-size": "0",
-   "maximum-size": "0",
-   "maximum-total": "0"
+  "databaseData": {
+   "startDate": "2021-10-01T00:00:00+00:00",
+   "endDate": "2021-10-10T00:10:00+00:00",
+   "configOverride": {
+    "enabled": true,
+    "verbose": false,
+    "driver": "postgres",
+    "connectionDetails": {
+     "host": "localhost",
+     "port": 5432,
+     "username": "bijan",
+     "password": "",
+     "database": "gct-dev",
+     "sslmode": ""
+    }
+   }
   }
  },
- "gocryptotrader-config-path": "",
+ "portfolioSettings": {
+  "verbose": false,
+  "leverage": {
+   "canUseLeverage": false,
+   "maximumOrdersWithLeverageRatio": "0",
+   "maximumLeverageRate": "0"
+  },
+  "buySide": {
+   "minimumSize": "0",
+   "maximumSize": "0",
+   "maximumTotal": "0"
+  },
+  "sellSide": {
+   "minimumSize": "0",
+   "maximumSize": "0",
+   "maximumTotal": "0"
+  }
+ },
+ "gocryptotraderConfigPath": "",
  "statisticSettings": {
   "risk-free-rate": "0"
  },

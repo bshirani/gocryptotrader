@@ -98,11 +98,11 @@ type Config struct {
 
 	Nickname          string             `json:"nickname"`
 	Goal              string             `json:"goal"`
-	CurrencySettings  []CurrencySettings `json:"currency-settings"`
-	DataSettings      DataSettings       `json:"data-settings"`
-	PortfolioSettings PortfolioSettings  `json:"portfolio-settings"`
+	CurrencySettings  []CurrencySettings `json:"currencySettings"`
+	DataSettings      DataSettings       `json:"dataSettings"`
+	PortfolioSettings PortfolioSettings  `json:"portfolioSettings"`
 
-	GoCryptoTraderConfigPath string `json:"gocryptotrader-config-path"`
+	GoCryptoTraderConfigPath string `json:"gocryptotraderConfigPath"`
 
 	StatisticSettings StatisticSettings  `json:"statisticSettings"`
 	SyncManager       SyncManagerConfig  `json:"syncManager"`
@@ -266,7 +266,7 @@ type ExchangeConfig struct {
 // Profiler defines the profiler configuration to enable pprof
 type Profiler struct {
 	Enabled              bool `json:"enabled"`
-	MutexProfileFraction int  `json:"mutex_profile_fraction"`
+	MutexProfileFraction int  `json:"mutexProfileFraction"`
 }
 
 // NTPClientConfig defines a network time protocol configuration to allow for
@@ -435,11 +435,11 @@ type OrderbookConfig struct {
 // Only ONE can be populated per config
 type DataSettings struct {
 	Interval     time.Duration `json:"interval"`
-	DataType     string        `json:"data-type"`
-	APIData      *APIData      `json:"api-data,omitempty"`
-	DatabaseData *DatabaseData `json:"database-data,omitempty"`
-	LiveData     *LiveData     `json:"live-data,omitempty"`
-	CSVData      *CSVData      `json:"csv-data,omitempty"`
+	DataType     string        `json:"dataType"`
+	APIData      *APIData      `json:"apiData,omitempty"`
+	DatabaseData *DatabaseData `json:"databaseData,omitempty"`
+	LiveData     *LiveData     `json:"liveData,omitempty"`
+	CSVData      *CSVData      `json:"csvData,omitempty"`
 }
 
 // ExchangeLevelFunding allows the portfolio manager to access
@@ -450,17 +450,17 @@ type DataSettings struct {
 // It also is required to use SimultaneousSignalProcessing, otherwise the first currency processed
 // will have dibs
 type ExchangeLevelFunding struct {
-	ExchangeName string          `json:"exchange-name"`
+	ExchangeName string          `json:"exchangeName"`
 	Asset        string          `json:"asset"`
 	Currency     string          `json:"currency"`
-	InitialFunds decimal.Decimal `json:"initial-funds"`
-	TransferFee  decimal.Decimal `json:"transfer-fee"`
+	InitialFunds decimal.Decimal `json:"initialFunds"`
+	TransferFee  decimal.Decimal `json:"transferFee"`
 }
 
 // StatisticSettings adjusts ratios where
 // proper data is currently lacking
 type StatisticSettings struct {
-	RiskFreeRate decimal.Decimal `json:"risk-free-rate"`
+	RiskFreeRate decimal.Decimal `json:"riskFreeRate"`
 }
 
 // PortfolioSettings act as a global protector for strategies
@@ -469,23 +469,23 @@ type StatisticSettings struct {
 type PortfolioSettings struct {
 	Verbose  bool     `json:"verbose"`
 	Leverage Leverage `json:"leverage"`
-	BuySide  MinMax   `json:"buy-side"`
-	SellSide MinMax   `json:"sell-side"`
+	BuySide  MinMax   `json:"buySide"`
+	SellSide MinMax   `json:"sellSide"`
 }
 
 // Leverage rules are used to allow or limit the use of leverage in orders
 // when supported
 type Leverage struct {
-	CanUseLeverage                 bool            `json:"can-use-leverage"`
-	MaximumOrdersWithLeverageRatio decimal.Decimal `json:"maximum-orders-with-leverage-ratio"`
-	MaximumLeverageRate            decimal.Decimal `json:"maximum-leverage-rate"`
+	CanUseLeverage                 bool            `json:"canUseLeverage"`
+	MaximumOrdersWithLeverageRatio decimal.Decimal `json:"maximumOrdersWithLeverageRatio"`
+	MaximumLeverageRate            decimal.Decimal `json:"maximumLeverageRate"`
 }
 
 // MinMax are the rules which limit the placement of orders.
 type MinMax struct {
-	MinimumSize  decimal.Decimal `json:"minimum-size"` // will not place an order if under this amount
-	MaximumSize  decimal.Decimal `json:"maximum-size"` // can only place an order up to this amount
-	MaximumTotal decimal.Decimal `json:"maximum-total"`
+	MinimumSize  decimal.Decimal `json:"minimumSize"` // will not place an order if under this amount
+	MaximumSize  decimal.Decimal `json:"maximumSize"` // can only place an order up to this amount
+	MaximumTotal decimal.Decimal `json:"maximumTotal"`
 }
 
 // CurrencySettings stores pair based variables
@@ -498,53 +498,53 @@ type CurrencySettings struct {
 	Base         string `json:"base"`
 	Quote        string `json:"quote"`
 
-	InitialBaseFunds   *decimal.Decimal `json:"initial-base-funds,omitempty"`
-	InitialQuoteFunds  *decimal.Decimal `json:"initial-quote-funds,omitempty"`
-	InitialLegacyFunds float64          `json:"initial-funds,omitempty"`
+	InitialBaseFunds   *decimal.Decimal `json:"initialBaseFunds,omitempty"`
+	InitialQuoteFunds  *decimal.Decimal `json:"initialQuoteFunds,omitempty"`
+	InitialLegacyFunds float64          `json:"initialFunds,omitempty"`
 
 	Leverage Leverage `json:"leverage"`
-	BuySide  MinMax   `json:"buy-side"`
-	SellSide MinMax   `json:"sell-side"`
+	BuySide  MinMax   `json:"buySide"`
+	SellSide MinMax   `json:"sellSide"`
 
-	MinimumSlippagePercent decimal.Decimal `json:"min-slippage-percent"`
-	MaximumSlippagePercent decimal.Decimal `json:"max-slippage-percent"`
+	MinimumSlippagePercent decimal.Decimal `json:"minSlippagePercent"`
+	MaximumSlippagePercent decimal.Decimal `json:"maxSlippagePercent"`
 
-	MakerFee decimal.Decimal `json:"maker-fee-override"`
-	TakerFee decimal.Decimal `json:"taker-fee-override"`
+	MakerFee decimal.Decimal `json:"makerFeeOverride"`
+	TakerFee decimal.Decimal `json:"takerFeeOverride"`
 
-	MaximumHoldingsRatio decimal.Decimal `json:"maximum-holdings-ratio"`
+	MaximumHoldingsRatio decimal.Decimal `json:"maximumHoldingsRatio"`
 
-	CanUseExchangeLimits          bool `json:"use-exchange-order-limits"`
-	SkipCandleVolumeFitting       bool `json:"skip-candle-volume-fitting"`
+	CanUseExchangeLimits          bool `json:"useExchangeOrderLimits"`
+	SkipCandleVolumeFitting       bool `json:"skipCandleVolumeFitting"`
 	ShowExchangeOrderLimitWarning bool `json:"-"`
 }
 
 // APIData defines all fields to configure API based data
 type APIData struct {
-	StartDate        time.Time `json:"start-date"`
-	EndDate          time.Time `json:"end-date"`
-	InclusiveEndDate bool      `json:"inclusive-end-date"`
+	StartDate        time.Time `json:"startDate"`
+	EndDate          time.Time `json:"endDate"`
+	InclusiveEndDate bool      `json:"inclusiveEndDate"`
 }
 
 // CSVData defines all fields to configure CSV based data
 type CSVData struct {
-	FullPath string `json:"full-path"`
+	FullPath string `json:"fullOath"`
 }
 
 // DatabaseData defines all fields to configure database based data
 type DatabaseData struct {
-	StartDate        time.Time        `json:"start-date"`
-	EndDate          time.Time        `json:"end-date"`
-	ConfigOverride   *database.Config `json:"config-override"`
-	InclusiveEndDate bool             `json:"inclusive-end-date"`
+	StartDate        time.Time        `json:"startDate"`
+	EndDate          time.Time        `json:"endDate"`
+	ConfigOverride   *database.Config `json:"configOverride"`
+	InclusiveEndDate bool             `json:"inclusiveEndDate"`
 }
 
 // LiveData defines all fields to configure live data
 type LiveData struct {
-	APIKeyOverride        string `json:"api-key-override"`
-	APISecretOverride     string `json:"api-secret-override"`
-	APIClientIDOverride   string `json:"api-client-id-override"`
-	API2FAOverride        string `json:"api-2fa-override"`
-	APISubAccountOverride string `json:"api-sub-account-override"`
-	RealOrders            bool   `json:"real-orders"`
+	APIKeyOverride        string `json:"apiKeyOverride"`
+	APISecretOverride     string `json:"apiSecretOverride"`
+	APIClientIDOverride   string `json:"apiClientIdOverride"`
+	API2FAOverride        string `json:"api2faOverride"`
+	APISubAccountOverride string `json:"apiSubSccountOverride"`
+	RealOrders            bool   `json:"realOrders"`
 }
