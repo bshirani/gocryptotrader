@@ -109,9 +109,6 @@ func ByStatus(status order.Status) (out []Details, err error) {
 
 		pair, _ := currency.NewPairFromString(x.Pair)
 
-		// exitPrice := null.NewFloat64(x.ExitPrice, x.ExitPrice.IsZero())
-		// 	ExitPrice:       exitPrice,
-
 		out = append(out, Details{
 			EntryPrice:    decimal.NewFromFloat(x.EntryPrice),
 			StopLossPrice: decimal.NewFromFloat(x.StopLossPrice),
@@ -127,6 +124,8 @@ func ByStatus(status order.Status) (out []Details, err error) {
 			UpdatedAt:    x.UpdatedAt,
 			CreatedAt:    x.CreatedAt,
 			EntryOrderID: x.EntryOrderID,
+			RiskedQuote:  decimal.NewFromFloat(x.RiskedQuote),
+			RiskedPoints: decimal.NewFromFloat(x.RiskedPoints),
 		})
 	}
 	if errS != nil {

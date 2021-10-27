@@ -35,8 +35,8 @@ type LiveTrade struct {
 	StopLossPrice    float64      `boil:"stop_loss_price" json:"stop_loss_price" toml:"stop_loss_price" yaml:"stop_loss_price"`
 	StrategyName     string       `boil:"strategy_name" json:"strategy_name" toml:"strategy_name" yaml:"strategy_name"`
 	Amount           float64      `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
-	RiskPoints       float64      `boil:"risk_points" json:"risk_points" toml:"risk_points" yaml:"risk_points"`
-	RiskAmountQuote  float64      `boil:"risk_amount_quote" json:"risk_amount_quote" toml:"risk_amount_quote" yaml:"risk_amount_quote"`
+	RiskedPoints     float64      `boil:"risked_points" json:"risked_points" toml:"risked_points" yaml:"risked_points"`
+	RiskedQuote      float64      `boil:"risked_quote" json:"risked_quote" toml:"risked_quote" yaml:"risked_quote"`
 	Pair             string       `boil:"pair" json:"pair" toml:"pair" yaml:"pair"`
 	Exchange         string       `boil:"exchange" json:"exchange" toml:"exchange" yaml:"exchange"`
 	TakeProfitPrice  null.Float64 `boil:"take_profit_price" json:"take_profit_price,omitempty" toml:"take_profit_price" yaml:"take_profit_price,omitempty"`
@@ -61,8 +61,8 @@ var LiveTradeColumns = struct {
 	StopLossPrice    string
 	StrategyName     string
 	Amount           string
-	RiskPoints       string
-	RiskAmountQuote  string
+	RiskedPoints     string
+	RiskedQuote      string
 	Pair             string
 	Exchange         string
 	TakeProfitPrice  string
@@ -82,8 +82,8 @@ var LiveTradeColumns = struct {
 	StopLossPrice:    "stop_loss_price",
 	StrategyName:     "strategy_name",
 	Amount:           "amount",
-	RiskPoints:       "risk_points",
-	RiskAmountQuote:  "risk_amount_quote",
+	RiskedPoints:     "risked_points",
+	RiskedQuote:      "risked_quote",
 	Pair:             "pair",
 	Exchange:         "exchange",
 	TakeProfitPrice:  "take_profit_price",
@@ -105,8 +105,8 @@ var LiveTradeTableColumns = struct {
 	StopLossPrice    string
 	StrategyName     string
 	Amount           string
-	RiskPoints       string
-	RiskAmountQuote  string
+	RiskedPoints     string
+	RiskedQuote      string
 	Pair             string
 	Exchange         string
 	TakeProfitPrice  string
@@ -126,8 +126,8 @@ var LiveTradeTableColumns = struct {
 	StopLossPrice:    "live_trade.stop_loss_price",
 	StrategyName:     "live_trade.strategy_name",
 	Amount:           "live_trade.amount",
-	RiskPoints:       "live_trade.risk_points",
-	RiskAmountQuote:  "live_trade.risk_amount_quote",
+	RiskedPoints:     "live_trade.risked_points",
+	RiskedQuote:      "live_trade.risked_quote",
 	Pair:             "live_trade.pair",
 	Exchange:         "live_trade.exchange",
 	TakeProfitPrice:  "live_trade.take_profit_price",
@@ -151,8 +151,8 @@ var LiveTradeWhere = struct {
 	StopLossPrice    whereHelperfloat64
 	StrategyName     whereHelperstring
 	Amount           whereHelperfloat64
-	RiskPoints       whereHelperfloat64
-	RiskAmountQuote  whereHelperfloat64
+	RiskedPoints     whereHelperfloat64
+	RiskedQuote      whereHelperfloat64
 	Pair             whereHelperstring
 	Exchange         whereHelperstring
 	TakeProfitPrice  whereHelpernull_Float64
@@ -172,8 +172,8 @@ var LiveTradeWhere = struct {
 	StopLossPrice:    whereHelperfloat64{field: "\"live_trade\".\"stop_loss_price\""},
 	StrategyName:     whereHelperstring{field: "\"live_trade\".\"strategy_name\""},
 	Amount:           whereHelperfloat64{field: "\"live_trade\".\"amount\""},
-	RiskPoints:       whereHelperfloat64{field: "\"live_trade\".\"risk_points\""},
-	RiskAmountQuote:  whereHelperfloat64{field: "\"live_trade\".\"risk_amount_quote\""},
+	RiskedPoints:     whereHelperfloat64{field: "\"live_trade\".\"risked_points\""},
+	RiskedQuote:      whereHelperfloat64{field: "\"live_trade\".\"risked_quote\""},
 	Pair:             whereHelperstring{field: "\"live_trade\".\"pair\""},
 	Exchange:         whereHelperstring{field: "\"live_trade\".\"exchange\""},
 	TakeProfitPrice:  whereHelpernull_Float64{field: "\"live_trade\".\"take_profit_price\""},
@@ -204,8 +204,8 @@ func (*liveTradeR) NewStruct() *liveTradeR {
 type liveTradeL struct{}
 
 var (
-	liveTradeAllColumns            = []string{"id", "status", "side", "entry_order_id", "entry_price", "exit_price", "entry_time", "exit_time", "stop_loss_price", "strategy_name", "amount", "risk_points", "risk_amount_quote", "pair", "exchange", "take_profit_price", "profit_loss_points", "profit_loss_quote", "created_at", "updated_at"}
-	liveTradeColumnsWithoutDefault = []string{"status", "side", "entry_order_id", "entry_price", "exit_price", "entry_time", "exit_time", "stop_loss_price", "strategy_name", "risk_points", "risk_amount_quote", "pair", "exchange", "take_profit_price", "profit_loss_points", "profit_loss_quote"}
+	liveTradeAllColumns            = []string{"id", "status", "side", "entry_order_id", "entry_price", "exit_price", "entry_time", "exit_time", "stop_loss_price", "strategy_name", "amount", "risked_points", "risked_quote", "pair", "exchange", "take_profit_price", "profit_loss_points", "profit_loss_quote", "created_at", "updated_at"}
+	liveTradeColumnsWithoutDefault = []string{"status", "side", "entry_order_id", "entry_price", "exit_price", "entry_time", "exit_time", "stop_loss_price", "strategy_name", "risked_points", "risked_quote", "pair", "exchange", "take_profit_price", "profit_loss_points", "profit_loss_quote"}
 	liveTradeColumnsWithDefault    = []string{"id", "amount", "created_at", "updated_at"}
 	liveTradePrimaryKeyColumns     = []string{"id"}
 )
