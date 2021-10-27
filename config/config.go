@@ -611,7 +611,7 @@ func (c *Config) GetAvailablePairs(exchName string, assetType asset.Item) (curre
 }
 
 // GetEnabledPairs returns a list of currency pairs for a specifc exchange
-func (c *Config) GetEnabledPairs(exchName string, assetType asset.Item) (currency.Pairs, error) {
+func (c *Config) GetStrategyPairs(exchName string, assetType asset.Item) (currency.Pairs, error) {
 	exchCfg, err := c.GetExchangeConfig(exchName)
 	if err != nil {
 		return nil, err
@@ -637,20 +637,67 @@ func (c *Config) GetEnabledPairs(exchName string, assetType asset.Item) (currenc
 		nil
 }
 
+// GetEnabledPairs returns a list of currency pairs for a specifc exchange
+func (c *Config) GetEnabledPairs(exchName string, assetType asset.Item) (currency.Pairs, error) {
+	exchCfg, err := c.GetExchangeConfig(exchName)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, ss := range c.TradeManager.Strategies {
+		enabled := exchCfg.CurrencyPairs.Pairs[asset.Spot].Enabled
+		var pair currency.Pair
+		if c.LiveMode {
+			pair = currency.GetPairTranslation(exchName, ss.Pair)
+		} else {
+			pair = ss.Pair
+		}
+
+		if !enabled.Contains(pair, true) {
+			exchCfg.CurrencyPairs.Pairs[asset.Spot].Enabled = append(exchCfg.CurrencyPairs.Pairs[asset.Spot].Enabled, pair)
+		}
+	}
+
+	pairFormat, err := c.GetPairFormat(exchName, assetType)
+	if err != nil {
+		return nil, err
+	}
+
+	pairs, err := exchCfg.CurrencyPairs.GetPairs(assetType, true)
+	if err != nil {
+		return pairs, err
+	}
+
+	if pairs == nil {
+		return nil, nil
+	}
+
+	// fmt.Println("filter pairs hereuuuuuuuuuuuuuuuuu")
+	// fmt.Println(c.TradeManager.Strategies[0].Pair)
+	// var pairActive  bool
+	// for _, p := pairs {
+	// }
+
+	return pairs.Format(pairFormat.Delimiter,
+			pairFormat.Index,
+			pairFormat.Uppercase),
+		nil
+}
+
 // GetEnabledExchanges returns a list of enabled exchanges
 func (c *Config) GetEnabledExchanges() []string {
 	var enabledExchs []string
-
-	if c.LiveMode {
-		return append(enabledExchs, "kraken")
-	}
-	return append(enabledExchs, "gateio")
-	// for i := range c.Exchanges {
-	// 	if c.Exchanges[i].Enabled {
-	// 		enabledExchs = append(enabledExchs, c.Exchanges[i].Name)
-	// 	}
+	//
+	// if c.LiveMode {
+	// 	return append(enabledExchs, "kraken")
 	// }
-	// return enabledExchs
+	// return append(enabledExchs, "gateio")
+	for i := range c.Exchanges {
+		if c.Exchanges[i].Enabled {
+			enabledExchs = append(enabledExchs, c.Exchanges[i].Name)
+		}
+	}
+	return enabledExchs
 }
 
 // GetDisabledExchanges returns a list of disabled exchanges
@@ -1609,24 +1656,21 @@ func (c *Config) SaveConfigToFile(configPath string) error {
 	return c.Save(provider, func() ([]byte, error) { return PromptForConfigKey(true) })
 }
 
-func (c *Config) SaveStrategies(writerProvider func() (io.Writer, error), keyProvider func() ([]byte, error)) error {
-	payload, err := json.MarshalIndent(c.TradeManager.Strategies, "", " ")
-	if err != nil {
-		return err
-	}
-
-	configWriter, err := writerProvider()
-	if err != nil {
-		return err
-	}
-	_, err = io.Copy(configWriter, bytes.NewReader(payload))
-	return err
-}
-
 // Save saves your configuration to the writer as a JSON object
 // with encryption, if configured
 // If there is an error when preparing the data to store, the writer is never requested
 func (c *Config) Save(writerProvider func() (io.Writer, error), keyProvider func() ([]byte, error)) error {
+	c.TradeManager.Strategies = nil
+
+	for _, ex := range c.GetEnabledExchanges() {
+		cf, _ := c.GetExchangeConfig(ex)
+		enabled, _ := cf.CurrencyPairs.GetPairs(asset.Spot, true)
+		for _, p := range enabled {
+			cf.CurrencyPairs.DisablePair(asset.Spot, p)
+		}
+		// cf.CurrencyPairs
+	}
+
 	payload, err := json.MarshalIndent(c, "", " ")
 	if err != nil {
 		return err

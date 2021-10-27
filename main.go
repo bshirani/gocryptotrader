@@ -153,8 +153,12 @@ func main() {
 		settings.ConfigFile = filepath.Join(wd, fmt.Sprintf("cmd/confs/prod.json", settings.ConfigFile))
 		settings.TradeConfigFile = filepath.Join(wd, fmt.Sprintf("cmd/confs/prod.strat", settings.TradeConfigFile))
 	} else {
+		if settings.TradeConfigFile == "" {
+			settings.TradeConfigFile = filepath.Join(wd, "cmd/confs/prod.strat")
+		} else {
+			settings.TradeConfigFile = filepath.Join(wd, fmt.Sprintf("cmd/confs/dev/strategy/%s.strat", settings.TradeConfigFile))
+		}
 		settings.ConfigFile = filepath.Join(wd, fmt.Sprintf("cmd/confs/dev/%s.json", settings.ConfigFile))
-		settings.TradeConfigFile = filepath.Join(wd, fmt.Sprintf("cmd/confs/dev/strategy/%s.strat", settings.TradeConfigFile))
 	}
 
 	if flagSet["trade"] {

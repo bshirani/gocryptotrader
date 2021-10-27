@@ -28,6 +28,11 @@ import (
 	"github.com/fatih/color"
 )
 
+const (
+	// backtestExchange = "gateio"
+	backtestExchange = "kraken"
+)
+
 // overarching type across this code base.
 type Engine struct {
 	CommunicationsManager   *CommunicationManager
@@ -300,7 +305,7 @@ func setColor(value bool) {
 	}
 }
 
-func engineLog(str string, args ...interface{}) {
+func elog(str string, args ...interface{}) {
 	if len(args) > 0 {
 		switch args[0].(type) {
 		case bool:
@@ -315,67 +320,68 @@ func engineLog(str string, args ...interface{}) {
 // PrintSettings returns the engine settings
 func PrintSettings(s *Settings) {
 	if s.EnableProductionMode {
-		engineLog("\t $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ REAL MONIES $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$: %v", s.EnableProductionMode)
+		elog("\t $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ REAL MONIES $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$: %v", s.EnableProductionMode)
 	}
-	engineLog("\t live:%v", s.EnableLiveMode)
-	engineLog("\t save_db: %v", !s.EnableDryRun)
-	engineLog("\t trader: %v", s.EnableTradeManager)
-	engineLog("\t trading: %v", s.EnableTrading)
-	engineLog("\t sync: %v kline:%v ticker:%v trade:%v wsTimeout:%v", s.EnableExchangeSyncManager, s.EnableKlineSyncing, s.EnableTickerSyncing, s.EnableTradeSyncing, s.SyncTimeoutWebsocket)
-	// engineLog("\t verbose: %v", s.Verbose)
-	// engineLog("\t data history: %v", s.EnableDataHistoryManager)
-	// engineLog("\t coinmarketcap analaysis: %v", s.EnableCoinmarketcapAnalysis)
-	// engineLog("\t gPRC: %v", s.EnableGRPC)
-	// engineLog("\t database: %v", s.EnableDatabaseManager)
-	// engineLog("\t watcher: %v", s.EnableWatcher)
-	// engineLog("\t comms relayer: %v", s.EnableCommsRelayer)
-	// engineLog("\t event manager: %v", s.EnableEventManager)
-	// engineLog("\t websocket RPC: %v", s.EnableWebsocketRPC)
-	// engineLog("\t websocket routine: %v", s.EnableWebsocketRoutine)
-	// engineLog("\t Enable orderbook syncing: %v\n", s.EnableOrderbookSyncing)
-	// engineLog("\t TM Verbose: %v", s.TradeManager.Verbose)
-	// engineLog("\t Enable all exchanges: %v", s.EnableAllExchanges)
-	// engineLog("\t Enable all pairs: %v", s.EnableAllPairs)
-	// engineLog("\t Enable portfolio manager: %v", s.EnablePortfolioManager)
-	// engineLog("\t Enable currency state manager: %v", s.EnableCurrencyStateManager)
-	// engineLog("\t Portfolio manager sleep delay: %v\n", s.PortfolioManagerDelay)
-	// engineLog("\t Enable gRPC Proxy: %v", s.EnableGRPCProxy)
-	// engineLog("\t Event manager sleep delay: %v", s.EventManagerDelay)
-	// engineLog("\t Enable deposit address manager: %v\n", s.EnableDepositAddressManager)
-	// engineLog("\t Enable NTP client: %v", s.EnableNTPClient)
-	// engineLog("\t Enable dispatcher: %v", s.EnableDispatcher)
-	// engineLog("\t Dispatch package max worker amount: %d", s.DispatchMaxWorkerAmount)
-	// engineLog("\t Dispatch package jobs limit: %d", s.DispatchJobsLimit)
-	// engineLog("\t Exchange sync continuously: %v\n", s.SyncContinuously)
-	// engineLog("\t Exchange sync workers: %v\n", s.SyncWorkers)
-	// engineLog("\t Exchange REST sync timeout: %v\n", s.SyncTimeoutREST)
-	// engineLog("- FOREX SETTINGS:")
-	// engineLog("\t Enable currency conveter: %v", s.EnableCurrencyConverter)
-	// engineLog("\t Enable currency layer: %v", s.EnableCurrencyLayer)
-	// engineLog("\t Enable fixer: %v", s.EnableFixer)
-	// engineLog("\t Enable OpenExchangeRates: %v", s.EnableOpenExchangeRates)
-	// engineLog("\t Enable ExchangeRateHost: %v", s.EnableExchangeRateHost)
-	// engineLog("- EXCHANGE SETTINGS:")
-	// engineLog("\t Enable exchange auto pair updates: %v", s.EnableExchangeAutoPairUpdates)
-	// engineLog("\t Disable all exchange auto pair updates: %v", s.DisableExchangeAutoPairUpdates)
-	// engineLog("\t Enable exchange websocket support: %v", s.EnableExchangeWebsocketSupport)
-	// engineLog("\t Enable exchange verbose mode: %v", s.EnableExchangeVerbose)
-	// engineLog("\t Enable exchange HTTP rate limiter: %v", s.EnableExchangeHTTPRateLimiter)
-	// engineLog("\t Enable exchange HTTP debugging: %v", s.EnableExchangeHTTPDebugging)
-	// engineLog("\t Max HTTP request jobs: %v", s.MaxHTTPRequestJobsLimit)
-	// engineLog("\t HTTP request max retry attempts: %v", s.RequestMaxRetryAttempts)
-	// engineLog("\t Trade buffer processing interval: %v", s.TradeBufferProcessingInterval)
-	// engineLog("\t HTTP timeout: %v", s.HTTPTimeout)
-	// engineLog("\t HTTP user agent: %v", s.HTTPUserAgent)
-	// engineLog("- GCTSCRIPT SETTINGS: ")
-	// engineLog("\t Enable GCTScript manager: %v", s.EnableGCTScriptManager)
-	// engineLog("\t GCTScript max virtual machines: %v", s.MaxVirtualMachines)
-	// engineLog("- WITHDRAW SETTINGS: ")
-	// engineLog("\t Withdraw Cache size: %v", s.WithdrawCacheSize)
-	// engineLog("- COMMON SETTINGS:")
-	// engineLog("\t Global HTTP timeout: %v", s.GlobalHTTPTimeout)
-	// engineLog("\t Global HTTP user agent: %v", s.GlobalHTTPUserAgent)
-	// engineLog("\t Global HTTP proxy: %v", s.GlobalHTTPProxy)
+	elog("\t live:%v", s.EnableLiveMode)
+	elog("\t save_db: %v", !s.EnableDryRun)
+	elog("\t trader: %v", s.EnableTradeManager)
+	elog("\t trading: %v", s.EnableTrading)
+	elog("\t sync: %v kline:%v ticker:%v trade:%v wsTimeout:%v", s.EnableExchangeSyncManager, s.EnableKlineSyncing, s.EnableTickerSyncing, s.EnableTradeSyncing, s.SyncTimeoutWebsocket)
+
+	// elog("\t verbose: %v", s.Verbose)
+	// elog("\t data history: %v", s.EnableDataHistoryManager)
+	// elog("\t coinmarketcap analaysis: %v", s.EnableCoinmarketcapAnalysis)
+	// elog("\t gPRC: %v", s.EnableGRPC)
+	// elog("\t database: %v", s.EnableDatabaseManager)
+	// elog("\t watcher: %v", s.EnableWatcher)
+	// elog("\t comms relayer: %v", s.EnableCommsRelayer)
+	// elog("\t event manager: %v", s.EnableEventManager)
+	// elog("\t websocket RPC: %v", s.EnableWebsocketRPC)
+	// elog("\t websocket routine: %v", s.EnableWebsocketRoutine)
+	// elog("\t Enable orderbook syncing: %v\n", s.EnableOrderbookSyncing)
+	// elog("\t TM Verbose: %v", s.TradeManager.Verbose)
+	// elog("\t Enable all exchanges: %v", s.EnableAllExchanges)
+	// elog("\t Enable all pairs: %v", s.EnableAllPairs)
+	// elog("\t Enable portfolio manager: %v", s.EnablePortfolioManager)
+	// elog("\t Enable currency state manager: %v", s.EnableCurrencyStateManager)
+	// elog("\t Portfolio manager sleep delay: %v\n", s.PortfolioManagerDelay)
+	// elog("\t Enable gRPC Proxy: %v", s.EnableGRPCProxy)
+	// elog("\t Event manager sleep delay: %v", s.EventManagerDelay)
+	// elog("\t Enable deposit address manager: %v\n", s.EnableDepositAddressManager)
+	// elog("\t Enable NTP client: %v", s.EnableNTPClient)
+	// elog("\t Enable dispatcher: %v", s.EnableDispatcher)
+	// elog("\t Dispatch package max worker amount: %d", s.DispatchMaxWorkerAmount)
+	// elog("\t Dispatch package jobs limit: %d", s.DispatchJobsLimit)
+	// elog("\t Exchange sync continuously: %v\n", s.SyncContinuously)
+	// elog("\t Exchange sync workers: %v\n", s.SyncWorkers)
+	// elog("\t Exchange REST sync timeout: %v\n", s.SyncTimeoutREST)
+	// elog("- FOREX SETTINGS:")
+	// elog("\t Enable currency conveter: %v", s.EnableCurrencyConverter)
+	// elog("\t Enable currency layer: %v", s.EnableCurrencyLayer)
+	// elog("\t Enable fixer: %v", s.EnableFixer)
+	// elog("\t Enable OpenExchangeRates: %v", s.EnableOpenExchangeRates)
+	// elog("\t Enable ExchangeRateHost: %v", s.EnableExchangeRateHost)
+	// elog("- EXCHANGE SETTINGS:")
+	// elog("\t Enable exchange auto pair updates: %v", s.EnableExchangeAutoPairUpdates)
+	// elog("\t Disable all exchange auto pair updates: %v", s.DisableExchangeAutoPairUpdates)
+	// elog("\t Enable exchange websocket support: %v", s.EnableExchangeWebsocketSupport)
+	// elog("\t Enable exchange verbose mode: %v", s.EnableExchangeVerbose)
+	// elog("\t Enable exchange HTTP rate limiter: %v", s.EnableExchangeHTTPRateLimiter)
+	// elog("\t Enable exchange HTTP debugging: %v", s.EnableExchangeHTTPDebugging)
+	// elog("\t Max HTTP request jobs: %v", s.MaxHTTPRequestJobsLimit)
+	// elog("\t HTTP request max retry attempts: %v", s.RequestMaxRetryAttempts)
+	// elog("\t Trade buffer processing interval: %v", s.TradeBufferProcessingInterval)
+	// elog("\t HTTP timeout: %v", s.HTTPTimeout)
+	// elog("\t HTTP user agent: %v", s.HTTPUserAgent)
+	// elog("- GCTSCRIPT SETTINGS: ")
+	// elog("\t Enable GCTScript manager: %v", s.EnableGCTScriptManager)
+	// elog("\t GCTScript max virtual machines: %v", s.MaxVirtualMachines)
+	// elog("- WITHDRAW SETTINGS: ")
+	// elog("\t Withdraw Cache size: %v", s.WithdrawCacheSize)
+	// elog("- COMMON SETTINGS:")
+	// elog("\t Global HTTP timeout: %v", s.GlobalHTTPTimeout)
+	// elog("\t Global HTTP user agent: %v", s.GlobalHTTPUserAgent)
+	// elog("\t Global HTTP proxy: %v", s.GlobalHTTPProxy)
 }
 
 // Start starts the engine
@@ -856,7 +862,6 @@ func (bot *Engine) Stop() {
 		}
 	}
 
-	bot.Config.TradeManager.Strategies = nil
 	err := bot.Config.SaveConfigToFile(bot.Settings.ConfigFile)
 	if err != nil {
 		log.Errorln(log.Global, "Unable to save config.")
@@ -1021,7 +1026,7 @@ func (bot *Engine) LoadExchange(name string, wg *sync.WaitGroup) error {
 		}
 	}
 
-	// engineLog("starting exchange...")
+	// elog("starting exchange...")
 	if wg != nil {
 		exch.Start(wg)
 	} else {
@@ -1088,6 +1093,18 @@ func (bot *Engine) SetupExchanges() error {
 // of the currency pair syncer management system.
 func (bot *Engine) WaitForInitialCurrencySync() error {
 	return bot.currencyPairSyncer.WaitForInitialSync()
+}
+
+func (bot *Engine) SetupOfflineExchangeSettings() error {
+	enabledPairs, _ := bot.Config.GetEnabledPairs(backtestExchange, asset.Spot)
+	for _, pair := range enabledPairs {
+		bot.CurrencySettings = append(bot.CurrencySettings, &ExchangeAssetPairSettings{
+			ExchangeName: backtestExchange,
+			CurrencyPair: pair,
+			AssetType:    asset.Spot,
+		})
+	}
+	return nil
 }
 
 func (bot *Engine) SetupExchangeSettings() error {

@@ -17,8 +17,9 @@ func SetupStrategies(cfg []*config.StrategySetting, liveMode bool) (slit []strat
 		strat.SetWeight(cs.Weight)
 		strat.SetDirection(cs.Side)
 		strat.SetPair(cs.Pair)
+		strat.SetName(cs.Capture)
 		strat.SetDefaults()
-		// fmt.Println("created strategy", strat.GetPair(), strat.GetDirection(), strat.Name(), strat.GetWeight())
+		// fmt.Println("created strategy", strat.GetLabel(), strat.GetWeight())
 		slit = append(slit, strat)
 	}
 

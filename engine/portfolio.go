@@ -141,6 +141,8 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 	p.riskFreeRate = riskFreeRate
 	p.Strategies = st
 
+	p.PrintPortfolioStrategiesConfig()
+
 	if !p.bot.Settings.EnableDryRun {
 		activeTrades, _ := livetrade.Active()
 		for _, t := range activeTrades {
@@ -889,6 +891,12 @@ func verifyOrderWithinLimits(f *fill.Fill, limitReducedAmount decimal.Decimal, c
 // 	log.Infof(log.Portfolio, "%s trade: pl:%v time:%d\n", t.StrategyID, t.ProfitLossPoints, secondsInTrade)
 // 	return
 // }
+
+func (p *Portfolio) PrintPortfolioStrategiesConfig() {
+	for _, s := range p.Strategies {
+		log.Infoln(log.Portfolio, "STRATEGY", s.GetLabel())
+	}
+}
 
 func (p *Portfolio) PrintPortfolioDetails() {
 	// log.Infoln(log.Portfolio, "portfolio details", p.lastUpdate)

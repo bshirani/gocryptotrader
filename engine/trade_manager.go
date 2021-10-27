@@ -33,8 +33,6 @@ import (
 	"gocryptotrader/log"
 
 	gctlog "gocryptotrader/log"
-	"gocryptotrader/portfolio/compliance"
-	"gocryptotrader/portfolio/holdings"
 	"gocryptotrader/portfolio/statistics"
 	"gocryptotrader/portfolio/statistics/currencystatistics"
 
@@ -607,7 +605,7 @@ func (tm *TradeManager) processLiveMinute() error {
 		if tm.lastUpdateMin[cs] != thisMinute {
 			dbData, err := tm.loadLatestCandleFromDatabase(cs)
 			if err != nil {
-				// fmt.Println("error loading latest candle", err)
+				fmt.Println("error loading latest candle", err)
 				continue
 			}
 			// fmt.Println("loaded latest candle")
@@ -668,11 +666,11 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 	// if tm.tradingEnabled {
 	// fmt.Println("tm processing event at", ev.GetTime(), ev.Pair(), tm.GetCurrentTime())
 	// }
-	err := tm.updateStatsForDataEvent(ev)
-	if err != nil {
-		fmt.Println("error updating stats for data event")
-		return err
-	}
+	// err := tm.updateStatsForDataEvent(ev)
+	// if err != nil {
+	// 	fmt.Println("error updating stats for data event")
+	// 	return err
+	// }
 
 	d := tm.Datas.GetDataForCurrency(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 	cs, err := tm.bot.GetCurrencySettings(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
@@ -737,10 +735,10 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 						return err
 					}
 
-					err = tm.Statistic.SetEventForOffset(s)
-					if err != nil {
-						log.Error(log.TradeMgr, err)
-					}
+					// err = tm.Statistic.SetEventForOffset(s)
+					// if err != nil {
+					// 	log.Error(log.TradeMgr, err)
+					// }
 					tm.EventQueue.AppendEvent(s)
 				}
 			}
@@ -796,7 +794,7 @@ func (tm *TradeManager) processSignalEvent(ev signal.Event) {
 		if tm.debug {
 			fmt.Println("tm received order from pf", o, err)
 		}
-		err = tm.Statistic.SetEventForOffset(o)
+		// err = tm.Statistic.SetEventForOffset(o)
 		tm.EventQueue.AppendEvent(o)
 	}
 }
@@ -925,33 +923,33 @@ func (tm *TradeManager) processFillEvent(ev fill.Event) {
 	// 	return
 	// }
 
-	err := tm.Statistic.SetEventForOffset(ev)
-	if err != nil {
-		log.Error(log.TradeMgr, err)
-	}
-
-	var holding *holdings.Holding
-	holding, err = tm.Portfolio.ViewHoldingAtTimePeriod(ev)
-	if err != nil {
-		log.Error(log.TradeMgr, err)
-	}
-
-	err = tm.Statistic.AddHoldingsForTime(holding)
-	if err != nil {
-		log.Error(log.TradeMgr, err)
-	}
-
-	var cp *compliance.Manager
-	cp, err = tm.Portfolio.GetComplianceManager(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
-	if err != nil {
-		log.Error(log.TradeMgr, err)
-	}
-
-	snap := cp.GetLatestSnapshot()
-	err = tm.Statistic.AddComplianceSnapshotForTime(snap, ev)
-	if err != nil {
-		log.Error(log.TradeMgr, err)
-	}
+	// err := tm.Statistic.SetEventForOffset(ev)
+	// if err != nil {
+	// 	log.Error(log.TradeMgr, err)
+	// }
+	//
+	// var holding *holdings.Holding
+	// holding, err = tm.Portfolio.ViewHoldingAtTimePeriod(ev)
+	// if err != nil {
+	// 	log.Error(log.TradeMgr, err)
+	// }
+	//
+	// err = tm.Statistic.AddHoldingsForTime(holding)
+	// if err != nil {
+	// 	log.Error(log.TradeMgr, err)
+	// }
+	//
+	// var cp *compliance.Manager
+	// cp, err = tm.Portfolio.GetComplianceManager(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
+	// if err != nil {
+	// 	log.Error(log.TradeMgr, err)
+	// }
+	//
+	// snap := cp.GetLatestSnapshot()
+	// err = tm.Statistic.AddComplianceSnapshotForTime(snap, ev)
+	// if err != nil {
+	// 	log.Error(log.TradeMgr, err)
+	// }
 }
 
 func (tm *TradeManager) processOrderEvent(o order.Event) {
@@ -1020,16 +1018,19 @@ func (tm *TradeManager) updateStatsForDataEvent(ev eventtypes.DataEventHandler) 
 	return nil
 }
 
-func (tm *TradeManager) startOfflineServices() error {
+func (tm *TradeManager) startOfflineServices() (err error) {
 	if tm.liveMode {
 		panic("cannot run offline services in live mode")
 	}
 
-	err := tm.bot.SetupExchanges()
+	err = tm.bot.SetupExchanges()
 	if err != nil {
 		return err
 	}
-	tm.bot.SetupExchangeSettings()
+	err = tm.bot.SetupExchangeSettings()
+	if err != nil {
+		panic(err)
+	}
 
 	// start fake order manager here since we don't start engine in backtest mode
 	tm.bot.OrderManager, err = SetupOrderManager(
@@ -1174,7 +1175,7 @@ func (tm *TradeManager) loadBacktestData() (err error) {
 			a)
 		if err != nil {
 			fmt.Println("loaddata err", err)
-			panic(fmt.Sprintf("no candles for", p))
+			panic(fmt.Sprintf("no candles for", e, p))
 		}
 
 		fmt.Println("loaded backtest data for", p, startDate, endDate)

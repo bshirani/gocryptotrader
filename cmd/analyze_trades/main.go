@@ -44,7 +44,7 @@ func main() {
 	filename = filepath.Join(wd, "results", filename)
 	pf.Save(filename)
 
-	prodWeighted := filepath.Join(wd, "../confs/dev/strategy/prod.strat")
+	prodWeighted := filepath.Join(wd, "../confs/prod.strat")
 	fmt.Println("saving", len(pf.Weights.Strategies), "pf weights to", prodWeighted)
 	pf.Weights.Save(prodWeighted)
 

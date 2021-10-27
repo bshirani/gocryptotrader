@@ -23,7 +23,7 @@ func main() {
 	}
 	flag.BoolVar(&dryrun, "dryrun", true, "write orders/trades to db")
 	flag.BoolVar(&generateReport, "generatereport", false, "whether to generate the report file")
-	flag.StringVar(&tradeConfigPath, "trade", "all", "the config containing strategy params")
+	flag.StringVar(&tradeConfigPath, "trade", "prod", "the config containing strategy params")
 	flag.StringVar(&configPath, "config", path, "the config containing strategy params")
 	flag.BoolVar(&clearDB, "cleardb", true, "the config containing strategy params")
 	flag.StringVar(&templatePath, "templatepath", filepath.Join(wd, "../portfolio/tradereport", "tpl.gohtml"), "the report template to use")

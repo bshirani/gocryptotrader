@@ -5,6 +5,7 @@ import (
 
 	"gocryptotrader/currency"
 	"gocryptotrader/gctrpc"
+
 	"github.com/urfave/cli/v2"
 )
 
