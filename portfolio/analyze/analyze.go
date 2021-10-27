@@ -247,13 +247,13 @@ func calculateDuration(trades []*livetrade.Details) {
 func lastResult() string {
 	// return os.MkdirAll(dir, 0770)
 	wd, err := os.Getwd()
-	dir := filepath.Join(wd, "../backtest/results")
+	dir := filepath.Join(wd, "results/bt")
 	lf := lastFileInDir(dir)
 
 	if err != nil {
 		fmt.Println(err)
 	}
-	return filepath.Join(wd, "../backtest/results", lf)
+	return filepath.Join(wd, "results/bt", lf)
 }
 
 func lastFileInDir(dir string) string {
@@ -271,9 +271,10 @@ func lastFileInDir(dir string) string {
 			}
 		}
 	}
-	// if len(names) > 0 {
-	// 	fmt.Println(modTime, names)
-	// }
+	if len(names) == 0 {
+		panic(fmt.Sprintf("could not find file in dir %s", dir))
+		fmt.Println(modTime, names)
+	}
 	return names[len(names)-1]
 }
 

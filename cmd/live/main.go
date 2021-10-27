@@ -112,7 +112,6 @@ var LiveCommand = &cli.Command{
 }
 
 func runLive(c *cli.Context) error {
-
 	if versionFlag {
 		fmt.Print(core.Version(true))
 		os.Exit(0)
