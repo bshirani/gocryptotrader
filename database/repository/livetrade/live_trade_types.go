@@ -35,9 +35,10 @@ type Details struct {
 	Status           order.Status
 	Pair             currency.Pair
 	ProfitLossPoints decimal.Decimal
+	ProfitLossQuote  decimal.Decimal
 	ProfitLoss       decimal.Decimal
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
-	RiskedPoints     decimal.Decimal
-	RiskedQuote      decimal.Decimal
+	RiskedPoints     float64
+	RiskedQuote      float64
 }

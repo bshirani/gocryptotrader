@@ -124,8 +124,8 @@ func ByStatus(status order.Status) (out []Details, err error) {
 			UpdatedAt:    x.UpdatedAt,
 			CreatedAt:    x.CreatedAt,
 			EntryOrderID: x.EntryOrderID,
-			RiskedQuote:  decimal.NewFromFloat(x.RiskedQuote),
-			RiskedPoints: decimal.NewFromFloat(x.RiskedPoints),
+			RiskedQuote:  x.RiskedQuote,
+			RiskedPoints: x.RiskedPoints,
 		})
 	}
 	if errS != nil {
@@ -238,7 +238,10 @@ func upsertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int, err 
 	stopLossPrice, _ := in.StopLossPrice.Float64()
 	takeProfitPrice, _ := in.TakeProfitPrice.Float64()
 	profitLossPoints, _ := in.ProfitLossPoints.Float64()
+	profitLossQuote, _ := in.ProfitLossQuote.Float64()
 	amount, _ := in.Amount.Float64()
+	// riskedQuote, _ := in.RiskedQuote.Float64()
+	// riskedPoints, _ := in.RiskedPoints.Float64()
 
 	if stopLossPrice < 0 {
 		return 0, fmt.Errorf("stop loss price cannot be below zero")
@@ -259,11 +262,14 @@ func upsertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int, err 
 		EntryOrderID:  in.EntryOrderID,
 		Side:          in.Side.String(),
 		Amount:        amount,
+		RiskedQuote:   in.RiskedQuote,
+		RiskedPoints:  in.RiskedPoints,
 
 		ExitTime:         null.NewTime(in.ExitTime, !in.ExitTime.IsZero()),
 		ExitPrice:        null.NewFloat64(exitPrice, exitPrice != 0),
 		TakeProfitPrice:  null.NewFloat64(takeProfitPrice, takeProfitPrice != 0),
 		ProfitLossPoints: null.NewFloat64(profitLossPoints, profitLossPoints != 0 || exitPrice != 0),
+		ProfitLossQuote:  null.NewFloat64(profitLossQuote, profitLossQuote != 0 || exitPrice != 0),
 	}
 
 	err = tempInsert.Upsert(

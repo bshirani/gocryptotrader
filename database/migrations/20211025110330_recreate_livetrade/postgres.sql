@@ -75,8 +75,8 @@ CREATE TABLE public.live_trade (
         (exit_time IS NOT NULL and exit_price IS NOT NULL)
     ),
     CONSTRAINT profit_check CHECK(
-        (profit_loss_points IS NULL AND exit_time IS NULL) OR
-        (profit_loss_points IS NOT NULL AND exit_time IS NOT NULL)
+        (profit_loss_quote IS NULL AND profit_loss_points IS NULL AND exit_time IS NULL) OR
+        (profit_loss_quote IS NOT NULL AND profit_loss_points IS NOT NULL AND exit_time IS NOT NULL)
     ),
     CONSTRAINT strategy_name CHECK(
         strategy_name != ''

@@ -1177,29 +1177,34 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 		str := fmt.Sprintf("%s %s for %s", ev.GetDirection(), s.GetDirection(), ev.GetStrategyID())
 		panic(str)
 	}
-	foundOrd := p.GetOrderFromStore(ev.GetInternalOrderID())
+	entryOrder := p.GetOrderFromStore(ev.GetInternalOrderID())
 	if ev.GetStopLossOrderID() == 0 {
 		panic("recordEnterTrade without a stop loss order")
 	}
 	stopOrd := p.GetOrderFromStore(ev.GetStopLossOrderID())
-	// fmt.Println("found order", foundOrd.ID, foundOrd.InternalOrderID)
-	// stopLossPrice := decimal.NewFromFloat(foundOrd.Price).Mul(decimal.NewFromFloat(0.9))
+	// fmt.Println("found order", entryOrder.ID, entryOrder.InternalOrderID)
+	// stopLossPrice := decimal.NewFromFloat(entryOrder.Price).Mul(decimal.NewFromFloat(0.9))
 
-	amountRisked := decimal.NewFromFloat(10.0)
+	var riskedPts float64
+	if ev.GetDirection() == gctorder.Buy {
+		riskedPts = entryOrder.Price - stopOrd.Price
+	} else if ev.GetDirection() == gctorder.Sell {
+		riskedPts = stopOrd.Price - entryOrder.Price
+	}
 
 	t := livetrade.Details{
 		Status:        gctorder.Open,
 		StrategyID:    ev.GetStrategyID(),
 		StrategyName:  s.GetLabel(),
 		EntryTime:     ev.GetTime(),
-		EntryOrderID:  foundOrd.InternalOrderID,
+		EntryOrderID:  entryOrder.InternalOrderID,
 		EntryPrice:    ev.GetPurchasePrice(),
 		StopLossPrice: decimal.NewFromFloat(stopOrd.Price),
-		Side:          foundOrd.Side,
-		Pair:          foundOrd.Pair,
-		Amount:        decimal.NewFromFloat(foundOrd.Amount),
-		RiskedQuote:   amountRisked,
-		RiskedPoints:  decimal.NewFromFloat(1.2),
+		Side:          entryOrder.Side,
+		Pair:          entryOrder.Pair,
+		Amount:        decimal.NewFromFloat(entryOrder.Amount),
+		RiskedQuote:   riskedPts * entryOrder.Amount,
+		RiskedPoints:  riskedPts,
 	}
 
 	if t.EntryPrice.IsZero() {
@@ -1274,6 +1279,7 @@ func (p *Portfolio) recordExitTrade(f fill.Event, t *livetrade.Details) {
 			fmt.Println("trade is not sell or buy")
 			os.Exit(2)
 		}
+		t.ProfitLossQuote = t.ProfitLossPoints.Mul(t.Amount)
 
 		// msg := fmt.Sprintf("Order manager: Strategy=%s Exchange=%s submitted order ID=%v [Ours: %v] pair=%v price=%v amount=%v side=%v type=%v for time %v.",
 		// 	newOrder.StrategyID,

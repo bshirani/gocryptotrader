@@ -14,9 +14,11 @@ import (
 	"gocryptotrader/database/repository/liveorder"
 	"gocryptotrader/database/repository/livetrade"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
 	"sync/atomic"
+	"syscall"
 	"time"
 
 	gctdatabase "gocryptotrader/database"
@@ -25,7 +27,7 @@ import (
 	"gocryptotrader/eventtypes/event"
 	"gocryptotrader/eventtypes/fill"
 	"gocryptotrader/eventtypes/order"
-	"gocryptotrader/eventtypes/signal"
+	gctsignal "gocryptotrader/eventtypes/signal"
 	"gocryptotrader/eventtypes/submit"
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/kline"
@@ -173,7 +175,7 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	fee, _ := o.GetExchangeFee().Float64()
 
 	var skipStop bool
-	if o.GetDecision() == signal.Exit {
+	if o.GetDecision() == gctsignal.Exit {
 		skipStop = true
 	} else if o.GetDecision() == "" {
 		panic("order without decision")
@@ -337,6 +339,21 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 func (tm *TradeManager) Run() error {
 	count := 0
 	log.Debugf(log.TradeMgr, "TradeManager Running")
+	sigc := make(chan os.Signal, 1)
+	signal.Notify(sigc,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT)
+	go func() {
+		s := <-sigc
+		fmt.Println(s)
+		os.Exit(0)
+	}()
+
+	// interrupt := signaler.WaitForInterrupt()
+	// log.Infof(log.Global, "Captured %v, shutdown requested.\n", interrupt)
+
 	if !tm.liveMode {
 		err := tm.loadBacktestData()
 		if err != nil {
@@ -667,7 +684,7 @@ func (tm *TradeManager) handleEvent(ev eventtypes.EventHandler) error {
 	switch eType := ev.(type) {
 	case eventtypes.DataEventHandler:
 		return tm.processSingleDataEvent(eType)
-	case signal.Event:
+	case gctsignal.Event:
 		tm.processSignalEvent(eType)
 	case order.Event:
 		tm.processOrderEvent(eType)
@@ -798,11 +815,11 @@ func (tm *TradeManager) processSimultaneousDataEvents() error {
 	return nil
 }
 
-func (tm *TradeManager) processSignalEvent(ev signal.Event) {
-	// fmt.Println("process signal", ev.GetReason())
+func (tm *TradeManager) processSignalEvent(ev gctsignal.Event) {
+	// fmt.Println("process gctsignal", ev.GetReason())
 
 	if ev.GetStrategyName() == "" {
-		panic("cannot process signal without straegy name")
+		panic("cannot process gctsignal without straegy name")
 	}
 
 	cs, err := tm.bot.GetCurrencySettings(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
@@ -998,7 +1015,7 @@ func (tm *TradeManager) processOrderEvent(o order.Event) {
 	// }
 	d := tm.Datas.GetDataForCurrency(o.GetExchange(), o.GetAssetType(), o.Pair())
 
-	if o.GetDecision() == signal.Exit {
+	if o.GetDecision() == gctsignal.Exit {
 		// fmt.Println("RECEIVE EXIT SIGNALLLLLLLLLLLLL")
 		// cancel associate orders (take profit or stop loss)
 		// first cancel the stop loss order
