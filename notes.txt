@@ -247,3 +247,6 @@ analyze the performance of the strategies
 - expectancy
 - average win/loss
 - percentage of months profitable
+
+- one month long backtest on all strategies
+

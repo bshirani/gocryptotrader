@@ -58,10 +58,13 @@ CREATE TABLE public.live_trade (
     stop_loss_price double precision NOT NULL,
     strategy_name text NOT NULL,
     amount double precision DEFAULT 0 NOT NULL,
+    risked_points double precision NOT NULL,
+    risked_quote double precision NOT NULL,
     pair text NOT NULL,
     exchange text NOT NULL,
     take_profit_price double precision,
     profit_loss_points double precision ,
+    profit_loss_quote double precision,
     created_at timestamp without time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at timestamp without time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
     CONSTRAINT exit_check CHECK(

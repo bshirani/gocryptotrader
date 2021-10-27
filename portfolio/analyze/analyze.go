@@ -26,7 +26,8 @@ const (
 )
 
 func (p *PortfolioAnalysis) Analyze(filepath string) error {
-	p.Report = &PortfolioReport{}
+	p.Report = &Report{}
+	p.Report.Portfolio = &PortfolioReport{}
 	lf := lastResult()
 	fmt.Println("analyzing trades csv:", lf)
 	trades, err := livetrade.LoadCSV(lf)
@@ -38,7 +39,7 @@ func (p *PortfolioAnalysis) Analyze(filepath string) error {
 	p.analyzeGroupedStrategies()
 	p.calculateReport()
 	p.calculateProductionWeights()
-	p.Report.StrategiesAnalyses = p.StrategiesAnalyses
+	p.Report.Strategies = p.StrategiesAnalyses
 
 	return err
 }
@@ -116,7 +117,7 @@ func (p *PortfolioAnalysis) calculateReport() {
 	for _, lt := range p.trades {
 		sumDurationMin += lt.DurationMinutes
 	}
-	p.Report.AverageDurationMin = sumDurationMin / float64(len(p.trades))
+	p.Report.Portfolio.AverageDurationMin = sumDurationMin / float64(len(p.trades))
 }
 
 func (p *PortfolioAnalysis) PrintResults() {

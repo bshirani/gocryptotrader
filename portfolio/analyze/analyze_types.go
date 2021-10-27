@@ -5,8 +5,6 @@ import (
 	"gocryptotrader/currency"
 	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/exchange/order"
-	"gocryptotrader/portfolio/compliance"
-	"gocryptotrader/portfolio/holdings"
 	"gocryptotrader/portfolio/strategies"
 	"time"
 
@@ -17,7 +15,7 @@ type PortfolioAnalysis struct {
 	AllSettings        []*config.StrategySetting `json:"strategies"`
 	GroupedSettings    []*config.StrategySetting `json:"strategies"`
 	Strategies         []strategies.Handler
-	Report             *PortfolioReport
+	Report             *Report
 	Weights            *PortfolioWeights
 	groupedTrades      map[string][]*livetrade.Details
 	trades             []*livetrade.Details
@@ -39,11 +37,15 @@ type PortfolioWeights struct {
 	Strategies []*config.StrategySetting `json:"strategies"`
 }
 
+type Report struct {
+	Portfolio  *PortfolioReport    `json:"portfolio"`
+	Strategies []*StrategyAnalysis `json:"strategies"`
+}
+
 type PortfolioReport struct {
 	NumTrades          int64
 	NumStrategies      int64
 	AverageDurationMin float64
-	StrategiesAnalyses []*StrategyAnalysis
 }
 
 // CurrencyStatistic Holds all events and statistics relevant to an exchange, asset type and currency pair
@@ -55,37 +57,37 @@ type StrategyAnalysis struct {
 	Capture   string        `json:"capture"`
 	Label     string        `json:"label"`
 
-	NumTrades                    int                   `json:"num-trades"`
-	NetProfit                    decimal.Decimal       `json:"net-profit"`
-	MaxDrawdown                  Swing                 `json:"max-drawdown,omitempty"`
-	StartingClosePrice           decimal.Decimal       `json:"starting-close-price"`
-	EndingClosePrice             decimal.Decimal       `json:"ending-close-price"`
-	LowestClosePrice             decimal.Decimal       `json:"lowest-close-price"`
-	HighestClosePrice            decimal.Decimal       `json:"highest-close-price"`
-	MarketMovement               decimal.Decimal       `json:"market-movement"`
-	StrategyMovement             decimal.Decimal       `json:"strategy-movement"`
-	HighestCommittedFunds        HighestCommittedFunds `json:"highest-committed-funds"`
-	RiskFreeRate                 decimal.Decimal       `json:"risk-free-rate"`
-	BuyOrders                    int64                 `json:"buy-orders"`
-	GeometricRatios              Ratios                `json:"geometric-ratios"`
-	ArithmeticRatios             Ratios                `json:"arithmetic-ratios"`
-	CompoundAnnualGrowthRate     decimal.Decimal       `json:"compound-annual-growth-rate"`
-	SellOrders                   int64                 `json:"sell-orders"`
-	TotalOrders                  int64                 `json:"total-orders"`
-	InitialHoldings              holdings.Holding      `json:"initial-holdings-holdings"`
-	FinalHoldings                holdings.Holding      `json:"final-holdings"`
-	FinalOrders                  compliance.Snapshot   `json:"final-orders"`
-	ShowMissingDataWarning       bool                  `json:"-"`
-	IsStrategyProfitable         bool                  `json:"is-strategy-profitable"`
-	DoesPerformanceBeatTheMarket bool                  `json:"does-performance-beat-the-market"`
+	NumTrades int             `json:"numTrades"`
+	NetProfit decimal.Decimal `json:"netProfit"`
+	// MaxDrawdown                  Swing                 `json:"maxDrawdown,omitempty"`
+	// StartingClosePrice           decimal.Decimal       `json:"startingClosePrice"`
+	// EndingClosePrice             decimal.Decimal       `json:"endingClosePrice"`
+	// LowestClosePrice             decimal.Decimal       `json:"lowestClosePrice"`
+	// HighestClosePrice            decimal.Decimal       `json:"highestClosePrice"`
+	// MarketMovement               decimal.Decimal       `json:"marketMovement"`
+	// StrategyMovement             decimal.Decimal       `json:"strategyMovement"`
+	// HighestCommittedFunds        HighestCommittedFunds `json:"highestCommittedFunds"`
+	// RiskFreeRate                 decimal.Decimal       `json:"riskFreeRate"`
+	// BuyOrders                    int64                 `json:"buyOrders"`
+	// GeometricRatios              Ratios                `json:"geometricRatios"`
+	// ArithmeticRatios             Ratios                `json:"arithmeticRatios"`
+	// CompoundAnnualGrowthRate     decimal.Decimal       `json:"compoundAnnualGrowthRate"`
+	// SellOrders                   int64                 `json:"sellOrders"`
+	// TotalOrders                  int64                 `json:"totalOrders"`
+	// InitialHoldings              holdings.Holding      `json:"initialHoldingsHoldings"`
+	// FinalHoldings                holdings.Holding      `json:"finalHoldings"`
+	// FinalOrders                  compliance.Snapshot   `json:"finalOrders"`
+	// ShowMissingDataWarning       bool                  `json:""`
+	// IsStrategyProfitable         bool                  `json:"isStrategyProfitable"`
+	// DoesPerformanceBeatTheMarket bool                  `json:"doesPerformanceBeatTheMarket"`
 }
 
 // Ratios stores all the ratios used for statistics
 type Ratios struct {
-	SharpeRatio      decimal.Decimal `json:"sharpe-ratio"`
-	SortinoRatio     decimal.Decimal `json:"sortino-ratio"`
-	InformationRatio decimal.Decimal `json:"information-ratio"`
-	CalmarRatio      decimal.Decimal `json:"calmar-ratio"`
+	SharpeRatio      decimal.Decimal `json:"sharpeRatio"`
+	SortinoRatio     decimal.Decimal `json:"sortinoRatio"`
+	InformationRatio decimal.Decimal `json:"informationRatio"`
+	CalmarRatio      decimal.Decimal `json:"calmarRatio"`
 }
 
 // Swing holds a drawdown

@@ -1185,6 +1185,8 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 	// fmt.Println("found order", foundOrd.ID, foundOrd.InternalOrderID)
 	// stopLossPrice := decimal.NewFromFloat(foundOrd.Price).Mul(decimal.NewFromFloat(0.9))
 
+	amountRisked := decimal.NewFromFloat(10.0)
+
 	t := livetrade.Details{
 		Status:        gctorder.Open,
 		StrategyID:    ev.GetStrategyID(),
@@ -1196,6 +1198,8 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 		Side:          foundOrd.Side,
 		Pair:          foundOrd.Pair,
 		Amount:        decimal.NewFromFloat(foundOrd.Amount),
+		RiskedQuote:   amountRisked,
+		RiskedPoints:  decimal.NewFromFloat(1.2),
 	}
 
 	if t.EntryPrice.IsZero() {

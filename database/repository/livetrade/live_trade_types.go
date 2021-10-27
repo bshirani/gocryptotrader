@@ -38,4 +38,6 @@ type Details struct {
 	ProfitLoss       decimal.Decimal
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
+	RiskedPoints     decimal.Decimal
+	RiskedQuote      decimal.Decimal
 }
