@@ -72,6 +72,12 @@ const (
 	OrderSideSELL = "SELL"
 )
 
+// Enum values for trade_status
+const (
+	TradeStatusACTIVE = "ACTIVE"
+	TradeStatusCLOSED = "CLOSED"
+)
+
 // Enum values for capture_type
 const (
 	CaptureTypeTrend     = "trend"

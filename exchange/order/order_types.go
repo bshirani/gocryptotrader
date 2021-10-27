@@ -131,6 +131,7 @@ type Detail struct {
 	Amount               float64
 	AssetType            asset.Item
 	AverageExecutedPrice float64
+	CancelledAt          time.Time
 	ClientID             string
 	ClientOrderID        string
 	CloseTime            time.Time

@@ -128,8 +128,8 @@ func Insert(in *order.Submit) (int, error) {
 
 // Insert writes a single entry into database
 func Upsert(in *order.Detail) (int, error) {
-	boil.DebugMode = true
-	defer func() { boil.DebugMode = false }()
+	// boil.DebugMode = true
+	// defer func() { boil.DebugMode = false }()
 	if database.DB.SQL == nil {
 		return 0, database.ErrDatabaseSupportDisabled
 	}
@@ -142,6 +142,7 @@ func Upsert(in *order.Detail) (int, error) {
 	id, err := upsertPostgresql(ctx, tx, in)
 
 	if err != nil {
+		panic(err)
 		errRB := tx.Rollback()
 		if errRB != nil {
 			log.Errorln(log.DatabaseMgr, errRB)
@@ -159,8 +160,8 @@ func Upsert(in *order.Detail) (int, error) {
 
 // Insert writes a single entry into database
 func Update(in *Details) (int64, error) {
-
-	boil.DebugMode = true
+	//
+	// boil.DebugMode = true
 	if database.DB.SQL == nil {
 		return 0, database.ErrDatabaseSupportDisabled
 	}
@@ -196,7 +197,7 @@ func Update(in *Details) (int64, error) {
 }
 
 func updatePostgresql(ctx context.Context, tx *sql.Tx, in []Details) (id int64, err error) {
-	boil.DebugMode = true
+	// boil.DebugMode = true
 	for x := range in {
 		// entryPrice, _ := in[x].EntryPrice.Float64()
 		// exitPrice, _ := in[x].ExitPrice.Float64()
@@ -243,7 +244,7 @@ func updatePostgresql(ctx context.Context, tx *sql.Tx, in []Details) (id int64, 
 func insertPostgresql(ctx context.Context, tx *sql.Tx, in *order.Submit) (id int, err error) {
 	boil.DebugMode = true
 	defer func() { boil.DebugMode = false }()
-	// fmt.Println("insert order", in.Type, in.StopLossPrice, in.Status)
+	fmt.Println("insert order", in.Type, in.StopLossPrice, in.Status, "submitted_at", in.Date)
 	var tempInsert = postgres.LiveOrder{
 		Status:          in.Status.String(),
 		OrderType:       in.Type.String(),
@@ -255,6 +256,10 @@ func insertPostgresql(ctx context.Context, tx *sql.Tx, in *order.Submit) (id int
 		TakeProfitPrice: in.TakeProfitPrice,
 		ClientOrderID:   in.ID,
 		StrategyName:    in.StrategyName,
+	}
+
+	if in.Status == order.Active {
+		tempInsert.SubmittedAt = null.NewTime(in.Date, true)
 	}
 
 	err = tempInsert.Insert(ctx, tx, boil.Infer())
@@ -274,10 +279,12 @@ func insertPostgresql(ctx context.Context, tx *sql.Tx, in *order.Submit) (id int
 
 func upsertPostgresql(ctx context.Context, tx *sql.Tx, in *order.Detail) (id int, err error) {
 	fmt.Println("upsert order!!!!!", "type", in.Type, "st", in.Status, "fa", in.FilledAt, "fanull")
+	boil.DebugMode = true
+	defer func() { boil.DebugMode = false }()
+
 	var tempInsert = postgres.LiveOrder{
 		ID:              in.InternalOrderID,
 		Status:          in.Status.String(),
-		FilledAt:        null.NewTime(in.FilledAt, !in.FilledAt.IsZero()),
 		OrderType:       in.Type.String(),
 		Exchange:        in.Exchange,
 		Side:            in.Side.String(),
@@ -288,7 +295,14 @@ func upsertPostgresql(ctx context.Context, tx *sql.Tx, in *order.Detail) (id int
 		StrategyName:    in.StrategyName,
 	}
 
-	// err = tempInsert.Insert(ctx, tx, boil.Infer())
+	if in.Status == order.Filled {
+		tempInsert.FilledAt = null.NewTime(in.Date, true)
+	} else if in.Status == order.Cancelled {
+		tempInsert.CancelledAt = null.NewTime(in.Date, true)
+	} else if in.Status == order.Active {
+		tempInsert.SubmittedAt = null.NewTime(in.Date, false)
+	}
+
 	err = tempInsert.Upsert(ctx, tx, true, []string{"id"}, boil.Infer(), boil.Infer())
 	if err != nil {
 		log.Errorln(log.DatabaseMgr, err)

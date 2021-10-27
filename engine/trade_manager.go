@@ -983,6 +983,10 @@ func (tm *TradeManager) processOrderEvent(o order.Event) {
 				Exchange: op.Exchange,
 			}
 
+			if !tm.bot.Config.ProductionMode {
+				cancel.Date = o.GetTime()
+			}
+
 			err := tm.bot.OrderManager.Cancel(context.TODO(), cancel)
 			if err != nil {
 				fmt.Println("error cancelling order!!!!!!!!!")

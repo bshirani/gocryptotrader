@@ -284,6 +284,10 @@ func (m *OrderManager) Cancel(ctx context.Context, cancel *order.Cancel) error {
 			return err
 		}
 	}
+
+	if cancel.Date.IsZero() {
+		panic("cannot save cancel without date")
+	}
 	var od *order.Detail
 	od, err = m.orderStore.getByExchangeAndID(cancel.Exchange, cancel.ID)
 	if err != nil {
@@ -292,6 +296,7 @@ func (m *OrderManager) Cancel(ctx context.Context, cancel *order.Cancel) error {
 	}
 
 	od.Status = order.Cancelled
+	od.CancelledAt = cancel.Date
 	msg := fmt.Sprintf("Order manager: Exchange %s order ID=%v cancelled.",
 		od.Exchange, od.ID)
 
@@ -303,7 +308,7 @@ func (m *OrderManager) Cancel(ctx context.Context, cancel *order.Cancel) error {
 		id, err := liveorder.Upsert(od)
 		fmt.Println("lookup order id", id, "oid", od.ID, "internalid", od.InternalOrderID)
 		dblo, err := liveorder.OneByID(id)
-		if err != nil {
+		if dblo.ID == 0 || err != nil {
 			fmt.Println("database not recorded as cancelled")
 			panic(err)
 		}

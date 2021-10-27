@@ -20,6 +20,7 @@ import (
 	"gocryptotrader/log"
 
 	"github.com/shopspring/decimal"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
@@ -85,22 +86,24 @@ func ByStatus(status order.Status) (out []Details, err error) {
 
 		pair, _ := currency.NewPairFromString(x.Pair)
 
+		// exitPrice := null.NewFloat64(x.ExitPrice, x.ExitPrice.IsZero())
+		// 	ExitPrice:       exitPrice,
+
 		out = append(out, Details{
-			EntryPrice:      decimal.NewFromFloat(x.EntryPrice),
-			ExitPrice:       decimal.NewFromFloat(x.ExitPrice),
-			StopLossPrice:   decimal.NewFromFloat(x.StopLossPrice),
-			TakeProfitPrice: decimal.NewFromFloat(x.TakeProfitPrice),
-			ExitTime:        x.ExitTime,
-			Pair:            pair,
-			EntryTime:       x.EntryTime,
-			Amount:          decimal.NewFromFloat(x.Amount),
-			ID:              x.ID,
-			StrategyName:    x.StrategyName,
-			Status:          order.Status(x.Status),
-			Side:            order.Side(x.Side),
-			UpdatedAt:       x.UpdatedAt,
-			CreatedAt:       x.CreatedAt,
-			EntryOrderID:    x.EntryOrderID,
+			EntryPrice:    decimal.NewFromFloat(x.EntryPrice),
+			StopLossPrice: decimal.NewFromFloat(x.StopLossPrice),
+			// TakeProfitPrice: decimal.NewFromFloat(x.TakeProfitPrice),
+			// ExitTime:     x.ExitTime,
+			Pair:         pair,
+			EntryTime:    x.EntryTime,
+			Amount:       decimal.NewFromFloat(x.Amount),
+			ID:           x.ID,
+			StrategyName: x.StrategyName,
+			Status:       order.Status(x.Status),
+			Side:         order.Side(x.Side),
+			UpdatedAt:    x.UpdatedAt,
+			CreatedAt:    x.CreatedAt,
+			EntryOrderID: x.EntryOrderID,
 		})
 	}
 	if errS != nil {
@@ -221,7 +224,7 @@ func insertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int, err 
 		EntryPrice: entryPrice,
 		// CreatedAt:     time.Now(),
 		EntryTime:       in.EntryTime,
-		ExitTime:        in.ExitTime,
+		ExitTime:        null.NewTime(in[x].ExitTime, !in[x].ExitTime.IsZero()),
 		ExitPrice:       exitPrice,
 		StopLossPrice:   stopLossPrice,
 		TakeProfitPrice: takeProfitPrice,

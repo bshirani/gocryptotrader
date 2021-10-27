@@ -41,7 +41,7 @@ type LiveOrder struct {
 	Cost            float64   `boil:"cost" json:"cost" toml:"cost" yaml:"cost"`
 	FilledAt        null.Time `boil:"filled_at" json:"filled_at,omitempty" toml:"filled_at" yaml:"filled_at,omitempty"`
 	AssetType       int       `boil:"asset_type" json:"asset_type" toml:"asset_type" yaml:"asset_type"`
-	SubmittedAt     time.Time `boil:"submitted_at" json:"submitted_at" toml:"submitted_at" yaml:"submitted_at"`
+	SubmittedAt     null.Time `boil:"submitted_at" json:"submitted_at,omitempty" toml:"submitted_at" yaml:"submitted_at,omitempty"`
 	CancelledAt     null.Time `boil:"cancelled_at" json:"cancelled_at,omitempty" toml:"cancelled_at" yaml:"cancelled_at,omitempty"`
 	CreatedAt       time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt       time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
@@ -162,7 +162,7 @@ var LiveOrderWhere = struct {
 	Cost            whereHelperfloat64
 	FilledAt        whereHelpernull_Time
 	AssetType       whereHelperint
-	SubmittedAt     whereHelpertime_Time
+	SubmittedAt     whereHelpernull_Time
 	CancelledAt     whereHelpernull_Time
 	CreatedAt       whereHelpertime_Time
 	UpdatedAt       whereHelpertime_Time
@@ -184,7 +184,7 @@ var LiveOrderWhere = struct {
 	Cost:            whereHelperfloat64{field: "\"live_order\".\"cost\""},
 	FilledAt:        whereHelpernull_Time{field: "\"live_order\".\"filled_at\""},
 	AssetType:       whereHelperint{field: "\"live_order\".\"asset_type\""},
-	SubmittedAt:     whereHelpertime_Time{field: "\"live_order\".\"submitted_at\""},
+	SubmittedAt:     whereHelpernull_Time{field: "\"live_order\".\"submitted_at\""},
 	CancelledAt:     whereHelpernull_Time{field: "\"live_order\".\"cancelled_at\""},
 	CreatedAt:       whereHelpertime_Time{field: "\"live_order\".\"created_at\""},
 	UpdatedAt:       whereHelpertime_Time{field: "\"live_order\".\"updated_at\""},
@@ -793,7 +793,6 @@ func (o *LiveOrder) Insert(ctx context.Context, exec boil.ContextExecutor, colum
 // See boil.Columns.UpdateColumnSet documentation to understand column list inference for updates.
 // Update does not automatically update the record in case of default values. Use .Reload() to refresh the records.
 func (o *LiveOrder) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
-	fmt.Println("updating columns", columns)
 	if !boil.TimestampsAreSkipped(ctx) {
 		currTime := time.Now().In(boil.GetLocation())
 
