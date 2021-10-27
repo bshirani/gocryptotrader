@@ -22,7 +22,9 @@ type Status string
 type Details struct {
 	ID              int
 	Side            order.Side
+	Amount          decimal.Decimal
 	Status          order.Status
+	FilledAt        time.Time
 	Pair            currency.Pair
 	Price           decimal.Decimal
 	StopLossPrice   decimal.Decimal

@@ -1,5 +1,6 @@
 -- +goose Up
 CREATE TYPE order_type AS ENUM ('MARKET', 'LIMIT', 'STOP');
+create type order_status as enum ('NEW', 'SUBMITTED', 'FILLED', 'CANCELLED');
 CREATE TABLE public.live_order (
     id SERIAL PRIMARY KEY,
     status order_status NOT NULL,
@@ -9,19 +10,23 @@ CREATE TABLE public.live_order (
     internal_id text NOT NULL,
     side public.order_side NOT NULL,
     client_order_id text DEFAULT ''::text NOT NULL,
-    amount double precision DEFAULT 0 NOT NULL,
+    amount double precision NOT NULL,
     symbol text NOT NULL,
-    price double precision DEFAULT 0 NOT NULL,
+    price double precision NOT NULL,
     stop_loss_price double precision DEFAULT 0 NOT NULL,
     take_profit_price double precision DEFAULT 0 NOT NULL,
     fee double precision DEFAULT 0 NOT NULL,
     cost double precision DEFAULT 0 NOT NULL,
-    filled_at timestamp without time zone NOT NULL,
+    filled_at timestamp without time zone,
     asset_type integer DEFAULT 0 NOT NULL,
     submitted_at timestamp without time zone NOT NULL,
     cancelled_at timestamp without time zone,
     created_at timestamp without time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
-    updated_at timestamp without time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+    updated_at timestamp without time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    CONSTRAINT filled_at CHECK (
+        (filled_at IS NULL AND (status = 'NEW' OR status = 'SUBMITTED' ))
+         OR (filled_at IS NOT NULL AND (status = 'CANCELLED' OR status = 'FILLED'))
+    )
 );
 
 CREATE TABLE public.live_trade (
@@ -50,3 +55,5 @@ ALTER TABLE ONLY public.live_trade
 -- +goose Down
 DROP TABLE live_trade;
 DROP TABLE live_order;
+DROP TYPE order_type;
+DROP TYPE order_status;

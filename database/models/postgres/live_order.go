@@ -39,7 +39,7 @@ type LiveOrder struct {
 	TakeProfitPrice float64   `boil:"take_profit_price" json:"take_profit_price" toml:"take_profit_price" yaml:"take_profit_price"`
 	Fee             float64   `boil:"fee" json:"fee" toml:"fee" yaml:"fee"`
 	Cost            float64   `boil:"cost" json:"cost" toml:"cost" yaml:"cost"`
-	FilledAt        time.Time `boil:"filled_at" json:"filled_at" toml:"filled_at" yaml:"filled_at"`
+	FilledAt        null.Time `boil:"filled_at" json:"filled_at,omitempty" toml:"filled_at" yaml:"filled_at,omitempty"`
 	AssetType       int       `boil:"asset_type" json:"asset_type" toml:"asset_type" yaml:"asset_type"`
 	SubmittedAt     time.Time `boil:"submitted_at" json:"submitted_at" toml:"submitted_at" yaml:"submitted_at"`
 	CancelledAt     null.Time `boil:"cancelled_at" json:"cancelled_at,omitempty" toml:"cancelled_at" yaml:"cancelled_at,omitempty"`
@@ -160,7 +160,7 @@ var LiveOrderWhere = struct {
 	TakeProfitPrice whereHelperfloat64
 	Fee             whereHelperfloat64
 	Cost            whereHelperfloat64
-	FilledAt        whereHelpertime_Time
+	FilledAt        whereHelpernull_Time
 	AssetType       whereHelperint
 	SubmittedAt     whereHelpertime_Time
 	CancelledAt     whereHelpernull_Time
@@ -182,7 +182,7 @@ var LiveOrderWhere = struct {
 	TakeProfitPrice: whereHelperfloat64{field: "\"live_order\".\"take_profit_price\""},
 	Fee:             whereHelperfloat64{field: "\"live_order\".\"fee\""},
 	Cost:            whereHelperfloat64{field: "\"live_order\".\"cost\""},
-	FilledAt:        whereHelpertime_Time{field: "\"live_order\".\"filled_at\""},
+	FilledAt:        whereHelpernull_Time{field: "\"live_order\".\"filled_at\""},
 	AssetType:       whereHelperint{field: "\"live_order\".\"asset_type\""},
 	SubmittedAt:     whereHelpertime_Time{field: "\"live_order\".\"submitted_at\""},
 	CancelledAt:     whereHelpernull_Time{field: "\"live_order\".\"cancelled_at\""},
@@ -212,8 +212,8 @@ type liveOrderL struct{}
 
 var (
 	liveOrderAllColumns            = []string{"id", "status", "order_type", "exchange", "strategy_name", "internal_id", "side", "client_order_id", "amount", "symbol", "price", "stop_loss_price", "take_profit_price", "fee", "cost", "filled_at", "asset_type", "submitted_at", "cancelled_at", "created_at", "updated_at"}
-	liveOrderColumnsWithoutDefault = []string{"status", "order_type", "exchange", "strategy_name", "internal_id", "side", "symbol", "filled_at", "submitted_at", "cancelled_at"}
-	liveOrderColumnsWithDefault    = []string{"id", "client_order_id", "amount", "price", "stop_loss_price", "take_profit_price", "fee", "cost", "asset_type", "created_at", "updated_at"}
+	liveOrderColumnsWithoutDefault = []string{"status", "order_type", "exchange", "strategy_name", "internal_id", "side", "amount", "symbol", "price", "filled_at", "submitted_at", "cancelled_at"}
+	liveOrderColumnsWithDefault    = []string{"id", "client_order_id", "stop_loss_price", "take_profit_price", "fee", "cost", "asset_type", "created_at", "updated_at"}
 	liveOrderPrimaryKeyColumns     = []string{"id"}
 )
 
@@ -793,6 +793,7 @@ func (o *LiveOrder) Insert(ctx context.Context, exec boil.ContextExecutor, colum
 // See boil.Columns.UpdateColumnSet documentation to understand column list inference for updates.
 // Update does not automatically update the record in case of default values. Use .Reload() to refresh the records.
 func (o *LiveOrder) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
+	fmt.Println("updating columns", columns)
 	if !boil.TimestampsAreSkipped(ctx) {
 		currTime := time.Now().In(boil.GetLocation())
 

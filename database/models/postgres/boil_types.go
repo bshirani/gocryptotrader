@@ -53,15 +53,17 @@ func makeCacheKey(cols boil.Columns, nzDefaults []string) string {
 
 // Enum values for order_status
 const (
-	OrderStatusNEW    = "NEW"
-	OrderStatusACTIVE = "ACTIVE"
-	OrderStatusFILLED = "FILLED"
+	OrderStatusNEW       = "NEW"
+	OrderStatusSUBMITTED = "SUBMITTED"
+	OrderStatusFILLED    = "FILLED"
+	OrderStatusCANCELLED = "CANCELLED"
 )
 
 // Enum values for order_type
 const (
 	OrderTypeMARKET = "MARKET"
 	OrderTypeLIMIT  = "LIMIT"
+	OrderTypeSTOP   = "STOP"
 )
 
 // Enum values for order_side

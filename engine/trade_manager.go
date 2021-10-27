@@ -175,8 +175,11 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	} else if o.GetDecision() == "" {
 		panic("order without decision")
 	}
-	if o.GetPrice().IsZero() {
+	if priceFloat == 0 {
 		panic("order has no price")
+	}
+	if a == 0 {
+		panic("order has no amount")
 	}
 
 	stopLossPrice, _ := o.GetStopLossPrice().Float64()
@@ -607,7 +610,9 @@ func (tm *TradeManager) processLiveMinute() error {
 		if tm.lastUpdateMin[cs] != thisMinute {
 			dbData, err := tm.loadLatestCandleFromDatabase(cs)
 			if err != nil {
-				fmt.Println("error loading latest candle", err)
+				if thisMinute.Sub(tm.lastUpdateMin[cs]).Minutes() > 1 {
+					fmt.Println("error loading latest candle", err)
+				}
 				continue
 			}
 			// fmt.Println("loaded latest candle")
@@ -895,7 +900,7 @@ func (tm *TradeManager) createFillEvent(ev submit.Event) {
 
 func (tm *TradeManager) processSubmitEvent(ev submit.Event) {
 	if tm.debug {
-		fmt.Println("processing submit event strategy:", ev.GetStrategyID())
+		log.Debugln(log.TradeMgr, "DEBUG: processing submit event strategy:", ev.GetStrategyID())
 	}
 	if ev.GetStrategyID() == 0 {
 		log.Error(log.TradeMgr, "submit event has no strategy ID")

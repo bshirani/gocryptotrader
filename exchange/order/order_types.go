@@ -142,6 +142,7 @@ type Detail struct {
 	Fee                  float64
 	FeeAsset             currency.Code
 	FillOrKill           bool
+	FilledAt             time.Time
 	HiddenOrder          bool
 	ID                   string
 	ImmediateOrCancel    bool
