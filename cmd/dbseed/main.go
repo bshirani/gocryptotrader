@@ -8,6 +8,7 @@ import (
 
 	"gocryptotrader/config"
 	"gocryptotrader/core"
+
 	"github.com/urfave/cli/v2"
 )
 

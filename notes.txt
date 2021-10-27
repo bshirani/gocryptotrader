@@ -237,5 +237,13 @@ X combine them together into a portfolio analysis
 X output the results json and prod configuration json
 
 
-now analyze the trades. Set a weight of 1 to winning strategies, and 0 to losers.
-Write the non-zero weighted strategies to prod config
+X now analyze the trades. Set a weight of 1 to winning strategies, and 0 to losers.
+X Write the non-zero weighted strategies to prod config
+
+
+
+analyze the performance of the strategies
+- % winners
+- expectancy
+- average win/loss
+- percentage of months profitable
