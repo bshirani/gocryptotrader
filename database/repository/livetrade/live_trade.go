@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"strconv"
 	"time"
 
@@ -287,15 +286,11 @@ func upsertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int, err 
 	return tempInsert.ID, nil
 }
 
-func WriteCSV(trades []*Details) {
+func WriteCSV(trades []*Details, newpath string) {
 	// var nickName string
 	// if d.Config.Nickname != "" {
 	// 	nickName = d.Config.Nickname + "-"
 	// }
-	fileName := fmt.Sprintf(
-		"results/trades-%v.csv",
-		time.Now().Format("2006-01-02-15-04-05"))
-	newpath := filepath.Join(".", fileName)
 	fmt.Println("writing to", newpath)
 
 	file, err := os.OpenFile(newpath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)

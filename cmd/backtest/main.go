@@ -34,16 +34,16 @@ func main() {
 	flag.BoolVar(&darkReport, "darkreport", false, "sets the initial rerport to use a dark theme")
 	flag.Parse()
 
-	configPath = filepath.Join(wd, "../confs/dev", fmt.Sprintf("%s.json", configPath))
+	configPath = filepath.Join(wd, "../../confs/dev", fmt.Sprintf("%s.json", configPath))
 
 	if printLogo {
 		fmt.Print(common.ASCIILogo)
 	}
 
 	if tradeConfigPath == "" {
-		tradeConfigPath = filepath.Join(wd, "../confs/prod.strat")
+		tradeConfigPath = filepath.Join(wd, "../../confs/prod.strat")
 	} else {
-		tradeConfigPath = filepath.Join(wd, "../confs/dev/strategy", fmt.Sprintf("%s.strat", tradeConfigPath))
+		tradeConfigPath = filepath.Join(wd, "../../confs/dev/strategy", fmt.Sprintf("%s.strat", tradeConfigPath))
 	}
 	// fmt.Println("Loading TradeManager Config", strategy)
 

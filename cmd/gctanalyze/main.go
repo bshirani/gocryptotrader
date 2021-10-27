@@ -15,7 +15,7 @@ import (
 
 var (
 	app = &cli.App{
-		Name:                 "analyze",
+		Name:                 "gctanalyze",
 		Version:              core.Version(false),
 		EnableBashCompletion: true,
 		Flags: []cli.Flag{
@@ -27,18 +27,19 @@ var (
 			},
 		},
 		Commands: []*cli.Command{
+			backtestCommand,
 			{
-				Name:   "pf",
+				Name:   "analyze_pf",
 				Usage:  "analyze pf",
 				Action: analyzePF,
 			},
 			{
-				Name:   "weights",
-				Usage:  "update pf weights",
+				Name:   "calculate_weights",
+				Usage:  "calculate and update pf weights",
 				Action: updateWeights,
 			},
 			{
-				Name:   "store_all",
+				Name:   "generate_all_strategies",
 				Usage:  "generate all.strat",
 				Action: generateAll,
 			},
@@ -55,7 +56,7 @@ func main() {
 }
 func updateWeights(c *cli.Context) error {
 	pf, err := getPF()
-	prodWeighted := filepath.Join(workingDir, "../confs/prod.strat")
+	prodWeighted := filepath.Join(workingDir, "confs/prod.strat")
 	fmt.Println("saving", len(pf.Weights.Strategies), "pf weights to", prodWeighted)
 	pf.Weights.Save(prodWeighted)
 	return err
@@ -66,7 +67,7 @@ func analyzePF(c *cli.Context) error {
 	filename := fmt.Sprintf(
 		"portfolio_analysis_%v.json",
 		time.Now().Format("2006-01-02-15-04-05"))
-	filename = filepath.Join(workingDir, "results", filename)
+	filename = filepath.Join(workingDir, "results/pf", filename)
 	fmt.Println("saved portfolio analysis to")
 	fmt.Println(filename)
 	pf.Save(filename)
@@ -75,7 +76,7 @@ func analyzePF(c *cli.Context) error {
 
 func generateAll(c *cli.Context) error {
 	pf, err := getPF()
-	allPath := filepath.Join(workingDir, "../confs/dev/strategy/all.strat")
+	allPath := filepath.Join(workingDir, "confs/dev/strategy/all.strat")
 	fmt.Println("saving all.strat to", allPath)
 	pf.SaveAllStrategiesConfigFile(allPath)
 	return err
@@ -87,7 +88,7 @@ func getPF() (*analyze.PortfolioAnalysis, error) {
 		fmt.Printf("Could not get working directory. Error: %v.\n", err)
 		os.Exit(1)
 	}
-	configPath := filepath.Join(workingDir, "../confs/dev/backtest.json")
+	configPath := filepath.Join(workingDir, "confs/dev/backtest.json")
 	cfg, err := config.ReadConfigFromFile(configPath)
 	if err != nil {
 		fmt.Printf("Could not read config. Error: %v. Path: %s\n", err, configPath)

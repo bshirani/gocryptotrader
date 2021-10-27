@@ -14,6 +14,7 @@ import (
 	"gocryptotrader/database/repository/liveorder"
 	"gocryptotrader/database/repository/livetrade"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -406,7 +407,12 @@ dataLoadingIssue:
 	}
 
 	if !tm.liveMode {
-		livetrade.WriteCSV(tm.Portfolio.GetAllClosedTrades())
+		fileName := fmt.Sprintf(
+			"results/bt/trades-%v.csv",
+			time.Now().Format("2006-01-02-15-04-05"))
+		newpath := filepath.Join(".", fileName)
+
+		livetrade.WriteCSV(tm.Portfolio.GetAllClosedTrades(), newpath)
 		// &analyze.PortfolioAnalysis{}.Analyze("")
 	}
 
