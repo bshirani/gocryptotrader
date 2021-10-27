@@ -43,6 +43,7 @@ type PortfolioReport struct {
 	NumTrades          int64
 	NumStrategies      int64
 	AverageDurationMin float64
+	StrategiesAnalyses []*StrategyAnalysis
 }
 
 // CurrencyStatistic Holds all events and statistics relevant to an exchange, asset type and currency pair

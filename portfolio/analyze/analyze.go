@@ -38,6 +38,7 @@ func (p *PortfolioAnalysis) Analyze(filepath string) error {
 	p.analyzeGroupedStrategies()
 	p.calculateReport()
 	p.calculateProductionWeights()
+	p.Report.StrategiesAnalyses = p.StrategiesAnalyses
 
 	return err
 }
@@ -400,7 +401,7 @@ func (p *PortfolioAnalysis) Save(filepath string) error {
 			}
 		}
 	}()
-	payload, err := json.MarshalIndent(p, "", " ")
+	payload, err := json.MarshalIndent(p.Report, "", " ")
 	if err != nil {
 		return err
 	}
