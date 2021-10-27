@@ -34,7 +34,7 @@ var (
 				Action: analyzePF,
 			},
 			{
-				Name:   "calculate_weights",
+				Name:   "update_weights",
 				Usage:  "calculate and update pf weights",
 				Action: updateWeights,
 			},
