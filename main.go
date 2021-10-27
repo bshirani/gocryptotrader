@@ -1,181 +1,109 @@
 package main
 
 import (
-	"flag"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
-	"runtime"
 	"time"
 
-	"gocryptotrader/common"
+	"gocryptotrader/cmd/backtest"
+	"gocryptotrader/cmd/live"
 	"gocryptotrader/config"
 	"gocryptotrader/core"
-	"gocryptotrader/dispatch"
-	"gocryptotrader/engine"
-	"gocryptotrader/exchange/request"
-	"gocryptotrader/exchange/trade"
-	"gocryptotrader/gctscript"
-	gctscriptVM "gocryptotrader/gctscript/vm"
-	gctlog "gocryptotrader/log"
-	"gocryptotrader/portfolio/withdraw"
-	"gocryptotrader/signaler"
+	"gocryptotrader/portfolio/analyze"
+
+	"github.com/urfave/cli/v2"
+)
+
+var (
+	app = &cli.App{
+		Name:                 "gct",
+		Version:              core.Version(false),
+		EnableBashCompletion: true,
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:        "command",
+				Value:       "",
+				Usage:       "command to run",
+				Destination: &command,
+			},
+		},
+		Commands: []*cli.Command{
+			backtest.BacktestCommand,
+			live.LiveCommand,
+			{
+				Name:   "analyze_pf",
+				Usage:  "analyze pf",
+				Action: analyzePF,
+			},
+			{
+				Name:   "update_weights",
+				Usage:  "calculate and update pf weights",
+				Action: updateWeights,
+			},
+			{
+				Name:   "generate_all_strategies",
+				Usage:  "generate all.strat",
+				Action: generateAll,
+			},
+		},
+	}
+	workingDir string
+	configFile string
+	verbose    bool
+	command    string
 )
 
 func main() {
-	// Handle flags
-	var settings engine.Settings
-	versionFlag := flag.Bool("version", false, "retrieves current GoCryptoTrader version")
+	app.Run(os.Args)
+}
+func updateWeights(c *cli.Context) error {
+	pf, err := getPF()
+	prodWeighted := filepath.Join(workingDir, "confs/prod.strat")
+	fmt.Println("saving", len(pf.Weights.Strategies), "pf weights to", prodWeighted)
+	pf.Weights.Save(prodWeighted)
+	return err
+}
 
-	flag.StringVar(&settings.ConfigFile, "config", "", "config file to load")
-	flag.StringVar(&settings.TradeConfigFile, "trade", "", "config file to load")
-	flag.StringVar(&settings.DataDir, "datadir", common.GetDefaultDataDir(runtime.GOOS), "default data directory for GoCryptoTrader files")
+func analyzePF(c *cli.Context) error {
+	pf, err := getPF()
+	filename := fmt.Sprintf(
+		"portfolio_analysis_%v.json",
+		time.Now().Format("2006-01-02-15-04-05"))
+	filename = filepath.Join(workingDir, "results/pf", filename)
+	fmt.Println("saved portfolio analysis to")
+	fmt.Println(filename)
+	pf.Save(filename)
+	return err
+}
 
-	// Core settings
-	flag.BoolVar(&settings.EnableProductionMode, "production", false, "enables production mode (real $$$)")
-	flag.BoolVar(&settings.EnableAllExchanges, "enableallexchanges", false, "enables all exchanges")
-	flag.BoolVar(&settings.EnableAllPairs, "enableallpairs", false, "enables all pairs for enabled exchanges")
-	flag.BoolVar(&settings.EnableCommsRelayer, "enablecommsrelayer", false, "enables available communications relayer")
-	flag.BoolVar(&settings.EnableConnectivityMonitor, "connectivitymonitor", true, "enables the connectivity monitor")
-	flag.BoolVar(&settings.EnableCurrencyStateManager, "currencystatemanager", true, "enables the currency state manager")
-	flag.BoolVar(&settings.EnableDataHistoryManager, "datahistory", false, "enables the data history manager")
-	flag.BoolVar(&settings.EnableDatabaseManager, "databasemanager", true, "enables database manager")
-	flag.BoolVar(&settings.EnableDepositAddressManager, "depositaddressmanager", false, "enables the deposit address manager")
-	flag.BoolVar(&settings.EnableDispatcher, "dispatch", true, "enables the dispatch system")
-	flag.BoolVar(&settings.EnableDryRun, "enabledryrun", false, "dry runs bot, doesn't use database for trades/orders")
-	flag.BoolVar(&settings.EnableEventManager, "eventmanager", false, "enables the event manager")
-	flag.BoolVar(&settings.EnableExchangeSyncManager, "sync", false, "enables to exchange sync manager")
-	flag.BoolVar(&settings.EnableGCTScriptManager, "gctscriptmanager", false, "enables gctscript manager")
-	flag.BoolVar(&settings.EnableGRPC, "grpc", false, "enables the grpc server")
-	flag.BoolVar(&settings.EnableGRPCProxy, "grpcproxy", false, "enables the grpc proxy server")
-	flag.BoolVar(&settings.EnableLiveMode, "livemode", false, "enables live mode")
-	flag.BoolVar(&settings.EnableNTPClient, "ntpclient", true, "enables the NTP client to check system clock drift")
-	flag.BoolVar(&settings.EnableOrderManager, "orders", false, "enables the order manager")
-	flag.BoolVar(&settings.EnablePortfolioManager, "account", true, "enables the portfolio manager")
-	flag.BoolVar(&settings.EnableWebsocketRPC, "websocketrpc", false, "enables the websocket RPC server")
-	flag.BoolVar(&settings.EnableWebsocketRoutine, "websocketroutine", false, "enables the websocket routine for all loaded exchanges")
-	flag.BoolVar(&settings.Verbose, "verbose", false, "increases logging verbosity for GoCryptoTrader")
-	flag.DurationVar(&settings.EventManagerDelay, "eventmanagerdelay", time.Duration(0), "sets the event managers sleep delay between event checking")
-	flag.DurationVar(&settings.PortfolioManagerDelay, "portfoliomanagerdelay", time.Duration(0), "sets the portfolio managers sleep delay between updates")
-	flag.IntVar(&settings.DispatchJobsLimit, "dispatchjobslimit", dispatch.DefaultJobsLimit, "sets the dispatch package max jobs limit")
-	flag.IntVar(&settings.DispatchMaxWorkerAmount, "dispatchworkers", dispatch.DefaultMaxWorkers, "sets the dispatch package max worker generation limit")
-	flag.IntVar(&settings.GoMaxProcs, "gomaxprocs", runtime.GOMAXPROCS(-1), "sets the runtime GOMAXPROCS value")
+func generateAll(c *cli.Context) error {
+	pf, err := getPF()
+	allPath := filepath.Join(workingDir, "confs/dev/strategy/all.strat")
+	fmt.Println("saving all.strat to", allPath)
+	pf.SaveAllStrategiesConfigFile(allPath)
+	return err
+}
 
-	// data importer
-	flag.BoolVar(&settings.EnableDataImporter, "dataimporter", false, "enables data importer")
-
-	// trading settings
-	flag.BoolVar(&settings.EnableClearDB, "cleardb", false, "enable clear db")
-
-	// Exchange syncer settings
-	flag.BoolVar(&settings.EnableKlineSyncing, "klinesync", true, "enables kline syncing for all enabled exchanges")
-	flag.BoolVar(&settings.EnableTickerSyncing, "tickersync", false, "enables ticker syncing for all enabled exchanges")
-	flag.BoolVar(&settings.EnableOrderbookSyncing, "orderbooksync", false, "enables orderbook syncing for all enabled exchanges")
-	flag.BoolVar(&settings.EnableTradeSyncing, "tradesync", false, "enables trade syncing for all enabled exchanges")
-	flag.IntVar(&settings.SyncWorkers, "syncworkers", engine.DefaultSyncerWorkers, "the amount of workers (goroutines) to use for syncing exchange data")
-	flag.BoolVar(&settings.SyncContinuously, "synccontinuously", true, "whether to sync exchange data continuously (ticker, orderbook and trade history info")
-	flag.DurationVar(&settings.SyncTimeoutREST, "synctimeoutrest", engine.DefaultSyncerTimeoutREST,
-		"the amount of time before the syncer will switch from rest protocol to the streaming protocol (e.g. from REST to websocket)")
-	flag.DurationVar(&settings.SyncTimeoutWebsocket, "synctimeoutwebsocket", engine.DefaultSyncerTimeoutWebsocket,
-		"the amount of time before the syncer will switch from the websocket protocol to REST protocol (e.g. from websocket to REST)")
-
-	// Forex provider settings
-	flag.BoolVar(&settings.EnableCoinmarketcapAnalysis, "coinmarketcap", false, "overrides config and runs currency analysis")
-	flag.BoolVar(&settings.EnableCurrencyConverter, "currencyconverter", false, "overrides config and sets up foreign exchange Currency Converter")
-	flag.BoolVar(&settings.EnableCurrencyLayer, "currencylayer", false, "overrides config and sets up foreign exchange Currency Layer")
-	flag.BoolVar(&settings.EnableFixer, "fixer", false, "overrides config and sets up foreign exchange Fixer.io")
-	flag.BoolVar(&settings.EnableOpenExchangeRates, "openexchangerates", false, "overrides config and sets up foreign exchange Open Exchange Rates")
-	flag.BoolVar(&settings.EnableExchangeRateHost, "exchangeratehost", false, "overrides config and sets up foreign exchange ExchangeRate.host")
-
-	// Exchange tuning settings
-	flag.BoolVar(&settings.EnableExchangeAutoPairUpdates, "exchangeautopairupdates", false, "enables automatic available currency pair updates for supported exchanges")
-	flag.BoolVar(&settings.DisableExchangeAutoPairUpdates, "exchangedisableautopairupdates", false, "disables exchange auto pair updates")
-	flag.BoolVar(&settings.EnableExchangeWebsocketSupport, "exchangewebsocketsupport", true, "enables Websocket support for exchanges")
-	flag.BoolVar(&settings.EnableExchangeRESTSupport, "exchangerestsupport", true, "enables REST support for exchanges")
-	flag.BoolVar(&settings.EnableExchangeVerbose, "exchangeverbose", false, "increases exchange logging verbosity")
-	flag.BoolVar(&settings.ExchangePurgeCredentials, "exchangepurgecredentials", false, "purges the stored exchange API credentials")
-	flag.BoolVar(&settings.EnableExchangeHTTPRateLimiter, "ratelimiter", true, "enables the rate limiter for HTTP requests")
-	flag.IntVar(&settings.MaxHTTPRequestJobsLimit, "requestjobslimit", int(request.DefaultMaxRequestJobs), "sets the max amount of jobs the HTTP request package stores")
-	flag.IntVar(&settings.RequestMaxRetryAttempts, "httpmaxretryattempts", request.DefaultMaxRetryAttempts, "sets the number of retry attempts after a retryable HTTP failure")
-	flag.DurationVar(&settings.HTTPTimeout, "httptimeout", time.Duration(0), "sets the HTTP timeout value for HTTP requests")
-	flag.StringVar(&settings.HTTPUserAgent, "httpuseragent", "", "sets the HTTP user agent")
-	flag.StringVar(&settings.HTTPProxy, "httpproxy", "", "sets the HTTP proxy server")
-	flag.BoolVar(&settings.EnableExchangeHTTPDebugging, "exchangehttpdebugging", false, "sets the exchanges HTTP debugging")
-	flag.DurationVar(&settings.TradeBufferProcessingInterval, "tradeprocessinginterval", trade.DefaultProcessorIntervalTime, "sets the interval to save trade buffer data to the database")
-
-	// Common tuning settings
-	flag.DurationVar(&settings.GlobalHTTPTimeout, "globalhttptimeout", time.Duration(0), "sets common HTTP timeout value for HTTP requests")
-	flag.StringVar(&settings.GlobalHTTPUserAgent, "globalhttpuseragent", "", "sets the common HTTP client's user agent")
-	flag.StringVar(&settings.GlobalHTTPProxy, "globalhttpproxy", "", "sets the common HTTP client's proxy server")
-
-	// GCTScript tuning settings
-	flag.UintVar(&settings.MaxVirtualMachines, "maxvirtualmachines", uint(gctscriptVM.DefaultMaxVirtualMachines), "set max virtual machines that can load")
-
-	// Withdraw Cache tuning settings
-	flag.Uint64Var(&settings.WithdrawCacheSize, "withdrawcachesize", withdraw.CacheSize, "set cache size for withdrawal requests")
-
-	flag.Parse()
-
-	if *versionFlag {
-		fmt.Print(core.Version(true))
-		os.Exit(0)
-	}
-	// fmt.Println(core.Banner)
-	// fmt.Println(core.Version(false))
-
-	var err error
-	settings.CheckParamInteraction = true
-
-	// collect flags
-	flagSet := make(map[string]bool)
-	// Stores the set flags
-	flag.Visit(func(f *flag.Flag) { flagSet[f.Name] = true })
-	wd, err := os.Getwd()
+func getPF() (*analyze.PortfolioAnalysis, error) {
+	workingDir, err := os.Getwd()
 	if err != nil {
 		fmt.Printf("Could not get working directory. Error: %v.\n", err)
 		os.Exit(1)
 	}
-
-	configDir := filepath.Join(wd, "confs")
-	if settings.EnableProductionMode {
-		settings.ConfigFile = filepath.Join(configDir, fmt.Sprintf("prod.json", settings.ConfigFile))
-		settings.TradeConfigFile = filepath.Join(configDir, fmt.Sprintf("prod.strat", settings.TradeConfigFile))
-	} else {
-		if settings.TradeConfigFile == "" {
-			settings.TradeConfigFile = filepath.Join(configDir, "prod.strat")
-		} else {
-			settings.TradeConfigFile = filepath.Join(configDir, fmt.Sprintf("dev/strategy/%s.strat", settings.TradeConfigFile))
-		}
-
-		if settings.ConfigFile == "" {
-			settings.ConfigFile = filepath.Join(configDir, "dev/live.json")
-		} else {
-			settings.ConfigFile = filepath.Join(configDir, fmt.Sprintf("dev/%s.json", settings.ConfigFile))
-		}
-	}
-
-	if flagSet["trade"] {
-		// If config file is not explicitly set, fall back to default path resolution
-		settings.EnableExchangeSyncManager = true
-	}
-
-	engine.Bot, err = engine.NewFromSettings(&settings, flagSet)
-	if engine.Bot == nil || err != nil {
-		log.Fatalf("Unable to initialise bot engine. Error: %s\n", err)
-	}
-	config.Cfg = *engine.Bot.Config
-
-	gctscript.Setup()
-
-	engine.PrintSettings(&engine.Bot.Settings)
-	if err = engine.Bot.Start(); err != nil {
-		gctlog.Errorf(gctlog.Global, "Unable to start bot engine. Error: %s\n", err)
+	configPath := filepath.Join(workingDir, "confs/dev/backtest.json")
+	cfg, err := config.ReadConfigFromFile(configPath)
+	if err != nil {
+		fmt.Printf("Could not read config. Error: %v. Path: %s\n", err, configPath)
 		os.Exit(1)
 	}
 
-	interrupt := signaler.WaitForInterrupt()
-	gctlog.Infof(gctlog.Global, "Captured %v, shutdown requested.\n", interrupt)
-	engine.Bot.Stop()
-	gctlog.Infoln(gctlog.Global, "Exiting.")
+	pf := &analyze.PortfolioAnalysis{
+		Config: cfg,
+	}
+	err = pf.Analyze("")
+	if err != nil {
+		fmt.Println("error analyzeTrades", err)
+	}
+	return pf, err
 }

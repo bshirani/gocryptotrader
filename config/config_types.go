@@ -175,8 +175,16 @@ type FactorEngineConfig struct {
 }
 
 type SyncManagerConfig struct {
-	Verbose bool `json:"verbose"`
-	Enabled bool `json:"enabled"`
+	Verbose              bool          `json:"verbose"`
+	Enabled              bool          `json:"enabled"`
+	TickerSync           bool          `json:"tickerSync"`
+	OrderBookSync        bool          `json:"orderBookSync"`
+	KlineSync            bool          `json:"klineSync"`
+	TradeSync            bool          `json:"tradeSync"`
+	SyncContinuously     bool          `json:"syncContinuously"`
+	SyncWorkers          int           `json:"syncWorkers"`
+	SyncTimeoutREST      time.Duration `json:"syncTimeoutRest"`
+	SyncTimeoutWebsocket time.Duration `json:"syncTimeoutWebsocket"`
 }
 
 type OrderManagerConfig struct {

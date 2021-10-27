@@ -45,3 +45,6 @@ results/
 
 contrib/configbuilder
 finished.log
+tls/
+cmd/backtest/results.old/
+cmd/backtest/results/

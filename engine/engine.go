@@ -589,15 +589,15 @@ func (bot *Engine) Start() error {
 
 	if bot.Settings.EnableExchangeSyncManager {
 		exchangeSyncCfg := &Config{
-			SyncTicker:           bot.Settings.EnableTickerSyncing,
-			SyncOrderbook:        bot.Settings.EnableOrderbookSyncing,
-			SyncKlines:           bot.Settings.EnableKlineSyncing,
-			SyncTrades:           bot.Settings.EnableTradeSyncing,
-			SyncContinuously:     bot.Settings.SyncContinuously,
-			NumWorkers:           bot.Settings.SyncWorkers,
-			Verbose:              bot.Settings.Verbose,
-			SyncTimeoutREST:      bot.Settings.SyncTimeoutREST,
-			SyncTimeoutWebsocket: bot.Settings.SyncTimeoutWebsocket,
+			SyncTicker:           bot.Config.SyncManager.TickerSync,
+			SyncOrderbook:        bot.Config.SyncManager.OrderBookSync,
+			SyncKlines:           bot.Config.SyncManager.KlineSync,
+			SyncTrades:           bot.Config.SyncManager.TradeSync,
+			SyncContinuously:     bot.Config.SyncManager.SyncContinuously,
+			NumWorkers:           bot.Config.SyncManager.SyncWorkers,
+			Verbose:              bot.Config.SyncManager.Verbose,
+			SyncTimeoutREST:      bot.Config.SyncManager.SyncTimeoutREST,
+			SyncTimeoutWebsocket: bot.Config.SyncManager.SyncTimeoutWebsocket,
 		}
 
 		bot.currencyPairSyncer, err = setupSyncManager(
