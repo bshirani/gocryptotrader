@@ -1232,7 +1232,7 @@ func (tm *TradeManager) loadLatestCandleFromDatabase(eap *ExchangeAssetPairSetti
 	// sameTime := (t1.Year() == t2.Year() && t1.Month() == t2.Month() && t1.Day() == t2.Day() && t1.Hour() == t2.Hour() && t1.Minute() == t2.Minute())
 	if !common.IsSameMinute(t1, thisMinute) {
 		// fmt.Println("don't have bar yet", lastCandle.Time, thisMinute)
-		return nil, fmt.Errorf("don't have bar yet", lastCandle.Time, thisMinute)
+		return nil, fmt.Errorf("don't have bar yet. age: %d", int(thisMinute.Sub(lastCandle.Time).Minutes()))
 	}
 	// fmt.Println("db load data", p, thisMinute)
 	dbData.Load()
