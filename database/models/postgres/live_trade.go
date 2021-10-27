@@ -562,7 +562,7 @@ func (liveTradeL) LoadEntryOrder(ctx context.Context, e boil.ContextExecutor, si
 		if foreign.R == nil {
 			foreign.R = &liveOrderR{}
 		}
-		foreign.R.EntryOrderLiveTrades = append(foreign.R.EntryOrderLiveTrades, object)
+		foreign.R.EntryOrderLiveTrade = object
 		return nil
 	}
 
@@ -573,7 +573,7 @@ func (liveTradeL) LoadEntryOrder(ctx context.Context, e boil.ContextExecutor, si
 				if foreign.R == nil {
 					foreign.R = &liveOrderR{}
 				}
-				foreign.R.EntryOrderLiveTrades = append(foreign.R.EntryOrderLiveTrades, local)
+				foreign.R.EntryOrderLiveTrade = local
 				break
 			}
 		}
@@ -584,7 +584,7 @@ func (liveTradeL) LoadEntryOrder(ctx context.Context, e boil.ContextExecutor, si
 
 // SetEntryOrder of the liveTrade to the related item.
 // Sets o.R.EntryOrder to related.
-// Adds o to related.R.EntryOrderLiveTrades.
+// Adds o to related.R.EntryOrderLiveTrade.
 func (o *LiveTrade) SetEntryOrder(ctx context.Context, exec boil.ContextExecutor, insert bool, related *LiveOrder) error {
 	var err error
 	if insert {
@@ -620,10 +620,10 @@ func (o *LiveTrade) SetEntryOrder(ctx context.Context, exec boil.ContextExecutor
 
 	if related.R == nil {
 		related.R = &liveOrderR{
-			EntryOrderLiveTrades: LiveTradeSlice{o},
+			EntryOrderLiveTrade: o,
 		}
 	} else {
-		related.R.EntryOrderLiveTrades = append(related.R.EntryOrderLiveTrades, o)
+		related.R.EntryOrderLiveTrade = o
 	}
 
 	return nil

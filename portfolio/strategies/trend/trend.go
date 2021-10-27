@@ -64,15 +64,16 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 		return &es, nil
 	}
 
-	orders := p.GetOpenOrdersForStrategy(s.GetID())
-	trade := p.GetTradeForStrategy(s.GetID())
+	orders := p.GetOpenOrdersForStrategy(s.GetLabel())
+	trade := p.GetTradeForStrategy(s.GetLabel())
 
-	if trade != nil {
-		fmt.Println("trend.go has", len(orders), "orders", "has trade")
+	if trade == nil {
+		// fmt.Println("no trade")
+		// fmt.Println("trend.go has", len(orders), "orders", "has trade")
 	}
 
 	if trade == nil && len(orders) == 0 {
-		fmt.Println("has no trade")
+		// fmt.Println("has no trade")
 		return s.checkEntry(es, p, d, fe)
 	}
 
@@ -155,7 +156,7 @@ func (s *Strategy) checkExit(es signal.Signal, p base.StrategyPortfolioHandler, 
 	// 	fmt.Println("trade profit greater than 10, exiting")
 
 	currentTime := d.Latest().GetTime()
-	trade := p.GetTradeForStrategy(s.GetID())
+	trade := p.GetTradeForStrategy(s.GetLabel())
 	minutesInTrade := int(currentTime.Sub(trade.EntryTime).Minutes())
 
 	if minutesInTrade < -2 {

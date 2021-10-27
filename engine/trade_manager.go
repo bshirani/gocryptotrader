@@ -125,9 +125,11 @@ func NewTradeManager(bot *Engine) (*TradeManager, error) {
 		ex := tm.bot.Config.GetEnabledExchanges()[0]
 		tm.Strategies = SetupStrategies(tm.bot.Config.TradeManager.Strategies, ex)
 
-		fmt.Println("-----------created strategies---------------")
+		log.Debugln(
+			log.TradeMgr,
+			"-----------created strategies---------------")
 		for _, st := range tm.Strategies {
-			fmt.Println(st.GetLabel())
+			log.Debugln(log.TradeMgr, st.GetLabel())
 		}
 
 		if tm.bot.Settings.EnableClearDB {
@@ -180,6 +182,9 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	}
 	if a == 0 {
 		panic("order has no amount")
+	}
+	if o.GetStrategyName() == "" {
+		panic("order has no strategy name")
 	}
 
 	stopLossPrice, _ := o.GetStopLossPrice().Float64()
@@ -318,6 +323,7 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 		FullyMatched:    omr.FullyMatched,
 		Price:           omr.Rate,
 		StrategyID:      o.GetStrategyID(),
+		StrategyName:    o.GetStrategyName(),
 	}
 
 	// if ev.GetInternalOrderID() == "" {
@@ -742,6 +748,7 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 					// fmt.Println("ON DATA", d.Latest().Pair())
 					s, err := strategy.OnData(d, tm.Portfolio, fe)
 					s.SetStrategyID(strategy.GetID())
+					s.SetStrategyName(strategy.GetLabel())
 					if err != nil {
 						fmt.Println("error processing data event", err)
 						return err
@@ -787,6 +794,11 @@ func (tm *TradeManager) processSimultaneousDataEvents() error {
 
 func (tm *TradeManager) processSignalEvent(ev signal.Event) {
 	// fmt.Println("process signal", ev.GetReason())
+
+	if ev.GetStrategyName() == "" {
+		panic("cannot process signal without straegy name")
+	}
+
 	cs, err := tm.bot.GetCurrencySettings(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 	if err != nil {
 		log.Error(log.TradeMgr, "error", err)
@@ -814,6 +826,9 @@ func (tm *TradeManager) processSignalEvent(ev signal.Event) {
 func (tm *TradeManager) createFillEvent(ev submit.Event) {
 	if ev.GetStrategyID() == 0 {
 		panic("order submit response has no strategyID")
+	}
+	if ev.GetStrategyName() == "" {
+		panic("order submit response has no strategy Name")
 	}
 	if !ev.GetIsOrderPlaced() {
 		panic("trying filling an unsubmitted order")
@@ -983,7 +998,7 @@ func (tm *TradeManager) processOrderEvent(o order.Event) {
 		// first cancel the stop loss order
 		// tm.CancelOrder(o, d, tm.bot.OrderManager)
 		// fmt.Println("cancel order id:", o.GetID())
-		openOrders := tm.Portfolio.GetOpenOrdersForStrategy(o.GetStrategyID())
+		openOrders := tm.Portfolio.GetOpenOrdersForStrategy(o.GetStrategyName())
 		for _, op := range openOrders {
 			cancel := &gctorder.Cancel{
 				ID:       op.ID,
@@ -1021,7 +1036,9 @@ func (tm *TradeManager) processOrderEvent(o order.Event) {
 		fmt.Println("error getting active ")
 		panic(err)
 	}
-	if len(activeT) > 0 {
+	if len(activeT) > 1 {
+		fmt.Println("there are", len(activeT), "trade sfor the strategy", o.GetStrategyName())
+
 		fmt.Println("active trade for stratgey, trying to create", o.GetStrategyName())
 		panic(err)
 	}
@@ -1222,7 +1239,7 @@ func (tm *TradeManager) loadBacktestData() (err error) {
 			panic(fmt.Sprintf("no candles for", e, p))
 		}
 
-		fmt.Println("loaded backtest data for", p, startDate, endDate)
+		// fmt.Println("loaded backtest data for", p, startDate, endDate)
 
 		tm.Datas.SetDataForCurrency(e, a, p, dbData)
 		dbData.RangeHolder, err = kline.CalculateCandleDateRanges(
@@ -1231,7 +1248,7 @@ func (tm *TradeManager) loadBacktestData() (err error) {
 			kline.Interval(kline.OneMin),
 			0)
 		candlesLen := len(dbData.Item.Candles)
-		fmt.Println("loaded for currency", p, "candles:", candlesLen)
+		fmt.Println("BTDB loaded for currency", p, "candles:", candlesLen)
 
 		dbData.Load()
 

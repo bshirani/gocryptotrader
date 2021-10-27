@@ -17,7 +17,6 @@ import (
 	gctorder "gocryptotrader/exchange/order"
 	"gocryptotrader/portfolio/compliance"
 	"gocryptotrader/portfolio/holdings"
-	"gocryptotrader/portfolio/positions"
 	"gocryptotrader/portfolio/risk"
 	"gocryptotrader/portfolio/strategies"
 
@@ -45,9 +44,8 @@ var (
 
 type portfolioStore struct {
 	m            sync.RWMutex
-	positions    map[int]*positions.Position
-	openTrade    map[int]*livetrade.Details
-	closedTrades map[int][]*livetrade.Details
+	openTrade    map[string]*livetrade.Details
+	closedTrades map[string][]*livetrade.Details
 	wg           *sync.WaitGroup
 }
 
@@ -109,7 +107,7 @@ type ExchangeAssetPairSettings struct {
 type PortfolioHandler interface {
 	GetVerbose() bool
 	OnSignal(signal.Event, *ExchangeAssetPairSettings) (*order.Order, error)
-	GetOpenOrdersForStrategy(int) []gctorder.Detail
+	GetOpenOrdersForStrategy(string) []gctorder.Detail
 	GetOrderFromStore(int) *gctorder.Detail
 
 	OnFill(fill.Event)
@@ -121,10 +119,8 @@ type PortfolioHandler interface {
 	ViewHoldingAtTimePeriod(eventtypes.EventHandler) (*holdings.Holding, error)
 	setHoldingsForOffset(*holdings.Holding, bool) error
 	UpdateHoldings(eventtypes.DataEventHandler) error
-	GetTradeForStrategy(int) *livetrade.Details
+	GetTradeForStrategy(string) *livetrade.Details
 	GetComplianceManager(string, asset.Item, currency.Pair) (*compliance.Manager, error)
-
-	PrintPortfolioDetails()
 
 	SetFee(string, asset.Item, currency.Pair, decimal.Decimal)
 	GetFee(string, asset.Item, currency.Pair) decimal.Decimal

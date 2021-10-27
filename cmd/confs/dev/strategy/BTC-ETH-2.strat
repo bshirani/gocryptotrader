@@ -1,0 +1,30 @@
+[
+ {
+  "weight": "1",
+  "side": "BUY",
+  "pair": "BTC_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "1",
+  "side": "BUY",
+  "pair": "ETH_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "1",
+  "side": "SELL",
+  "pair": "BTC_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "1",
+  "side": "SELL",
+  "pair": "ETH_USDT",
+  "capture": "trend",
+  "debug": false
+ }
+]

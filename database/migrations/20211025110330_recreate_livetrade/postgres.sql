@@ -50,7 +50,7 @@ CREATE TABLE public.live_trade (
     id SERIAL PRIMARY KEY,
     status trade_status NOT NULL,
     side order_side NOT NULL,
-    entry_order_id integer NOT NULL,
+    entry_order_id integer NOT NULL UNIQUE,
     entry_price double precision NOT NULL,
     exit_price double precision ,
     entry_time timestamp with time zone NOT NULL,

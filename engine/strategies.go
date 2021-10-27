@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"fmt"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/portfolio/strategies"
@@ -18,7 +17,7 @@ func SetupStrategies(cfg []*config.StrategySetting, exch string) (slit []strateg
 		strat.SetWeight(cs.Weight)
 		strat.SetDirection(cs.Side)
 		pair := currency.GetPairTranslation(exch, cs.Pair)
-		fmt.Println("setting pair", pair, "for exchange", exch)
+		// fmt.Println("setting pair", pair, "for exchange", exch)
 		strat.SetPair(pair)
 		strat.SetName(cs.Capture)
 		strat.SetDefaults()

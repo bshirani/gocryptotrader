@@ -49,6 +49,6 @@ type Event interface {
 	GetStopLossOrderID() int
 	GetStrategyID() int
 	SetStrategyID(int)
-	GetStrategyName(string)
-	SetStrategyName()
+	GetStrategyName() string
+	SetStrategyName(string)
 }

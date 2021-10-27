@@ -64,8 +64,8 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 		return &es, nil
 	}
 
-	orders := p.GetOpenOrdersForStrategy(s.GetID())
-	trade := p.GetTradeForStrategy(s.GetID())
+	orders := p.GetOpenOrdersForStrategy(s.GetLabel())
+	trade := p.GetTradeForStrategy(s.GetLabel())
 
 	// fmt.Println("trend.go has", len(orders), "orders", trade)
 
@@ -152,7 +152,7 @@ func (s *Strategy) checkExit(es signal.Signal, p base.StrategyPortfolioHandler, 
 	// 	fmt.Println("trade profit greater than 10, exiting")
 
 	currentTime := d.Latest().GetTime()
-	trade := p.GetTradeForStrategy(s.GetID())
+	trade := p.GetTradeForStrategy(s.GetLabel())
 	minutesInTrade := int(currentTime.Sub(trade.EntryTime).Minutes())
 
 	if minutesInTrade < -2 {

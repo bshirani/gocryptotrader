@@ -29,9 +29,9 @@ var (
 type StrategyPortfolioHandler interface {
 	GetLiveMode() bool
 	ViewHoldingAtTimePeriod(eventtypes.EventHandler) (*holdings.Holding, error)
-	GetOpenOrdersForStrategy(int) []order.Detail
+	GetOpenOrdersForStrategy(string) []order.Detail
 	GetVerbose() bool
-	GetTradeForStrategy(int) *livetrade.Details
+	GetTradeForStrategy(string) *livetrade.Details
 }
 
 type FactorEngineHandler interface {

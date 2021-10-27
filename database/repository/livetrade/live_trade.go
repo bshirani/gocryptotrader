@@ -246,7 +246,12 @@ func upsertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int, err 
 		return 0, fmt.Errorf("stop loss price cannot be below zero")
 	}
 
+	if in.EntryOrderID == 0 {
+		panic("entry order id cannot be 0")
+	}
+
 	var tempInsert = postgres.LiveTrade{
+		ID:            in.ID,
 		EntryPrice:    entryPrice,
 		EntryTime:     in.EntryTime,
 		StopLossPrice: stopLossPrice,
@@ -267,7 +272,7 @@ func upsertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int, err 
 		ctx,
 		tx,
 		true,
-		[]string{},
+		[]string{"entry_order_id"},
 		boil.Infer(),
 		boil.Infer())
 	if err != nil {

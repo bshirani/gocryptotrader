@@ -192,14 +192,14 @@ var LiveOrderWhere = struct {
 
 // LiveOrderRels is where relationship names are stored.
 var LiveOrderRels = struct {
-	EntryOrderLiveTrades string
+	EntryOrderLiveTrade string
 }{
-	EntryOrderLiveTrades: "EntryOrderLiveTrades",
+	EntryOrderLiveTrade: "EntryOrderLiveTrade",
 }
 
 // liveOrderR is where relationships are stored.
 type liveOrderR struct {
-	EntryOrderLiveTrades LiveTradeSlice `boil:"EntryOrderLiveTrades" json:"EntryOrderLiveTrades" toml:"EntryOrderLiveTrades" yaml:"EntryOrderLiveTrades"`
+	EntryOrderLiveTrade *LiveTrade `boil:"EntryOrderLiveTrade" json:"EntryOrderLiveTrade" toml:"EntryOrderLiveTrade" yaml:"EntryOrderLiveTrade"`
 }
 
 // NewStruct creates a new relationship struct
@@ -492,30 +492,23 @@ func (q liveOrderQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (
 	return count > 0, nil
 }
 
-// EntryOrderLiveTrades retrieves all the live_trade's LiveTrades with an executor via entry_order_id column.
-func (o *LiveOrder) EntryOrderLiveTrades(mods ...qm.QueryMod) liveTradeQuery {
-	var queryMods []qm.QueryMod
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
+// EntryOrderLiveTrade pointed to by the foreign key.
+func (o *LiveOrder) EntryOrderLiveTrade(mods ...qm.QueryMod) liveTradeQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("\"entry_order_id\" = ?", o.ID),
 	}
 
-	queryMods = append(queryMods,
-		qm.Where("\"live_trade\".\"entry_order_id\"=?", o.ID),
-	)
+	queryMods = append(queryMods, mods...)
 
 	query := LiveTrades(queryMods...)
 	queries.SetFrom(query.Query, "\"live_trade\"")
 
-	if len(queries.GetSelect(query.Query)) == 0 {
-		queries.SetSelect(query.Query, []string{"\"live_trade\".*"})
-	}
-
 	return query
 }
 
-// LoadEntryOrderLiveTrades allows an eager lookup of values, cached into the
-// loaded structs of the objects. This is for a 1-M or N-M relationship.
-func (liveOrderL) LoadEntryOrderLiveTrades(ctx context.Context, e boil.ContextExecutor, singular bool, maybeLiveOrder interface{}, mods queries.Applicator) error {
+// LoadEntryOrderLiveTrade allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-1 relationship.
+func (liveOrderL) LoadEntryOrderLiveTrade(ctx context.Context, e boil.ContextExecutor, singular bool, maybeLiveOrder interface{}, mods queries.Applicator) error {
 	var slice []*LiveOrder
 	var object *LiveOrder
 
@@ -562,43 +555,46 @@ func (liveOrderL) LoadEntryOrderLiveTrades(ctx context.Context, e boil.ContextEx
 
 	results, err := query.QueryContext(ctx, e)
 	if err != nil {
-		return errors.Wrap(err, "failed to eager load live_trade")
+		return errors.Wrap(err, "failed to eager load LiveTrade")
 	}
 
 	var resultSlice []*LiveTrade
 	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice live_trade")
+		return errors.Wrap(err, "failed to bind eager loaded slice LiveTrade")
 	}
 
 	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results in eager load on live_trade")
+		return errors.Wrap(err, "failed to close results of eager load for live_trade")
 	}
 	if err = results.Err(); err != nil {
 		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for live_trade")
 	}
 
-	if len(liveTradeAfterSelectHooks) != 0 {
+	if len(liveOrderAfterSelectHooks) != 0 {
 		for _, obj := range resultSlice {
 			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
 				return err
 			}
 		}
 	}
-	if singular {
-		object.R.EntryOrderLiveTrades = resultSlice
-		for _, foreign := range resultSlice {
-			if foreign.R == nil {
-				foreign.R = &liveTradeR{}
-			}
-			foreign.R.EntryOrder = object
-		}
+
+	if len(resultSlice) == 0 {
 		return nil
 	}
 
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
+	if singular {
+		foreign := resultSlice[0]
+		object.R.EntryOrderLiveTrade = foreign
+		if foreign.R == nil {
+			foreign.R = &liveTradeR{}
+		}
+		foreign.R.EntryOrder = object
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
 			if local.ID == foreign.EntryOrderID {
-				local.R.EntryOrderLiveTrades = append(local.R.EntryOrderLiveTrades, foreign)
+				local.R.EntryOrderLiveTrade = foreign
 				if foreign.R == nil {
 					foreign.R = &liveTradeR{}
 				}
@@ -611,55 +607,53 @@ func (liveOrderL) LoadEntryOrderLiveTrades(ctx context.Context, e boil.ContextEx
 	return nil
 }
 
-// AddEntryOrderLiveTrades adds the given related objects to the existing relationships
-// of the live_order, optionally inserting them as new records.
-// Appends related to o.R.EntryOrderLiveTrades.
-// Sets related.R.EntryOrder appropriately.
-func (o *LiveOrder) AddEntryOrderLiveTrades(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*LiveTrade) error {
+// SetEntryOrderLiveTrade of the liveOrder to the related item.
+// Sets o.R.EntryOrderLiveTrade to related.
+// Adds o to related.R.EntryOrder.
+func (o *LiveOrder) SetEntryOrderLiveTrade(ctx context.Context, exec boil.ContextExecutor, insert bool, related *LiveTrade) error {
 	var err error
-	for _, rel := range related {
-		if insert {
-			rel.EntryOrderID = o.ID
-			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"live_trade\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"entry_order_id"}),
-				strmangle.WhereClause("\"", "\"", 2, liveTradePrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.ID}
 
-			if boil.IsDebug(ctx) {
-				writer := boil.DebugWriterFrom(ctx)
-				fmt.Fprintln(writer, updateQuery)
-				fmt.Fprintln(writer, values)
-			}
-			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
+	if insert {
+		related.EntryOrderID = o.ID
 
-			rel.EntryOrderID = o.ID
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
 		}
+	} else {
+		updateQuery := fmt.Sprintf(
+			"UPDATE \"live_trade\" SET %s WHERE %s",
+			strmangle.SetParamNames("\"", "\"", 1, []string{"entry_order_id"}),
+			strmangle.WhereClause("\"", "\"", 2, liveTradePrimaryKeyColumns),
+		)
+		values := []interface{}{o.ID, related.ID}
+
+		if boil.IsDebug(ctx) {
+			writer := boil.DebugWriterFrom(ctx)
+			fmt.Fprintln(writer, updateQuery)
+			fmt.Fprintln(writer, values)
+		}
+		if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+			return errors.Wrap(err, "failed to update foreign table")
+		}
+
+		related.EntryOrderID = o.ID
+
 	}
 
 	if o.R == nil {
 		o.R = &liveOrderR{
-			EntryOrderLiveTrades: related,
+			EntryOrderLiveTrade: related,
 		}
 	} else {
-		o.R.EntryOrderLiveTrades = append(o.R.EntryOrderLiveTrades, related...)
+		o.R.EntryOrderLiveTrade = related
 	}
 
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &liveTradeR{
-				EntryOrder: o,
-			}
-		} else {
-			rel.R.EntryOrder = o
+	if related.R == nil {
+		related.R = &liveTradeR{
+			EntryOrder: o,
 		}
+	} else {
+		related.R.EntryOrder = o
 	}
 	return nil
 }
