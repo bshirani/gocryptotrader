@@ -83,7 +83,7 @@ var (
 
 func main() {
 	app.Run(os.Args)
-	if bot == nil {
+	if bot != nil {
 		err := bot.Config.SaveConfigToFile(bot.Settings.ConfigFile)
 		if err != nil {
 			log.Errorln(log.Global, "Unable to save config.")
