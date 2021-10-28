@@ -34,12 +34,14 @@ var BacktestCommand = &cli.Command{
 		},
 		&cli.StringFlag{
 			Name:        "config",
+			Aliases:     []string{"c"},
 			Value:       "backtest",
 			Usage:       "config path",
 			Destination: &configPath,
 		},
 		&cli.StringFlag{
 			Name:        "trade",
+			Aliases:     []string{"t"},
 			Value:       "",
 			Usage:       "trade config path",
 			Destination: &tradeConfigPath,
