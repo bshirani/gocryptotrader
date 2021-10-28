@@ -72,7 +72,6 @@ CREATE TABLE public.live_trade (
     entry_order_id integer NOT NULL UNIQUE,
     exit_order_id integer UNIQUE,
     entry_price double precision NOT NULL,
-    exit_type exit_type,
     exit_price double precision ,
     entry_time timestamp with time zone NOT NULL,
     exit_time timestamp with time zone ,
@@ -94,10 +93,6 @@ CREATE TABLE public.live_trade (
     CONSTRAINT exit_price_time_check CHECK(
         (exit_time IS NULL and exit_price IS NULL ) OR
         (exit_time IS NOT NULL and exit_price IS NOT NULL)
-    ),
-    CONSTRAINT exit_type_check CHECK(
-        (exit_time IS NULL AND exit_type IS NULL) OR
-        (exit_time IS NOT NULL AND exit_type IS NOT NULL)
     ),
     CONSTRAINT exit_order_id_check CHECK(
         (exit_time IS NULL AND exit_order_id IS NULL) OR

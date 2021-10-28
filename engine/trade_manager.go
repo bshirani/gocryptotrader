@@ -919,6 +919,7 @@ func (tm *TradeManager) createFillEvent(ev submit.Event) {
 		Order:           o,
 		OrderID:         ev.GetOrderID(),
 		InternalOrderID: ev.GetInternalOrderID(),
+		InternalType:    ev.GetInternalType(),
 		ClosePrice:      decimal.NewFromFloat(o.Price),
 		PurchasePrice:   decimal.NewFromFloat(o.Price),
 		StopLossPrice:   decimal.NewFromFloat(stopLossPrice),

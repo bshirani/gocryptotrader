@@ -450,6 +450,14 @@ func (p *Portfolio) OnFill(f fill.Event) {
 		fmt.Println("fill has no order ID")
 		os.Exit(2)
 	}
+	if f.GetInternalOrderID() == 0 {
+		fmt.Println("fill has no internal ID")
+		os.Exit(2)
+	}
+	if f.GetInternalType() == "" {
+		fmt.Println("fill has no internal type")
+		os.Exit(2)
+	}
 
 	// update trades and orders here
 	// t := p.store.openTrade[f.GetStrategyID()]
@@ -1280,6 +1288,12 @@ func (p *Portfolio) recordExitTrade(f fill.Event, t *livetrade.Details) {
 			os.Exit(2)
 		}
 		t.ProfitLossQuote = t.ProfitLossPoints.Mul(t.Amount)
+		t.ExitOrderID = f.GetInternalOrderID()
+		// exitOrd := p.GetOrderFromStore(t.ExitOrderID)
+		// t.ExitType = exitOrd.InternalType
+		if t.ExitOrderID == 0 {
+			panic("trade exiting without exit order id")
+		}
 
 		// msg := fmt.Sprintf("Order manager: Strategy=%s Exchange=%s submitted order ID=%v [Ours: %v] pair=%v price=%v amount=%v side=%v type=%v for time %v.",
 		// 	newOrder.StrategyID,

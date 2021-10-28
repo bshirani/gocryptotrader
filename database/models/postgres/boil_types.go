@@ -85,12 +85,6 @@ const (
 	TradeStatusCLOSED = "CLOSED"
 )
 
-// Enum values for exit_type
-const (
-	ExitTypeSTOP        = "STOP"
-	ExitTypeTAKE_PROFIT = "TAKE_PROFIT"
-)
-
 // Enum values for capture_type
 const (
 	CaptureTypeTrend     = "trend"

@@ -246,7 +246,6 @@ func upsertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int, err 
 	if stopLossPrice < 0 {
 		return 0, fmt.Errorf("stop loss price cannot be below zero")
 	}
-
 	if in.EntryOrderID == 0 {
 		panic("entry order id cannot be 0")
 	}
@@ -265,6 +264,7 @@ func upsertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int, err 
 		RiskedQuote:   in.RiskedQuote,
 		RiskedPoints:  in.RiskedPoints,
 
+		ExitOrderID:      null.NewInt(in.ExitOrderID, in.ExitOrderID != 0),
 		ExitTime:         null.NewTime(in.ExitTime, !in.ExitTime.IsZero()),
 		ExitPrice:        null.NewFloat64(exitPrice, exitPrice != 0),
 		TakeProfitPrice:  null.NewFloat64(takeProfitPrice, takeProfitPrice != 0),

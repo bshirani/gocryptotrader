@@ -72,6 +72,11 @@ func (f *Fill) GetInternalOrderID() int {
 }
 
 // GetOrder returns the order
+func (f *Fill) GetInternalType() order.InternalOrderType {
+	return f.InternalType
+}
+
+// GetOrder returns the order
 func (f *Fill) GetStopLossOrderID() int {
 	return f.StopLossOrderID
 }

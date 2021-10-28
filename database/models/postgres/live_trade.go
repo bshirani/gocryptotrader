@@ -28,8 +28,8 @@ type LiveTrade struct {
 	Status           string       `boil:"status" json:"status" toml:"status" yaml:"status"`
 	Side             string       `boil:"side" json:"side" toml:"side" yaml:"side"`
 	EntryOrderID     int          `boil:"entry_order_id" json:"entry_order_id" toml:"entry_order_id" yaml:"entry_order_id"`
+	ExitOrderID      null.Int     `boil:"exit_order_id" json:"exit_order_id,omitempty" toml:"exit_order_id" yaml:"exit_order_id,omitempty"`
 	EntryPrice       float64      `boil:"entry_price" json:"entry_price" toml:"entry_price" yaml:"entry_price"`
-	ExitType         null.String  `boil:"exit_type" json:"exit_type,omitempty" toml:"exit_type" yaml:"exit_type,omitempty"`
 	ExitPrice        null.Float64 `boil:"exit_price" json:"exit_price,omitempty" toml:"exit_price" yaml:"exit_price,omitempty"`
 	EntryTime        time.Time    `boil:"entry_time" json:"entry_time" toml:"entry_time" yaml:"entry_time"`
 	ExitTime         null.Time    `boil:"exit_time" json:"exit_time,omitempty" toml:"exit_time" yaml:"exit_time,omitempty"`
@@ -55,8 +55,8 @@ var LiveTradeColumns = struct {
 	Status           string
 	Side             string
 	EntryOrderID     string
+	ExitOrderID      string
 	EntryPrice       string
-	ExitType         string
 	ExitPrice        string
 	EntryTime        string
 	ExitTime         string
@@ -77,8 +77,8 @@ var LiveTradeColumns = struct {
 	Status:           "status",
 	Side:             "side",
 	EntryOrderID:     "entry_order_id",
+	ExitOrderID:      "exit_order_id",
 	EntryPrice:       "entry_price",
-	ExitType:         "exit_type",
 	ExitPrice:        "exit_price",
 	EntryTime:        "entry_time",
 	ExitTime:         "exit_time",
@@ -101,8 +101,8 @@ var LiveTradeTableColumns = struct {
 	Status           string
 	Side             string
 	EntryOrderID     string
+	ExitOrderID      string
 	EntryPrice       string
-	ExitType         string
 	ExitPrice        string
 	EntryTime        string
 	ExitTime         string
@@ -123,8 +123,8 @@ var LiveTradeTableColumns = struct {
 	Status:           "live_trade.status",
 	Side:             "live_trade.side",
 	EntryOrderID:     "live_trade.entry_order_id",
+	ExitOrderID:      "live_trade.exit_order_id",
 	EntryPrice:       "live_trade.entry_price",
-	ExitType:         "live_trade.exit_type",
 	ExitPrice:        "live_trade.exit_price",
 	EntryTime:        "live_trade.entry_time",
 	ExitTime:         "live_trade.exit_time",
@@ -149,8 +149,8 @@ var LiveTradeWhere = struct {
 	Status           whereHelperstring
 	Side             whereHelperstring
 	EntryOrderID     whereHelperint
+	ExitOrderID      whereHelpernull_Int
 	EntryPrice       whereHelperfloat64
-	ExitType         whereHelpernull_String
 	ExitPrice        whereHelpernull_Float64
 	EntryTime        whereHelpertime_Time
 	ExitTime         whereHelpernull_Time
@@ -171,8 +171,8 @@ var LiveTradeWhere = struct {
 	Status:           whereHelperstring{field: "\"live_trade\".\"status\""},
 	Side:             whereHelperstring{field: "\"live_trade\".\"side\""},
 	EntryOrderID:     whereHelperint{field: "\"live_trade\".\"entry_order_id\""},
+	ExitOrderID:      whereHelpernull_Int{field: "\"live_trade\".\"exit_order_id\""},
 	EntryPrice:       whereHelperfloat64{field: "\"live_trade\".\"entry_price\""},
-	ExitType:         whereHelpernull_String{field: "\"live_trade\".\"exit_type\""},
 	ExitPrice:        whereHelpernull_Float64{field: "\"live_trade\".\"exit_price\""},
 	EntryTime:        whereHelpertime_Time{field: "\"live_trade\".\"entry_time\""},
 	ExitTime:         whereHelpernull_Time{field: "\"live_trade\".\"exit_time\""},
@@ -193,13 +193,16 @@ var LiveTradeWhere = struct {
 // LiveTradeRels is where relationship names are stored.
 var LiveTradeRels = struct {
 	EntryOrder string
+	ExitOrder  string
 }{
 	EntryOrder: "EntryOrder",
+	ExitOrder:  "ExitOrder",
 }
 
 // liveTradeR is where relationships are stored.
 type liveTradeR struct {
 	EntryOrder *LiveOrder `boil:"EntryOrder" json:"EntryOrder" toml:"EntryOrder" yaml:"EntryOrder"`
+	ExitOrder  *LiveOrder `boil:"ExitOrder" json:"ExitOrder" toml:"ExitOrder" yaml:"ExitOrder"`
 }
 
 // NewStruct creates a new relationship struct
@@ -211,8 +214,8 @@ func (*liveTradeR) NewStruct() *liveTradeR {
 type liveTradeL struct{}
 
 var (
-	liveTradeAllColumns            = []string{"id", "status", "side", "entry_order_id", "entry_price", "exit_type", "exit_price", "entry_time", "exit_time", "stop_loss_price", "strategy_name", "amount", "risked_points", "risked_quote", "pair", "exchange", "take_profit_price", "profit_loss_points", "profit_loss_quote", "created_at", "updated_at"}
-	liveTradeColumnsWithoutDefault = []string{"status", "side", "entry_order_id", "entry_price", "exit_type", "exit_price", "entry_time", "exit_time", "stop_loss_price", "strategy_name", "risked_points", "risked_quote", "pair", "exchange", "take_profit_price", "profit_loss_points", "profit_loss_quote"}
+	liveTradeAllColumns            = []string{"id", "status", "side", "entry_order_id", "exit_order_id", "entry_price", "exit_price", "entry_time", "exit_time", "stop_loss_price", "strategy_name", "amount", "risked_points", "risked_quote", "pair", "exchange", "take_profit_price", "profit_loss_points", "profit_loss_quote", "created_at", "updated_at"}
+	liveTradeColumnsWithoutDefault = []string{"status", "side", "entry_order_id", "exit_order_id", "entry_price", "exit_price", "entry_time", "exit_time", "stop_loss_price", "strategy_name", "risked_points", "risked_quote", "pair", "exchange", "take_profit_price", "profit_loss_points", "profit_loss_quote"}
 	liveTradeColumnsWithDefault    = []string{"id", "amount", "created_at", "updated_at"}
 	liveTradePrimaryKeyColumns     = []string{"id"}
 )
@@ -506,6 +509,20 @@ func (o *LiveTrade) EntryOrder(mods ...qm.QueryMod) liveOrderQuery {
 	return query
 }
 
+// ExitOrder pointed to by the foreign key.
+func (o *LiveTrade) ExitOrder(mods ...qm.QueryMod) liveOrderQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("\"id\" = ?", o.ExitOrderID),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	query := LiveOrders(queryMods...)
+	queries.SetFrom(query.Query, "\"live_order\"")
+
+	return query
+}
+
 // LoadEntryOrder allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for an N-1 relationship.
 func (liveTradeL) LoadEntryOrder(ctx context.Context, e boil.ContextExecutor, singular bool, maybeLiveTrade interface{}, mods queries.Applicator) error {
@@ -610,6 +627,114 @@ func (liveTradeL) LoadEntryOrder(ctx context.Context, e boil.ContextExecutor, si
 	return nil
 }
 
+// LoadExitOrder allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for an N-1 relationship.
+func (liveTradeL) LoadExitOrder(ctx context.Context, e boil.ContextExecutor, singular bool, maybeLiveTrade interface{}, mods queries.Applicator) error {
+	var slice []*LiveTrade
+	var object *LiveTrade
+
+	if singular {
+		object = maybeLiveTrade.(*LiveTrade)
+	} else {
+		slice = *maybeLiveTrade.(*[]*LiveTrade)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &liveTradeR{}
+		}
+		if !queries.IsNil(object.ExitOrderID) {
+			args = append(args, object.ExitOrderID)
+		}
+
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &liveTradeR{}
+			}
+
+			for _, a := range args {
+				if queries.Equal(a, obj.ExitOrderID) {
+					continue Outer
+				}
+			}
+
+			if !queries.IsNil(obj.ExitOrderID) {
+				args = append(args, obj.ExitOrderID)
+			}
+
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`live_order`),
+		qm.WhereIn(`live_order.id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load LiveOrder")
+	}
+
+	var resultSlice []*LiveOrder
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice LiveOrder")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results of eager load for live_order")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for live_order")
+	}
+
+	if len(liveTradeAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		foreign := resultSlice[0]
+		object.R.ExitOrder = foreign
+		if foreign.R == nil {
+			foreign.R = &liveOrderR{}
+		}
+		foreign.R.ExitOrderLiveTrade = object
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if queries.Equal(local.ExitOrderID, foreign.ID) {
+				local.R.ExitOrder = foreign
+				if foreign.R == nil {
+					foreign.R = &liveOrderR{}
+				}
+				foreign.R.ExitOrderLiveTrade = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
 // SetEntryOrder of the liveTrade to the related item.
 // Sets o.R.EntryOrder to related.
 // Adds o to related.R.EntryOrderLiveTrade.
@@ -654,6 +779,75 @@ func (o *LiveTrade) SetEntryOrder(ctx context.Context, exec boil.ContextExecutor
 		related.R.EntryOrderLiveTrade = o
 	}
 
+	return nil
+}
+
+// SetExitOrder of the liveTrade to the related item.
+// Sets o.R.ExitOrder to related.
+// Adds o to related.R.ExitOrderLiveTrade.
+func (o *LiveTrade) SetExitOrder(ctx context.Context, exec boil.ContextExecutor, insert bool, related *LiveOrder) error {
+	var err error
+	if insert {
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"live_trade\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"exit_order_id"}),
+		strmangle.WhereClause("\"", "\"", 2, liveTradePrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.ID}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, updateQuery)
+		fmt.Fprintln(writer, values)
+	}
+	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	queries.Assign(&o.ExitOrderID, related.ID)
+	if o.R == nil {
+		o.R = &liveTradeR{
+			ExitOrder: related,
+		}
+	} else {
+		o.R.ExitOrder = related
+	}
+
+	if related.R == nil {
+		related.R = &liveOrderR{
+			ExitOrderLiveTrade: o,
+		}
+	} else {
+		related.R.ExitOrderLiveTrade = o
+	}
+
+	return nil
+}
+
+// RemoveExitOrder relationship.
+// Sets o.R.ExitOrder to nil.
+// Removes o from all passed in related items' relationships struct (Optional).
+func (o *LiveTrade) RemoveExitOrder(ctx context.Context, exec boil.ContextExecutor, related *LiveOrder) error {
+	var err error
+
+	queries.SetScanner(&o.ExitOrderID, nil)
+	if _, err = o.Update(ctx, exec, boil.Whitelist("exit_order_id")); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	if o.R != nil {
+		o.R.ExitOrder = nil
+	}
+	if related == nil || related.R == nil {
+		return nil
+	}
+
+	related.R.ExitOrderLiveTrade = nil
 	return nil
 }
 

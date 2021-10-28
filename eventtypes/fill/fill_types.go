@@ -13,20 +13,21 @@ type Fill struct {
 	event.Base
 	OrderID string
 
-	InternalOrderID     int             `json:"internalOrderId"`
-	Direction           order.Side      `json:"side"`
-	Amount              decimal.Decimal `json:"amount"`
-	ClosePrice          decimal.Decimal `json:"closePrice"`
-	VolumeAdjustedPrice decimal.Decimal `json:"volumeAdjustedPrice"`
-	PurchasePrice       decimal.Decimal `json:"purchasePrice"`
-	Total               decimal.Decimal `json:"total"`
-	StopLossPrice       decimal.Decimal `json:"total"`
-	ExchangeFee         decimal.Decimal `json:"exchangeFee"`
-	Slippage            decimal.Decimal `json:"slippage"`
-	StrategyID          int             `json:"strategyID"`
-	StrategyName        string          `json:"strategyName"`
-	Order               *order.Detail   `json:"-"`
-	StopLossOrderID     int             `json:"stopLossOrderId"`
+	InternalOrderID     int                     `json:"internalOrderId"`
+	InternalType        order.InternalOrderType `json:"internalType"`
+	Direction           order.Side              `json:"side"`
+	Amount              decimal.Decimal         `json:"amount"`
+	ClosePrice          decimal.Decimal         `json:"closePrice"`
+	VolumeAdjustedPrice decimal.Decimal         `json:"volumeAdjustedPrice"`
+	PurchasePrice       decimal.Decimal         `json:"purchasePrice"`
+	Total               decimal.Decimal         `json:"total"`
+	StopLossPrice       decimal.Decimal         `json:"total"`
+	ExchangeFee         decimal.Decimal         `json:"exchangeFee"`
+	Slippage            decimal.Decimal         `json:"slippage"`
+	StrategyID          int                     `json:"strategyID"`
+	StrategyName        string                  `json:"strategyName"`
+	Order               *order.Detail           `json:"-"`
+	StopLossOrderID     int                     `json:"stopLossOrderId"`
 }
 
 // Event holds all functions required to handle a fill event
@@ -46,6 +47,7 @@ type Event interface {
 	SetExchangeFee(decimal.Decimal)
 	GetOrder() *order.Detail
 	GetInternalOrderID() int
+	GetInternalType() order.InternalOrderType
 	GetStopLossOrderID() int
 	GetStrategyID() int
 	SetStrategyID(int)

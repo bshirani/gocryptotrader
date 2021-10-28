@@ -26,7 +26,7 @@ type Submit struct {
 type Event interface {
 	eventtypes.EventHandler
 	GetInternalOrderID() int
-	GetInternalOrderType() order.InternalOrderType
+	GetInternalType() order.InternalOrderType
 	GetOrderID() string
 	GetIsOrderPlaced() bool
 	GetStopLossOrderID() int

@@ -42,6 +42,6 @@ func (o *Submit) SetStrategyID(s int) {
 	o.StrategyID = s
 }
 
-func (o *Submit) GetInternalOrderType() order.InternalOrderType {
+func (o *Submit) GetInternalType() order.InternalOrderType {
 	return o.InternalType
 }
