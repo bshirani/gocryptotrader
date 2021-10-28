@@ -70,6 +70,7 @@ CREATE TABLE public.live_trade (
     status trade_status NOT NULL,
     side order_side NOT NULL,
     entry_order_id integer NOT NULL UNIQUE,
+    exit_order_id integer UNIQUE,
     entry_price double precision NOT NULL,
     exit_type exit_type,
     exit_price double precision ,
@@ -90,9 +91,17 @@ CREATE TABLE public.live_trade (
     CONSTRAINT risk_check CHECK(
         (risked_points != 0 AND risked_quote != 0)
     ),
-    CONSTRAINT exit_check CHECK(
-        (exit_time IS NULL and exit_price IS NULL AND exit_type IS NULL) OR
-        (exit_time IS NOT NULL and exit_price IS NOT NULL AND exit_type IS NOT NULL)
+    CONSTRAINT exit_price_time_check CHECK(
+        (exit_time IS NULL and exit_price IS NULL ) OR
+        (exit_time IS NOT NULL and exit_price IS NOT NULL)
+    ),
+    CONSTRAINT exit_type_check CHECK(
+        (exit_time IS NULL AND exit_type IS NULL) OR
+        (exit_time IS NOT NULL AND exit_type IS NOT NULL)
+    ),
+    CONSTRAINT exit_order_id_check CHECK(
+        (exit_time IS NULL AND exit_order_id IS NULL) OR
+        (exit_time IS NOT NULL AND exit_order_id IS NOT NULL)
     ),
     CONSTRAINT profit_check CHECK(
         (profit_loss_quote IS NULL AND profit_loss_points IS NULL AND exit_time IS NULL) OR
@@ -103,6 +112,9 @@ CREATE TABLE public.live_trade (
     ),
     CONSTRAINT fk_live_trade_live_order_entry_id
         FOREIGN KEY (entry_order_id)
+        REFERENCES live_order(id),
+    CONSTRAINT fk_live_trade_live_order_exit_id
+        FOREIGN KEY (exit_order_id)
         REFERENCES live_order(id)
 );
 
@@ -114,5 +126,5 @@ DROP TYPE order_status;
 DROP TYPE trade_status;
 DROP TYPE exit_type;
 DROP TYPE internal_order_type;
-DROP TRIGGER live_order_update_trigger;
-DROP FUNCTION check_internal_type_change;
+-- DROP TRIGGER live_order_update_trigger;
+-- DROP FUNCTION check_internal_type_change;;

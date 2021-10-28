@@ -3,6 +3,7 @@ package submit
 import (
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/event"
+	"gocryptotrader/exchange/order"
 
 	"github.com/shopspring/decimal"
 )
@@ -11,6 +12,7 @@ import (
 type Submit struct {
 	event.Base
 	InternalOrderID int
+	InternalType    order.InternalOrderType
 	OrderID         string
 	StrategyID      int
 	StrategyName    string
@@ -24,6 +26,7 @@ type Submit struct {
 type Event interface {
 	eventtypes.EventHandler
 	GetInternalOrderID() int
+	GetInternalOrderType() order.InternalOrderType
 	GetOrderID() string
 	GetIsOrderPlaced() bool
 	GetStopLossOrderID() int

@@ -359,10 +359,10 @@ func (m *OrderManager) validate(newOrder *order.Submit) error {
 	if newOrder.StrategyName == "" {
 		panic("order without strategy name")
 	}
-	if newOrder.InternalOrderType == "" {
+	if newOrder.InternalType == "" {
 		panic("order without internal type")
 	} else {
-		fmt.Println("internal order type is ", newOrder.InternalOrderType)
+		fmt.Println("internal order type is ", newOrder.InternalType)
 	}
 
 	if m.cfg.EnforceLimitConfig {
@@ -530,6 +530,10 @@ func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*Ord
 	}
 	newOrder.InternalOrderID = id
 
+	if newOrder.InternalType == "" {
+		panic("order has no internal type")
+	}
+
 	var result order.SubmitResponse
 
 	var isOrderFilled bool
@@ -679,12 +683,15 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 	if newOrder.Price == 0 {
 		panic("new order doesnt have a price")
 	}
+	if newOrder.InternalType == "" {
+		panic("no internal type")
+	}
 	if status != order.Active && status != order.Filled {
 		panic("did not fill or submit the order")
 	}
 
 	err := m.orderStore.add(&order.Detail{
-		InternalOrderType: newOrder.InternalOrderType,
+		InternalType:      newOrder.InternalType,
 		Status:            status,
 		FilledAt:          filledAt,
 		ImmediateOrCancel: newOrder.ImmediateOrCancel,

@@ -197,22 +197,22 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	stopLossPrice, _ := o.GetStopLossPrice().Float64()
 
 	submission := &gctorder.Submit{
-		Status:            gctorder.New,
-		Price:             priceFloat,
-		InternalOrderType: decision,
-		Amount:            a,
-		Fee:               fee,
-		Exchange:          o.GetExchange(),
-		ID:                o.GetID(),
-		Side:              o.GetDirection(),
-		AssetType:         o.GetAssetType(),
-		Date:              o.GetTime(),
-		LastUpdated:       o.GetTime(),
-		Pair:              o.Pair(),
-		Type:              gctorder.Market,
-		StrategyID:        o.GetStrategyID(),
-		StopLossPrice:     stopLossPrice,
-		StrategyName:      o.GetStrategyName(),
+		Status:        gctorder.New,
+		Price:         priceFloat,
+		InternalType:  decision,
+		Amount:        a,
+		Fee:           fee,
+		Exchange:      o.GetExchange(),
+		ID:            o.GetID(),
+		Side:          o.GetDirection(),
+		AssetType:     o.GetAssetType(),
+		Date:          o.GetTime(),
+		LastUpdated:   o.GetTime(),
+		Pair:          o.Pair(),
+		Type:          gctorder.Market,
+		StrategyID:    o.GetStrategyID(),
+		StopLossPrice: stopLossPrice,
+		StrategyName:  o.GetStrategyName(),
 	}
 
 	if om == nil {
@@ -226,21 +226,21 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 		stopSide = gctorder.Buy
 	}
 	stopLossSubmission := &gctorder.Submit{
-		Status:            gctorder.New,
-		InternalOrderType: gctorder.DecisionStopLoss,
-		Price:             stopLossPrice,
-		Amount:            a,
-		Fee:               fee,
-		Exchange:          o.GetExchange(),
-		ID:                o.GetID(),
-		Side:              stopSide,
-		AssetType:         o.GetAssetType(),
-		Date:              o.GetTime(),
-		LastUpdated:       o.GetTime(),
-		Pair:              o.Pair(),
-		Type:              gctorder.Stop,
-		StrategyID:        o.GetStrategyID(),
-		StrategyName:      o.GetStrategyName(),
+		Status:       gctorder.New,
+		InternalType: gctorder.DecisionStopLoss,
+		Price:        stopLossPrice,
+		Amount:       a,
+		Fee:          fee,
+		Exchange:     o.GetExchange(),
+		ID:           o.GetID(),
+		Side:         stopSide,
+		AssetType:    o.GetAssetType(),
+		Date:         o.GetTime(),
+		LastUpdated:  o.GetTime(),
+		Pair:         o.Pair(),
+		Type:         gctorder.Stop,
+		StrategyID:   o.GetStrategyID(),
+		StrategyName: o.GetStrategyName(),
 	}
 
 	var entryID, stopID int
@@ -301,6 +301,9 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	if omr.InternalOrderID == 0 {
 		panic("no order id")
 	}
+	if submission.InternalType == "" {
+		panic("no internal type on submisison")
+	}
 
 	// fmt.Println("tm: order manager response", omr)
 	// if order is placed, update the status of the order to Open
@@ -326,6 +329,7 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 			Reason:       o.GetReason(),
 		},
 		InternalOrderID: omr.InternalOrderID,
+		InternalType:    submission.InternalType,
 		StopLossOrderID: stopLossOrderID,
 		IsOrderPlaced:   omr.IsOrderPlaced,
 		OrderID:         omr.OrderID,

@@ -28,15 +28,15 @@ var (
 // Each exchange has their own requirements, so not all fields
 // are required to be populated
 type Submit struct {
-	AssetType         asset.Item
-	Side              Side
-	InternalOrderType InternalOrderType
-	Exchange          string
-	Pair              currency.Pair
-	StrategyID        int
-	StrategyName      string
-	Type              Type
-	Status            Status
+	AssetType    asset.Item
+	Side         Side
+	InternalType InternalOrderType
+	Exchange     string
+	Pair         currency.Pair
+	StrategyID   int
+	StrategyName string
+	Type         Type
+	Status       Status
 
 	Price           float64
 	Amount          float64
@@ -149,7 +149,7 @@ type Detail struct {
 	ID                   string
 	ImmediateOrCancel    bool
 	InternalOrderID      int
-	InternalOrderType    InternalOrderType
+	InternalType         InternalOrderType
 	LastUpdated          time.Time
 	Leverage             float64
 	LimitPriceLower      float64

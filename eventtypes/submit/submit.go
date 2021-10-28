@@ -1,6 +1,10 @@
 package submit
 
-import "github.com/shopspring/decimal"
+import (
+	"gocryptotrader/exchange/order"
+
+	"github.com/shopspring/decimal"
+)
 
 func (s *Submit) GetInternalOrderID() int {
 	return s.InternalOrderID
@@ -36,4 +40,8 @@ func (o *Submit) SetStrategyName(s string) {
 
 func (o *Submit) SetStrategyID(s int) {
 	o.StrategyID = s
+}
+
+func (o *Submit) GetInternalOrderType() order.InternalOrderType {
+	return o.InternalType
 }

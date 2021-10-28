@@ -20,21 +20,21 @@ type Status string
 
 // Item generic candle holder for modelPSQL
 type Details struct {
-	ID                int
-	Side              order.Side
-	Amount            decimal.Decimal
-	Status            order.Status
-	FilledAt          time.Time
-	Pair              currency.Pair
-	Price             decimal.Decimal
-	StopLossPrice     decimal.Decimal
-	TakeProfitPrice   decimal.Decimal
-	InternalOrderType order.InternalOrderType
-	OrderType         order.Type
-	Exchange          string
-	InternalID        string
-	StrategyName      string
-	StrategyID        int
-	CreatedAt         time.Time
-	UpdatedAt         time.Time
+	ID              int
+	Side            order.Side
+	Amount          decimal.Decimal
+	Status          order.Status
+	FilledAt        time.Time
+	Pair            currency.Pair
+	Price           decimal.Decimal
+	StopLossPrice   decimal.Decimal
+	TakeProfitPrice decimal.Decimal
+	InternalType    order.InternalOrderType
+	OrderType       order.Type
+	Exchange        string
+	InternalID      string
+	StrategyName    string
+	StrategyID      int
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
 }
