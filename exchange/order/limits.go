@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/shopspring/decimal"
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange/asset"
+
+	"github.com/shopspring/decimal"
 )
 
 var (
@@ -145,6 +146,7 @@ func (e *ExecutionLimits) LoadLimits(levels []MinMaxLevel) error {
 		limit.m.Lock()
 		limit.minPrice = levels[x].MinPrice
 		limit.maxPrice = levels[x].MaxPrice
+		fmt.Println("setting step price", levels[x].StepPrice)
 		limit.stepIncrementSizePrice = levels[x].StepPrice
 		limit.minAmount = levels[x].MinAmount
 		limit.maxAmount = levels[x].MaxAmount

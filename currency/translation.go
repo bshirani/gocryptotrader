@@ -1,6 +1,7 @@
 package currency
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -15,7 +16,7 @@ func GetTranslation(currency Code) Code {
 }
 
 func GetPairTranslation(exch string, pair Pair) Pair {
-	// fmt.Println("pair", pair.String(), pair.Upper().String())
+	fmt.Println("getpairtranslation", exch, pair.String(), pair.Upper().String())
 	if strings.EqualFold(exch, "kraken") && strings.EqualFold(pair.Upper().String(), "BTC_USDT") {
 		p, _ := NewPairFromString("XBT_USDT")
 		return p

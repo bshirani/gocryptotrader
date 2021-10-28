@@ -682,11 +682,6 @@ func (c *Config) GetEnabledPairs(exchName string, assetType asset.Item) (currenc
 // GetEnabledExchanges returns a list of enabled exchanges
 func (c *Config) GetEnabledExchanges() []string {
 	var enabledExchs []string
-	//
-	// if c.LiveMode {
-	// 	return append(enabledExchs, "kraken")
-	// }
-	// return append(enabledExchs, "gateio")
 	for i := range c.Exchanges {
 		if c.Exchanges[i].Enabled {
 			enabledExchs = append(enabledExchs, c.Exchanges[i].Name)

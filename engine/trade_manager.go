@@ -147,7 +147,7 @@ func NewTradeManager(bot *Engine) (*TradeManager, error) {
 
 		p, err := SetupPortfolio(tm.Strategies, tm.bot, tm.bot.Config)
 		if err != nil {
-			return nil, fmt.Errorf("could not setup portfolio", err)
+			return nil, fmt.Errorf("could not setup portfolio err:%s", err)
 		}
 		tm.Portfolio = p
 	}
@@ -284,7 +284,10 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	if !skipStop {
 		somr, err := om.Submit(context.TODO(), stopLossSubmission)
 		if err != nil {
-			fmt.Println("tm: ERROR order manager submission", err, stopLossSubmission.Side, somr)
+			log.Errorln(log.TradeMgr, "ERROR submitting order", err, stopLossSubmission.Side, somr)
+		}
+		if somr == nil {
+			panic("no submission response")
 		}
 		if somr.InternalOrderID == 0 {
 			panic("no order id")
@@ -725,7 +728,12 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 	d := tm.Datas.GetDataForCurrency(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 	cs, err := tm.bot.GetCurrencySettings(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 	if cs == nil || err != nil {
-		fmt.Println("error !!! FAIL getting cs", cs)
+		fmt.Println("error !!! FAIL getting cs", ev.GetExchange(), ev.GetAssetType(), ev.Pair())
+		fmt.Println("there are", len(tm.bot.CurrencySettings), "cs")
+		for _, c := range tm.bot.CurrencySettings {
+			fmt.Println(c.CurrencyPair, c.ExchangeName, c.AssetType)
+		}
+		panic(123)
 	}
 	fe := tm.FactorEngines[cs.ExchangeName][cs.AssetType][cs.CurrencyPair]
 	err = fe.OnBar(d)

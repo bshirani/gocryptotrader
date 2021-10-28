@@ -220,13 +220,14 @@ func (f *FTX) Run() {
 		f.PrintEnabledPairs()
 	}
 
-	err := f.UpdateOrderExecutionLimits(context.TODO(), "")
-	if err != nil {
-		log.Errorf(log.ExchangeSys,
-			"%s failed to set exchange order execution limits. Err: %v",
-			f.Name,
-			err)
-	}
+	var err error
+	// err := f.UpdateOrderExecutionLimits(context.TODO(), "")
+	// if err != nil {
+	// 	log.Errorf(log.ExchangeSys,
+	// 		"%s failed to set exchange order execution limits. Err: %v",
+	// 		f.Name,
+	// 		err)
+	// }
 
 	if !f.GetEnabledFeatures().AutoPairUpdates {
 		return

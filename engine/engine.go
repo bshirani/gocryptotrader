@@ -28,11 +28,6 @@ import (
 	"github.com/fatih/color"
 )
 
-const (
-	// backtestExchange = "gateio"
-	backtestExchange = "kraken"
-)
-
 // overarching type across this code base.
 type Engine struct {
 	CommunicationsManager   *CommunicationManager
@@ -1096,13 +1091,15 @@ func (bot *Engine) WaitForInitialCurrencySync() error {
 }
 
 func (bot *Engine) SetupOfflineExchangeSettings() error {
-	enabledPairs, _ := bot.Config.GetEnabledPairs(backtestExchange, asset.Spot)
-	for _, pair := range enabledPairs {
-		bot.CurrencySettings = append(bot.CurrencySettings, &ExchangeAssetPairSettings{
-			ExchangeName: backtestExchange,
-			CurrencyPair: pair,
-			AssetType:    asset.Spot,
-		})
+	for _, ex := range bot.Config.GetEnabledExchanges() {
+		enabledPairs, _ := bot.Config.GetEnabledPairs(ex, asset.Spot)
+		for _, pair := range enabledPairs {
+			bot.CurrencySettings = append(bot.CurrencySettings, &ExchangeAssetPairSettings{
+				ExchangeName: strings.ToLower(ex),
+				CurrencyPair: pair,
+				AssetType:    asset.Spot,
+			})
+		}
 	}
 	return nil
 }
@@ -1112,16 +1109,13 @@ func (bot *Engine) SetupExchangeSettings() error {
 		fmt.Println("enabled", e)
 		enabledPairs, _ := bot.Config.GetEnabledPairs(e, asset.Spot)
 		for _, pair := range enabledPairs {
-			fmt.Println("enabled pair", pair)
 			_, pair, a, err := bot.loadExchangePairAssetBase(e, pair.Base.String(), pair.Quote.String(), "spot")
 			if err != nil {
 				fmt.Println("error enabling pair", err)
 				return err
 			}
-			// fmt.Println("setup pair", pair, "exchange", e)
-			// fmt.Println("setting pair", pair)
 			bot.CurrencySettings = append(bot.CurrencySettings, &ExchangeAssetPairSettings{
-				ExchangeName: e,
+				ExchangeName: strings.ToLower(e),
 				CurrencyPair: pair,
 				AssetType:    a,
 			})
@@ -1167,6 +1161,7 @@ func (bot *Engine) GetAllCurrencySettings() ([]*ExchangeAssetPairSettings, error
 
 // SetExchangeAssetCurrencySettings sets the settings for an exchange, asset, currency
 func (bot *Engine) SetExchangeAssetCurrencySettings(exch string, a asset.Item, cp currency.Pair, c *ExchangeAssetPairSettings) {
+	exch = strings.ToLower(exch)
 	if c.ExchangeName == "" ||
 		c.AssetType == "" ||
 		c.CurrencyPair.IsEmpty() {
@@ -1186,6 +1181,7 @@ func (bot *Engine) SetExchangeAssetCurrencySettings(exch string, a asset.Item, c
 
 // GetCurrencySettings returns the settings for an exchange, asset currency
 func (bot *Engine) GetCurrencySettings(exch string, a asset.Item, cp currency.Pair) (*ExchangeAssetPairSettings, error) {
+	exch = strings.ToLower(exch)
 	for i := range bot.CurrencySettings {
 		if bot.CurrencySettings[i].CurrencyPair.Equal(cp) {
 			if bot.CurrencySettings[i].AssetType == a {

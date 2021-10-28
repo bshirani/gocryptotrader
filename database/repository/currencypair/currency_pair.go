@@ -45,6 +45,7 @@ func One(id int, liveMode bool) (pair currency.Pair, err error) {
 		return pair, err
 	}
 
+	panic("currency pair repo one")
 	if liveMode {
 		pair, err = currency.NewPairFromString(r.KrakenSymbol)
 	} else {

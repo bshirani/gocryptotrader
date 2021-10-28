@@ -14,19 +14,12 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-const (
-	prodExchange     = "kraken"
-	backtestExchange = "gateio"
-)
-
 // Strategy is base implementation of the Handler interface
 type Strategy struct {
 	Name                      string
 	ID                        int
 	NumID                     int
 	pair                      currency.Pair
-	backtestPair              currency.Pair
-	backtestExchange          string
 	exchange                  string
 	weight                    decimal.Decimal
 	direction                 order.Side

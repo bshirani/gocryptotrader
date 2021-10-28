@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -234,11 +233,11 @@ func startOfflineServices() (err error) {
 		panic("cannot run offline services in live mode")
 	}
 
-	err = bot.LoadExchange("gateio", nil)
-	if err != nil && !errors.Is(err, engine.ErrExchangeAlreadyLoaded) {
-		fmt.Println("error", err)
-		return err
-	}
+	// err = bot.LoadExchange("FTX", nil)
+	// if err != nil && !errors.Is(err, engine.ErrExchangeAlreadyLoaded) {
+	// 	fmt.Println("error", err)
+	// 	return err
+	// }
 
 	err = bot.SetupExchanges()
 	if err != nil {

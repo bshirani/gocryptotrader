@@ -80,41 +80,21 @@ func SetupDataHistoryManager(bot *Engine, em iExchangeManager, dcm iDatabaseConn
 }
 
 func (m *DataHistoryManager) CatchupDays(daysBack int64) error {
-	// if m.verbose {
-	// 	log.Debugln(log.DataHistory, "catchup days")
-	// }
-
-	// start two months ago
 	t := time.Now().UTC()
 	dayTime := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 	startDate := dayTime.AddDate(0, 0, int(daysBack)*-1)
-	syncDays := true
-	// badSymbols := GetBadSymbols()
-
-	if syncDays {
-		for _, p := range m.bot.CurrencySettings {
-			// var skipProcessing bool
-			// for _, bad := range badSymbols {
-			// 	if strings.EqualFold(p.CurrencyPair.Upper().String(), bad) {
-			// 		skipProcessing = true
-			// 		continue
-			// 	}
-			// }
-			// if !skipProcessing {
-			for x := startDate; x.Before(dayTime); x = x.AddDate(0, 0, 1) {
-				t1 := x
-				t2 := x.AddDate(0, 0, 1)
-
-				candles, _ := candle.Series(p.ExchangeName, p.CurrencyPair.Base.String(), p.CurrencyPair.Quote.String(), 60, p.AssetType.String(), t1, t2)
-				if len(candles.Candles) > 1400 {
-					// fmt.Printf("%d-%d:%d, ", x.Month(), x.Day(), len(candles.Candles))
-					continue
-				}
-				log.Warnln(log.DataHistory, "Data history manager Syncing Days. Only have:", len(candles.Candles), "bars", p.ExchangeName, p.CurrencyPair, t1, t2)
-				m.createCatchupJob(p.ExchangeName, p.AssetType, p.CurrencyPair, t1, t2)
-				time.Sleep(time.Second)
+	for _, p := range m.bot.CurrencySettings {
+		for x := startDate; x.Before(dayTime); x = x.AddDate(0, 0, 1) {
+			t1 := x
+			t2 := x.AddDate(0, 0, 1)
+			candles, _ := candle.Series(p.ExchangeName, p.CurrencyPair.Base.String(), p.CurrencyPair.Quote.String(), 60, p.AssetType.String(), t1, t2)
+			if len(candles.Candles) > 1400 {
+				// fmt.Printf("%d-%d:%d, ", x.Month(), x.Day(), len(candles.Candles))
+				continue
 			}
-			// }
+			log.Warnln(log.DataHistory, "Data history manager Syncing Days. Only have:", len(candles.Candles), "bars", p.ExchangeName, p.CurrencyPair, t1, t2)
+			m.createCatchupJob(p.ExchangeName, p.AssetType, p.CurrencyPair, t1, t2)
+			time.Sleep(time.Second)
 		}
 	}
 

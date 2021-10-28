@@ -20,11 +20,6 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-const (
-	prodExchange     = "kraken"
-	backtestExchange = "gateio"
-)
-
 func (p *PortfolioAnalysis) Analyze(filepath string) error {
 	p.Report = &Report{}
 	p.Report.Portfolio = &PortfolioReport{}
