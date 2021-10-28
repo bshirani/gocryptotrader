@@ -29,7 +29,7 @@ var BacktestCommand = &cli.Command{
 		&cli.BoolFlag{
 			Name:        "cleardb",
 			Usage:       "clear database",
-			Value:       true,
+			Value:       false,
 			Destination: &clearDB,
 		},
 		&cli.StringFlag{
