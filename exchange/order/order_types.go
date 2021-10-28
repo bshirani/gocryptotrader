@@ -310,9 +310,9 @@ const (
 type InternalOrderType string
 
 const (
-	DecisionEntry      InternalOrderType = "ENTER"
-	DecisionTakeProfit InternalOrderType = "TAKE_PROFIT"
-	DecisionStopLoss   InternalOrderType = "STOP_LOSS"
+	InternalEntry      InternalOrderType = "ENTER"
+	InternalTakeProfit InternalOrderType = "TAKE_PROFIT"
+	InternalStopLoss   InternalOrderType = "STOP_LOSS"
 )
 
 // Side enforces a standard for order sides across the code base

@@ -48,7 +48,7 @@ func (s *Strategy) GetSettings() *config.StrategySetting {
 }
 
 func (s *Strategy) GetLabel() string {
-	return fmt.Sprintf("%s:%s:%s", s.Name, s.pair, s.direction)
+	return fmt.Sprintf("%s@%s@%s", s.Name, s.pair, s.direction)
 }
 
 func (s *Strategy) GetNumID() int {

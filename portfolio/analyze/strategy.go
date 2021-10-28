@@ -16,7 +16,7 @@ func analyzeStrategy(s strategies.Handler, trades []*livetrade.Details) (a *Stra
 	winCount := 0
 	lossCount := 0
 	for _, t := range trades {
-		pl, _ := t.ProfitLoss.Float64()
+		pl, _ := t.ProfitLossQuote.Float64()
 		sumPl += pl
 		if pl > 0 {
 			sumProfits += pl
@@ -33,9 +33,10 @@ func analyzeStrategy(s strategies.Handler, trades []*livetrade.Details) (a *Stra
 	a.Pair = s.GetPair()
 	a.StartDate = trades[0].EntryTime
 	a.EndDate = trades[len(trades)-1].ExitTime
-	// a.AveragePL = sumPl / float64(winCount+lossCount)
-	// a.AverageWin = sumProfits / float64(winCount)
-	// a.AverageLoss = sumLosses / float64(lossCount)
+	a.AveragePL = sumPl / float64(winCount+lossCount)
+	a.AverageWin = sumProfits / float64(winCount)
+	a.AverageLoss = sumLosses / float64(lossCount)
+	a.WinPercentage = float64(winCount) / float64(len(trades))
 
 	return a
 }

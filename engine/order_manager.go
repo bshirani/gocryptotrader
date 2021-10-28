@@ -140,9 +140,21 @@ func (m *OrderManager) UpdateFakeOrders(d eventtypes.DataEventHandler) error {
 		if ao.Type != order.Stop {
 			continue
 		}
+		// if ao.Side == order.Sell {
+		// 	fmt.Println("update fake",
+		// 		len(active),
+		// 		d.Pair(),
+		// 		ao.Type,
+		// 		ao.Side,
+		// 		"pts2close=",
+		// 		d.ClosePrice().Sub(decimal.NewFromFloat(ao.Price)),
+		// 	)
+		// }
 
-		if ao.Side == order.Sell && d.ClosePrice().LessThan(decimal.NewFromFloat(ao.Price)) || ao.Side == order.Buy && d.ClosePrice().GreaterThan(decimal.NewFromFloat(ao.Price)) {
+		if (ao.Side == order.Sell && d.ClosePrice().LessThan(decimal.NewFromFloat(ao.Price))) ||
+			(ao.Side == order.Buy && d.ClosePrice().GreaterThan(decimal.NewFromFloat(ao.Price))) {
 			ao.Status = order.Filled
+			ao.InternalType = order.InternalStopLoss
 			_, err := m.orderStore.upsert(&ao)
 			if err != nil {
 				fmt.Println("error upserting stop order")
@@ -361,9 +373,10 @@ func (m *OrderManager) validate(newOrder *order.Submit) error {
 	}
 	if newOrder.InternalType == "" {
 		panic("order without internal type")
-	} else {
-		fmt.Println("internal order type is ", newOrder.InternalType)
 	}
+	// else {
+	// 	fmt.Println("internal order type is ", newOrder.InternalType)
+	// }
 
 	if m.cfg.EnforceLimitConfig {
 		if !m.cfg.AllowMarketOrders && newOrder.Type == order.Market {
@@ -477,9 +490,7 @@ func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*Ord
 		return nil, fmt.Errorf("order manager %w", ErrSubSystemNotStarted)
 	}
 
-	fmt.Println(1)
 	err := m.validate(newOrder)
-	fmt.Println(2)
 	if err != nil {
 		return nil, err
 	}

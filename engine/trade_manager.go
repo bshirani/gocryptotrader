@@ -178,11 +178,11 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	var decision gctorder.InternalOrderType
 	if o.GetDecision() == gctsignal.Exit {
 		skipStop = true
-		decision = gctorder.DecisionTakeProfit
+		decision = gctorder.InternalTakeProfit
 	} else if o.GetDecision() == "" {
 		panic("order without decision")
 	} else if o.GetDecision() == gctsignal.Enter {
-		decision = gctorder.DecisionEntry
+		decision = gctorder.InternalEntry
 	}
 	if priceFloat == 0 {
 		panic("order has no price")
@@ -227,7 +227,7 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	}
 	stopLossSubmission := &gctorder.Submit{
 		Status:       gctorder.New,
-		InternalType: gctorder.DecisionStopLoss,
+		InternalType: gctorder.InternalStopLoss,
 		Price:        stopLossPrice,
 		Amount:       a,
 		Fee:          fee,
@@ -1180,6 +1180,7 @@ func (tm *TradeManager) onFill(order gctorder.Detail, ev eventtypes.DataEventHan
 		Order:           &order,
 		OrderID:         order.ID,
 		InternalOrderID: order.InternalOrderID,
+		InternalType:    order.InternalType,
 		ClosePrice:      decimal.NewFromFloat(order.Price),
 		PurchasePrice:   decimal.NewFromFloat(order.Price),
 		// StopLossPrice:   decimal.NewFromFloat(order.StopLossPrice),

@@ -26,9 +26,9 @@ type Details struct {
 	DurationMinutes  float64
 	EntryOrderID     int
 	ExitOrderID      int
+	ExitReason       order.InternalOrderType
 	StrategyName     string
 	StrategyID       int
-	Name             string
 	EntryTime        time.Time
 	ExitTime         time.Time
 	StopLossPrice    decimal.Decimal
@@ -37,9 +37,9 @@ type Details struct {
 	Pair             currency.Pair
 	ProfitLossPoints decimal.Decimal
 	ProfitLossQuote  decimal.Decimal
-	ProfitLoss       decimal.Decimal
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
-	RiskedPoints     float64
-	RiskedQuote      float64
+	// ProfitLoss       decimal.Decimal
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	RiskedPoints float64
+	RiskedQuote  float64
 }

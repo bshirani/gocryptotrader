@@ -158,7 +158,7 @@ func loadStrategyFromTrade(t *livetrade.Details) strategies.Handler {
 }
 
 func loadStrategyFromLabel(label string) strategies.Handler {
-	l := strings.Split(label, ":")
+	l := strings.Split(label, "@")
 	name := l[0]
 	symbol := l[1]
 	dir := l[2]
@@ -188,8 +188,8 @@ func enhanceTrades(trades []*livetrade.Details) []*livetrade.Details {
 	// create detailed trades
 	// run preparation
 	calculateDuration(trades)
-	netProfitPoints(trades)
-	netProfit(trades)
+	// netProfitPoints(trades)
+	// netProfit(trades)
 	return trades
 
 	// enhance
@@ -213,29 +213,29 @@ func enhanceTrades(trades []*livetrade.Details) []*livetrade.Details {
 	// return enhanced
 }
 
-func netProfitPoints(trades []*livetrade.Details) (netProfit decimal.Decimal) {
-	for _, t := range trades {
-		if t.Side == order.Buy {
-			t.ProfitLossPoints = t.ExitPrice.Sub(t.EntryPrice)
-		} else if t.Side == order.Sell {
-			t.ProfitLossPoints = t.EntryPrice.Sub(t.ExitPrice)
-		}
-		netProfit = netProfit.Add(t.ProfitLossPoints)
-	}
-	return netProfit
-}
-
-func netProfit(trades []*livetrade.Details) (netProfit decimal.Decimal) {
-	for _, t := range trades {
-		if t.Side == order.Buy {
-			t.ProfitLoss = t.ExitPrice.Sub(t.EntryPrice)
-		} else if t.Side == order.Sell {
-			t.ProfitLoss = t.EntryPrice.Sub(t.ExitPrice)
-		}
-		netProfit = netProfit.Add(t.Amount.Mul(t.ProfitLossPoints))
-	}
-	return netProfit
-}
+// func netProfitPoints(trades []*livetrade.Details) (netProfit decimal.Decimal) {
+// 	for _, t := range trades {
+// 		if t.Side == order.Buy {
+// 			t.ProfitLossPoints = t.ExitPrice.Sub(t.EntryPrice)
+// 		} else if t.Side == order.Sell {
+// 			t.ProfitLossPoints = t.EntryPrice.Sub(t.ExitPrice)
+// 		}
+// 		netProfit = netProfit.Add(t.ProfitLossPoints)
+// 	}
+// 	return netProfit
+// }
+//
+// func netProfit(trades []*livetrade.Details) (netProfit decimal.Decimal) {
+// 	for _, t := range trades {
+// 		if t.Side == order.Buy {
+// 			t.ProfitLossPoints = t.ExitPrice.Sub(t.EntryPrice)
+// 		} else if t.Side == order.Sell {
+// 			t.ProfitLossPoints = t.EntryPrice.Sub(t.ExitPrice)
+// 		}
+// 		netProfit = netProfit.Add(t.Amount.Mul(t.ProfitLossPoints))
+// 	}
+// 	return netProfit
+// }
 
 func calculateDuration(trades []*livetrade.Details) {
 	for _, t := range trades {

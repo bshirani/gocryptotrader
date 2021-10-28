@@ -131,7 +131,7 @@ func (s *Strategy) checkEntry(es signal.Signal, p base.StrategyPortfolioHandler,
 		if m60Chg.GreaterThan(decimal.NewFromInt(0)) {
 			es.AppendReason("Strategy: m60Chg greater than zero")
 			es.SetDecision(signal.Enter)
-			es.SetStopLossPrice(price.Mul(decimal.NewFromFloat(0.9)))
+			es.SetStopLossPrice(price.Mul(decimal.NewFromFloat(0.99)))
 		} else {
 			es.AppendReason("Strategy: m60Chg less than zero")
 			es.SetDecision(signal.DoNothing)
@@ -141,7 +141,7 @@ func (s *Strategy) checkEntry(es signal.Signal, p base.StrategyPortfolioHandler,
 		if m60Chg.LessThan(decimal.NewFromInt(0)) {
 			es.AppendReason("Strategy: m60Chg less than zero")
 			es.SetDecision(signal.Enter)
-			es.SetStopLossPrice(price.Mul(decimal.NewFromFloat(1.1)))
+			es.SetStopLossPrice(price.Mul(decimal.NewFromFloat(1.01)))
 		} else {
 			es.AppendReason("Strategy: m60Chg greater than zero")
 			es.SetDecision(signal.DoNothing)

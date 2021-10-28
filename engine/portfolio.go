@@ -467,7 +467,6 @@ func (p *Portfolio) OnFill(f fill.Event) {
 		// fmt.Println("no trade for strategy, PF ON fILL creating NEW TRADE")
 		p.recordEnterTrade(f)
 	} else if t.Status == gctorder.Open {
-		fmt.Println("PF ONFILL CLOSING TRADE")
 		p.recordExitTrade(f, t)
 	} else {
 		panic("fill event without trade")
@@ -1289,10 +1288,13 @@ func (p *Portfolio) recordExitTrade(f fill.Event, t *livetrade.Details) {
 		}
 		t.ProfitLossQuote = t.ProfitLossPoints.Mul(t.Amount)
 		t.ExitOrderID = f.GetInternalOrderID()
-		// exitOrd := p.GetOrderFromStore(t.ExitOrderID)
-		// t.ExitType = exitOrd.InternalType
+		exitOrd := p.GetOrderFromStore(t.ExitOrderID)
+		t.ExitReason = exitOrd.InternalType
 		if t.ExitOrderID == 0 {
 			panic("trade exiting without exit order id")
+		}
+		if t.ExitReason == "" {
+			panic("trade exiting without exit reason")
 		}
 
 		// msg := fmt.Sprintf("Order manager: Strategy=%s Exchange=%s submitted order ID=%v [Ours: %v] pair=%v price=%v amount=%v side=%v type=%v for time %v.",
