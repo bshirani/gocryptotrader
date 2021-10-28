@@ -19,6 +19,8 @@ const (
 	gateioPathFormat = "/%s/%s/%s/%s-%s.csv.gz"
 	baseDir          = "/home/bijan/work/crypto/gateiodata"
 	colorReset       = "\033[0m"
+	symbolsFile      = "./symbols.txt"
+	startDate        = "2021-08-01"
 
 	colorRed    = "\033[31m"
 	colorGreen  = "\033[32m"
@@ -30,7 +32,7 @@ const (
 )
 
 func main() {
-	start, _ := time.Parse("2006-01-02", "2021-08-01")
+	start, _ := time.Parse("2006-01-02", startDate)
 	t1 := start.AddDate(-3, 0, 0)
 	finished := make(chan bool)
 	c := make(chan os.Signal, 1)
@@ -126,7 +128,7 @@ func worker(d time.Time, p string, finished chan bool) {
 }
 
 func symbols() []string {
-	file, err := os.Open("./symbols.txt")
+	file, err := os.Open(symbolsFile)
 	if err != nil {
 		log.Fatal(err)
 	}

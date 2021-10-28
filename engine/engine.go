@@ -51,7 +51,7 @@ type Engine struct {
 	connectionManager       *connectionManager
 	currencyPairSyncer      *syncManager
 	currencyStateManager    *CurrencyStateManager
-	dataHistoryManager      *DataHistoryManager
+	DataHistoryManager      *DataHistoryManager
 	eventManager            *eventManager
 	gctScriptManager        *gctscript.GctScriptManager
 	ntpManager              *ntpManager
@@ -181,7 +181,7 @@ func loadConfigWithSettings(settings *Settings, flagSet map[string]bool) (*confi
 func validateSettings(b *Engine, s *Settings, flagSet map[string]bool) {
 	b.Settings = *s
 
-	b.Settings.EnableDataHistoryManager = (flagSet["datahistory"] && b.Settings.EnableDatabaseManager) || b.Config.DataHistoryManager.Enabled
+	b.Settings.EnableDataHistoryManager = (flagSet["datahistory"] && b.Settings.EnableDatabaseManager) || b.Config.DataHistory.Enabled
 	b.Settings.EnableTradeManager = (flagSet["trade"] && b.Settings.EnableTradeManager) || b.Config.TradeManager.Enabled
 	b.Settings.EnableTrading = (flagSet["strategies"] && b.Settings.EnableTrading) || b.Config.TradeManager.Trading
 	b.Settings.EnableOrderManager = flagSet["orders"] && b.Settings.EnableOrderManager || b.Config.OrderManager.Enabled
@@ -682,12 +682,12 @@ func (bot *Engine) Start() error {
 	}
 
 	if bot.Settings.EnableDataHistoryManager {
-		if bot.dataHistoryManager == nil {
-			bot.dataHistoryManager, err = SetupDataHistoryManager(bot, bot.ExchangeManager, bot.DatabaseManager, &bot.Config.DataHistoryManager)
+		if bot.DataHistoryManager == nil {
+			bot.DataHistoryManager, err = SetupDataHistoryManager(bot, bot.ExchangeManager, bot.DatabaseManager, &bot.Config.DataHistory)
 			if err != nil {
 				log.Errorf(log.Global, "database history manager unable to setup: %s", err)
 			} else {
-				err = bot.dataHistoryManager.Start()
+				err = bot.DataHistoryManager.Start()
 				if err != nil {
 					log.Errorf(log.Global, "database history manager unable to start: %s", err)
 				}
@@ -811,8 +811,8 @@ func (bot *Engine) Stop() {
 			log.Errorf(log.Global, "API Server unable to stop websocket server. Error: %s", err)
 		}
 	}
-	if bot.dataHistoryManager.IsRunning() {
-		if err := bot.dataHistoryManager.Stop(); err != nil {
+	if bot.DataHistoryManager.IsRunning() {
+		if err := bot.DataHistoryManager.Stop(); err != nil {
 			log.Errorf(log.DataHistory, "data history manager unable to stop. Error: %v", err)
 		}
 	}

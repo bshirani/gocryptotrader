@@ -118,7 +118,7 @@ type Config struct {
 	Database             database.Config           `json:"database"`
 	Logging              log.Config                `json:"logging"`
 	ConnectionMonitor    ConnectionMonitorConfig   `json:"connectionMonitor"`
-	DataHistoryManager   DataHistoryManager        `json:"dataHistoryManager"`
+	DataHistory          DataHistoryManager        `json:"dataHistory"`
 	CurrencyStateManager CurrencyStateManager      `json:"currencyStateManager"`
 	Watcher              Watcher                   `json:"watcher"`
 	Profiler             Profiler                  `json:"profiler"`
@@ -467,10 +467,11 @@ type StatisticSettings struct {
 // these settings will override ExchangeSettings that go against it
 // and assess the bigger picture
 type PortfolioSettings struct {
-	Verbose  bool     `json:"verbose"`
-	Leverage Leverage `json:"leverage"`
-	BuySide  MinMax   `json:"buySide"`
-	SellSide MinMax   `json:"sellSide"`
+	EnabledPairs *currency.Pairs `json:"enabledPairs"`
+	Verbose      bool            `json:"verbose"`
+	Leverage     Leverage        `json:"leverage"`
+	BuySide      MinMax          `json:"buySide"`
+	SellSide     MinMax          `json:"sellSide"`
 }
 
 // Leverage rules are used to allow or limit the use of leverage in orders

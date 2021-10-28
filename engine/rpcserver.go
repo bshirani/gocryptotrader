@@ -3630,12 +3630,12 @@ func (s *RPCServer) UpsertDataHistoryJob(_ context.Context, r *gctrpc.UpsertData
 		PrerequisiteJobNickname:  r.PrerequisiteJobNickname,
 	}
 
-	err = s.dataHistoryManager.UpsertJob(&job, r.InsertOnly)
+	err = s.DataHistoryManager.UpsertJob(&job, r.InsertOnly)
 	if err != nil {
 		return nil, err
 	}
 
-	result, err := s.dataHistoryManager.GetByNickname(r.Nickname, false)
+	result, err := s.DataHistoryManager.GetByNickname(r.Nickname, false)
 	if err != nil {
 		return nil, fmt.Errorf("%s %w", r.Nickname, err)
 	}
@@ -3670,12 +3670,12 @@ func (s *RPCServer) GetDataHistoryJobDetails(_ context.Context, r *gctrpc.GetDat
 		if err != nil {
 			return nil, fmt.Errorf("%s %w", r.Id, err)
 		}
-		result, err = s.dataHistoryManager.GetByID(id)
+		result, err = s.DataHistoryManager.GetByID(id)
 		if err != nil {
 			return nil, fmt.Errorf("%s %w", r.Id, err)
 		}
 	} else {
-		result, err = s.dataHistoryManager.GetByNickname(r.Nickname, r.FullDetails)
+		result, err = s.DataHistoryManager.GetByNickname(r.Nickname, r.FullDetails)
 		if err != nil {
 			return nil, fmt.Errorf("%s %w", r.Nickname, err)
 		}
@@ -3724,7 +3724,7 @@ func (s *RPCServer) GetDataHistoryJobDetails(_ context.Context, r *gctrpc.GetDat
 
 // GetActiveDataHistoryJobs returns any active data history job details
 func (s *RPCServer) GetActiveDataHistoryJobs(_ context.Context, _ *gctrpc.GetInfoRequest) (*gctrpc.DataHistoryJobs, error) {
-	jobs, err := s.dataHistoryManager.GetActiveJobs()
+	jobs, err := s.DataHistoryManager.GetActiveJobs()
 	if err != nil {
 		return nil, err
 	}
@@ -3779,7 +3779,7 @@ func (s *RPCServer) GetDataHistoryJobsBetween(_ context.Context, r *gctrpc.GetDa
 		return nil, err
 	}
 
-	jobs, err := s.dataHistoryManager.GetAllJobStatusBetween(start, end)
+	jobs, err := s.DataHistoryManager.GetAllJobStatusBetween(start, end)
 	if err != nil {
 		return nil, err
 	}
@@ -3825,7 +3825,7 @@ func (s *RPCServer) GetDataHistoryJobSummary(_ context.Context, r *gctrpc.GetDat
 	if r.Nickname == "" {
 		return nil, fmt.Errorf("get job summary %w", errNicknameUnset)
 	}
-	job, err := s.dataHistoryManager.GenerateJobSummary(r.Nickname)
+	job, err := s.DataHistoryManager.GenerateJobSummary(r.Nickname)
 	if err != nil {
 		return nil, err
 	}
@@ -3871,7 +3871,7 @@ func (s *RPCServer) SetDataHistoryJobStatus(_ context.Context, r *gctrpc.SetData
 		return nil, errOnlyNicknameOrID
 	}
 	status := "success"
-	err := s.dataHistoryManager.SetJobStatus(r.Nickname, r.Id, dataHistoryStatus(r.Status))
+	err := s.DataHistoryManager.SetJobStatus(r.Nickname, r.Id, dataHistoryStatus(r.Status))
 	if err != nil {
 		log.Error(log.GRPCSys, err)
 		status = "failed"
@@ -3890,7 +3890,7 @@ func (s *RPCServer) UpdateDataHistoryJobPrerequisite(_ context.Context, r *gctrp
 		return nil, errNicknameUnset
 	}
 	status := "success"
-	err := s.dataHistoryManager.SetJobRelationship(r.PrerequisiteJobNickname, r.Nickname)
+	err := s.DataHistoryManager.SetJobRelationship(r.PrerequisiteJobNickname, r.Nickname)
 	if err != nil {
 		return nil, err
 	}

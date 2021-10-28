@@ -65,7 +65,7 @@ func (bot *Engine) GetSubsystemsStatus() map[string]bool {
 		vm.Name:                       bot.gctScriptManager.IsRunning(),
 		WebsocketName:                 bot.Settings.EnableWebsocketRPC,
 		dispatch.Name:                 dispatch.IsRunning(),
-		dataHistoryManagerName:        bot.dataHistoryManager.IsRunning(),
+		dataHistoryManagerName:        bot.DataHistoryManager.IsRunning(),
 		CurrencyStateManagementName:   bot.currencyStateManager.IsRunning(),
 		tradeManagerName:              bot.TradeManager.IsRunning(),
 	}
@@ -238,15 +238,15 @@ func (bot *Engine) SetSubsystem(subSystemName string, enable bool) error {
 		return errGRPCManagementFault
 	case dataHistoryManagerName:
 		if enable {
-			if bot.dataHistoryManager == nil {
-				bot.dataHistoryManager, err = SetupDataHistoryManager(bot, bot.ExchangeManager, bot.DatabaseManager, &bot.Config.DataHistoryManager)
+			if bot.DataHistoryManager == nil {
+				bot.DataHistoryManager, err = SetupDataHistoryManager(bot, bot.ExchangeManager, bot.DatabaseManager, &bot.Config.DataHistory)
 				if err != nil {
 					return err
 				}
 			}
-			return bot.dataHistoryManager.Start()
+			return bot.DataHistoryManager.Start()
 		}
-		return bot.dataHistoryManager.Stop()
+		return bot.DataHistoryManager.Stop()
 	case tradeManagerName:
 		if enable {
 			if bot.TradeManager == nil {

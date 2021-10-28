@@ -1389,14 +1389,14 @@ func (c *Config) SetNTPCheck(input io.Reader) (string, error) {
 func (c *Config) CheckDataHistoryMonitorConfig() {
 	m.Lock()
 	defer m.Unlock()
-	if c.DataHistoryManager.CheckInterval <= 0 {
-		c.DataHistoryManager.CheckInterval = defaultDataHistoryMonitorCheckTimer
+	if c.DataHistory.CheckInterval <= 0 {
+		c.DataHistory.CheckInterval = defaultDataHistoryMonitorCheckTimer
 	}
-	if c.DataHistoryManager.MaxJobsPerCycle == 0 {
-		c.DataHistoryManager.MaxJobsPerCycle = defaultMaxJobsPerCycle
+	if c.DataHistory.MaxJobsPerCycle == 0 {
+		c.DataHistory.MaxJobsPerCycle = defaultMaxJobsPerCycle
 	}
-	if c.DataHistoryManager.DaysBack == 0 {
-		c.DataHistoryManager.DaysBack = defaultDaysBack
+	if c.DataHistory.DaysBack == 0 {
+		c.DataHistory.DaysBack = defaultDaysBack
 	}
 }
 

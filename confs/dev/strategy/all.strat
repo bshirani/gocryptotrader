@@ -9,7 +9,7 @@
  {
   "weight": "0",
   "side": "BUY",
-  "pair": "XBT_USDT",
+  "pair": "BTC_USDT",
   "capture": "trend",
   "debug": false
  },
@@ -17,6 +17,13 @@
   "weight": "0",
   "side": "BUY",
   "pair": "XRP_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "pair": "SHIB_USDT",
   "capture": "trend",
   "debug": false
  },
@@ -30,7 +37,7 @@
  {
   "weight": "0",
   "side": "SELL",
-  "pair": "XBT_USDT",
+  "pair": "BTC_USDT",
   "capture": "trend",
   "debug": false
  },
@@ -43,6 +50,13 @@
  },
  {
   "weight": "0",
+  "side": "SELL",
+  "pair": "SHIB_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
   "side": "BUY",
   "pair": "ETH_USDT",
   "capture": "trend2day",
@@ -51,7 +65,7 @@
  {
   "weight": "0",
   "side": "BUY",
-  "pair": "XBT_USDT",
+  "pair": "BTC_USDT",
   "capture": "trend2day",
   "debug": false
  },
@@ -64,6 +78,13 @@
  },
  {
   "weight": "0",
+  "side": "BUY",
+  "pair": "SHIB_USDT",
+  "capture": "trend2day",
+  "debug": false
+ },
+ {
+  "weight": "0",
   "side": "SELL",
   "pair": "ETH_USDT",
   "capture": "trend2day",
@@ -72,7 +93,7 @@
  {
   "weight": "0",
   "side": "SELL",
-  "pair": "XBT_USDT",
+  "pair": "BTC_USDT",
   "capture": "trend2day",
   "debug": false
  },
@@ -80,6 +101,13 @@
   "weight": "0",
   "side": "SELL",
   "pair": "XRP_USDT",
+  "capture": "trend2day",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "pair": "SHIB_USDT",
   "capture": "trend2day",
   "debug": false
  },
@@ -93,7 +121,7 @@
  {
   "weight": "0",
   "side": "BUY",
-  "pair": "XBT_USDT",
+  "pair": "BTC_USDT",
   "capture": "trend3day",
   "debug": false
  },
@@ -101,6 +129,13 @@
   "weight": "0",
   "side": "BUY",
   "pair": "XRP_USDT",
+  "capture": "trend3day",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "pair": "SHIB_USDT",
   "capture": "trend3day",
   "debug": false
  },
@@ -114,7 +149,7 @@
  {
   "weight": "0",
   "side": "SELL",
-  "pair": "XBT_USDT",
+  "pair": "BTC_USDT",
   "capture": "trend3day",
   "debug": false
  },
@@ -122,6 +157,13 @@
   "weight": "0",
   "side": "SELL",
   "pair": "XRP_USDT",
+  "capture": "trend3day",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "pair": "SHIB_USDT",
   "capture": "trend3day",
   "debug": false
  }

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
@@ -15,6 +16,7 @@ import (
 	gctdatabase "gocryptotrader/database"
 	"gocryptotrader/database/models/postgres"
 	currencysql "gocryptotrader/database/repository/currency"
+	"gocryptotrader/database/repository/datahistoryjob"
 	"gocryptotrader/engine"
 	"gocryptotrader/exchange/asset"
 	"gocryptotrader/log"
@@ -90,6 +92,41 @@ func main() {
 			log.Errorf(log.Global, "Database manager unable to start: %v", err)
 		}
 	}
+
+	// fmt.Println(0)
+	// var localWG sync.WaitGroup
+	// localWG.Add(1)
+
+	db := bot.DatabaseManager.GetInstance()
+	dhj, err := datahistoryjob.Setup(db)
+	if err != nil {
+		fmt.Println("error", err)
+	}
+	dhj.ClearJobs()
+
+	log.Infoln(log.TradeMgr, "Catching up days...", bot.dataHistoryManager.DaysBack)
+	daysBack := make([]int, bot.dataHistoryManager.DaysBack)
+
+	for i := range daysBack {
+		i += 1
+		bot.dataHistoryManager.CatchupDays(int64(i))
+
+		for {
+			active, err := dhj.CountActive()
+			if err != nil {
+				fmt.Println("error", err)
+			}
+			if active == 0 {
+				fmt.Println("starting days back", i)
+				break
+			}
+			time.Sleep(time.Second)
+		}
+	}
+
+	// time.Sleep(time.Millisecond * 500)
+	log.Infoln(log.TradeMgr, "Done with catchup")
+	// os.Exit(1123)
 
 	// syncer := SetupSyncer(bot)
 	// syncer.insertGateIOPairs()

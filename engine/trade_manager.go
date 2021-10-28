@@ -517,12 +517,12 @@ func (tm *TradeManager) waitForDataCatchup() {
 
 	dhj.ClearJobs()
 
-	log.Infoln(log.TradeMgr, "Catching up days...", tm.bot.dataHistoryManager.DaysBack)
-	daysBack := make([]int, tm.bot.dataHistoryManager.DaysBack)
+	log.Infoln(log.TradeMgr, "Catching up days...", tm.bot.DataHistoryManager.DaysBack)
+	daysBack := make([]int, tm.bot.DataHistoryManager.DaysBack)
 
 	for i := range daysBack {
 		i += 1
-		tm.bot.dataHistoryManager.CatchupDays(int64(i))
+		tm.bot.DataHistoryManager.CatchupDays(int64(i))
 
 		for {
 			active, err := dhj.CountActive()
@@ -604,7 +604,7 @@ func (tm *TradeManager) runLive() error {
 	// var processEventTicker time.Ticker
 	// processEventTickerSim := time.NewTicker(time.Second)
 	processEventTicker := time.NewTicker(time.Second * 5)
-	if tm.bot.dataHistoryManager.IsRunning() {
+	if tm.bot.DataHistoryManager.IsRunning() {
 		tm.waitForDataCatchup()
 	}
 	tm.waitForFactorEnginesWarmup()
@@ -666,7 +666,9 @@ func (tm *TradeManager) processLiveMinute() error {
 				log.Error(log.TradeMgr, "doesnt have data in range")
 				os.Exit(123)
 			}
-			// fmt.Println("updating with event", dataEvent)
+			if tm.verbose {
+				log.Debugln(log.TradeMgr, "processing pair", dataEvent.Pair())
+			}
 			tm.lastUpdateMin[cs] = dataEvent.GetTime().UTC()
 			tm.EventQueue.AppendEvent(dataEvent)
 		}

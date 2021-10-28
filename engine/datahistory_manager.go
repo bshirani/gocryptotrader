@@ -186,8 +186,9 @@ func (m *DataHistoryManager) createCatchupJob(exchangeName string, a asset.Item,
 	endFmt := fmt.Sprintf("%d-%02d-%02d", end.Year(), end.Month(), end.Day())
 	name := fmt.Sprintf("%v-%s-%s--%d-catchup", c, startFmt, endFmt, time.Now().Unix())
 
+	dataType := dataHistoryCandleDataType
 	// dataType := dataHistoryConvertTradesDataType
-	dataType := dataHistoryTradeDataType
+	// dataType := dataHistoryTradeDataType
 
 	job := DataHistoryJob{
 		Nickname:               name,
