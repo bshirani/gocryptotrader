@@ -493,7 +493,7 @@ type MinMax struct {
 // you wish to trade with
 // Backtester will load the data of the currencies specified here
 type CurrencySettings struct {
-	ExchangeName string `json:"exchange-name"`
+	ExchangeName string `json:"exchangeName"`
 	Asset        string `json:"asset"`
 	Base         string `json:"base"`
 	Quote        string `json:"quote"`

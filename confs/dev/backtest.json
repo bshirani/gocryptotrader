@@ -12,7 +12,16 @@
   "useExchangeLevelFunding": false
  },
  "strategiesSettings": null,
- "currencySettings": [],
+ "currencySettings": [
+     {
+         "exchangeName": "gateio",
+         "asset": "spot",
+         "base": "BTC",
+         "quote": "USDT",
+         "initialBaseFunds": 10000.00,
+         "initialQuoteFunds": 1
+     }
+ ],
  "strategyCurrencySettings": null,
  "dataSettings": {
   "interval": 60000000000,

@@ -395,20 +395,21 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	p.recordTrade(ev)
 	return o, nil
 
-	// var sizingFunds decimal.Decimal
-	// if ev.GetDirection() == gctorder.Sell {
-	// 	sizingFunds = funds.BaseAvailable()
-	// } else {
-	// 	sizingFunds = funds.QuoteAvailable()
-	// }
-	// sizedOrder := p.sizeOrder(ev, cs, o, sizingFunds, funds)
+	var sizingFunds decimal.Decimal
+	if ev.GetDirection() == gctorder.Sell {
+		sizingFunds = funds.BaseAvailable()
+	} else {
+		sizingFunds = funds.QuoteAvailable()
+	}
+	sizedOrder := p.sizeOrder(ev, cs, o, sizingFunds, funds)
 	// // Get the holding from the previous iteration, create it if it doesn't yet have a timestamp
-	// lookup2 := p.exchangeAssetPairSettings[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
-	// h := lookup2.GetHoldingsForTime(o.GetTime())
-	// fmt.Println("holdings", h)
+	lookup2 := p.exchangeAssetPairSettings[ev.GetExchange()][ev.GetAssetType()][ev.Pair()]
+	h := lookup2.GetHoldingsForTime(o.GetTime())
+	fmt.Println("holdings", h)
 	// sizedOrder.Amount = ev.GetAmount()
 	// fmt.Println("sized order", sizedOrder.Amount)
-	// fmt.Println("PORTFOLIO", ev.GetDirection(), ev.GetStrategyID(), ev.GetReason())
+	fmt.Println("PORTFOLIO", ev.GetDirection(), ev.GetStrategyID(), ev.GetReason(), sizedOrder.Size)
+	return sizedOrder
 	// return p.evaluateOrder(ev, o, sizedOrder)
 }
 
