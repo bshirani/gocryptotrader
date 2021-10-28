@@ -49,11 +49,9 @@ func (p *PortfolioAnalysis) analyzeGroupedStrategies() {
 }
 
 func (p *PortfolioAnalysis) loadAllStrategies() {
-	// get a list of all the strategy names
-	// all := strategies.GetStrategies()
+	names := strings.Split(p.Config.PortfolioSettings.EnabledStrategies, ",")
+	symbols := strings.Split(p.Config.PortfolioSettings.EnabledPairs, ",")
 
-	names := []string{"trend", "trend2day", "trend3day"}
-	symbols := []string{"ETH_USDT", "BTC_USDT", "XRP_USDT", "SHIB_USDT"}
 	pairs := make([]currency.Pair, 0)
 	for _, s := range symbols {
 		pair, err := currency.NewPairFromString(s)

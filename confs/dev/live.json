@@ -11,7 +11,8 @@
   "dataType": ""
  },
  "portfolioSettings": {
-  "enabledPairs": null,
+  "enabledPairs": "",
+  "enabledStrategies": "",
   "verbose": true,
   "leverage": {
    "canUseLeverage": false,

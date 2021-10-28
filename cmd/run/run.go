@@ -22,29 +22,10 @@ var RunCommand = &cli.Command{
 	Name:   "run",
 	Usage:  "run script",
 	Action: runConfig,
-	Flags: []cli.Flag{
-		&cli.StringFlag{
-			Name:        "config",
-			Value:       "live",
-			Usage:       "config file",
-			Destination: &settings.ConfigFile,
-		},
-		&cli.StringFlag{
-			Name:        "trade",
-			Value:       "all",
-			Usage:       "trade config file",
-			Destination: &settings.TradeConfigFile,
-		},
-	},
 }
 
 func runConfig(c *cli.Context) error {
-	// if tradeConfigPath == "" {
-	// 	tradeConfigPath = filepath.Join(wd, "confs/prod.strat")
-	// } else {
-	// 	tradeConfigPath = filepath.Join(wd, "confs/dev/strategy", fmt.Sprintf("%s.strat", tradeConfigPath))
-	// }
-
+	fmt.Println(c.Args())
 	flags := map[string]bool{}
 	var bot *engine.Engine
 	bot, err := engine.NewFromSettings(&settings, flags)

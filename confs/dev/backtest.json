@@ -68,7 +68,8 @@
   }
  },
  "portfolioSettings": {
-  "enabledPairs": "BTC_USDT,SHIB_USDT",
+  "enabledPairs": "BTC_USDT,SHIB_USDT,FLOKI_USDT",
+  "enabledStrategies": "trend,trend2day",
   "verbose": false,
   "leverage": {
    "canUseLeverage": false,

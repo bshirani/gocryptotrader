@@ -5,24 +5,13 @@
  "script": false,
  "nickname": "",
  "goal": "",
- "strategySettings": {
-  "name": "",
-  "direction": "",
-  "useSimultaneousSignalProcessing": false,
-  "useExchangeLevelFunding": false
- },
- "strategiesSettings": null,
  "currencySettings": [],
- "strategyCurrencySettings": null,
  "dataSettings": {
   "interval": 60000000000,
   "dataType": "candle",
-  "liveData": {
-   "realOrders": false
-  },
   "databaseData": {
-   "startDate": "2021-10-01T00:00:00+00:00",
-   "endDate": "2021-10-10T00:10:00+00:00",
+   "startDate": "2021-10-01T00:00:00Z",
+   "endDate": "2021-10-10T00:10:00Z",
    "configOverride": {
     "enabled": true,
     "verbose": false,
@@ -35,10 +24,21 @@
      "database": "gct-dev",
      "sslmode": ""
     }
-   }
+   },
+   "inclusiveEndDate": false
+  },
+  "liveData": {
+   "apiKeyOverride": "",
+   "apiSecretOverride": "",
+   "apiClientIdOverride": "",
+   "api2faOverride": "",
+   "apiSubSccountOverride": "",
+   "realOrders": false
   }
  },
  "portfolioSettings": {
+  "enabledPairs": "",
+  "enabledStrategies": "",
   "verbose": false,
   "leverage": {
    "canUseLeverage": false,
@@ -58,19 +58,27 @@
  },
  "gocryptotraderConfigPath": "",
  "statisticSettings": {
-  "risk-free-rate": "0"
+  "riskFreeRate": "0"
  },
  "syncManager": {
   "verbose": false,
-  "enabled": true
+  "enabled": true,
+  "tickerSync": false,
+  "orderBookSync": false,
+  "klineSync": false,
+  "tradeSync": false,
+  "syncContinuously": false,
+  "syncWorkers": 0,
+  "syncTimeoutRest": 0,
+  "syncTimeoutWebsocket": 0
  },
  "tradeManager": {
   "enabled": true,
   "verbose": false,
-  "debug":  false,
   "trading": true,
+  "debug": false,
   "clearDB": false,
-  "strategies": []
+  "strategies": null
  },
  "factorEngine": {
   "verbose": false
@@ -139,12 +147,12 @@
   ],
   "checkInterval": 1000000000
  },
- "dataHistoryManager": {
+ "dataHistory": {
   "enabled": false,
   "verbose": false,
   "checkInterval": 60000000000,
-  "maxJobsPerCycle": 100,
-  "maxResultInsertions": 10000,
+  "maxJobsPerCycle": 50,
+  "maxResultInsertions": 0,
   "daysBack": 2
  },
  "currencyStateManager": {
@@ -157,7 +165,7 @@
  },
  "profiler": {
   "enabled": false,
-  "mutex_profile_fraction": 0
+  "mutexProfileFraction": 0
  },
  "ntpclient": {
   "enabled": 1,
@@ -325,31 +333,6 @@
    }
   ],
   "Verbose": false
- },
-
- "data-settings": {
-  "interval": 60000000000,
-  "data-type": "candle",
-  "live-data": {
-   "real-orders": false
-  },
-  "database-data": {
-   "start-date": "2021-10-01T00:00:00+00:00",
-   "end-date": "2021-10-10T00:10:00+00:00",
-   "config-override": {
-    "enabled": true,
-    "verbose": false,
-    "driver": "postgres",
-    "connectionDetails": {
-     "host": "localhost",
-     "port": 5432,
-     "username": "bijan",
-     "password": "",
-     "database": "gct-dev",
-     "sslmode": ""
-    }
-   }
-  }
  },
  "exchanges": [
   {

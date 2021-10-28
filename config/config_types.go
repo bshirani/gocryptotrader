@@ -467,11 +467,12 @@ type StatisticSettings struct {
 // these settings will override ExchangeSettings that go against it
 // and assess the bigger picture
 type PortfolioSettings struct {
-	EnabledPairs *currency.Pairs `json:"enabledPairs"`
-	Verbose      bool            `json:"verbose"`
-	Leverage     Leverage        `json:"leverage"`
-	BuySide      MinMax          `json:"buySide"`
-	SellSide     MinMax          `json:"sellSide"`
+	EnabledPairs      string   `json:"enabledPairs"`
+	EnabledStrategies string   `json:"enabledStrategies"`
+	Verbose           bool     `json:"verbose"`
+	Leverage          Leverage `json:"leverage"`
+	BuySide           MinMax   `json:"buySide"`
+	SellSide          MinMax   `json:"sellSide"`
 }
 
 // Leverage rules are used to allow or limit the use of leverage in orders

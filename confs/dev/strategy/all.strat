@@ -2,21 +2,7 @@
  {
   "weight": "0",
   "side": "BUY",
-  "pair": "ETH_USDT",
-  "capture": "trend",
-  "debug": false
- },
- {
-  "weight": "0",
-  "side": "BUY",
   "pair": "BTC_USDT",
-  "capture": "trend",
-  "debug": false
- },
- {
-  "weight": "0",
-  "side": "BUY",
-  "pair": "XRP_USDT",
   "capture": "trend",
   "debug": false
  },
@@ -29,8 +15,8 @@
  },
  {
   "weight": "0",
-  "side": "SELL",
-  "pair": "ETH_USDT",
+  "side": "BUY",
+  "pair": "FLOKI_USDT",
   "capture": "trend",
   "debug": false
  },
@@ -44,22 +30,15 @@
  {
   "weight": "0",
   "side": "SELL",
-  "pair": "XRP_USDT",
-  "capture": "trend",
-  "debug": false
- },
- {
-  "weight": "0",
-  "side": "SELL",
   "pair": "SHIB_USDT",
   "capture": "trend",
   "debug": false
  },
  {
   "weight": "0",
-  "side": "BUY",
-  "pair": "ETH_USDT",
-  "capture": "trend2day",
+  "side": "SELL",
+  "pair": "FLOKI_USDT",
+  "capture": "trend",
   "debug": false
  },
  {
@@ -72,21 +51,14 @@
  {
   "weight": "0",
   "side": "BUY",
-  "pair": "XRP_USDT",
-  "capture": "trend2day",
-  "debug": false
- },
- {
-  "weight": "0",
-  "side": "BUY",
   "pair": "SHIB_USDT",
   "capture": "trend2day",
   "debug": false
  },
  {
   "weight": "0",
-  "side": "SELL",
-  "pair": "ETH_USDT",
+  "side": "BUY",
+  "pair": "FLOKI_USDT",
   "capture": "trend2day",
   "debug": false
  },
@@ -100,71 +72,15 @@
  {
   "weight": "0",
   "side": "SELL",
-  "pair": "XRP_USDT",
-  "capture": "trend2day",
-  "debug": false
- },
- {
-  "weight": "0",
-  "side": "SELL",
   "pair": "SHIB_USDT",
   "capture": "trend2day",
   "debug": false
  },
  {
   "weight": "0",
-  "side": "BUY",
-  "pair": "ETH_USDT",
-  "capture": "trend3day",
-  "debug": false
- },
- {
-  "weight": "0",
-  "side": "BUY",
-  "pair": "BTC_USDT",
-  "capture": "trend3day",
-  "debug": false
- },
- {
-  "weight": "0",
-  "side": "BUY",
-  "pair": "XRP_USDT",
-  "capture": "trend3day",
-  "debug": false
- },
- {
-  "weight": "0",
-  "side": "BUY",
-  "pair": "SHIB_USDT",
-  "capture": "trend3day",
-  "debug": false
- },
- {
-  "weight": "0",
   "side": "SELL",
-  "pair": "ETH_USDT",
-  "capture": "trend3day",
-  "debug": false
- },
- {
-  "weight": "0",
-  "side": "SELL",
-  "pair": "BTC_USDT",
-  "capture": "trend3day",
-  "debug": false
- },
- {
-  "weight": "0",
-  "side": "SELL",
-  "pair": "XRP_USDT",
-  "capture": "trend3day",
-  "debug": false
- },
- {
-  "weight": "0",
-  "side": "SELL",
-  "pair": "SHIB_USDT",
-  "capture": "trend3day",
+  "pair": "FLOKI_USDT",
+  "capture": "trend2day",
   "debug": false
  }
 ]

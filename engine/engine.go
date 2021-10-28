@@ -681,7 +681,9 @@ func (bot *Engine) Start() error {
 		os.Exit(2)
 	}
 
-	if bot.Settings.EnableDataHistoryManager {
+	// if bot.Settings.EnableDataHistoryManager {
+	if bot.Config.DataHistory.Enabled {
+		fmt.Println("starting dhm")
 		if bot.DataHistoryManager == nil {
 			bot.DataHistoryManager, err = SetupDataHistoryManager(bot, bot.ExchangeManager, bot.DatabaseManager, &bot.Config.DataHistory)
 			if err != nil {
@@ -1109,8 +1111,10 @@ func (bot *Engine) SetupOfflineExchangeSettings() error {
 
 func (bot *Engine) SetupExchangeSettings() error {
 	for _, e := range bot.Config.GetEnabledExchanges() {
+		fmt.Println("enabled", e)
 		enabledPairs, _ := bot.Config.GetEnabledPairs(e, asset.Spot)
 		for _, pair := range enabledPairs {
+			fmt.Println("enabled pair", pair)
 			_, pair, a, err := bot.loadExchangePairAssetBase(e, pair.Base.String(), pair.Quote.String(), "spot")
 			if err != nil {
 				fmt.Println("error enabling pair", err)

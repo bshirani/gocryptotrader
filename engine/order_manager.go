@@ -136,39 +136,21 @@ func (m *OrderManager) UpdateFakeOrders(d eventtypes.DataEventHandler) error {
 		if ao.Pair != d.Pair() {
 			continue
 		}
-		// fmt.Println("handle active order", ao.Type)
 		// handle stop orders only
 		if ao.Type != order.Stop {
 			continue
 		}
-		if ao.Side == order.Sell && d.ClosePrice().LessThan(decimal.NewFromFloat(ao.Price)) {
-			fmt.Println("stop loss hit", ao.Price)
 
+		if ao.Side == order.Sell && d.ClosePrice().LessThan(decimal.NewFromFloat(ao.Price)) || ao.Side == order.Buy && d.ClosePrice().GreaterThan(decimal.NewFromFloat(ao.Price)) {
 			ao.Status = order.Filled
 			_, err := m.orderStore.upsert(&ao)
 			if err != nil {
 				fmt.Println("error upserting stop order")
 			}
 			active, _ = m.GetOrdersActive(nil)
-
 			m.onFill(ao, d)
-
-		} else if ao.Side == order.Buy && d.ClosePrice().GreaterThan(decimal.NewFromFloat(ao.Price)) {
-			fmt.Println("stop loss hit", ao.Price)
-			// execute the order
-			// fill sell order
-			// update the trade manager
 		}
-		// fmt.Println("get pair", ao.Pair, ao.AssetType, ao.Exchange, ao.Side, d.ClosePrice())
 	}
-	// _, err = m.UpsertOrder(&fetchedOrder)
-
-	// get the current price
-	// fmt.Println("updating pair", d.Pair(), d.ClosePrice())
-	// fmt.Println(active)
-
-	// get all orders for this pair
-
 	return nil
 }
 
@@ -1036,7 +1018,7 @@ func (s *store) modifyExisting(id string, mod *order.Modify) error {
 // upsert (1) checks if such an exchange exists in the exchangeManager, (2) checks if
 // order exists and updates/creates it.
 func (s *store) upsert(od *order.Detail) (resp *OrderUpsertResponse, err error) {
-	fmt.Println("UPSERTING ORDERRRRRRRRRRRRRRRRRRRRR")
+	// fmt.Println("UPSERTING ORDERRRRRRRRRRRRRRRRRRRRR")
 	if od == nil {
 		return nil, errNilOrder
 	}
