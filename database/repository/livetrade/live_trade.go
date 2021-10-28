@@ -1,19 +1,19 @@
 package livetrade
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
-	"encoding/csv"
+	"encoding/json"
+	"errors"
 	"fmt"
-	"io"
-	"os"
-	"strconv"
-	"time"
-
-	"gocryptotrader/common"
+	"gocryptotrader/common/file"
 	"gocryptotrader/currency"
 	"gocryptotrader/database"
 	"gocryptotrader/exchange/order"
+	"io"
+	"io/ioutil"
+	"os"
 
 	"gocryptotrader/database/models/postgres"
 	"gocryptotrader/log"
@@ -291,95 +291,35 @@ func upsertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int, err 
 	return tempInsert.ID, nil
 }
 
-func WriteCSV(trades []*Details, newpath string) {
-	// var nickName string
-	// if d.Config.Nickname != "" {
-	// 	nickName = d.Config.Nickname + "-"
-	// }
-	fmt.Println("writing to", newpath)
-
-	file, err := os.OpenFile(newpath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
-	if err != nil {
-		fmt.Println("error", err)
-	}
-
-	header := "strategy,pair,direction,entry_time,exit_time,entry_price,exit_price,stop_loss,amount,take_profit\n"
-	file.WriteString(header)
-	for _, t := range trades {
-		s := fmt.Sprintf(
-			"%d,%s,%s,%v,%v,%v,%v,%v,%v,%v\n",
-			t.StrategyID,
-			t.Pair,
-			t.Side,
-			t.EntryTime.Format(common.SimpleTimeFormat),
-			t.ExitTime.Format(common.SimpleTimeFormat),
-			t.EntryPrice,
-			t.ExitPrice,
-			t.StopLossPrice,
-			t.Amount,
-			t.TakeProfitPrice,
-		)
-		file.WriteString(s)
-	}
-	file.Close()
-}
-
-// LoadCSV loads & parses a CSV list of exchanges
-func LoadCSV(file string) (out []*Details, err error) {
-	csvFile, err := os.Open(file)
-	if err != nil {
-		return out, err
-	}
-
+func WriteJSON(trades []*Details, filepath string) error {
+	fmt.Println("saving to file:", filepath)
+	writer, err := file.Writer(filepath)
 	defer func() {
-		err = csvFile.Close()
-		if err != nil {
-			log.Errorln(log.Global, err)
+		if writer != nil {
+			err = writer.Close()
+			if err != nil {
+				log.Error(log.Global, err)
+			}
 		}
 	}()
-
-	csvData := csv.NewReader(csvFile)
-	count := 0
-	for {
-		row, errCSV := csvData.Read()
-		if errCSV != nil {
-			if errCSV == io.EOF {
-				return out, err
-			}
-			return out, errCSV
-		}
-
-		if count == 0 {
-			count += 1
-			continue
-		}
-		count += 1
-
-		sid, err := strconv.ParseInt(row[0], 10, 32)
-		pair, err := currency.NewPairFromString(row[1])
-		entryTime, err := time.Parse(common.SimpleTimeFormat, row[3])
-		exitTime, err := time.Parse(common.SimpleTimeFormat, row[4])
-		entryPrice, err := decimal.NewFromString(row[5])
-		exitPrice, err := decimal.NewFromString(row[6])
-		stop, err := decimal.NewFromString(row[7])
-		amount, err := decimal.NewFromString(row[8])
-		takeProfit, err := decimal.NewFromString(row[9])
-
-		out = append(out, &Details{
-			StrategyID:      int(sid),
-			Pair:            pair,
-			Side:            order.Side(row[2]),
-			EntryTime:       entryTime,
-			ExitTime:        exitTime,
-			EntryPrice:      entryPrice,
-			ExitPrice:       exitPrice,
-			StopLossPrice:   stop,
-			TakeProfitPrice: takeProfit,
-			Amount:          amount,
-		})
-		if err != nil {
-			fmt.Println("error", err)
-		}
+	payload, err := json.MarshalIndent(trades, "", " ")
+	if err != nil {
+		return err
 	}
+	_, err = io.Copy(writer, bytes.NewReader(payload))
+	return err
+}
+
+func LoadJSON(path string) (out []*Details, err error) {
+	if !file.Exists(path) {
+		return nil, errors.New("file not found")
+	}
+
+	fileData, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(fileData, &out)
 	return out, err
 }

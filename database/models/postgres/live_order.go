@@ -24,170 +24,177 @@ import (
 
 // LiveOrder is an object representing the database table.
 type LiveOrder struct {
-	ID              int       `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Status          string    `boil:"status" json:"status" toml:"status" yaml:"status"`
-	OrderType       string    `boil:"order_type" json:"order_type" toml:"order_type" yaml:"order_type"`
-	Exchange        string    `boil:"exchange" json:"exchange" toml:"exchange" yaml:"exchange"`
-	StrategyName    string    `boil:"strategy_name" json:"strategy_name" toml:"strategy_name" yaml:"strategy_name"`
-	InternalID      string    `boil:"internal_id" json:"internal_id" toml:"internal_id" yaml:"internal_id"`
-	Side            string    `boil:"side" json:"side" toml:"side" yaml:"side"`
-	ClientOrderID   string    `boil:"client_order_id" json:"client_order_id" toml:"client_order_id" yaml:"client_order_id"`
-	Amount          float64   `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
-	Symbol          string    `boil:"symbol" json:"symbol" toml:"symbol" yaml:"symbol"`
-	Price           float64   `boil:"price" json:"price" toml:"price" yaml:"price"`
-	StopLossPrice   float64   `boil:"stop_loss_price" json:"stop_loss_price" toml:"stop_loss_price" yaml:"stop_loss_price"`
-	TakeProfitPrice float64   `boil:"take_profit_price" json:"take_profit_price" toml:"take_profit_price" yaml:"take_profit_price"`
-	Fee             float64   `boil:"fee" json:"fee" toml:"fee" yaml:"fee"`
-	Cost            float64   `boil:"cost" json:"cost" toml:"cost" yaml:"cost"`
-	FilledAt        null.Time `boil:"filled_at" json:"filled_at,omitempty" toml:"filled_at" yaml:"filled_at,omitempty"`
-	AssetType       int       `boil:"asset_type" json:"asset_type" toml:"asset_type" yaml:"asset_type"`
-	ActiveAt        null.Time `boil:"active_at" json:"active_at,omitempty" toml:"active_at" yaml:"active_at,omitempty"`
-	CancelledAt     null.Time `boil:"cancelled_at" json:"cancelled_at,omitempty" toml:"cancelled_at" yaml:"cancelled_at,omitempty"`
-	CreatedAt       time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt       time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	ID                int       `boil:"id" json:"id" toml:"id" yaml:"id"`
+	Status            string    `boil:"status" json:"status" toml:"status" yaml:"status"`
+	OrderType         string    `boil:"order_type" json:"order_type" toml:"order_type" yaml:"order_type"`
+	InternalOrderType string    `boil:"internal_order_type" json:"internal_order_type" toml:"internal_order_type" yaml:"internal_order_type"`
+	Exchange          string    `boil:"exchange" json:"exchange" toml:"exchange" yaml:"exchange"`
+	StrategyName      string    `boil:"strategy_name" json:"strategy_name" toml:"strategy_name" yaml:"strategy_name"`
+	InternalID        string    `boil:"internal_id" json:"internal_id" toml:"internal_id" yaml:"internal_id"`
+	Side              string    `boil:"side" json:"side" toml:"side" yaml:"side"`
+	ClientOrderID     string    `boil:"client_order_id" json:"client_order_id" toml:"client_order_id" yaml:"client_order_id"`
+	Amount            float64   `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
+	Symbol            string    `boil:"symbol" json:"symbol" toml:"symbol" yaml:"symbol"`
+	Price             float64   `boil:"price" json:"price" toml:"price" yaml:"price"`
+	StopLossPrice     float64   `boil:"stop_loss_price" json:"stop_loss_price" toml:"stop_loss_price" yaml:"stop_loss_price"`
+	TakeProfitPrice   float64   `boil:"take_profit_price" json:"take_profit_price" toml:"take_profit_price" yaml:"take_profit_price"`
+	Fee               float64   `boil:"fee" json:"fee" toml:"fee" yaml:"fee"`
+	Cost              float64   `boil:"cost" json:"cost" toml:"cost" yaml:"cost"`
+	FilledAt          null.Time `boil:"filled_at" json:"filled_at,omitempty" toml:"filled_at" yaml:"filled_at,omitempty"`
+	AssetType         int       `boil:"asset_type" json:"asset_type" toml:"asset_type" yaml:"asset_type"`
+	ActiveAt          null.Time `boil:"active_at" json:"active_at,omitempty" toml:"active_at" yaml:"active_at,omitempty"`
+	CancelledAt       null.Time `boil:"cancelled_at" json:"cancelled_at,omitempty" toml:"cancelled_at" yaml:"cancelled_at,omitempty"`
+	CreatedAt         time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt         time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
 	R *liveOrderR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L liveOrderL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var LiveOrderColumns = struct {
-	ID              string
-	Status          string
-	OrderType       string
-	Exchange        string
-	StrategyName    string
-	InternalID      string
-	Side            string
-	ClientOrderID   string
-	Amount          string
-	Symbol          string
-	Price           string
-	StopLossPrice   string
-	TakeProfitPrice string
-	Fee             string
-	Cost            string
-	FilledAt        string
-	AssetType       string
-	ActiveAt        string
-	CancelledAt     string
-	CreatedAt       string
-	UpdatedAt       string
+	ID                string
+	Status            string
+	OrderType         string
+	InternalOrderType string
+	Exchange          string
+	StrategyName      string
+	InternalID        string
+	Side              string
+	ClientOrderID     string
+	Amount            string
+	Symbol            string
+	Price             string
+	StopLossPrice     string
+	TakeProfitPrice   string
+	Fee               string
+	Cost              string
+	FilledAt          string
+	AssetType         string
+	ActiveAt          string
+	CancelledAt       string
+	CreatedAt         string
+	UpdatedAt         string
 }{
-	ID:              "id",
-	Status:          "status",
-	OrderType:       "order_type",
-	Exchange:        "exchange",
-	StrategyName:    "strategy_name",
-	InternalID:      "internal_id",
-	Side:            "side",
-	ClientOrderID:   "client_order_id",
-	Amount:          "amount",
-	Symbol:          "symbol",
-	Price:           "price",
-	StopLossPrice:   "stop_loss_price",
-	TakeProfitPrice: "take_profit_price",
-	Fee:             "fee",
-	Cost:            "cost",
-	FilledAt:        "filled_at",
-	AssetType:       "asset_type",
-	ActiveAt:        "active_at",
-	CancelledAt:     "cancelled_at",
-	CreatedAt:       "created_at",
-	UpdatedAt:       "updated_at",
+	ID:                "id",
+	Status:            "status",
+	OrderType:         "order_type",
+	InternalOrderType: "internal_order_type",
+	Exchange:          "exchange",
+	StrategyName:      "strategy_name",
+	InternalID:        "internal_id",
+	Side:              "side",
+	ClientOrderID:     "client_order_id",
+	Amount:            "amount",
+	Symbol:            "symbol",
+	Price:             "price",
+	StopLossPrice:     "stop_loss_price",
+	TakeProfitPrice:   "take_profit_price",
+	Fee:               "fee",
+	Cost:              "cost",
+	FilledAt:          "filled_at",
+	AssetType:         "asset_type",
+	ActiveAt:          "active_at",
+	CancelledAt:       "cancelled_at",
+	CreatedAt:         "created_at",
+	UpdatedAt:         "updated_at",
 }
 
 var LiveOrderTableColumns = struct {
-	ID              string
-	Status          string
-	OrderType       string
-	Exchange        string
-	StrategyName    string
-	InternalID      string
-	Side            string
-	ClientOrderID   string
-	Amount          string
-	Symbol          string
-	Price           string
-	StopLossPrice   string
-	TakeProfitPrice string
-	Fee             string
-	Cost            string
-	FilledAt        string
-	AssetType       string
-	ActiveAt        string
-	CancelledAt     string
-	CreatedAt       string
-	UpdatedAt       string
+	ID                string
+	Status            string
+	OrderType         string
+	InternalOrderType string
+	Exchange          string
+	StrategyName      string
+	InternalID        string
+	Side              string
+	ClientOrderID     string
+	Amount            string
+	Symbol            string
+	Price             string
+	StopLossPrice     string
+	TakeProfitPrice   string
+	Fee               string
+	Cost              string
+	FilledAt          string
+	AssetType         string
+	ActiveAt          string
+	CancelledAt       string
+	CreatedAt         string
+	UpdatedAt         string
 }{
-	ID:              "live_order.id",
-	Status:          "live_order.status",
-	OrderType:       "live_order.order_type",
-	Exchange:        "live_order.exchange",
-	StrategyName:    "live_order.strategy_name",
-	InternalID:      "live_order.internal_id",
-	Side:            "live_order.side",
-	ClientOrderID:   "live_order.client_order_id",
-	Amount:          "live_order.amount",
-	Symbol:          "live_order.symbol",
-	Price:           "live_order.price",
-	StopLossPrice:   "live_order.stop_loss_price",
-	TakeProfitPrice: "live_order.take_profit_price",
-	Fee:             "live_order.fee",
-	Cost:            "live_order.cost",
-	FilledAt:        "live_order.filled_at",
-	AssetType:       "live_order.asset_type",
-	ActiveAt:        "live_order.active_at",
-	CancelledAt:     "live_order.cancelled_at",
-	CreatedAt:       "live_order.created_at",
-	UpdatedAt:       "live_order.updated_at",
+	ID:                "live_order.id",
+	Status:            "live_order.status",
+	OrderType:         "live_order.order_type",
+	InternalOrderType: "live_order.internal_order_type",
+	Exchange:          "live_order.exchange",
+	StrategyName:      "live_order.strategy_name",
+	InternalID:        "live_order.internal_id",
+	Side:              "live_order.side",
+	ClientOrderID:     "live_order.client_order_id",
+	Amount:            "live_order.amount",
+	Symbol:            "live_order.symbol",
+	Price:             "live_order.price",
+	StopLossPrice:     "live_order.stop_loss_price",
+	TakeProfitPrice:   "live_order.take_profit_price",
+	Fee:               "live_order.fee",
+	Cost:              "live_order.cost",
+	FilledAt:          "live_order.filled_at",
+	AssetType:         "live_order.asset_type",
+	ActiveAt:          "live_order.active_at",
+	CancelledAt:       "live_order.cancelled_at",
+	CreatedAt:         "live_order.created_at",
+	UpdatedAt:         "live_order.updated_at",
 }
 
 // Generated where
 
 var LiveOrderWhere = struct {
-	ID              whereHelperint
-	Status          whereHelperstring
-	OrderType       whereHelperstring
-	Exchange        whereHelperstring
-	StrategyName    whereHelperstring
-	InternalID      whereHelperstring
-	Side            whereHelperstring
-	ClientOrderID   whereHelperstring
-	Amount          whereHelperfloat64
-	Symbol          whereHelperstring
-	Price           whereHelperfloat64
-	StopLossPrice   whereHelperfloat64
-	TakeProfitPrice whereHelperfloat64
-	Fee             whereHelperfloat64
-	Cost            whereHelperfloat64
-	FilledAt        whereHelpernull_Time
-	AssetType       whereHelperint
-	ActiveAt        whereHelpernull_Time
-	CancelledAt     whereHelpernull_Time
-	CreatedAt       whereHelpertime_Time
-	UpdatedAt       whereHelpertime_Time
+	ID                whereHelperint
+	Status            whereHelperstring
+	OrderType         whereHelperstring
+	InternalOrderType whereHelperstring
+	Exchange          whereHelperstring
+	StrategyName      whereHelperstring
+	InternalID        whereHelperstring
+	Side              whereHelperstring
+	ClientOrderID     whereHelperstring
+	Amount            whereHelperfloat64
+	Symbol            whereHelperstring
+	Price             whereHelperfloat64
+	StopLossPrice     whereHelperfloat64
+	TakeProfitPrice   whereHelperfloat64
+	Fee               whereHelperfloat64
+	Cost              whereHelperfloat64
+	FilledAt          whereHelpernull_Time
+	AssetType         whereHelperint
+	ActiveAt          whereHelpernull_Time
+	CancelledAt       whereHelpernull_Time
+	CreatedAt         whereHelpertime_Time
+	UpdatedAt         whereHelpertime_Time
 }{
-	ID:              whereHelperint{field: "\"live_order\".\"id\""},
-	Status:          whereHelperstring{field: "\"live_order\".\"status\""},
-	OrderType:       whereHelperstring{field: "\"live_order\".\"order_type\""},
-	Exchange:        whereHelperstring{field: "\"live_order\".\"exchange\""},
-	StrategyName:    whereHelperstring{field: "\"live_order\".\"strategy_name\""},
-	InternalID:      whereHelperstring{field: "\"live_order\".\"internal_id\""},
-	Side:            whereHelperstring{field: "\"live_order\".\"side\""},
-	ClientOrderID:   whereHelperstring{field: "\"live_order\".\"client_order_id\""},
-	Amount:          whereHelperfloat64{field: "\"live_order\".\"amount\""},
-	Symbol:          whereHelperstring{field: "\"live_order\".\"symbol\""},
-	Price:           whereHelperfloat64{field: "\"live_order\".\"price\""},
-	StopLossPrice:   whereHelperfloat64{field: "\"live_order\".\"stop_loss_price\""},
-	TakeProfitPrice: whereHelperfloat64{field: "\"live_order\".\"take_profit_price\""},
-	Fee:             whereHelperfloat64{field: "\"live_order\".\"fee\""},
-	Cost:            whereHelperfloat64{field: "\"live_order\".\"cost\""},
-	FilledAt:        whereHelpernull_Time{field: "\"live_order\".\"filled_at\""},
-	AssetType:       whereHelperint{field: "\"live_order\".\"asset_type\""},
-	ActiveAt:        whereHelpernull_Time{field: "\"live_order\".\"active_at\""},
-	CancelledAt:     whereHelpernull_Time{field: "\"live_order\".\"cancelled_at\""},
-	CreatedAt:       whereHelpertime_Time{field: "\"live_order\".\"created_at\""},
-	UpdatedAt:       whereHelpertime_Time{field: "\"live_order\".\"updated_at\""},
+	ID:                whereHelperint{field: "\"live_order\".\"id\""},
+	Status:            whereHelperstring{field: "\"live_order\".\"status\""},
+	OrderType:         whereHelperstring{field: "\"live_order\".\"order_type\""},
+	InternalOrderType: whereHelperstring{field: "\"live_order\".\"internal_order_type\""},
+	Exchange:          whereHelperstring{field: "\"live_order\".\"exchange\""},
+	StrategyName:      whereHelperstring{field: "\"live_order\".\"strategy_name\""},
+	InternalID:        whereHelperstring{field: "\"live_order\".\"internal_id\""},
+	Side:              whereHelperstring{field: "\"live_order\".\"side\""},
+	ClientOrderID:     whereHelperstring{field: "\"live_order\".\"client_order_id\""},
+	Amount:            whereHelperfloat64{field: "\"live_order\".\"amount\""},
+	Symbol:            whereHelperstring{field: "\"live_order\".\"symbol\""},
+	Price:             whereHelperfloat64{field: "\"live_order\".\"price\""},
+	StopLossPrice:     whereHelperfloat64{field: "\"live_order\".\"stop_loss_price\""},
+	TakeProfitPrice:   whereHelperfloat64{field: "\"live_order\".\"take_profit_price\""},
+	Fee:               whereHelperfloat64{field: "\"live_order\".\"fee\""},
+	Cost:              whereHelperfloat64{field: "\"live_order\".\"cost\""},
+	FilledAt:          whereHelpernull_Time{field: "\"live_order\".\"filled_at\""},
+	AssetType:         whereHelperint{field: "\"live_order\".\"asset_type\""},
+	ActiveAt:          whereHelpernull_Time{field: "\"live_order\".\"active_at\""},
+	CancelledAt:       whereHelpernull_Time{field: "\"live_order\".\"cancelled_at\""},
+	CreatedAt:         whereHelpertime_Time{field: "\"live_order\".\"created_at\""},
+	UpdatedAt:         whereHelpertime_Time{field: "\"live_order\".\"updated_at\""},
 }
 
 // LiveOrderRels is where relationship names are stored.
@@ -211,8 +218,8 @@ func (*liveOrderR) NewStruct() *liveOrderR {
 type liveOrderL struct{}
 
 var (
-	liveOrderAllColumns            = []string{"id", "status", "order_type", "exchange", "strategy_name", "internal_id", "side", "client_order_id", "amount", "symbol", "price", "stop_loss_price", "take_profit_price", "fee", "cost", "filled_at", "asset_type", "active_at", "cancelled_at", "created_at", "updated_at"}
-	liveOrderColumnsWithoutDefault = []string{"status", "order_type", "exchange", "strategy_name", "internal_id", "side", "amount", "symbol", "price", "filled_at", "active_at", "cancelled_at"}
+	liveOrderAllColumns            = []string{"id", "status", "order_type", "internal_order_type", "exchange", "strategy_name", "internal_id", "side", "client_order_id", "amount", "symbol", "price", "stop_loss_price", "take_profit_price", "fee", "cost", "filled_at", "asset_type", "active_at", "cancelled_at", "created_at", "updated_at"}
+	liveOrderColumnsWithoutDefault = []string{"status", "order_type", "internal_order_type", "exchange", "strategy_name", "internal_id", "side", "amount", "symbol", "price", "filled_at", "active_at", "cancelled_at"}
 	liveOrderColumnsWithDefault    = []string{"id", "client_order_id", "stop_loss_price", "take_profit_price", "fee", "cost", "asset_type", "created_at", "updated_at"}
 	liveOrderPrimaryKeyColumns     = []string{"id"}
 )

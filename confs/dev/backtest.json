@@ -52,7 +52,7 @@
      "port": 5432,
      "username": "bijan",
      "password": "",
-     "database": "gct-dev",
+     "database": "gct_dev",
      "sslmode": ""
     }
    },

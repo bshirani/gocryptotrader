@@ -347,13 +347,22 @@ func (m *OrderManager) validate(newOrder *order.Submit) error {
 	if newOrder == nil {
 		return errors.New("order cannot be nil")
 	}
-
 	if newOrder.Exchange == "" {
 		return errors.New("order exchange name must be specified")
 	}
-
 	if err := newOrder.Validate(); err != nil {
 		return fmt.Errorf("order manager: %w", err)
+	}
+	if newOrder.StrategyID == 0 {
+		panic("order without strategy")
+	}
+	if newOrder.StrategyName == "" {
+		panic("order without strategy name")
+	}
+	if newOrder.InternalOrderType == "" {
+		panic("order without internal type")
+	} else {
+		fmt.Println("internal order type is ", newOrder.InternalOrderType)
 	}
 
 	if m.cfg.EnforceLimitConfig {
@@ -467,11 +476,10 @@ func (m *OrderManager) Submit(ctx context.Context, newOrder *order.Submit) (*Ord
 	if atomic.LoadInt32(&m.started) == 0 {
 		return nil, fmt.Errorf("order manager %w", ErrSubSystemNotStarted)
 	}
-	if newOrder.StrategyID == 0 {
-		panic("order without strategy")
-	}
 
+	fmt.Println(1)
 	err := m.validate(newOrder)
+	fmt.Println(2)
 	if err != nil {
 		return nil, err
 	}
@@ -676,6 +684,7 @@ func (m *OrderManager) processSubmittedOrder(newOrder *order.Submit, result orde
 	}
 
 	err := m.orderStore.add(&order.Detail{
+		InternalOrderType: newOrder.InternalOrderType,
 		Status:            status,
 		FilledAt:          filledAt,
 		ImmediateOrCancel: newOrder.ImmediateOrCancel,

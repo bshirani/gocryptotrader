@@ -29,8 +29,8 @@ func (p *PortfolioAnalysis) Analyze(filepath string) error {
 	p.Report = &Report{}
 	p.Report.Portfolio = &PortfolioReport{}
 	lf := lastResult()
-	fmt.Println("analyzing trades csv:", lf)
-	trades, err := livetrade.LoadCSV(lf)
+	fmt.Println("analyzing trades:", lf)
+	trades, err := livetrade.LoadJSON(lf)
 	enhanced := enhanceTrades(trades)
 	p.trades = enhanced
 	p.groupedTrades = groupByStrategyID(enhanced)

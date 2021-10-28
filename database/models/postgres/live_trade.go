@@ -29,6 +29,7 @@ type LiveTrade struct {
 	Side             string       `boil:"side" json:"side" toml:"side" yaml:"side"`
 	EntryOrderID     int          `boil:"entry_order_id" json:"entry_order_id" toml:"entry_order_id" yaml:"entry_order_id"`
 	EntryPrice       float64      `boil:"entry_price" json:"entry_price" toml:"entry_price" yaml:"entry_price"`
+	ExitType         null.String  `boil:"exit_type" json:"exit_type,omitempty" toml:"exit_type" yaml:"exit_type,omitempty"`
 	ExitPrice        null.Float64 `boil:"exit_price" json:"exit_price,omitempty" toml:"exit_price" yaml:"exit_price,omitempty"`
 	EntryTime        time.Time    `boil:"entry_time" json:"entry_time" toml:"entry_time" yaml:"entry_time"`
 	ExitTime         null.Time    `boil:"exit_time" json:"exit_time,omitempty" toml:"exit_time" yaml:"exit_time,omitempty"`
@@ -55,6 +56,7 @@ var LiveTradeColumns = struct {
 	Side             string
 	EntryOrderID     string
 	EntryPrice       string
+	ExitType         string
 	ExitPrice        string
 	EntryTime        string
 	ExitTime         string
@@ -76,6 +78,7 @@ var LiveTradeColumns = struct {
 	Side:             "side",
 	EntryOrderID:     "entry_order_id",
 	EntryPrice:       "entry_price",
+	ExitType:         "exit_type",
 	ExitPrice:        "exit_price",
 	EntryTime:        "entry_time",
 	ExitTime:         "exit_time",
@@ -99,6 +102,7 @@ var LiveTradeTableColumns = struct {
 	Side             string
 	EntryOrderID     string
 	EntryPrice       string
+	ExitType         string
 	ExitPrice        string
 	EntryTime        string
 	ExitTime         string
@@ -120,6 +124,7 @@ var LiveTradeTableColumns = struct {
 	Side:             "live_trade.side",
 	EntryOrderID:     "live_trade.entry_order_id",
 	EntryPrice:       "live_trade.entry_price",
+	ExitType:         "live_trade.exit_type",
 	ExitPrice:        "live_trade.exit_price",
 	EntryTime:        "live_trade.entry_time",
 	ExitTime:         "live_trade.exit_time",
@@ -145,6 +150,7 @@ var LiveTradeWhere = struct {
 	Side             whereHelperstring
 	EntryOrderID     whereHelperint
 	EntryPrice       whereHelperfloat64
+	ExitType         whereHelpernull_String
 	ExitPrice        whereHelpernull_Float64
 	EntryTime        whereHelpertime_Time
 	ExitTime         whereHelpernull_Time
@@ -166,6 +172,7 @@ var LiveTradeWhere = struct {
 	Side:             whereHelperstring{field: "\"live_trade\".\"side\""},
 	EntryOrderID:     whereHelperint{field: "\"live_trade\".\"entry_order_id\""},
 	EntryPrice:       whereHelperfloat64{field: "\"live_trade\".\"entry_price\""},
+	ExitType:         whereHelpernull_String{field: "\"live_trade\".\"exit_type\""},
 	ExitPrice:        whereHelpernull_Float64{field: "\"live_trade\".\"exit_price\""},
 	EntryTime:        whereHelpertime_Time{field: "\"live_trade\".\"entry_time\""},
 	ExitTime:         whereHelpernull_Time{field: "\"live_trade\".\"exit_time\""},
@@ -204,8 +211,8 @@ func (*liveTradeR) NewStruct() *liveTradeR {
 type liveTradeL struct{}
 
 var (
-	liveTradeAllColumns            = []string{"id", "status", "side", "entry_order_id", "entry_price", "exit_price", "entry_time", "exit_time", "stop_loss_price", "strategy_name", "amount", "risked_points", "risked_quote", "pair", "exchange", "take_profit_price", "profit_loss_points", "profit_loss_quote", "created_at", "updated_at"}
-	liveTradeColumnsWithoutDefault = []string{"status", "side", "entry_order_id", "entry_price", "exit_price", "entry_time", "exit_time", "stop_loss_price", "strategy_name", "risked_points", "risked_quote", "pair", "exchange", "take_profit_price", "profit_loss_points", "profit_loss_quote"}
+	liveTradeAllColumns            = []string{"id", "status", "side", "entry_order_id", "entry_price", "exit_type", "exit_price", "entry_time", "exit_time", "stop_loss_price", "strategy_name", "amount", "risked_points", "risked_quote", "pair", "exchange", "take_profit_price", "profit_loss_points", "profit_loss_quote", "created_at", "updated_at"}
+	liveTradeColumnsWithoutDefault = []string{"status", "side", "entry_order_id", "entry_price", "exit_type", "exit_price", "entry_time", "exit_time", "stop_loss_price", "strategy_name", "risked_points", "risked_quote", "pair", "exchange", "take_profit_price", "profit_loss_points", "profit_loss_quote"}
 	liveTradeColumnsWithDefault    = []string{"id", "amount", "created_at", "updated_at"}
 	liveTradePrimaryKeyColumns     = []string{"id"}
 )

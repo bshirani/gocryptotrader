@@ -390,8 +390,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	o.SellLimit = ev.GetSellLimit()
 	o.StrategyID = ev.GetStrategyID()
 	o = p.sizeOrder(ev, cs, o, decimal.NewFromFloat(1000.0))
-	o.Amount = decimal.NewFromFloat(0.0001)
-
+	// o.Amount = decimal.NewFromFloat(0.0001)
 	p.recordTrade(ev)
 	return o, nil
 
@@ -460,7 +459,7 @@ func (p *Portfolio) OnFill(f fill.Event) {
 		// fmt.Println("no trade for strategy, PF ON fILL creating NEW TRADE")
 		p.recordEnterTrade(f)
 	} else if t.Status == gctorder.Open {
-		// fmt.Println("PF ONFILL CLOSING TRADE")
+		fmt.Println("PF ONFILL CLOSING TRADE")
 		p.recordExitTrade(f, t)
 	} else {
 		panic("fill event without trade")
@@ -1264,6 +1263,7 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 
 func (p *Portfolio) recordExitTrade(f fill.Event, t *livetrade.Details) {
 	// fmt.Println("EXIT TRADE")
+
 	if t.Status == gctorder.Open {
 		t.Status = gctorder.Closed
 		t.ExitTime = f.GetTime()

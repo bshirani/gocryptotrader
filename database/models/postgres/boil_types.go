@@ -66,6 +66,13 @@ const (
 	OrderTypeSTOP   = "STOP"
 )
 
+// Enum values for internal_order_type
+const (
+	InternalOrderTypeENTER       = "ENTER"
+	InternalOrderTypeTAKE_PROFIT = "TAKE_PROFIT"
+	InternalOrderTypeSTOP_LOSS   = "STOP_LOSS"
+)
+
 // Enum values for order_side
 const (
 	OrderSideBUY  = "BUY"
@@ -76,6 +83,12 @@ const (
 const (
 	TradeStatusOPEN   = "OPEN"
 	TradeStatusCLOSED = "CLOSED"
+)
+
+// Enum values for exit_type
+const (
+	ExitTypeSTOP        = "STOP"
+	ExitTypeTAKE_PROFIT = "TAKE_PROFIT"
 )
 
 // Enum values for capture_type

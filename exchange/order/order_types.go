@@ -28,14 +28,15 @@ var (
 // Each exchange has their own requirements, so not all fields
 // are required to be populated
 type Submit struct {
-	AssetType    asset.Item
-	Side         Side
-	Exchange     string
-	Pair         currency.Pair
-	StrategyID   int
-	StrategyName string
-	Type         Type
-	Status       Status
+	AssetType         asset.Item
+	Side              Side
+	InternalOrderType InternalOrderType
+	Exchange          string
+	Pair              currency.Pair
+	StrategyID        int
+	StrategyName      string
+	Type              Type
+	Status            Status
 
 	Price           float64
 	Amount          float64
@@ -148,6 +149,7 @@ type Detail struct {
 	ID                   string
 	ImmediateOrCancel    bool
 	InternalOrderID      int
+	InternalOrderType    InternalOrderType
 	LastUpdated          time.Time
 	Leverage             float64
 	LimitPriceLower      float64
@@ -303,6 +305,14 @@ const (
 	UnknownType       Type = "UNKNOWN"
 	Liquidation       Type = "LIQUIDATION"
 	Trigger           Type = "TRIGGER"
+)
+
+type InternalOrderType string
+
+const (
+	DecisionEntry      InternalOrderType = "ENTER"
+	DecisionTakeProfit InternalOrderType = "TAKE_PROFIT"
+	DecisionStopLoss   InternalOrderType = "STOP_LOSS"
 )
 
 // Side enforces a standard for order sides across the code base

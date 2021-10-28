@@ -175,10 +175,14 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	fee, _ := o.GetExchangeFee().Float64()
 
 	var skipStop bool
+	var decision gctorder.InternalOrderType
 	if o.GetDecision() == gctsignal.Exit {
 		skipStop = true
+		decision = gctorder.DecisionTakeProfit
 	} else if o.GetDecision() == "" {
 		panic("order without decision")
+	} else if o.GetDecision() == gctsignal.Enter {
+		decision = gctorder.DecisionEntry
 	}
 	if priceFloat == 0 {
 		panic("order has no price")
@@ -193,21 +197,22 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	stopLossPrice, _ := o.GetStopLossPrice().Float64()
 
 	submission := &gctorder.Submit{
-		Status:        gctorder.New,
-		Price:         priceFloat,
-		Amount:        a,
-		Fee:           fee,
-		Exchange:      o.GetExchange(),
-		ID:            o.GetID(),
-		Side:          o.GetDirection(),
-		AssetType:     o.GetAssetType(),
-		Date:          o.GetTime(),
-		LastUpdated:   o.GetTime(),
-		Pair:          o.Pair(),
-		Type:          gctorder.Market,
-		StrategyID:    o.GetStrategyID(),
-		StopLossPrice: stopLossPrice,
-		StrategyName:  o.GetStrategyName(),
+		Status:            gctorder.New,
+		Price:             priceFloat,
+		InternalOrderType: decision,
+		Amount:            a,
+		Fee:               fee,
+		Exchange:          o.GetExchange(),
+		ID:                o.GetID(),
+		Side:              o.GetDirection(),
+		AssetType:         o.GetAssetType(),
+		Date:              o.GetTime(),
+		LastUpdated:       o.GetTime(),
+		Pair:              o.Pair(),
+		Type:              gctorder.Market,
+		StrategyID:        o.GetStrategyID(),
+		StopLossPrice:     stopLossPrice,
+		StrategyName:      o.GetStrategyName(),
 	}
 
 	if om == nil {
@@ -221,33 +226,34 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 		stopSide = gctorder.Buy
 	}
 	stopLossSubmission := &gctorder.Submit{
-		Status:       gctorder.New,
-		Price:        stopLossPrice,
-		Amount:       a,
-		Fee:          fee,
-		Exchange:     o.GetExchange(),
-		ID:           o.GetID(),
-		Side:         stopSide,
-		AssetType:    o.GetAssetType(),
-		Date:         o.GetTime(),
-		LastUpdated:  o.GetTime(),
-		Pair:         o.Pair(),
-		Type:         gctorder.Stop,
-		StrategyID:   o.GetStrategyID(),
-		StrategyName: o.GetStrategyName(),
+		Status:            gctorder.New,
+		InternalOrderType: gctorder.DecisionStopLoss,
+		Price:             stopLossPrice,
+		Amount:            a,
+		Fee:               fee,
+		Exchange:          o.GetExchange(),
+		ID:                o.GetID(),
+		Side:              stopSide,
+		AssetType:         o.GetAssetType(),
+		Date:              o.GetTime(),
+		LastUpdated:       o.GetTime(),
+		Pair:              o.Pair(),
+		Type:              gctorder.Stop,
+		StrategyID:        o.GetStrategyID(),
+		StrategyName:      o.GetStrategyName(),
 	}
 
 	var entryID, stopID int
 	var err error
 	if !tm.dryRun {
-		entryID, err = liveorder.Insert(submission)
+		entryID, err = liveorder.Create(submission)
 		if err != nil {
 			fmt.Println("error inserted order", err)
 			return nil, err
 		}
 
 		if !skipStop {
-			stopID, err = liveorder.Insert(stopLossSubmission)
+			stopID, err = liveorder.Create(stopLossSubmission)
 			if err != nil {
 				fmt.Println("error inserted order", err)
 				return nil, err
@@ -425,11 +431,10 @@ dataLoadingIssue:
 
 	if !tm.liveMode {
 		fileName := fmt.Sprintf(
-			"results/bt/trades-%v.csv",
+			"results/bt/trades-%v.json",
 			time.Now().Format("2006-01-02-15-04-05"))
 		newpath := filepath.Join(".", fileName)
-
-		livetrade.WriteCSV(tm.Portfolio.GetAllClosedTrades(), newpath)
+		livetrade.WriteJSON(tm.Portfolio.GetAllClosedTrades(), newpath)
 		// &analyze.PortfolioAnalysis{}.Analyze("")
 	}
 
@@ -1045,27 +1050,27 @@ func (tm *TradeManager) processOrderEvent(o order.Event) {
 	}
 
 	// only continue if the strategy has no NEW or ACTIVE orders
+	if !tm.dryRun {
+		active, err := liveorder.ActiveForStrategyName(o.GetStrategyName())
+		if err != nil {
+			fmt.Println("error getting active ")
+			panic(err)
+		}
+		if len(active) > 0 {
+			fmt.Println("active orders for strategy, trying to create", o.GetStrategyName())
+			panic(err)
+		}
 
-	active, err := liveorder.ActiveForStrategyName(o.GetStrategyName())
-	if err != nil {
-		fmt.Println("error getting active ")
-		panic(err)
-	}
-	if len(active) > 0 {
-		fmt.Println("active orders for strategy, trying to create", o.GetStrategyName())
-		panic(err)
-	}
-
-	activeT, err := livetrade.ActiveForStrategyName(o.GetStrategyName())
-	if err != nil {
-		fmt.Println("error getting active ")
-		panic(err)
-	}
-	if len(activeT) > 1 {
-		fmt.Println("there are", len(activeT), "trade sfor the strategy", o.GetStrategyName())
-
-		fmt.Println("active trade for stratgey, trying to create", o.GetStrategyName())
-		panic(err)
+		activeT, err := livetrade.ActiveForStrategyName(o.GetStrategyName())
+		if err != nil {
+			fmt.Println("error getting active ")
+			panic(err)
+		}
+		if len(activeT) > 1 {
+			fmt.Println("there are", len(activeT), "trade sfor the strategy", o.GetStrategyName())
+			fmt.Println("active trade for stratgey, trying to create", o.GetStrategyName())
+			panic(err)
+		}
 	}
 
 	// this blocks and returns a submission event

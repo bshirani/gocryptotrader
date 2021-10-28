@@ -468,6 +468,11 @@ func (s Side) String() string {
 	return string(s)
 }
 
+// String implements the stringer interface
+func (i InternalOrderType) String() string {
+	return string(i)
+}
+
 // Lower returns the side lower case string
 func (s Side) Lower() string {
 	return strings.ToLower(string(s))
