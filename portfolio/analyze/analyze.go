@@ -39,6 +39,7 @@ func (p *PortfolioAnalysis) Analyze(filepath string) error {
 	p.analyzeGroupedStrategies()
 	p.calculateReport()
 	p.calculateProductionWeights()
+	fmt.Println("saving strategies", len(p.StrategiesAnalyses))
 	p.Report.Strategies = p.StrategiesAnalyses
 
 	return err
@@ -394,6 +395,7 @@ func getDurationMin(trade livetrade.Details) int {
 // }
 
 func (p *PortfolioAnalysis) Save(filepath string) error {
+	fmt.Println("saving to file:", filepath)
 	writer, err := file.Writer(filepath)
 	defer func() {
 		if writer != nil {

@@ -2,9 +2,7 @@ package analyze
 
 import (
 	"gocryptotrader/config"
-	"gocryptotrader/currency"
 	"gocryptotrader/database/repository/livetrade"
-	"gocryptotrader/exchange/order"
 	"gocryptotrader/portfolio/strategies"
 	"time"
 
@@ -46,40 +44,6 @@ type PortfolioReport struct {
 	NumTrades          int64
 	NumStrategies      int64
 	AverageDurationMin float64
-}
-
-// CurrencyStatistic Holds all events and statistics relevant to an exchange, asset type and currency pair
-type StrategyAnalysis struct {
-	// Trades                       []*livetrade.Details
-	Exchange  string        `json:"exchange"`
-	Pair      currency.Pair `json:"pair"`
-	Direction order.Side    `json:"direction"`
-	Capture   string        `json:"capture"`
-	Label     string        `json:"label"`
-
-	NumTrades int             `json:"numTrades"`
-	NetProfit decimal.Decimal `json:"netProfit"`
-	// MaxDrawdown                  Swing                 `json:"maxDrawdown,omitempty"`
-	// StartingClosePrice           decimal.Decimal       `json:"startingClosePrice"`
-	// EndingClosePrice             decimal.Decimal       `json:"endingClosePrice"`
-	// LowestClosePrice             decimal.Decimal       `json:"lowestClosePrice"`
-	// HighestClosePrice            decimal.Decimal       `json:"highestClosePrice"`
-	// MarketMovement               decimal.Decimal       `json:"marketMovement"`
-	// StrategyMovement             decimal.Decimal       `json:"strategyMovement"`
-	// HighestCommittedFunds        HighestCommittedFunds `json:"highestCommittedFunds"`
-	// RiskFreeRate                 decimal.Decimal       `json:"riskFreeRate"`
-	// BuyOrders                    int64                 `json:"buyOrders"`
-	// GeometricRatios              Ratios                `json:"geometricRatios"`
-	// ArithmeticRatios             Ratios                `json:"arithmeticRatios"`
-	// CompoundAnnualGrowthRate     decimal.Decimal       `json:"compoundAnnualGrowthRate"`
-	// SellOrders                   int64                 `json:"sellOrders"`
-	// TotalOrders                  int64                 `json:"totalOrders"`
-	// InitialHoldings              holdings.Holding      `json:"initialHoldingsHoldings"`
-	// FinalHoldings                holdings.Holding      `json:"finalHoldings"`
-	// FinalOrders                  compliance.Snapshot   `json:"finalOrders"`
-	// ShowMissingDataWarning       bool                  `json:""`
-	// IsStrategyProfitable         bool                  `json:"isStrategyProfitable"`
-	// DoesPerformanceBeatTheMarket bool                  `json:"doesPerformanceBeatTheMarket"`
 }
 
 // Ratios stores all the ratios used for statistics
