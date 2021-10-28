@@ -2,21 +2,14 @@
  {
   "weight": "1",
   "side": "BUY",
-  "pair": "BTC_USDT",
+  "pair": "SHIB_USDT",
   "capture": "trend",
   "debug": false
  },
  {
   "weight": "1",
   "side": "BUY",
-  "pair": "SHIB_USDT",
-  "capture": "trend",
-  "debug": false
- },
- {
-  "weight": "1",
-  "side": "SELL",
-  "pair": "SHIB_USDT",
+  "pair": "BTC_USDT",
   "capture": "trend",
   "debug": false
  }

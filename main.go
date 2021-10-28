@@ -73,7 +73,6 @@ var (
 			},
 		},
 	}
-	configPath      string
 	tradeConfigPath string
 	settings        engine.Settings
 	workingDir      string
@@ -85,14 +84,12 @@ var (
 func main() {
 	app.Run(os.Args)
 	if bot == nil {
-		setupBot()
-	}
-
-	err := bot.Config.SaveConfigToFile(bot.Settings.ConfigFile)
-	if err != nil {
-		log.Errorln(log.Global, "Unable to save config.")
-	} else {
-		log.Debugln(log.Global, "Config file saved successfully.")
+		err := bot.Config.SaveConfigToFile(bot.Settings.ConfigFile)
+		if err != nil {
+			log.Errorln(log.Global, "Unable to save config.")
+		} else {
+			log.Debugln(log.Global, "Config file saved successfully.")
+		}
 	}
 }
 
@@ -147,12 +144,12 @@ func setupBot() error {
 		os.Exit(1)
 	}
 
-	configPath = filepath.Join(wd, "confs/dev", fmt.Sprintf("%s.json", settings.ConfigFile))
 	configDir := filepath.Join(wd, "confs")
 
 	if settings.EnableProductionMode {
 		settings.ConfigFile = filepath.Join(configDir, fmt.Sprintf("prod.json", settings.ConfigFile))
 		settings.TradeConfigFile = filepath.Join(configDir, fmt.Sprintf("all.strat", settings.TradeConfigFile))
+
 	} else {
 		if settings.TradeConfigFile == "" {
 			settings.TradeConfigFile = filepath.Join(configDir, "all.strat")
@@ -211,6 +208,7 @@ func analyzePF(c *cli.Context) error {
 }
 
 func generateAll(c *cli.Context) error {
+	// setupBot()
 	pf, err := getPF()
 	allPath := filepath.Join(workingDir, "confs/dev/strategy/all.strat")
 	fmt.Println("saving all.strat to", allPath)

@@ -681,9 +681,7 @@ func (bot *Engine) Start() error {
 		os.Exit(2)
 	}
 
-	// if bot.Settings.EnableDataHistoryManager {
-	if bot.Config.DataHistory.Enabled {
-		fmt.Println("starting dhm")
+	if bot.Settings.EnableDataHistoryManager {
 		if bot.DataHistoryManager == nil {
 			bot.DataHistoryManager, err = SetupDataHistoryManager(bot, bot.ExchangeManager, bot.DatabaseManager, &bot.Config.DataHistory)
 			if err != nil {
