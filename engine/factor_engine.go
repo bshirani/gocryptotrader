@@ -98,8 +98,8 @@ func (f *FactorEngine) OnBar(d data.Handler) error {
 
 		f.kline.M60Low = append(f.kline.M60Low, low)
 		f.kline.M60High = append(f.kline.M60High, high)
-		f.kline.M60Range = append(f.kline.M60Range, hrRange)
-		f.kline.M60RangeDivClose = append(f.kline.M60RangeDivClose, hrRange.Div(bar.ClosePrice()))
+		f.kline.N60Range = append(f.kline.N60Range, hrRange)
+		f.kline.N60RangeDivClose = append(f.kline.N60RangeDivClose, hrRange.Div(bar.ClosePrice()))
 		f.kline.M60PctChange = append(f.kline.M60PctChange, hrPctChg)
 
 		if f.Verbose {

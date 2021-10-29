@@ -43,9 +43,9 @@ type MinuteDataFrame struct {
 	CurrentDateLow  Series
 	CurrentDateHigh Series
 
-	M60Low           Series
-	M60High          Series
-	M60Range         Series
-	M60RangeDivClose Series
-	M60PctChange     Series
+	N60Low           Series
+	N60High          Series
+	N60Range         Series
+	N60RangeDivClose Series
+	N60PctChange     Series
 }
