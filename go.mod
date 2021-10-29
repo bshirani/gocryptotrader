@@ -7,8 +7,8 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/d5/tengo/v2 v2.8.0
 	github.com/deckarep/golang-set v1.7.1 // indirect
-	github.com/fatih/color v1.13.0 // indirect
-	github.com/friendsofgo/errors v0.9.2 // indirect
+	github.com/fatih/color v1.13.0
+	github.com/friendsofgo/errors v0.9.2
 	github.com/go-delve/delve v1.7.2 // indirect
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/google/go-dap v0.6.0 // indirect
@@ -36,15 +36,16 @@ require (
 	github.com/timescale/timescaledb-tune v0.12.0 // indirect
 	github.com/urfave/cli/v2 v2.3.0
 	github.com/volatiletech/inflect v0.0.1 // indirect
-	github.com/volatiletech/null/v8 v8.1.2 // indirect
-	github.com/volatiletech/sqlboiler/v4 v4.7.1 // indirect
-	github.com/volatiletech/strmangle v0.0.1 // indirect
+	github.com/volatiletech/null/v8 v8.1.2
+	github.com/volatiletech/sqlboiler/v4 v4.7.1
+	github.com/volatiletech/strmangle v0.0.1
 	go.starlark.net v0.0.0-20211013185944-b0039bd2cfe3 // indirect
 	golang.org/x/arch v0.0.0-20210923205945-b76863e36670 // indirect
-	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
-	golang.org/x/net v0.0.0-20210503060351-7fd8e65b6420
-	golang.org/x/sys v0.0.0-20211013075003-97ac67df715c // indirect
+	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
+	golang.org/x/exp v0.0.0-20211029182501-9b944d235b9d // indirect
+	golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
+	gonum.org/v1/gonum v0.9.3
 	google.golang.org/genproto v0.0.0-20210903162649-d08c68adba83
 	google.golang.org/grpc v1.41.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0 // indirect

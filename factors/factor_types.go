@@ -71,6 +71,7 @@ type NCalculation struct {
 	Low           decimal.Decimal
 	High          decimal.Decimal
 	RangeDivClose decimal.Decimal
+	Slope         decimal.Decimal
 }
 
 type Calculation struct {

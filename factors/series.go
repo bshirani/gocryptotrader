@@ -3,8 +3,10 @@ package factors
 import (
 	"fmt"
 	"gocryptotrader/data"
+	"math/rand"
 
 	"github.com/shopspring/decimal"
+	"gonum.org/v1/gonum/stat"
 )
 
 type Series []decimal.Decimal
@@ -78,5 +80,26 @@ func GetBaseStats(kline *IntervalDataFrame, n int, d data.Handler) *NCalculation
 		Low:           low,
 		High:          high,
 		RangeDivClose: nRange.Div(curClose),
+		Slope:         decimal.NewFromFloat(getSlope(kline, n)),
 	}
+}
+
+func getSlope(kline *IntervalDataFrame, n int) float64 {
+	var (
+		xs      = make([]float64, n)
+		ys      = make([]float64, n)
+		weights []float64
+	)
+
+	line := func(x float64) float64 {
+		return 1 + 3*x
+	}
+
+	for i := range xs {
+		xs[i] = float64(i)
+		ys[i] = line(xs[i]) + 0.1*rand.NormFloat64()
+	}
+	origin := false
+	alpha, _ := stat.LinearRegression(xs, ys, weights, origin)
+	return alpha
 }
