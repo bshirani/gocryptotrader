@@ -120,7 +120,7 @@ func (s *Strategy) SetDefaults() {
 }
 
 func (s *Strategy) checkEntry(es signal.Signal, p base.StrategyPortfolioHandler, d data.Handler, fe base.FactorEngineHandler) (signal.Event, error) {
-	m60Chg := fe.Kline().M60PctChange.Last(0)
+	m60Chg := fe.Kline().N60PctChange.Last(0)
 	price := d.Latest().ClosePrice()
 
 	if s.Strategy.GetDirection() == order.Buy { // check for buy strategy
@@ -163,7 +163,7 @@ func (s *Strategy) checkExit(es signal.Signal, p base.StrategyPortfolioHandler, 
 
 	} else if minutesInTrade > 60 {
 		// handle exit
-		m60PctChg := fe.Kline().M60PctChange.Last(1)
+		m60PctChg := fe.Kline().N60PctChange.Last(1)
 
 		// fmt.Println("check exit", es.GetTime(), minutesInTrade, m60PctChg)
 
@@ -171,10 +171,10 @@ func (s *Strategy) checkExit(es signal.Signal, p base.StrategyPortfolioHandler, 
 		if s.Strategy.GetDirection() == order.Buy {
 			if m60PctChg.LessThan(decimal.NewFromFloat(0)) {
 				es.SetDecision(signal.Exit)
-				es.AppendReason(fmt.Sprintf("Strategy: t >. %d min and M60PctChange is negative.", minutesInTrade))
+				es.AppendReason(fmt.Sprintf("Strategy: t >. %d min and N60PctChange is negative.", minutesInTrade))
 			} else {
 				es.SetDecision(signal.DoNothing)
-				es.AppendReason(fmt.Sprintf("Strategy: Stay in long. M60PctChange is positive. (%d).", minutesInTrade))
+				es.AppendReason(fmt.Sprintf("Strategy: Stay in long. N60PctChange is positive. (%d).", minutesInTrade))
 			}
 		}
 
@@ -182,10 +182,10 @@ func (s *Strategy) checkExit(es signal.Signal, p base.StrategyPortfolioHandler, 
 		if s.Strategy.GetDirection() == order.Sell {
 			if m60PctChg.GreaterThan(decimal.NewFromFloat(1)) {
 				es.SetDecision(signal.Exit)
-				es.AppendReason(fmt.Sprintf("Strategy.go says: exiting t > (%d) min and M60PctChange is positive.", minutesInTrade))
+				es.AppendReason(fmt.Sprintf("Strategy.go says: exiting t > (%d) min and N60PctChange is positive.", minutesInTrade))
 			} else {
 				es.SetDecision(signal.DoNothing)
-				es.AppendReason(fmt.Sprintf("Strategy.go says: Stay in short. M60PctChange is negative. (%d).", minutesInTrade))
+				es.AppendReason(fmt.Sprintf("Strategy.go says: Stay in short. N60PctChange is negative. (%d).", minutesInTrade))
 			}
 		}
 
