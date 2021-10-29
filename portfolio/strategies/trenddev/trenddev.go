@@ -122,12 +122,12 @@ func (s *Strategy) SetDefaults() {
 func (s *Strategy) checkEntry(es signal.Signal, p base.StrategyPortfolioHandler, d data.Handler, fe base.FactorEngineHandler) (signal.Event, error) {
 	price := d.Latest().ClosePrice()
 	if s.Strategy.GetDirection() == order.Buy { // check for buy strategy
-		es.AppendReason("Strategy: m60Chg greater than zero")
+		es.AppendReason("Strategy: n60Chg greater than zero")
 		es.SetDecision(signal.Enter)
 		es.SetStopLossPrice(price.Mul(decimal.NewFromFloat(0.9)))
 
 	} else if s.Strategy.GetDirection() == order.Sell { // check sell strategy
-		es.AppendReason("Strategy: m60Chg less than zero")
+		es.AppendReason("Strategy: n60Chg less than zero")
 		es.SetDecision(signal.Enter)
 		es.SetStopLossPrice(price.Mul(decimal.NewFromFloat(1.1)))
 	}
