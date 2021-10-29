@@ -21,7 +21,7 @@ func SetupFactorEngine(cs *ExchangeAssetPairSettings, cfg *config.FactorEngineCo
 	f.Verbose = cfg.Verbose
 
 	f.Pair = p
-	f.minute = &factors.MinuteDataFrame{}
+	f.kline = &factors.MinuteDataFrame{}
 	f.daily = &factors.DailyDataFrame{}
 
 	// warmup the factor engine
@@ -53,8 +53,8 @@ func SetupFactorEngine(cs *ExchangeAssetPairSettings, cfg *config.FactorEngineCo
 	return f, nil
 }
 
-func (f *FactorEngine) Minute() *factors.MinuteDataFrame {
-	return f.minute
+func (f *FactorEngine) Kline() *factors.MinuteDataFrame {
+	return f.kline
 }
 
 func (f *FactorEngine) Daily() *factors.DailyDataFrame {
@@ -64,10 +64,10 @@ func (f *FactorEngine) Daily() *factors.DailyDataFrame {
 func (f *FactorEngine) OnBar(d data.Handler) error {
 	bar := d.Latest()
 
-	if len(f.minute.Close) > 60 {
+	if len(f.kline.Close) > 60 {
 		// how much has moved in past hour
-		highBars := f.minute.High[len(f.minute.High)-61 : len(f.minute.High)-1]
-		lowBars := f.minute.Low[len(f.minute.Low)-61 : len(f.minute.Low)-1]
+		highBars := f.kline.High[len(f.kline.High)-61 : len(f.kline.High)-1]
+		lowBars := f.kline.Low[len(f.kline.Low)-61 : len(f.kline.Low)-1]
 
 		if len(lowBars) != len(highBars) {
 			fmt.Println("error not same amount of bars data")
@@ -92,15 +92,15 @@ func (f *FactorEngine) OnBar(d data.Handler) error {
 		hrRange := high.Sub(low)
 		hrRangeRelClose := hrRange.Div(bar.ClosePrice())
 		hrRangeRelClose = hrRangeRelClose.Mul(decimal.NewFromInt(100))
-		hrAgoClose := f.minute.Close[len(f.minute.Close)-60]
+		hrAgoClose := f.kline.Close[len(f.kline.Close)-60]
 		curClose := bar.ClosePrice()
 		hrPctChg := (curClose.Sub(hrAgoClose)).Div(curClose).Mul(decimal.NewFromInt(100))
 
-		f.minute.M60Low = append(f.minute.M60Low, low)
-		f.minute.M60High = append(f.minute.M60High, high)
-		f.minute.M60Range = append(f.minute.M60Range, hrRange)
-		f.minute.M60RangeDivClose = append(f.minute.M60RangeDivClose, hrRange.Div(bar.ClosePrice()))
-		f.minute.M60PctChange = append(f.minute.M60PctChange, hrPctChg)
+		f.kline.M60Low = append(f.kline.M60Low, low)
+		f.kline.M60High = append(f.kline.M60High, high)
+		f.kline.M60Range = append(f.kline.M60Range, hrRange)
+		f.kline.M60RangeDivClose = append(f.kline.M60RangeDivClose, hrRange.Div(bar.ClosePrice()))
+		f.kline.M60PctChange = append(f.kline.M60PctChange, hrPctChg)
 
 		if f.Verbose {
 			f.PrintLast(d)
@@ -112,26 +112,26 @@ func (f *FactorEngine) OnBar(d data.Handler) error {
 		}
 	}
 
-	f.minute.Close = append(f.minute.Close, bar.ClosePrice())
-	f.minute.Open = append(f.minute.Open, bar.OpenPrice())
-	f.minute.High = append(f.minute.High, bar.HighPrice())
-	f.minute.Low = append(f.minute.Low, bar.LowPrice())
-	// f.minute.Volume = append(f.minute.Volume, bar.GetVolume())
-	f.minute.Time = append(f.minute.Time, bar.GetTime())
-	f.minute.LastUpdate = bar.GetTime()
+	f.kline.Close = append(f.kline.Close, bar.ClosePrice())
+	f.kline.Open = append(f.kline.Open, bar.OpenPrice())
+	f.kline.High = append(f.kline.High, bar.HighPrice())
+	f.kline.Low = append(f.kline.Low, bar.LowPrice())
+	// f.kline.Volume = append(f.kline.Volume, bar.GetVolume())
+	f.kline.Time = append(f.kline.Time, bar.GetTime())
+	f.kline.LastUpdate = bar.GetTime()
 
 	t := bar.GetTime()
 	td := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, t.Nanosecond(), t.Location())
 
 	// logic to create a new daily dataframe
-	// fmt.Println("close length", d.Latest().Pair(), len(f.minute.Close))
+	// fmt.Println("close length", d.Latest().Pair(), len(f.kline.Close))
 	// fmt.Println("history first", d.History()[0])
-	if len(d.History()) > 1 && td != f.minute.LastDate() {
+	if len(d.History()) > 1 && td != f.kline.LastDate() {
 		// change date after checking for/creating new daily bar
-		f.minute.Date = append(f.minute.Date, td)
-		f.daily = f.createNewDailyBar(f.minute, f.daily)
+		f.kline.Date = append(f.kline.Date, td)
+		f.daily = f.createNewDailyBar(f.kline, f.daily)
 	} else {
-		f.minute.Date = append(f.minute.Date, td)
+		f.kline.Date = append(f.kline.Date, td)
 	}
 	return nil
 
@@ -163,9 +163,9 @@ func (f *FactorEngine) OnBar(d data.Handler) error {
 }
 
 func (f *FactorEngine) PrintLast(d data.Handler) {
-	if len(f.Minute().Close) > 60 {
-		hrRangeRelClose := f.minute.M60RangeDivClose[len(f.minute.M60RangeDivClose)-1]
-		hrRange := f.minute.M60Range[len(f.minute.M60Range)-1]
+	if len(f.Kline().Close) > 60 {
+		hrRangeRelClose := f.kline.N60RangeDivClose[len(f.kline.N60RangeDivClose)-1]
+		hrRange := f.kline.N60Range[len(f.kline.N60Range)-1]
 		lt := d.Latest()
 
 		if hrRangeRelClose.GreaterThan(decimal.NewFromInt(1)) {
@@ -199,7 +199,7 @@ func (f *FactorEngine) createNewDailyBar(m *factors.MinuteDataFrame, d *factors.
 	// calculate range here
 	d.Range = append(d.Range, decimal.NewFromFloat(421.0))
 
-	// fmt.Println("NEW DATE", f.minute.LastDate())
+	// fmt.Println("NEW DATE", f.kline.LastDate())
 	// // get high/open/low/close
 	// f.daily.Open = append(f.daily.Range,.GetOpenPrice()
 	// f.daily.Range = append(f.daily.Range, decimal.NewFromFloat(1.0))
@@ -306,7 +306,7 @@ func (f *FactorEngine) warmup() error {
 	// // validate factor engines are cached
 	// //
 	// for _, fe := range f.FactorEngines {
-	// 	log.Debugf(log.FactorEngine, "fe %v %v", fe.Pair, fe.Minute().LastDate())
+	// 	log.Debugf(log.FactorEngine, "fe %v %v", fe.Pair, fe.Kline().LastDate())
 	// }
 
 	return nil

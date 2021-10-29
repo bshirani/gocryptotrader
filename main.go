@@ -116,6 +116,9 @@ func catchup(c *cli.Context) error {
 
 	log.Infoln(log.TradeMgr, "Catching up days...", bot.Config.DataHistory.DaysBack)
 	daysBack := make([]int, bot.Config.DataHistory.DaysBack)
+	for _, cs := range bot.CurrencySettings {
+		fmt.Println(cs.CurrencyPair)
+	}
 
 	for i := range daysBack {
 		i += 1
@@ -261,7 +264,6 @@ func startOfflineServices() (err error) {
 			}
 		}
 	}
-	fmt.Println("dhm", bot.DataHistoryManager)
 
 	bot.DatabaseManager, err = engine.SetupDatabaseConnectionManager(database.DB.GetConfig())
 	if err != nil {

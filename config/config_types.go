@@ -9,6 +9,7 @@ import (
 	"gocryptotrader/currency"
 	"gocryptotrader/database"
 	"gocryptotrader/exchange/asset"
+	"gocryptotrader/exchange/kline"
 	"gocryptotrader/exchange/order"
 	"gocryptotrader/exchange/protocol"
 	gctscript "gocryptotrader/gctscript/vm"
@@ -167,6 +168,7 @@ type StrategySetting struct {
 	Weight    decimal.Decimal `json:"weight"`
 	Side      order.Side      `json:"side"`
 	AssetType asset.Item      `json:"assetType"`
+	Interval  kline.Interval  `json:"klineInterval"`
 	Pair      currency.Pair   `json:"pair"`
 	Capture   string          `json:"capture"`
 	Debug     bool            `json:"debug"`

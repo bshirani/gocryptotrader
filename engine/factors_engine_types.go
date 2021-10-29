@@ -13,7 +13,7 @@ var (
 
 type FactorEngine struct {
 	Pair    currency.Pair
-	minute  *factors.MinuteDataFrame
+	kline   *factors.MinuteDataFrame
 	daily   *factors.DailyDataFrame
 	Verbose bool
 }

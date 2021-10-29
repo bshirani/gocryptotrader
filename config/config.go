@@ -618,11 +618,12 @@ func (c *Config) GetEnabledPairs(exchName string, assetType asset.Item) (currenc
 	}
 
 	for _, ss := range c.TradeManager.Strategies {
-		enabled := exchCfg.CurrencyPairs.Pairs[ss.AssetType].Enabled
+		// fmt.Println("loading asset type", asset.Spot)
+		enabled := exchCfg.CurrencyPairs.Pairs[asset.Spot].Enabled
 		pair := currency.GetPairTranslation(exchName, ss.Pair)
 
 		if !enabled.Contains(pair, true) {
-			exchCfg.CurrencyPairs.Pairs[ss.AssetType].Enabled = append(exchCfg.CurrencyPairs.Pairs[ss.AssetType].Enabled, pair)
+			exchCfg.CurrencyPairs.Pairs[asset.Spot].Enabled = append(exchCfg.CurrencyPairs.Pairs[asset.Spot].Enabled, pair)
 		}
 	}
 

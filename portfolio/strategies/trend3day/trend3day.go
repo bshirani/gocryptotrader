@@ -120,7 +120,7 @@ func (s *Strategy) SetDefaults() {
 }
 
 func (s *Strategy) checkEntry(es signal.Signal, p base.StrategyPortfolioHandler, d data.Handler, fe base.FactorEngineHandler) (signal.Event, error) {
-	m60Chg := fe.Minute().M60PctChange.Last(0)
+	m60Chg := fe.Kline().M60PctChange.Last(0)
 	price := d.Latest().ClosePrice()
 
 	if s.Strategy.GetDirection() == order.Buy { // check for buy strategy
@@ -163,7 +163,7 @@ func (s *Strategy) checkExit(es signal.Signal, p base.StrategyPortfolioHandler, 
 
 	} else if minutesInTrade > 60 {
 		// handle exit
-		m60PctChg := fe.Minute().M60PctChange.Last(1)
+		m60PctChg := fe.Kline().M60PctChange.Last(1)
 
 		// fmt.Println("check exit", es.GetTime(), minutesInTrade, m60PctChg)
 
