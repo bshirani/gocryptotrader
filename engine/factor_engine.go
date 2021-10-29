@@ -25,8 +25,15 @@ func SetupFactorEngine(cs *ExchangeAssetPairSettings, cfg *config.FactorEngineCo
 	f.Verbose = cfg.Verbose
 
 	f.Pair = p
-	f.kline = &factors.IntervalDataFrame{}
+	f.kline = &factors.IntervalDataFrame{
+		N10:  &factors.NSeries{},
+		N20:  &factors.NSeries{},
+		N30:  &factors.NSeries{},
+		N60:  &factors.NSeries{},
+		N100: &factors.NSeries{},
+	}
 	f.daily = &factors.DailyDataFrame{}
+	f.calcs = make([]*factors.Calculation, 0)
 
 	// warmup the factor engine
 
@@ -65,14 +72,49 @@ func (f *FactorEngine) Daily() *factors.DailyDataFrame {
 	return f.daily
 }
 
-func (f *FactorEngine) OnBar(d data.Handler) error {
+func (f *FactorEngine) getFactorCalculations(d data.Handler) *factors.Calculation {
+	n10 := factors.GetBaseStats(f.kline, 10, d)
+	n20 := factors.GetBaseStats(f.kline, 20, d)
+	n30 := factors.GetBaseStats(f.kline, 30, d)
+	n60 := factors.GetBaseStats(f.kline, 60, d)
+	n100 := factors.GetBaseStats(f.kline, 100, d)
 	bar := d.Latest()
 
-	f.kline.Close = append(f.kline.Close, bar.ClosePrice())
+	return &factors.Calculation{
+		N10:   n10,
+		N20:   n20,
+		N30:   n30,
+		N60:   n60,
+		N100:  n100,
+		Close: bar.ClosePrice(),
+		Open:  bar.OpenPrice(),
+		High:  bar.HighPrice(),
+		Low:   bar.LowPrice(),
+		Time:  bar.GetTime(),
+	}
+}
+
+func (f *FactorEngine) Last() *factors.Calculation {
+	return f.calcs[len(f.calcs)-1]
+}
+
+func appendNSeries(fs *factors.NSeries, fc *factors.NCalculation) {
+	fs.Low = append(fs.Low, fc.Low)
+	fs.High = append(fs.High, fc.High)
+	fs.Range = append(fs.Range, fc.Range)
+	fs.RangeDivClose = append(fs.RangeDivClose, fc.RangeDivClose)
+	fs.PctChange = append(fs.PctChange, fc.PctChange)
+}
+
+func (f *FactorEngine) OnBar(d data.Handler) error {
+	bar := d.Latest()
+	fc := f.getFactorCalculations(d)
+	f.calcs = append(f.calcs, fc)
+
+	f.kline.Close = append(f.kline.Close, fc.Close)
 	f.kline.Open = append(f.kline.Open, bar.OpenPrice())
 	f.kline.High = append(f.kline.High, bar.HighPrice())
 	f.kline.Low = append(f.kline.Low, bar.LowPrice())
-	// f.kline.Volume = append(f.kline.Volume, bar.GetVolume())
 	f.kline.Time = append(f.kline.Time, bar.GetTime())
 	f.kline.LastUpdate = bar.GetTime()
 
@@ -86,41 +128,23 @@ func (f *FactorEngine) OnBar(d data.Handler) error {
 		f.kline.Date = append(f.kline.Date, td)
 	}
 
-	if len(f.kline.Close) >= 10 {
-		fc := f.getFactorCalculations(10, d)
-		f.kline.N10Low = append(f.kline.N10Low, fc.Low)
-		f.kline.N10High = append(f.kline.N10High, fc.High)
-		f.kline.N10Range = append(f.kline.N10Range, fc.Range)
-		f.kline.N10RangeDivClose = append(f.kline.N10RangeDivClose, fc.Range.Div(bar.ClosePrice()))
-		f.kline.N10PctChange = append(f.kline.N10PctChange, fc.PercentChange)
+	switch l := len(f.calcs); {
+	case l >= 10:
+		appendNSeries(f.kline.N10, fc.N10)
+		fallthrough
+	case l >= 20:
+		appendNSeries(f.kline.N20, fc.N20)
+		fallthrough
+	case l >= 30:
+		appendNSeries(f.kline.N30, fc.N30)
+		fallthrough
+	case l >= 60:
+		appendNSeries(f.kline.N60, fc.N60)
+		fallthrough
+	case l >= 100:
+		appendNSeries(f.kline.N100, fc.N100)
 	}
 
-	if len(f.kline.Close) >= 20 {
-		fc := f.getFactorCalculations(20, d)
-		f.kline.N20Low = append(f.kline.N20Low, fc.Low)
-		f.kline.N20High = append(f.kline.N20High, fc.High)
-		f.kline.N20Range = append(f.kline.N20Range, fc.Range)
-		f.kline.N20RangeDivClose = append(f.kline.N20RangeDivClose, fc.Range.Div(bar.ClosePrice()))
-		f.kline.N20PctChange = append(f.kline.N20PctChange, fc.PercentChange)
-	}
-
-	if len(f.kline.Close) >= 60 {
-		fc := f.getFactorCalculations(60, d)
-		f.kline.N60Low = append(f.kline.N60Low, fc.Low)
-		f.kline.N60High = append(f.kline.N60High, fc.High)
-		f.kline.N60Range = append(f.kline.N60Range, fc.Range)
-		f.kline.N60RangeDivClose = append(f.kline.N60RangeDivClose, fc.Range.Div(bar.ClosePrice()))
-		f.kline.N60PctChange = append(f.kline.N60PctChange, fc.PercentChange)
-	}
-
-	if len(f.kline.Close) >= 100 {
-		fc := f.getFactorCalculations(100, d)
-		f.kline.N100Low = append(f.kline.N100Low, fc.Low)
-		f.kline.N100High = append(f.kline.N100High, fc.High)
-		f.kline.N100Range = append(f.kline.N100Range, fc.Range)
-		f.kline.N100RangeDivClose = append(f.kline.N100RangeDivClose, fc.Range.Div(bar.ClosePrice()))
-		f.kline.N100PctChange = append(f.kline.N100PctChange, fc.PercentChange)
-	}
 	return nil
 
 	// dataRange := d.StreamClose()
@@ -150,23 +174,23 @@ func (f *FactorEngine) OnBar(d data.Handler) error {
 	// f.minute
 }
 
-func (f *FactorEngine) PrintLast(d data.Handler) {
-	if len(f.Kline().Close) > 60 {
-		nRangeRelClose := f.kline.N60RangeDivClose[len(f.kline.N60RangeDivClose)-1]
-		hrRange := f.kline.N60Range[len(f.kline.N60Range)-1]
-		lt := d.Latest()
-
-		if nRangeRelClose.GreaterThan(decimal.NewFromInt(1)) {
-			log.Infof(log.FactorEngine, "%s %s %s %v %v%%", lt.GetTime(), lt.Pair(), "60m range", hrRange, nRangeRelClose.Round(2))
-		} else if !hrRange.IsZero() {
-			log.Debugf(log.FactorEngine, "%s %s %s %v %v%%", lt.GetTime(), lt.Pair(), "60m range", hrRange, nRangeRelClose.Round(2))
-		} else {
-			log.Errorf(log.FactorEngine, "ZERO %s %s close:%v high:%v low:%v range:%v", lt.GetTime(), lt.Pair(), lt.ClosePrice(), lt.HighPrice(), lt.LowPrice(), hrRange)
-		}
-	} else {
-		log.Debugln(log.FactorEngine, "HH onbar price change", d.Latest().Pair(), d.Latest().GetTime(), d.Latest().ClosePrice())
-	}
-}
+// func (f *FactorEngine) PrintLast(d data.Handler) {
+// 	if len(f.Kline().Close) > 60 {
+// 		nRangeRelClose := f.kline.N60RangeDivClose[len(f.kline.N60RangeDivClose)-1]
+// 		hrRange := f.kline.N60Range[len(f.kline.N60Range)-1]
+// 		lt := d.Latest()
+//
+// 		if nRangeRelClose.GreaterThan(decimal.NewFromInt(1)) {
+// 			log.Infof(log.FactorEngine, "%s %s %s %v %v%%", lt.GetTime(), lt.Pair(), "60m range", hrRange, nRangeRelClose.Round(2))
+// 		} else if !hrRange.IsZero() {
+// 			log.Debugf(log.FactorEngine, "%s %s %s %v %v%%", lt.GetTime(), lt.Pair(), "60m range", hrRange, nRangeRelClose.Round(2))
+// 		} else {
+// 			log.Errorf(log.FactorEngine, "ZERO %s %s close:%v high:%v low:%v range:%v", lt.GetTime(), lt.Pair(), lt.ClosePrice(), lt.HighPrice(), lt.LowPrice(), hrRange)
+// 		}
+// 	} else {
+// 		log.Debugln(log.FactorEngine, "HH onbar price change", d.Latest().Pair(), d.Latest().GetTime(), d.Latest().ClosePrice())
+// 	}
+// }
 
 func (f *FactorEngine) createNewDailyBar(m *factors.IntervalDataFrame, d *factors.DailyDataFrame) *factors.DailyDataFrame {
 	// d.Open = append(a.Date, decimal.NewFromFloat(421.0))
@@ -300,42 +324,6 @@ func (f *FactorEngine) warmup() error {
 	return nil
 }
 
-func (f *FactorEngine) getFactorCalculations(n int, bar data.Handler) *FactorCalculation {
-	highBars := f.kline.High[len(f.kline.High)-n+1 : len(f.kline.High)-1]
-	lowBars := f.kline.Low[len(f.kline.Low)-n+1 : len(f.kline.Low)-1]
-	if len(lowBars) != len(highBars) {
-		fmt.Println("error not same amount of bars data")
-	}
-	high := highBars[0]
-	for i := range highBars {
-		h := highBars[i]
-		if h.GreaterThan(high) {
-			high = h
-		}
-	}
-	low := lowBars[0]
-	for i := range lowBars {
-		l := lowBars[i]
-		if l.LessThan(low) {
-			low = l
-		}
-	}
-	nRange := high.Sub(low)
-	nAgoClose := f.kline.Close[len(f.kline.Close)-n]
-	curClose := bar.Latest().ClosePrice()
-	nPctChg := (curClose.Sub(nAgoClose)).Div(curClose).Mul(decimal.NewFromInt(100))
-	return &FactorCalculation{
-		LastTime:      bar.Latest().GetTime(),
-		NLen:          n,
-		High:          high,
-		Low:           low,
-		RangeRelClose: nRange.Div(bar.Latest().ClosePrice()).Mul(decimal.NewFromInt(100)),
-		NAgoClose:     nAgoClose,
-		CurrentClose:  bar.Latest().ClosePrice(),
-		PercentChange: nPctChg,
-	}
-}
-
 func (f *FactorEngine) WriteJSON(filepath string) error {
 	writer, err := file.Writer(filepath)
 	defer func() {
@@ -346,7 +334,7 @@ func (f *FactorEngine) WriteJSON(filepath string) error {
 			}
 		}
 	}()
-	payload, err := json.MarshalIndent(&f.kline, "", " ")
+	payload, err := json.MarshalIndent(&f.calcs, "", " ")
 	if err != nil {
 		return err
 	}

@@ -739,11 +739,11 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 			tm.bot.OrderManager.Update()
 		}
 
-		if len(fe.Kline().N60Range) > 0 {
+		if len(fe.Kline().N60.Range) > 0 {
 			if tm.liveMode {
 
 				if tm.verbose {
-					hrChg := fe.Kline().N60PctChange.Last(1).Round(2)
+					hrChg := fe.Last().N60.PctChange.Round(2)
 
 					if hrChg.GreaterThan(decimal.NewFromInt(0)) {
 						color.Set(color.FgGreen, color.Bold)
@@ -759,12 +759,13 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 						ev.GetTime().Hour(),
 						ev.GetTime().Minute(),
 						strings.ToUpper(ev.Pair().String()),
-						fe.Kline().Close.Last(1),
-						fe.Kline().N60RangeDivClose.Last(1).Mul(decimal.NewFromInt(100)).Round(2),
+						fe.Last().Close,
+						fe.Last().N60.RangeDivClose.Mul(decimal.NewFromInt(100)).Round(2),
 						hrChg,
-						fe.Kline().N60Range.Last(1),
-						fe.Kline().N60High.Last(1),
-						fe.Kline().N60Low.Last(1))
+						fe.Last().N60.Range,
+						fe.Last().N60.High,
+						fe.Last().N60.Low,
+					)
 
 				}
 
@@ -793,7 +794,7 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 			}
 		} else {
 			if tm.bot.Settings.EnableLiveMode {
-				fmt.Println("only have last", len(fe.Kline().N60Range), "n60 range bars, closes' length ", len(fe.Kline().Close))
+				fmt.Println("only have last", len(fe.Kline().N60.Range), "n60 range bars, closes' length ", len(fe.Kline().Close))
 			}
 		}
 	}

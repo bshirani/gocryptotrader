@@ -2,6 +2,8 @@ package factors
 
 import (
 	"time"
+
+	"github.com/shopspring/decimal"
 )
 
 type DailyDataFrame struct {
@@ -20,6 +22,14 @@ type DailyDataFrame struct {
 	RSI   Series
 	MA    Series
 	Range Series
+}
+
+type NSeries struct {
+	Low           Series
+	High          Series
+	Range         Series
+	RangeDivClose Series
+	PctChange     Series
 }
 
 type IntervalDataFrame struct {
@@ -43,27 +53,46 @@ type IntervalDataFrame struct {
 	CurrentDateLow  Series
 	CurrentDateHigh Series
 
-	N10Low           Series
-	N10High          Series
-	N10Range         Series
-	N10RangeDivClose Series
-	N10PctChange     Series
+	N10  *NSeries
+	N20  *NSeries
+	N30  *NSeries
+	N60  *NSeries
+	N100 *NSeries
+}
 
-	N20Low           Series
-	N20High          Series
-	N20Range         Series
-	N20RangeDivClose Series
-	N20PctChange     Series
+type NCalculation struct {
+	NLen int
+	Time time.Time
+	// FirstTime     time.Time
+	NAgoClose     decimal.Decimal
+	Range         decimal.Decimal
+	PctChange     decimal.Decimal
+	Close         decimal.Decimal
+	Low           decimal.Decimal
+	High          decimal.Decimal
+	RangeDivClose decimal.Decimal
+}
 
-	N60Low           Series
-	N60High          Series
-	N60Range         Series
-	N60RangeDivClose Series
-	N60PctChange     Series
+type Calculation struct {
+	Time time.Time
+	Date time.Time
 
-	N100Low           Series
-	N100High          Series
-	N100Range         Series
-	N100RangeDivClose Series
-	N100PctChange     Series
+	High            decimal.Decimal
+	Low             decimal.Decimal
+	Close           decimal.Decimal
+	Open            decimal.Decimal
+	Volume          decimal.Decimal
+	RSI             decimal.Decimal
+	MA              decimal.Decimal
+	Past24HourHigh  decimal.Decimal
+	Past24HourLow   decimal.Decimal
+	CurrentDateOpen decimal.Decimal
+	CurrentDateLow  decimal.Decimal
+	CurrentDateHigh decimal.Decimal
+
+	N10  *NCalculation
+	N20  *NCalculation
+	N30  *NCalculation
+	N60  *NCalculation
+	N100 *NCalculation
 }
