@@ -22,7 +22,7 @@ type DailyDataFrame struct {
 	Range Series
 }
 
-type MinuteDataFrame struct {
+type IntervalDataFrame struct {
 	Close  Series
 	Open   Series
 	High   Series
@@ -43,9 +43,27 @@ type MinuteDataFrame struct {
 	CurrentDateLow  Series
 	CurrentDateHigh Series
 
+	N10Low           Series
+	N10High          Series
+	N10Range         Series
+	N10RangeDivClose Series
+	N10PctChange     Series
+
+	N20Low           Series
+	N20High          Series
+	N20Range         Series
+	N20RangeDivClose Series
+	N20PctChange     Series
+
 	N60Low           Series
 	N60High          Series
 	N60Range         Series
 	N60RangeDivClose Series
 	N60PctChange     Series
+
+	N100Low           Series
+	N100High          Series
+	N100Range         Series
+	N100RangeDivClose Series
+	N100PctChange     Series
 }

@@ -6,15 +6,15 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func (d *MinuteDataFrame) LastClose() decimal.Decimal {
+func (d *IntervalDataFrame) LastClose() decimal.Decimal {
 	return d.Close[len(d.Close)-1]
 }
 
-func (d *MinuteDataFrame) GetCurrentTime() time.Time {
+func (d *IntervalDataFrame) GetCurrentTime() time.Time {
 	return d.Time[len(d.Time)-1]
 }
 
-func (d *MinuteDataFrame) GetCurrentDateHigh() decimal.Decimal {
+func (d *IntervalDataFrame) GetCurrentDateHigh() decimal.Decimal {
 	// get all bars for current date
 	// start from end and check array until date changes
 	// find max of those
@@ -39,7 +39,7 @@ func (d *MinuteDataFrame) GetCurrentDateHigh() decimal.Decimal {
 	return max
 }
 
-func (d *MinuteDataFrame) GetCurrentDateLow() decimal.Decimal {
+func (d *IntervalDataFrame) GetCurrentDateLow() decimal.Decimal {
 	// get all bars for current date
 	// start from end and check array until date changes
 	// find max of those
@@ -61,7 +61,7 @@ func (d *MinuteDataFrame) GetCurrentDateLow() decimal.Decimal {
 	return min
 }
 
-func (d *MinuteDataFrame) GetCurrentDateOpen() decimal.Decimal {
+func (d *IntervalDataFrame) GetCurrentDateOpen() decimal.Decimal {
 	date := d.LastDate()
 	var open decimal.Decimal
 	for i := len(d.Close) - 1; i >= 0; i-- {
@@ -74,7 +74,7 @@ func (d *MinuteDataFrame) GetCurrentDateOpen() decimal.Decimal {
 	return open
 }
 
-// func (d *MinuteDataFrame) GetDateOpen(date time.Time) decimal.Decimal {
+// func (d *IntervalDataFrame) GetDateOpen(date time.Time) decimal.Decimal {
 // 	var open decimal.Decimal
 // 	for i := len(d.Close) - 1; i >= 0; i-- {
 // 		if d.Date[i] == date {
@@ -86,15 +86,15 @@ func (d *MinuteDataFrame) GetCurrentDateOpen() decimal.Decimal {
 // 	return open
 // }
 
-func (d *MinuteDataFrame) LastTime() time.Time {
+func (d *IntervalDataFrame) LastTime() time.Time {
 	return d.Time[len(d.Time)-1]
 }
 
-func (d *MinuteDataFrame) LastDate() time.Time {
+func (d *IntervalDataFrame) LastDate() time.Time {
 	return d.Date[len(d.Date)-1]
 }
 
-func (d *MinuteDataFrame) Last() Series {
+func (d *IntervalDataFrame) Last() Series {
 	res := make([]decimal.Decimal, 5)
 	res[0] = decimal.NewFromInt(d.LastTime().Unix())
 	res[1] = decimal.NewFromInt(d.LastDate().Unix())

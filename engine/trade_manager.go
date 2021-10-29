@@ -428,6 +428,8 @@ dataLoadingIssue:
 			time.Now().Format("2006-01-02-15-04-05"))
 		newpath := filepath.Join(".", fileName)
 		livetrade.WriteJSON(tm.Portfolio.GetAllClosedTrades(), newpath)
+		tm.writeFactorEngines()
+		// WriteJSON(tm.Portfolio.GetAllClosedTrades(), newpath)
 		// &analyze.PortfolioAnalysis{}.Analyze("")
 	}
 
@@ -741,7 +743,7 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 			if tm.liveMode {
 
 				if tm.verbose {
-					hrChg := fe.Kline().M60PctChange.Last(1).Round(2)
+					hrChg := fe.Kline().N60PctChange.Last(1).Round(2)
 
 					if hrChg.GreaterThan(decimal.NewFromInt(0)) {
 						color.Set(color.FgGreen, color.Bold)
@@ -761,8 +763,8 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 						fe.Kline().N60RangeDivClose.Last(1).Mul(decimal.NewFromInt(100)).Round(2),
 						hrChg,
 						fe.Kline().N60Range.Last(1),
-						fe.Kline().M60High.Last(1),
-						fe.Kline().M60Low.Last(1))
+						fe.Kline().N60High.Last(1),
+						fe.Kline().N60Low.Last(1))
 
 				}
 
@@ -791,7 +793,7 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 			}
 		} else {
 			if tm.bot.Settings.EnableLiveMode {
-				fmt.Println("only have last", len(fe.Kline().N60Range), "m60 range bars, closes' length ", len(fe.Kline().Close))
+				fmt.Println("only have last", len(fe.Kline().N60Range), "n60 range bars, closes' length ", len(fe.Kline().Close))
 			}
 		}
 	}
@@ -1238,6 +1240,15 @@ func (tm *TradeManager) initializeFactorEngines() error {
 		}
 	}
 	return nil
+}
+
+func (tm *TradeManager) writeFactorEngines() {
+	for _, cs := range tm.bot.CurrencySettings {
+		fe := tm.FactorEngines[cs.ExchangeName][cs.AssetType][cs.CurrencyPair]
+		outPath := filepath.Join(cs.CurrencyPair.String(), "factors.json")
+		fmt.Println("writing factors", outPath)
+		fe.WriteJSON(outPath)
+	}
 }
 
 // Series returns candle data

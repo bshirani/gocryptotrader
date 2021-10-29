@@ -36,6 +36,6 @@ type StrategyPortfolioHandler interface {
 
 type FactorEngineHandler interface {
 	OnBar(data.Handler) error
-	Kline() *factors.MinuteDataFrame
+	Kline() *factors.IntervalDataFrame
 	Daily() *factors.DailyDataFrame
 }
