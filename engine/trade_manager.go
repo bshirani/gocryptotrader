@@ -157,12 +157,6 @@ func NewTradeManager(bot *Engine) (*TradeManager, error) {
 		os.Exit(123)
 	}
 
-	// fmt.Println("done setting up bot with", len(tm.bot.CurrencySettings), "currencies")
-	// if len(tm.bot.CurrencySettings) < 1 {
-	// 	log.Error(log.TradeMgr, "!!no currency settings")
-	// 	os.Exit(123)
-	// }
-
 	return tm, err
 }
 
@@ -382,15 +376,7 @@ func (tm *TradeManager) Run() error {
 		log.Warnln(log.TradeMgr, "enddate:", t2)
 		log.Warnln(log.TradeMgr, "duration:", dayDuration, "days")
 		log.Warnln(log.TradeMgr, "strategies:", len(tm.Strategies))
-		// for _, s := range tm.Strategies {
-		// 	log.Debugln(log.TradeMgr, s.GetPair(), s.Name(), s.GetDirection(), s.GetID())
-		// }
-		// pairs, err := tm.bot.Config.GetEnabledPairs("gateio", asset.Spot)
-		// for _, p := range pairs {
-		// 	log.Debugln(log.TradeMgr, "Active Pair:", p)
-		// }
 	}
-	// return nil
 dataLoadingIssue:
 	for ev := tm.EventQueue.NextEvent(); ; ev = tm.EventQueue.NextEvent() {
 		// check for new day

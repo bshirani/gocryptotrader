@@ -1092,13 +1092,15 @@ func (bot *Engine) WaitForInitialCurrencySync() error {
 
 func (bot *Engine) SetupOfflineExchangeSettings() error {
 	for _, ex := range bot.Config.GetEnabledExchanges() {
-		enabledPairs, _ := bot.Config.GetEnabledPairs(ex, asset.Spot)
-		for _, pair := range enabledPairs {
-			bot.CurrencySettings = append(bot.CurrencySettings, &ExchangeAssetPairSettings{
-				ExchangeName: strings.ToLower(ex),
-				CurrencyPair: pair,
-				AssetType:    asset.Spot,
-			})
+		for _, a := range []asset.Item{asset.Spot, asset.Futures} {
+			enabledPairs, _ := bot.Config.GetEnabledPairs(ex, a)
+			for _, pair := range enabledPairs {
+				bot.CurrencySettings = append(bot.CurrencySettings, &ExchangeAssetPairSettings{
+					ExchangeName: strings.ToLower(ex),
+					CurrencyPair: pair,
+					AssetType:    asset.Spot,
+				})
+			}
 		}
 	}
 	return nil
@@ -1106,19 +1108,20 @@ func (bot *Engine) SetupOfflineExchangeSettings() error {
 
 func (bot *Engine) SetupExchangeSettings() error {
 	for _, e := range bot.Config.GetEnabledExchanges() {
-		fmt.Println("enabled", e)
-		enabledPairs, _ := bot.Config.GetEnabledPairs(e, asset.Spot)
-		for _, pair := range enabledPairs {
-			_, pair, a, err := bot.loadExchangePairAssetBase(e, pair.Base.String(), pair.Quote.String(), "spot")
-			if err != nil {
-				fmt.Println("error enabling pair", err)
-				return err
+		for _, a := range []asset.Item{asset.Spot, asset.Futures} {
+			enabledPairs, _ := bot.Config.GetEnabledPairs(e, a)
+			for _, pair := range enabledPairs {
+				// _, pair, a, err := bot.loadExchangePairAssetBase(e, pair.Base.String(), pair.Quote.String(), asset.Spot)
+				// if err != nil {
+				// 	fmt.Println("error enabling pair", err)
+				// 	return err
+				// }
+				bot.CurrencySettings = append(bot.CurrencySettings, &ExchangeAssetPairSettings{
+					ExchangeName: strings.ToLower(e),
+					CurrencyPair: pair,
+					AssetType:    a,
+				})
 			}
-			bot.CurrencySettings = append(bot.CurrencySettings, &ExchangeAssetPairSettings{
-				ExchangeName: strings.ToLower(e),
-				CurrencyPair: pair,
-				AssetType:    a,
-			})
 		}
 	}
 	return nil

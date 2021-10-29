@@ -88,15 +88,8 @@ func main() {
 			log.Errorf(log.Global, "Database manager unable to start: %v", err)
 		}
 	}
-	// fmt.Println("bot", bot)
-	// fmt.Println(bot.CurrencySettings)
-
-	// k := bot.GetExchange("kraken")
 	k, _ := bot.ExchangeManager.GetExchangeByName("kraken")
-	// fmt.Println("k", k)
-
 	ep, err := k.GetEnabledPairs(asset.Spot)
-	// fmt.Println(ep, err)
 
 	t := time.Now()
 	thisMinute := time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location()).Add(time.Minute * -1)

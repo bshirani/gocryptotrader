@@ -8,6 +8,7 @@ import (
 	"gocryptotrader/communications/base"
 	"gocryptotrader/currency"
 	"gocryptotrader/database"
+	"gocryptotrader/exchange/asset"
 	"gocryptotrader/exchange/order"
 	"gocryptotrader/exchange/protocol"
 	gctscript "gocryptotrader/gctscript/vm"
@@ -163,11 +164,12 @@ type TradeManagerConfig struct {
 }
 
 type StrategySetting struct {
-	Weight  decimal.Decimal `json:"weight"`
-	Side    order.Side      `json:"side"`
-	Pair    currency.Pair   `json:"pair"`
-	Capture string          `json:"capture"`
-	Debug   bool            `json:"debug"`
+	Weight    decimal.Decimal `json:"weight"`
+	Side      order.Side      `json:"side"`
+	AssetType asset.Item      `json:"assetType"`
+	Pair      currency.Pair   `json:"pair"`
+	Capture   string          `json:"capture"`
+	Debug     bool            `json:"debug"`
 }
 
 type FactorEngineConfig struct {

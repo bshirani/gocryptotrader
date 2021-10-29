@@ -2,13 +2,167 @@
  {
   "weight": "0",
   "side": "BUY",
-  "pair": "BTC_USDT",
+  "assetType": "",
+  "pair": "AAVE_USDT",
   "capture": "trend",
   "debug": false
  },
  {
   "weight": "0",
   "side": "BUY",
+  "assetType": "",
+  "pair": "AVAX_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "AXS_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "BAT_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "CRV_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "DASH_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "DOGE_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "FIL_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "FTM_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "ICP_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "KAVA_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "KNC_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "KSM_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "LIT_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "LUNA_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "MATIC_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "MKR_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "NEAR_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "OMG_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "REN_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
   "pair": "SHIB_USDT",
   "capture": "trend",
   "debug": false
@@ -16,20 +170,343 @@
  {
   "weight": "0",
   "side": "BUY",
-  "pair": "FLOKI_USDT",
+  "assetType": "",
+  "pair": "SNX_USDT",
   "capture": "trend",
   "debug": false
  },
  {
   "weight": "0",
-  "side": "SELL",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "SOL_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "SUSHI_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "THETA_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "UNFI_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "XLM_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "XTZ_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "YFI_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "ZRX_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "ADA_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "ATOM_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "BCH_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
   "pair": "BTC_USDT",
   "capture": "trend",
   "debug": false
  },
  {
   "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "DOT_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "EOS_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "ETC_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "ETH_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "LINK_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "LTC_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "TRX_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "UNI_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "BUY",
+  "assetType": "",
+  "pair": "XRP_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
   "side": "SELL",
+  "assetType": "",
+  "pair": "AAVE_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "AVAX_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "AXS_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "BAT_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "CRV_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "DASH_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "DOGE_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "FIL_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "FTM_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "ICP_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "KAVA_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "KNC_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "KSM_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "LIT_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "LUNA_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "MATIC_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "MKR_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "NEAR_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "OMG_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "REN_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
   "pair": "SHIB_USDT",
   "capture": "trend",
   "debug": false
@@ -37,50 +514,177 @@
  {
   "weight": "0",
   "side": "SELL",
-  "pair": "FLOKI_USDT",
+  "assetType": "",
+  "pair": "SNX_USDT",
   "capture": "trend",
   "debug": false
  },
  {
   "weight": "0",
-  "side": "BUY",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "SOL_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "SUSHI_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "THETA_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "UNFI_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "XLM_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "XTZ_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "YFI_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "ZRX_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "ADA_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "ATOM_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "BCH_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
   "pair": "BTC_USDT",
-  "capture": "trend2day",
-  "debug": false
- },
- {
-  "weight": "0",
-  "side": "BUY",
-  "pair": "SHIB_USDT",
-  "capture": "trend2day",
-  "debug": false
- },
- {
-  "weight": "0",
-  "side": "BUY",
-  "pair": "FLOKI_USDT",
-  "capture": "trend2day",
+  "capture": "trend",
   "debug": false
  },
  {
   "weight": "0",
   "side": "SELL",
-  "pair": "BTC_USDT",
-  "capture": "trend2day",
+  "assetType": "",
+  "pair": "DOT_USDT",
+  "capture": "trend",
   "debug": false
  },
  {
   "weight": "0",
   "side": "SELL",
-  "pair": "SHIB_USDT",
-  "capture": "trend2day",
+  "assetType": "",
+  "pair": "EOS_USDT",
+  "capture": "trend",
   "debug": false
  },
  {
   "weight": "0",
   "side": "SELL",
-  "pair": "FLOKI_USDT",
-  "capture": "trend2day",
+  "assetType": "",
+  "pair": "ETC_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "ETH_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "LINK_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "LTC_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "TRX_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "UNI_USDT",
+  "capture": "trend",
+  "debug": false
+ },
+ {
+  "weight": "0",
+  "side": "SELL",
+  "assetType": "",
+  "pair": "XRP_USDT",
+  "capture": "trend",
   "debug": false
  }
 ]

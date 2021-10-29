@@ -9,7 +9,6 @@ import (
 	"gocryptotrader/eventtypes/event"
 	"gocryptotrader/eventtypes/signal"
 	"gocryptotrader/exchange/order"
-	"strings"
 
 	"github.com/shopspring/decimal"
 )
@@ -145,13 +144,4 @@ func (s *Strategy) Stop() {
 	// 	x := s.indicatorValues[i]
 	// 	fmt.Printf("%d,%s,%s\n", x.Timestamp.Unix(), x.rsiValue, x.maValue)
 	// }
-}
-
-func getPairForExchange(ex string, pair currency.Pair) currency.Pair {
-	// pairs, err := p.Config.GetEnabledPairs(ex, asset.Spot)
-
-	if strings.EqualFold(pair.Base.String(), "BTC") {
-		pair.Base = currency.NewCode("XBT")
-	}
-	return pair
 }

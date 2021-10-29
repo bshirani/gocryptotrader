@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"gocryptotrader/common/file"
+	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/exchange/order"
@@ -29,7 +30,7 @@ func (p *PortfolioAnalysis) Analyze(filepath string) error {
 	enhanced := enhanceTrades(trades)
 	p.trades = enhanced
 	p.groupedTrades = groupByStrategyID(enhanced)
-	p.loadAllStrategies()
+	GenerateAllStrategies()
 	p.loadGroupedStrategies()
 	p.analyzeGroupedStrategies()
 	p.calculateReport()
@@ -41,34 +42,6 @@ func (p *PortfolioAnalysis) Analyze(filepath string) error {
 }
 
 func (p *PortfolioAnalysis) analyzeGroupedStrategies() {
-}
-
-func (p *PortfolioAnalysis) loadAllStrategies() {
-	names := strings.Split(p.Config.PortfolioSettings.EnabledStrategies, ",")
-	symbols := strings.Split(p.Config.PortfolioSettings.EnabledPairs, ",")
-
-	pairs := make([]currency.Pair, 0)
-	for _, s := range symbols {
-		pair, err := currency.NewPairFromString(s)
-		if err != nil {
-			fmt.Println("error hydrating pair", pair)
-		}
-		pairs = append(pairs, pair.Upper())
-	}
-	// pairs, _ := p.Config.GetEnabledPairs("gateio", asset.Spot)
-
-	for _, name := range names {
-		// for each direction
-		for _, dir := range []order.Side{order.Buy, order.Sell} {
-			for _, pair := range pairs {
-				strat, _ := strategies.LoadStrategyByName(name)
-				strat.SetDirection(dir)
-				strat.SetPair(pair)
-				strat.SetName(name)
-				p.AllSettings = append(p.AllSettings, strat.GetSettings())
-			}
-		}
-	}
 }
 
 func (p *PortfolioAnalysis) loadGroupedStrategies() {
@@ -406,7 +379,7 @@ func (p *PortfolioAnalysis) Save(filepath string) error {
 	return err
 }
 
-func (p *PortfolioAnalysis) SaveAllStrategiesConfigFile(outpath string) error {
+func SaveStrategiesConfigFile(outpath string, ss []config.StrategySetting) error {
 	writer, err := file.Writer(outpath)
 	defer func() {
 		if writer != nil {
@@ -416,7 +389,7 @@ func (p *PortfolioAnalysis) SaveAllStrategiesConfigFile(outpath string) error {
 			}
 		}
 	}()
-	payload, err := json.MarshalIndent(p.AllSettings, "", " ")
+	payload, err := json.MarshalIndent(ss, "", " ")
 	if err != nil {
 		return err
 	}

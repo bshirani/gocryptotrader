@@ -207,16 +207,14 @@ func analyzePF(c *cli.Context) error {
 }
 
 func generateAll(c *cli.Context) error {
-	// setupBot()
-	pf, err := getPF()
+	ss := analyze.GenerateAllStrategies()
 	allPath := filepath.Join(workingDir, "confs/dev/strategy/all.strat")
 	fmt.Println("saving all.strat to", allPath)
-	pf.SaveAllStrategiesConfigFile(allPath)
-	return err
+	analyze.SaveStrategiesConfigFile(allPath, ss)
+	return nil
 }
 
 func getPF() (*analyze.PortfolioAnalysis, error) {
-	setupBot()
 	pf := &analyze.PortfolioAnalysis{
 		Config: bot.Config,
 	}

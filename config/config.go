@@ -611,33 +611,6 @@ func (c *Config) GetAvailablePairs(exchName string, assetType asset.Item) (curre
 }
 
 // GetEnabledPairs returns a list of currency pairs for a specifc exchange
-func (c *Config) GetStrategyPairs(exchName string, assetType asset.Item) (currency.Pairs, error) {
-	exchCfg, err := c.GetExchangeConfig(exchName)
-	if err != nil {
-		return nil, err
-	}
-
-	pairFormat, err := c.GetPairFormat(exchName, assetType)
-	if err != nil {
-		return nil, err
-	}
-
-	pairs, err := exchCfg.CurrencyPairs.GetPairs(assetType, true)
-	if err != nil {
-		return pairs, err
-	}
-
-	if pairs == nil {
-		return nil, nil
-	}
-
-	return pairs.Format(pairFormat.Delimiter,
-			pairFormat.Index,
-			pairFormat.Uppercase),
-		nil
-}
-
-// GetEnabledPairs returns a list of currency pairs for a specifc exchange
 func (c *Config) GetEnabledPairs(exchName string, assetType asset.Item) (currency.Pairs, error) {
 	exchCfg, err := c.GetExchangeConfig(exchName)
 	if err != nil {
@@ -645,11 +618,11 @@ func (c *Config) GetEnabledPairs(exchName string, assetType asset.Item) (currenc
 	}
 
 	for _, ss := range c.TradeManager.Strategies {
-		enabled := exchCfg.CurrencyPairs.Pairs[asset.Spot].Enabled
+		enabled := exchCfg.CurrencyPairs.Pairs[ss.AssetType].Enabled
 		pair := currency.GetPairTranslation(exchName, ss.Pair)
 
 		if !enabled.Contains(pair, true) {
-			exchCfg.CurrencyPairs.Pairs[asset.Spot].Enabled = append(exchCfg.CurrencyPairs.Pairs[asset.Spot].Enabled, pair)
+			exchCfg.CurrencyPairs.Pairs[ss.AssetType].Enabled = append(exchCfg.CurrencyPairs.Pairs[ss.AssetType].Enabled, pair)
 		}
 	}
 
@@ -1652,11 +1625,14 @@ func (c *Config) SaveConfigToFile(configPath string) error {
 func (c *Config) Save(writerProvider func() (io.Writer, error), keyProvider func() ([]byte, error)) error {
 	c.TradeManager.Strategies = nil
 
+	// remove all enabled pairs from config as we manage them from the strat file
 	for _, ex := range c.GetEnabledExchanges() {
 		cf, _ := c.GetExchangeConfig(ex)
-		enabled, _ := cf.CurrencyPairs.GetPairs(asset.Spot, true)
-		for _, p := range enabled {
-			cf.CurrencyPairs.DisablePair(asset.Spot, p)
+		for _, a := range []asset.Item{asset.Spot, asset.Futures} {
+			enabled, _ := cf.CurrencyPairs.GetPairs(a, true)
+			for _, p := range enabled {
+				cf.CurrencyPairs.DisablePair(a, p)
+			}
 		}
 		// cf.CurrencyPairs
 	}
