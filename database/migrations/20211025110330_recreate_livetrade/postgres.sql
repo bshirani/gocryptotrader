@@ -85,23 +85,23 @@ CREATE TABLE public.live_trade (
     take_profit_price double precision,
     profit_loss_points double precision ,
     profit_loss_quote double precision,
-    duration_min double precision,
+    duration_minutes double precision,
     created_at timestamp without time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at timestamp without time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
-    CONSTRAINT risk_check CHECK(
-        (risked_points != 0 AND risked_quote != 0 AND duration_min != 0)
+    CONSTRAINT non_zero_check CHECK(
+        (risked_points != 0 AND risked_quote != 0 and duration_minutes != 0)
     ),
     CONSTRAINT exit_price_time_check CHECK(
-        (exit_time IS NULL and exit_price IS NULL) OR
-        (exit_time IS NOT NULL and exit_price IS NOT NULL)
+        (status = 'OPEN' and exit_time IS NULL and exit_price IS NULL) OR
+        (status = 'CLOSED' and exit_time IS NOT NULL and exit_price IS NOT NULL)
     ),
     CONSTRAINT exit_order_id_check CHECK(
-        (exit_time IS NULL AND exit_order_id IS NULL) OR
-        (exit_time IS NOT NULL AND exit_order_id IS NOT NULL)
+        (status = 'OPEN' and exit_time IS NULL AND exit_order_id IS NULL) OR
+        (status = 'CLOSED' and exit_time IS NOT NULL AND exit_order_id IS NOT NULL)
     ),
     CONSTRAINT profit_check CHECK(
-        (profit_loss_quote IS NULL AND profit_loss_points IS NULL AND exit_time IS NULL) OR
-        (profit_loss_quote IS NOT NULL AND profit_loss_points IS NOT NULL AND exit_time IS NOT NULL)
+        (status = 'OPEN' and profit_loss_quote IS NULL AND profit_loss_points IS NULL AND exit_time IS NULL AND duration_minutes IS NULL) OR
+        (status = 'CLOSED' and profit_loss_quote IS NOT NULL AND profit_loss_points IS NOT NULL AND exit_time IS NOT NULL AND duration_minutes IS NOT NULL)
     ),
     CONSTRAINT strategy_name CHECK(
         strategy_name != ''

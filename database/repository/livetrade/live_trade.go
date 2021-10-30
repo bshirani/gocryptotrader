@@ -267,6 +267,7 @@ func upsertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int, err 
 		ExitOrderID:      null.NewInt(in.ExitOrderID, in.ExitOrderID != 0),
 		ExitTime:         null.NewTime(in.ExitTime, !in.ExitTime.IsZero()),
 		ExitPrice:        null.NewFloat64(exitPrice, exitPrice != 0),
+		DurationMinutes:  null.NewFloat64(in.DurationMinutes, in.DurationMinutes != 0),
 		TakeProfitPrice:  null.NewFloat64(takeProfitPrice, takeProfitPrice != 0),
 		ProfitLossPoints: null.NewFloat64(profitLossPoints, profitLossPoints != 0 || exitPrice != 0),
 		ProfitLossQuote:  null.NewFloat64(profitLossQuote, profitLossQuote != 0 || exitPrice != 0),

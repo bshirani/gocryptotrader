@@ -1275,16 +1275,11 @@ func (p *Portfolio) recordExitTrade(f fill.Event, t *livetrade.Details) {
 		t.Status = gctorder.Closed
 		t.ExitTime = f.GetTime()
 		t.ExitPrice = f.GetClosePrice()
-
-		// duplicate code from updateStrategyTrades
+		t.DurationMinutes = t.ExitTime.Sub(t.EntryTime).Minutes()
 		if t.Side == gctorder.Buy {
-			// fmt.Println("current price", ev.GetPrice(), "trade price", trade.EntryPrice, ev.GetPrice().Sub(trade.EntryPrice))
 			t.ProfitLossPoints = f.GetClosePrice().Sub(t.EntryPrice)
 		} else if t.Side == gctorder.Sell {
 			t.ProfitLossPoints = t.EntryPrice.Sub(f.GetClosePrice())
-		} else {
-			fmt.Println("trade is not sell or buy")
-			os.Exit(2)
 		}
 		t.ProfitLossQuote = t.ProfitLossPoints.Mul(t.Amount)
 		t.ExitOrderID = f.GetInternalOrderID()
