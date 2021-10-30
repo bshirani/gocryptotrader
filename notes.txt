@@ -259,8 +259,23 @@ analyze the performance of the strategies
 
 
 factors:
-- whats the range of the past 10/20/30/50/100 bars
-- whats the market trendiness over the past 10/20/30/50/100 bars
+X - whats the range of the past 10/20/30/50/100 bars
+X - whats the market trendiness over the past 10/20/30/50/100 bars
+X calculate the slope of the best fit line
 
-calculate the slope of the best fit line
+
+portfolio backtest
+machine learning each strategy
+
+how would a portfolio backtest work with static weights?
+how often would you update the weights?
+
+why not start with a single profitable strategy first?
+how would you build a single profitable strategy, and THEN apply it to other markets?
+what's wrong with this approach?
+
+remember, everything can be tested and will be tested.
+
+how do I classify the market conditions?
+
 

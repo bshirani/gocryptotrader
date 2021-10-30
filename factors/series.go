@@ -60,7 +60,7 @@ func GetCurrentDateStats(kline *IntervalDataFrame, d data.Handler) *NCalculation
 	curLength := kline.GetCurrentDateLength()
 	var slope decimal.Decimal
 
-	if curLength > 0 {
+	if curLength > 1 {
 		slope = decimal.NewFromFloat(getSlope(kline, curLength))
 	} else {
 		slope = decimal.NewFromFloat(0.0)

@@ -24,6 +24,7 @@ import (
 const (
 	// SimpleTimeFormat a common, but non-implemented time format in golang
 	SimpleTimeFormat = "2006-01-02 15:04:05"
+	SimpleDateFormat = "2006-01-02"
 	// SimpleTimeFormatWithTimezone a common, but non-implemented time format in golang
 	SimpleTimeFormatWithTimezone = "2006-01-02 15:04:05 MST"
 	// GctExt is the extension for GCT Tengo script files
@@ -102,6 +103,12 @@ func IsSameMinute(t1, t2 time.Time) bool {
 		t2.Day() == t1.Day() &&
 		t2.Hour() == t1.Hour() &&
 		t2.Minute() == t1.Minute())
+}
+
+func IsSameDate(t1, t2 time.Time) bool {
+	return (t2.Year() == t1.Year() &&
+		t2.Month() == t1.Month() &&
+		t2.Day() == t1.Day())
 }
 
 // NewHTTPClientWithTimeout initialises a new HTTP client and its underlying
@@ -440,6 +447,15 @@ func StartEndTimeCheck(start, end time.Time) error {
 	}
 
 	return nil
+}
+
+func CurrentDate() time.Time {
+	t := time.Now().UTC()
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+}
+
+func GetDate(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 }
 
 // ASCIILogo is a sweet logo that is optionally printed to the command line window

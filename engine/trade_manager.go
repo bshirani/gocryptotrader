@@ -359,6 +359,7 @@ func (tm *TradeManager) Run() error {
 
 	// interrupt := signaler.WaitForInterrupt()
 	// log.Infof(log.Global, "Captured %v, shutdown requested.\n", interrupt)
+	var lastUpdateDate time.Time
 
 	if !tm.liveMode {
 		err := tm.loadBacktestData()
@@ -371,19 +372,14 @@ func (tm *TradeManager) Run() error {
 		if dayDuration > 30 {
 			panic("more than 30 days")
 		}
-		log.Warnln(log.TradeMgr, "startdate:", t1)
-		log.Warnln(log.TradeMgr, "enddate:", t2)
-		log.Warnln(log.TradeMgr, "duration:", dayDuration, "days")
+		log.Warnln(log.TradeMgr, "startdate :", t1)
+		log.Warnln(log.TradeMgr, "enddate   :", t2)
+		log.Warnln(log.TradeMgr, "duration  :", dayDuration, "days")
 		log.Warnln(log.TradeMgr, "strategies:", len(tm.Strategies))
 	}
 dataLoadingIssue:
 	for ev := tm.EventQueue.NextEvent(); ; ev = tm.EventQueue.NextEvent() {
-		// check for new day
 		if ev == nil {
-			// if !tm.liveMode && count%1000 == 0 {
-			// 	fmt.Printf(".")
-			// }
-
 			dataHandlerMap := tm.Datas.GetAllData()
 			for _, exchangeMap := range dataHandlerMap {
 				for _, assetMap := range exchangeMap {
@@ -391,6 +387,7 @@ dataLoadingIssue:
 					tm.hasHandledEvent = false
 					for _, dataHandler := range assetMap {
 						d := dataHandler.Next()
+
 						if d == nil {
 							// if !tm.hasHandledEvent {
 							// 	log.Errorf(log.TradeMgr, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
@@ -403,6 +400,12 @@ dataLoadingIssue:
 
 						if !tm.bot.Config.ProductionMode {
 							tm.bot.OrderManager.UpdateFakeOrders(d)
+						}
+						lastDate := lastUpdateDate
+						curDate := common.GetDate(d.GetTime())
+						if !common.IsSameDate(lastDate, curDate) {
+							log.Infoln(log.TradeMgr, "--------------->", curDate.Format(common.SimpleDateFormat))
+							lastUpdateDate = curDate
 						}
 						tm.EventQueue.AppendEvent(d)
 					}
@@ -426,7 +429,7 @@ dataLoadingIssue:
 			"results/bt/trades-%v.json",
 			time.Now().Format("2006-01-02-15-04-05"))
 		livetrade.WriteJSON(tm.Portfolio.GetAllClosedTrades(), fileName)
-		tm.writeFactorEngines()
+		// tm.writeFactorEngines()
 		// WriteJSON(tm.Portfolio.GetAllClosedTrades(), newpath)
 		// &analyze.PortfolioAnalysis{}.Analyze("")
 	}
@@ -1291,8 +1294,8 @@ func (tm *TradeManager) loadBacktestData() (err error) {
 			endDate,
 			kline.Interval(kline.OneMin),
 			0)
-		candlesLen := len(dbData.Item.Candles)
-		fmt.Println("BTDB loaded for currency", p, "candles:", candlesLen)
+		// candlesLen := len(dbData.Item.Candles)
+		// fmt.Println("DB loaded for currency", p, "candles:", candlesLen)
 
 		dbData.Load()
 
