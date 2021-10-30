@@ -1,15 +1,38 @@
 package analyze
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"gocryptotrader/common/file"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/exchange/order"
+	"gocryptotrader/log"
 	"gocryptotrader/portfolio/strategies"
+	"io"
 	"strings"
 
 	"github.com/shopspring/decimal"
 )
+
+func (p *PortfolioAnalysis) AnalyzeStrategies() {
+	p.loadGroupedStrategies()
+	fmt.Println("saving strategies", len(p.StrategiesAnalyses))
+	p.Report.Strategies = p.StrategiesAnalyses
+}
+
+func (p *PortfolioAnalysis) loadGroupedStrategies() {
+	p.Strategies = make([]strategies.Handler, 0)
+	for label, trades := range p.groupedTrades {
+		strat := loadStrategyFromLabel(label)
+		a := analyzeStrategy(strat, trades)
+		p.StrategiesAnalyses = append(p.StrategiesAnalyses, a)
+		p.GroupedSettings = append(p.GroupedSettings, strat.GetSettings())
+		p.Strategies = append(p.Strategies, strat)
+	}
+}
 
 func analyzeStrategy(s strategies.Handler, trades []*livetrade.Details) (a *StrategyAnalysis) {
 	a = &StrategyAnalysis{}
@@ -68,4 +91,22 @@ func GenerateAllStrategies() (out []config.StrategySetting) {
 		}
 	}
 	return out
+}
+
+func SaveStrategiesConfigFile(outpath string, ss []config.StrategySetting) error {
+	writer, err := file.Writer(outpath)
+	defer func() {
+		if writer != nil {
+			err = writer.Close()
+			if err != nil {
+				log.Error(log.Global, err)
+			}
+		}
+	}()
+	payload, err := json.MarshalIndent(ss, "", " ")
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(writer, bytes.NewReader(payload))
+	return err
 }

@@ -1,9 +1,1 @@
-[
- {
-  "weight": "1",
-  "side": "BUY",
-  "pair": "BTC_USDT",
-  "capture": "trend",
-  "debug": false
- }
-]
+[]

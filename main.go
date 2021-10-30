@@ -190,6 +190,7 @@ func setupBot() error {
 }
 
 func updateWeights(c *cli.Context) error {
+	setupBot()
 	pf, err := getPF()
 	prodWeighted := filepath.Join(workingDir, "confs/prod.strat")
 	fmt.Println("saving", len(pf.Weights.Strategies), "pf weights to", prodWeighted)
@@ -198,13 +199,13 @@ func updateWeights(c *cli.Context) error {
 }
 
 func analyzePF(c *cli.Context) error {
+	setupBot()
 	pf, err := getPF()
 	filename := fmt.Sprintf(
 		"portfolio_analysis_%v.json",
 		time.Now().Format("2006-01-02-15-04-05"))
 	filename = filepath.Join(workingDir, "results/pf", filename)
-	fmt.Println("saved portfolio analysis to")
-	fmt.Println(filename)
+	fmt.Println("saving", filename)
 	pf.Save(filename)
 	return err
 }
@@ -218,18 +219,11 @@ func generateAll(c *cli.Context) error {
 }
 
 func getPF() (*analyze.PortfolioAnalysis, error) {
-	pf := &analyze.PortfolioAnalysis{
-		Config: bot.Config,
-	}
-	err := pf.Analyze("")
-	if err != nil {
-		fmt.Println("error analyzeTrades", err)
-	}
-	return pf, err
+	return analyze.SetupPortfolio(bot.Config, "")
 }
 
 func startOfflineServices() (err error) {
-	fmt.Println("start offline services")
+	// fmt.Println("start offline services")
 	if bot.Config.LiveMode {
 		panic("cannot run offline services in live mode")
 	}

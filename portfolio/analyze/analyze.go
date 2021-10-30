@@ -1,58 +1,38 @@
 package analyze
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"gocryptotrader/common/file"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/exchange/order"
-	"gocryptotrader/log"
 	"gocryptotrader/portfolio/strategies"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
-
-	"github.com/shopspring/decimal"
 )
 
-func (p *PortfolioAnalysis) Analyze(filepath string) error {
+func SetupPortfolio(cfg *config.Config, filepath string) (pf *PortfolioAnalysis, err error) {
+	pf = &PortfolioAnalysis{
+		Config: cfg,
+	}
+	err = pf.loadTradesFromFile(filepath)
+	pf.AnalyzePortfolio()
+	pf.AnalyzeStrategies()
+	pf.CalculateProductionWeights()
+	return pf, err
+}
+
+func (p *PortfolioAnalysis) loadTradesFromFile(filepath string) error {
 	p.Report = &Report{}
 	p.Report.Portfolio = &PortfolioReport{}
-	lf := lastResult()
-	fmt.Println("analyzing trades:", lf)
+	lf, err := getTradeFilePath(filepath)
 	trades, err := livetrade.LoadJSON(lf)
-	enhanced := enhanceTrades(trades)
-	p.trades = enhanced
-	p.groupedTrades = groupByStrategyID(enhanced)
-	GenerateAllStrategies()
-	p.loadGroupedStrategies()
-	p.analyzeGroupedStrategies()
-	p.calculateReport()
-	p.calculateProductionWeights()
-	fmt.Println("saving strategies", len(p.StrategiesAnalyses))
-	p.Report.Strategies = p.StrategiesAnalyses
-
+	p.trades = trades
+	p.groupedTrades = groupByStrategyID(trades)
 	return err
-}
-
-func (p *PortfolioAnalysis) analyzeGroupedStrategies() {
-}
-
-func (p *PortfolioAnalysis) loadGroupedStrategies() {
-	p.Strategies = make([]strategies.Handler, 0)
-	for label, trades := range p.groupedTrades {
-		strat := loadStrategyFromLabel(label)
-		a := analyzeStrategy(strat, trades)
-		p.StrategiesAnalyses = append(p.StrategiesAnalyses, a)
-		p.GroupedSettings = append(p.GroupedSettings, strat.GetSettings())
-		p.Strategies = append(p.Strategies, strat)
-	}
 }
 
 func (p *PortfolioAnalysis) GetStrategyAnalysis(s strategies.Handler) *StrategyAnalysis {
@@ -63,56 +43,6 @@ func (p *PortfolioAnalysis) GetStrategyAnalysis(s strategies.Handler) *StrategyA
 	}
 	panic("could not find strategy analysis")
 	return nil
-}
-
-func (p *PortfolioAnalysis) calculateReport() {
-	// fmt.Println("pfloaded", len(trades), "trades from", len(grouped), "strategies")
-	// p.Report.StrategiesAnalyses = make(map[strategies.Handler]*StrategyAnalysis)
-	// for id := range grouped {
-
-	for range p.AllSettings {
-		// if the strategy is in the trades group
-
-		// for i := range p.groupedTrades {
-		// 	fmt.Println("check", i, ss.Capture, ss.Pair.Symbol, ss.Side)
-		// }
-
-		// p.Report.StrategiesAnalyses[id] = analyzeStrategy(id, grouped[id])
-	}
-	// }
-	sumDurationMin := 0.0
-	for _, lt := range p.trades {
-		sumDurationMin += lt.DurationMinutes
-	}
-	p.Report.Portfolio.AverageDurationMin = sumDurationMin / float64(len(p.trades))
-}
-
-func (p *PortfolioAnalysis) PrintResults() {
-	// for sid, sa := range p.Report.StrategiesAnalyses {
-	// 	fmt.Println("strategy", sid, "num trades", sa.NumTrades)
-	// }
-}
-
-// func (p *PortfolioAnalysis) WriteOutput() {
-// 	fmt.Println("analyzing", len(p.StrategiesAnalyses), "strategies")
-// 	for sid, sa := range p.StrategiesAnalyses {
-// 		fmt.Println("strategy", sid, "num trades", sa.NumTrades)
-// 	}
-// }
-
-func PrintTradeResults() {
-	// for _, t := range trades {
-	// 	fmt.Printf("enter=%v exit=%v enter=%v exit=%v profit=%v minutes=%d amount=%v stop=%v\n",
-	// 		t.EntryTime.Format(common.SimpleTimeFormat),
-	// 		t.ExitTime.Format(common.SimpleTimeFormat),
-	// 		t.EntryPrice,
-	// 		t.ExitPrice,
-	// 		getProfit(t),
-	// 		getDurationMin(t),
-	// 		t.Amount,
-	// 		t.StopLossPrice,
-	// 	)
-	// }
 }
 
 func loadStrategyFromTrade(t *livetrade.Details) strategies.Handler {
@@ -152,35 +82,6 @@ func groupByStrategyID(trades []*livetrade.Details) (grouped map[string][]*livet
 	return grouped
 }
 
-func enhanceTrades(trades []*livetrade.Details) []*livetrade.Details {
-	// create detailed trades
-	// run preparation
-	calculateDuration(trades)
-	// netProfitPoints(trades)
-	// netProfit(trades)
-	return trades
-
-	// enhance
-	// for i := range trades {
-	// 	enhanced = append(enhanced, &livetrade.Details{
-	// 		EntryTime:       trades[i].EntryTime,
-	// 		ExitTime:        trades[i].ExitTime,
-	// 		EntryPrice:      trades[i].EntryPrice,
-	// 		ExitPrice:       trades[i].ExitPrice,
-	// 		Side:            trades[i].Side,
-	// 		Amount:          trades[i].Amount,
-	// 		StrategyID:      trades[i].StrategyID,
-	// 		StopLossPrice:   trades[i].StopLossPrice,
-	// 		TakeProfitPrice: trades[i].TakeProfitPrice,
-	// 		Status:          trades[i].Status,
-	// 		Pair:            trades[i].Pair,
-	// 		CreatedAt:       trades[i].CreatedAt,
-	// 		UpdatedAt:       trades[i].UpdatedAt,
-	// 	})
-	// }
-	// return enhanced
-}
-
 // func netProfitPoints(trades []*livetrade.Details) (netProfit decimal.Decimal) {
 // 	for _, t := range trades {
 // 		if t.Side == order.Buy {
@@ -205,22 +106,18 @@ func enhanceTrades(trades []*livetrade.Details) []*livetrade.Details {
 // 	return netProfit
 // }
 
-func calculateDuration(trades []*livetrade.Details) {
-	for _, t := range trades {
-		t.DurationMinutes = t.ExitTime.Sub(t.EntryTime).Minutes()
-	}
-}
-
-func lastResult() string {
+func getTradeFilePath(path string) (string, error) {
 	// return os.MkdirAll(dir, 0770)
 	wd, err := os.Getwd()
 	dir := filepath.Join(wd, "results/bt")
-	lf := lastFileInDir(dir)
+	if path == "" {
+		path = lastFileInDir(dir)
+	}
 
 	if err != nil {
-		fmt.Println(err)
+		return "", err
 	}
-	return filepath.Join(wd, "results/bt", lf)
+	return filepath.Join(wd, "results/bt", path), err
 }
 
 func lastFileInDir(dir string) string {
@@ -243,19 +140,6 @@ func lastFileInDir(dir string) string {
 		fmt.Println(modTime, names)
 	}
 	return names[len(names)-1]
-}
-
-func getProfit(trade livetrade.Details) decimal.Decimal {
-	if trade.Side == order.Buy {
-		return trade.ExitPrice.Sub(trade.EntryPrice)
-	} else if trade.Side == order.Sell {
-		return trade.EntryPrice.Sub(trade.ExitPrice)
-	}
-	return decimal.Decimal{}
-}
-
-func getDurationMin(trade livetrade.Details) int {
-	return int(trade.ExitTime.Sub(trade.EntryTime).Minutes())
 }
 
 // func calculateMaxDrawdown(closePrices []eventtypes.DataEventHandler) Swing {
@@ -359,40 +243,3 @@ func getDurationMin(trade livetrade.Details) int {
 // 		}
 // 	}
 // }
-
-func (p *PortfolioAnalysis) Save(filepath string) error {
-	fmt.Println("saving to file:", filepath)
-	writer, err := file.Writer(filepath)
-	defer func() {
-		if writer != nil {
-			err = writer.Close()
-			if err != nil {
-				log.Error(log.Global, err)
-			}
-		}
-	}()
-	payload, err := json.MarshalIndent(p.Report, "", " ")
-	if err != nil {
-		return err
-	}
-	_, err = io.Copy(writer, bytes.NewReader(payload))
-	return err
-}
-
-func SaveStrategiesConfigFile(outpath string, ss []config.StrategySetting) error {
-	writer, err := file.Writer(outpath)
-	defer func() {
-		if writer != nil {
-			err = writer.Close()
-			if err != nil {
-				log.Error(log.Global, err)
-			}
-		}
-	}()
-	payload, err := json.MarshalIndent(ss, "", " ")
-	if err != nil {
-		return err
-	}
-	_, err = io.Copy(writer, bytes.NewReader(payload))
-	return err
-}

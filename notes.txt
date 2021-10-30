@@ -278,4 +278,30 @@ remember, everything can be tested and will be tested.
 
 how do I classify the market conditions?
 
+I can use a neural network
+
+what's another way?
+I can measure the conditions of profitability
+though how do I use those measures?
+wouldn't it resemble something like a NN model?
+nn seems fun/easy but im not sure if it's useful
+
+let's get a basic NN running
+
+a single profitable trading strategy
+
+open range breakout
+volatility breakout
+trend day
+reversal breakout
+support/resistence breakout
+
+when do these models make money?
+
+make a strategy for each of these on several different time frames/intervals
+use the same strategy across several intervals.
+
+e.g. get the straegies working on both 1 minute interval, 3 minute, 5 minute, 15 minute, 1 hour
+
+create a portfolio backtest and get the results
 
