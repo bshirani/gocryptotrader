@@ -2,6 +2,7 @@ package engine
 
 import (
 	"bytes"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -345,3 +346,36 @@ func (f *FactorEngine) WriteJSON(filepath string) error {
 	_, err = io.Copy(writer, bytes.NewReader(payload))
 	return err
 }
+
+type TestRow struct {
+	x1 float64
+	x2 float64
+	y  float64
+}
+
+func (f *FactorEngine) WriteCSV(w io.Writer) {
+	cw := csv.NewWriter(w)
+	cw.Write([]string{"A Key", "B Key", "C Key", "D Key"})
+	for _, c := range f.calcs {
+		// is, _ := json.Marshal(f.calcs)
+		cw.Write([]string{c.High, c.Low, c.Close})
+	}
+	cw.Flush()
+}
+
+// func (f *FactorEngine) WriteCSV(fpath string) error {
+// 	// buff := &bytes.Buffer{}
+//
+// 	structs := []TestRow{
+// 		TestRow{x1: 0.20, x2: 0.1, y: 1.0},
+// 		TestRow{x1: 0.3, x2: 0.52, y: 1.0},
+// 		TestRow{x1: 0.22, x2: 0.01, y: 0.0},
+// 	}
+//
+// 	fmt.Println("writing", fpath, len(f.calcs))
+// 	writer, err := file.Writer(fpath)
+// 	w := struct2csv.NewWriter(writer)
+// 	err = w.WriteStructs(&structs)
+// 	// _, err = io.Copy(w, buff)
+// 	return err
+// }

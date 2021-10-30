@@ -305,3 +305,7 @@ e.g. get the straegies working on both 1 minute interval, 3 minute, 5 minute, 15
 
 create a portfolio backtest and get the results
 
+get a neural network running for each strategy
+train and test
+
+

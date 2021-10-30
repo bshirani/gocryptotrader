@@ -429,7 +429,7 @@ dataLoadingIssue:
 			"results/bt/trades-%v.json",
 			time.Now().Format("2006-01-02-15-04-05"))
 		livetrade.WriteJSON(tm.Portfolio.GetAllClosedTrades(), fileName)
-		// tm.writeFactorEngines()
+		tm.writeFactorEngines()
 		// WriteJSON(tm.Portfolio.GetAllClosedTrades(), newpath)
 		// &analyze.PortfolioAnalysis{}.Analyze("")
 	}
@@ -1252,8 +1252,14 @@ func (tm *TradeManager) writeFactorEngines() {
 			time.Now().Format("2006-01-02-15-04-05"),
 			cs.CurrencyPair.Upper().String(),
 		)
-		fmt.Println("writing factors", factorsFile)
+		factorsCSV := fmt.Sprintf(
+			"results/fcsv/%v-%s.csv",
+			time.Now().Format("2006-01-02-15-04-05"),
+			cs.CurrencyPair.Upper().String(),
+		)
+		fmt.Println("writing factors", factorsFile, "csv", factorsCSV)
 		fe.WriteJSON(factorsFile)
+		fe.WriteCSV(factorsCSV)
 	}
 }
 

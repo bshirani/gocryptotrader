@@ -7,6 +7,7 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/d5/tengo/v2 v2.8.0
 	github.com/deckarep/golang-set v1.7.1 // indirect
+	github.com/dnlo/struct2csv v0.0.0-20190928115744-2f584471b24e // indirect
 	github.com/fatih/color v1.13.0
 	github.com/friendsofgo/errors v0.9.2
 	github.com/go-delve/delve v1.7.2 // indirect
@@ -17,6 +18,7 @@ require (
 	github.com/gorilla/websocket v1.4.2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.6.0
+	github.com/iancoleman/strcase v0.2.0 // indirect
 	github.com/kat-co/vala v0.0.0-20170210184112-42e1d8b61f12
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lib/pq v1.10.3
