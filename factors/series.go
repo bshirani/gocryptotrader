@@ -133,15 +133,14 @@ func getSlope(kline *IntervalDataFrame, n int) float64 {
 	)
 
 	for i := range xs {
-		f, _ := kline.Close[len(kline.Time)-i-1].Float64()
-		xs[i] = float64(kline.Time[len(kline.Time)-i-1].Unix())
+		f, _ := kline.Close[len(kline.Time)-n+i].Float64()
+		xs[i] = float64(i)
 		ys[i] = f
+		// fmt.Println(ys[i], xs[i])
 	}
 	origin := false
-	alpha, beta := stat.LinearRegression(xs, ys, weights, origin)
-	r2 := stat.RSquared(xs, ys, weights, alpha, beta)
-	fmt.Printf("Estimated slope is:  %.6f\n", alpha)
-	fmt.Printf("Estimated offset is: %.6f\n", beta)
-	fmt.Printf("R^2: %.6f\n", r2)
-	return alpha
+	_, beta := stat.LinearRegression(xs, ys, weights, origin)
+	// r2 := stat.RSquared(xs, ys, weights, alpha, beta)
+	// fmt.Printf("alpha=%.6f beta=%.6f R^2=%.6f n=%d\n", alpha, beta, r2, n)
+	return beta
 }
