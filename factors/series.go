@@ -3,7 +3,6 @@ package factors
 import (
 	"fmt"
 	"gocryptotrader/data"
-	"math/rand"
 
 	"github.com/shopspring/decimal"
 	"gonum.org/v1/gonum/stat"
@@ -42,6 +41,44 @@ func (s Series) Crossunder(ref Series) bool {
 	return s.Last(0).LessThanOrEqual(ref.Last(0)) && s.Last(1).GreaterThan(ref.Last(1))
 }
 
+func GetCurrentDateStats(kline *IntervalDataFrame, d data.Handler) *NCalculation {
+	if len(kline.Close) <= 1 {
+		return &NCalculation{}
+	}
+	// NLen:          n,
+	// Time:          bar.GetTime(),
+	// FirstTime:     nAgo.GetTime(),
+	// NAgoClose:     nAgoClose,
+	// Range:         nRange,
+	// PctChange:     nPctChg,
+	// Slope:         decimal.NewFromFloat(getSlope(kline, n)),
+	high := kline.GetCurrentDateHigh()
+	low := kline.GetCurrentDateLow()
+	nrange := high.Sub(low)
+	open := kline.GetCurrentDateOpen()
+	nclose := d.Latest().ClosePrice()
+	curLength := kline.GetCurrentDateLength()
+	var slope decimal.Decimal
+
+	if curLength > 0 {
+		slope = decimal.NewFromFloat(getSlope(kline, curLength))
+	} else {
+		slope = decimal.NewFromFloat(0.0)
+	}
+
+	return &NCalculation{
+		Time:          kline.LastDate(),
+		NLen:          curLength,
+		Open:          open,
+		High:          high,
+		Low:           low,
+		Range:         nrange,
+		PctChange:     nclose.Sub(open).Div(nclose).Mul(decimal.NewFromFloat(100.0)),
+		RangeDivClose: nrange.Div(nclose),
+		Slope:         slope,
+	}
+}
+
 func GetBaseStats(kline *IntervalDataFrame, n int, d data.Handler) *NCalculation {
 	if len(kline.Close) <= n {
 		return &NCalculation{}
@@ -65,21 +102,25 @@ func GetBaseStats(kline *IntervalDataFrame, n int, d data.Handler) *NCalculation
 			low = l
 		}
 	}
+	nopen := kline.Open[len(kline.Open)-n]
 	nRange := high.Sub(low)
 	nAgoClose := kline.Close[len(kline.Close)-n]
 	bar := d.Latest()
-	curClose := bar.ClosePrice()
-	nPctChg := (curClose.Sub(nAgoClose)).Div(curClose).Mul(decimal.NewFromInt(100))
+	nclose := bar.ClosePrice()
+	nPctChg := (nclose.Sub(nAgoClose)).Div(nclose).Mul(decimal.NewFromInt(100))
+	nAgo := d.History()[len(d.History())-n]
 	return &NCalculation{
 		NLen:          n,
 		Time:          bar.GetTime(),
+		FirstTime:     nAgo.GetTime(),
 		NAgoClose:     nAgoClose,
 		Range:         nRange,
 		PctChange:     nPctChg,
-		Close:         curClose,
-		Low:           low,
+		Open:          nopen,
 		High:          high,
-		RangeDivClose: nRange.Div(curClose),
+		Low:           low,
+		Close:         nclose,
+		RangeDivClose: nRange.Div(nclose),
 		Slope:         decimal.NewFromFloat(getSlope(kline, n)),
 	}
 }
@@ -91,15 +132,16 @@ func getSlope(kline *IntervalDataFrame, n int) float64 {
 		weights []float64
 	)
 
-	line := func(x float64) float64 {
-		return 1 + 3*x
-	}
-
 	for i := range xs {
-		xs[i] = float64(i)
-		ys[i] = line(xs[i]) + 0.1*rand.NormFloat64()
+		f, _ := kline.Close[len(kline.Time)-i-1].Float64()
+		xs[i] = float64(kline.Time[len(kline.Time)-i-1].Unix())
+		ys[i] = f
 	}
 	origin := false
-	alpha, _ := stat.LinearRegression(xs, ys, weights, origin)
+	alpha, beta := stat.LinearRegression(xs, ys, weights, origin)
+	r2 := stat.RSquared(xs, ys, weights, alpha, beta)
+	fmt.Printf("Estimated slope is:  %.6f\n", alpha)
+	fmt.Printf("Estimated offset is: %.6f\n", beta)
+	fmt.Printf("R^2: %.6f\n", r2)
 	return alpha
 }

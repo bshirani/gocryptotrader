@@ -1,0 +1,9 @@
+[
+ {
+  "weight": "1",
+  "side": "BUY",
+  "pair": "AAVE_USDT",
+  "capture": "trend",
+  "debug": false
+ }
+]

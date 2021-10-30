@@ -15,7 +15,6 @@ import (
 	"gocryptotrader/database/repository/livetrade"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"strings"
 	"sync/atomic"
 	"syscall"
@@ -426,8 +425,7 @@ dataLoadingIssue:
 		fileName := fmt.Sprintf(
 			"results/bt/trades-%v.json",
 			time.Now().Format("2006-01-02-15-04-05"))
-		newpath := filepath.Join(".", fileName)
-		livetrade.WriteJSON(tm.Portfolio.GetAllClosedTrades(), newpath)
+		livetrade.WriteJSON(tm.Portfolio.GetAllClosedTrades(), fileName)
 		tm.writeFactorEngines()
 		// WriteJSON(tm.Portfolio.GetAllClosedTrades(), newpath)
 		// &analyze.PortfolioAnalysis{}.Analyze("")
@@ -1246,9 +1244,13 @@ func (tm *TradeManager) initializeFactorEngines() error {
 func (tm *TradeManager) writeFactorEngines() {
 	for _, cs := range tm.bot.CurrencySettings {
 		fe := tm.FactorEngines[cs.ExchangeName][cs.AssetType][cs.CurrencyPair]
-		outPath := filepath.Join(cs.CurrencyPair.String(), "factors.json")
-		fmt.Println("writing factors", outPath)
-		fe.WriteJSON(outPath)
+		factorsFile := fmt.Sprintf(
+			"results/factors/%v-%s.json",
+			time.Now().Format("2006-01-02-15-04-05"),
+			cs.CurrencyPair.Upper().String(),
+		)
+		fmt.Println("writing factors", factorsFile)
+		fe.WriteJSON(factorsFile)
 	}
 }
 

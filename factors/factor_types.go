@@ -25,6 +25,8 @@ type DailyDataFrame struct {
 }
 
 type NSeries struct {
+	Open          Series
+	Close         Series
 	Low           Series
 	High          Series
 	Range         Series
@@ -47,8 +49,6 @@ type IntervalDataFrame struct {
 
 	RSI             Series
 	MA              Series
-	Past24HourHigh  Series
-	Past24HourLow   Series
 	CurrentDateOpen Series
 	CurrentDateLow  Series
 	CurrentDateHigh Series
@@ -61,12 +61,13 @@ type IntervalDataFrame struct {
 }
 
 type NCalculation struct {
-	NLen int
-	Time time.Time
-	// FirstTime     time.Time
+	NLen          int
+	Time          time.Time
+	FirstTime     time.Time
 	NAgoClose     decimal.Decimal
 	Range         decimal.Decimal
 	PctChange     decimal.Decimal
+	Open          decimal.Decimal
 	Close         decimal.Decimal
 	Low           decimal.Decimal
 	High          decimal.Decimal
@@ -78,18 +79,13 @@ type Calculation struct {
 	Time time.Time
 	Date time.Time
 
-	High            decimal.Decimal
-	Low             decimal.Decimal
-	Close           decimal.Decimal
-	Open            decimal.Decimal
-	Volume          decimal.Decimal
-	RSI             decimal.Decimal
-	MA              decimal.Decimal
-	Past24HourHigh  decimal.Decimal
-	Past24HourLow   decimal.Decimal
-	CurrentDateOpen decimal.Decimal
-	CurrentDateLow  decimal.Decimal
-	CurrentDateHigh decimal.Decimal
+	High   decimal.Decimal
+	Low    decimal.Decimal
+	Close  decimal.Decimal
+	Open   decimal.Decimal
+	Volume decimal.Decimal
+
+	CurrentDate *NCalculation // current date open/high/low/close/range, etc, updated every interval
 
 	N10  *NCalculation
 	N20  *NCalculation

@@ -73,6 +73,7 @@ func (f *FactorEngine) Daily() *factors.DailyDataFrame {
 }
 
 func (f *FactorEngine) getFactorCalculations(d data.Handler) *factors.Calculation {
+	curDate := factors.GetCurrentDateStats(f.kline, d)
 	n10 := factors.GetBaseStats(f.kline, 10, d)
 	n20 := factors.GetBaseStats(f.kline, 20, d)
 	n30 := factors.GetBaseStats(f.kline, 30, d)
@@ -81,16 +82,17 @@ func (f *FactorEngine) getFactorCalculations(d data.Handler) *factors.Calculatio
 	bar := d.Latest()
 
 	return &factors.Calculation{
-		N10:   n10,
-		N20:   n20,
-		N30:   n30,
-		N60:   n60,
-		N100:  n100,
-		Close: bar.ClosePrice(),
-		Open:  bar.OpenPrice(),
-		High:  bar.HighPrice(),
-		Low:   bar.LowPrice(),
-		Time:  bar.GetTime(),
+		CurrentDate: curDate,
+		N10:         n10,
+		N20:         n20,
+		N30:         n30,
+		N60:         n60,
+		N100:        n100,
+		Close:       bar.ClosePrice(),
+		Open:        bar.OpenPrice(),
+		High:        bar.HighPrice(),
+		Low:         bar.LowPrice(),
+		Time:        bar.GetTime(),
 	}
 }
 
@@ -99,6 +101,8 @@ func (f *FactorEngine) Last() *factors.Calculation {
 }
 
 func appendNSeries(fs *factors.NSeries, fc *factors.NCalculation) {
+	fs.Open = append(fs.Open, fc.Open)
+	fs.Close = append(fs.Close, fc.Close)
 	fs.Low = append(fs.Low, fc.Low)
 	fs.High = append(fs.High, fc.High)
 	fs.Range = append(fs.Range, fc.Range)
@@ -108,16 +112,6 @@ func appendNSeries(fs *factors.NSeries, fc *factors.NCalculation) {
 
 func (f *FactorEngine) OnBar(d data.Handler) error {
 	bar := d.Latest()
-	fc := f.getFactorCalculations(d)
-	f.calcs = append(f.calcs, fc)
-
-	f.kline.Close = append(f.kline.Close, fc.Close)
-	f.kline.Open = append(f.kline.Open, bar.OpenPrice())
-	f.kline.High = append(f.kline.High, bar.HighPrice())
-	f.kline.Low = append(f.kline.Low, bar.LowPrice())
-	f.kline.Time = append(f.kline.Time, bar.GetTime())
-	f.kline.LastUpdate = bar.GetTime()
-
 	t := bar.GetTime()
 	td := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, t.Nanosecond(), t.Location())
 
@@ -127,6 +121,16 @@ func (f *FactorEngine) OnBar(d data.Handler) error {
 	} else {
 		f.kline.Date = append(f.kline.Date, td)
 	}
+
+	fc := f.getFactorCalculations(d)
+	f.calcs = append(f.calcs, fc)
+
+	f.kline.Close = append(f.kline.Close, fc.Close)
+	f.kline.Open = append(f.kline.Open, bar.OpenPrice())
+	f.kline.High = append(f.kline.High, bar.HighPrice())
+	f.kline.Low = append(f.kline.Low, bar.LowPrice())
+	f.kline.Time = append(f.kline.Time, bar.GetTime())
+	f.kline.LastUpdate = bar.GetTime()
 
 	switch l := len(f.calcs); {
 	case l >= 10:

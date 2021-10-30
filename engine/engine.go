@@ -996,6 +996,7 @@ func (bot *Engine) LoadExchange(name string, wg *sync.WaitGroup) error {
 	// log.Infoln(log.Global, "validating credentials")
 	bot.ExchangeManager.Add(exch)
 	base := exch.GetBase()
+
 	if base.API.AuthenticatedSupport ||
 		base.API.AuthenticatedWebsocketSupport {
 		assetTypes := base.GetAssetTypes(false)
@@ -1021,9 +1022,11 @@ func (bot *Engine) LoadExchange(name string, wg *sync.WaitGroup) error {
 		}
 	}
 
-	// elog("starting exchange...")
 	if wg != nil {
-		exch.Start(wg)
+		// elog("starting exchange...")
+		if bot.Settings.EnableLiveMode {
+			exch.Start(wg)
+		}
 	} else {
 		tempWG := sync.WaitGroup{}
 		exch.Start(&tempWG)

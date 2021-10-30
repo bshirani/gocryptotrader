@@ -261,3 +261,6 @@ analyze the performance of the strategies
 factors:
 - whats the range of the past 10/20/30/50/100 bars
 - whats the market trendiness over the past 10/20/30/50/100 bars
+
+calculate the slope of the best fit line
+
