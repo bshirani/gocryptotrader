@@ -3,7 +3,6 @@ package analyze
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"gocryptotrader/common/file"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
@@ -18,12 +17,11 @@ import (
 )
 
 func (p *PortfolioAnalysis) AnalyzeStrategies() {
-	p.loadGroupedStrategies()
-	fmt.Println("saving strategies", len(p.StrategiesAnalyses))
+	p.analyzeGrouped()
 	p.Report.Strategies = p.StrategiesAnalyses
 }
 
-func (p *PortfolioAnalysis) loadGroupedStrategies() {
+func (p *PortfolioAnalysis) analyzeGrouped() {
 	p.Strategies = make([]strategies.Handler, 0)
 	for label, trades := range p.groupedTrades {
 		strat := loadStrategyFromLabel(label)
@@ -110,3 +108,73 @@ func SaveStrategiesConfigFile(outpath string, ss []config.StrategySetting) error
 	_, err = io.Copy(writer, bytes.NewReader(payload))
 	return err
 }
+func (p *PortfolioAnalysis) GetStrategyAnalysis(s strategies.Handler) *StrategyAnalysis {
+	for _, a := range p.StrategiesAnalyses {
+		if strings.EqualFold(a.Label, s.GetLabel()) {
+			return a
+		}
+	}
+	panic("could not find strategy analysis")
+	return nil
+}
+
+func loadStrategyFromTrade(t *livetrade.Details) strategies.Handler {
+	s, _ := strategies.LoadStrategyByName("trend")
+	s.SetName("trend")
+	s.SetDirection(t.Side)
+	s.SetPair(t.Pair)
+	s.SetID(t.StrategyID)
+	// fmt.Println("strategy label", s.GetLabel(), s.Name())
+	return s
+}
+
+func loadStrategyFromLabel(label string) strategies.Handler {
+	l := strings.Split(label, "@")
+	name := l[0]
+	symbol := l[1]
+	dir := l[2]
+
+	s, _ := strategies.LoadStrategyByName(name)
+	s.SetName(name)
+	s.SetDirection(order.Side(dir))
+	pair, _ := currency.NewPairFromString(symbol)
+
+	s.SetPair(pair)
+	// s.SetID(t.StrategyID)
+	// fmt.Println("strategy label", s.GetLabel(), s.Name())
+	return s
+}
+
+func groupByStrategyID(trades []*livetrade.Details) (grouped map[string][]*livetrade.Details) {
+	grouped = make(map[string][]*livetrade.Details)
+
+	for _, lt := range trades {
+		s := loadStrategyFromTrade(lt)
+		grouped[s.GetLabel()] = append(grouped[s.GetLabel()], lt)
+	}
+	return grouped
+}
+
+// func netProfitPoints(trades []*livetrade.Details) (netProfit decimal.Decimal) {
+// 	for _, t := range trades {
+// 		if t.Side == order.Buy {
+// 			t.ProfitLossPoints = t.ExitPrice.Sub(t.EntryPrice)
+// 		} else if t.Side == order.Sell {
+// 			t.ProfitLossPoints = t.EntryPrice.Sub(t.ExitPrice)
+// 		}
+// 		netProfit = netProfit.Add(t.ProfitLossPoints)
+// 	}
+// 	return netProfit
+// }
+//
+// func netProfit(trades []*livetrade.Details) (netProfit decimal.Decimal) {
+// 	for _, t := range trades {
+// 		if t.Side == order.Buy {
+// 			t.ProfitLossPoints = t.ExitPrice.Sub(t.EntryPrice)
+// 		} else if t.Side == order.Sell {
+// 			t.ProfitLossPoints = t.EntryPrice.Sub(t.ExitPrice)
+// 		}
+// 		netProfit = netProfit.Add(t.Amount.Mul(t.ProfitLossPoints))
+// 	}
+// 	return netProfit
+// }
