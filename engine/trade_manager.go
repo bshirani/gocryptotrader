@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"gocryptotrader/common"
+	"gocryptotrader/common/file"
 	"gocryptotrader/currency"
 	"gocryptotrader/data"
 	datakline "gocryptotrader/data/kline"
@@ -1244,7 +1245,7 @@ func (tm *TradeManager) initializeFactorEngines() error {
 	return nil
 }
 
-func (tm *TradeManager) writeFactorEngines() {
+func (tm *TradeManager) writeFactorEngines() (err error) {
 	for _, cs := range tm.bot.CurrencySettings {
 		fe := tm.FactorEngines[cs.ExchangeName][cs.AssetType][cs.CurrencyPair]
 		factorsFile := fmt.Sprintf(
@@ -1257,10 +1258,17 @@ func (tm *TradeManager) writeFactorEngines() {
 			time.Now().Format("2006-01-02-15-04-05"),
 			cs.CurrencyPair.Upper().String(),
 		)
-		fmt.Println("writing factors", factorsFile, "csv", factorsCSV)
+		fmt.Println("writing factors", factorsFile)
+		fmt.Println("writing fe csv", factorsCSV)
 		fe.WriteJSON(factorsFile)
-		fe.WriteCSV(factorsCSV)
+
+		writer, err := file.Writer(factorsCSV)
+		if err != nil {
+			return err
+		}
+		fe.WriteCSV(writer)
 	}
+	return err
 }
 
 // Series returns candle data

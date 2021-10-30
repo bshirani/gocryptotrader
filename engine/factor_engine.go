@@ -2,7 +2,6 @@ package engine
 
 import (
 	"bytes"
-	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -354,13 +353,7 @@ type TestRow struct {
 }
 
 func (f *FactorEngine) WriteCSV(w io.Writer) {
-	cw := csv.NewWriter(w)
-	cw.Write([]string{"A Key", "B Key", "C Key", "D Key"})
-	for _, c := range f.calcs {
-		// is, _ := json.Marshal(f.calcs)
-		cw.Write([]string{c.High, c.Low, c.Close})
-	}
-	cw.Flush()
+	factors.WriteCSV(w, f.calcs)
 }
 
 // func (f *FactorEngine) WriteCSV(fpath string) error {

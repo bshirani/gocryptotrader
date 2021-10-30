@@ -1,8 +1,10 @@
 package factors
 
 import (
+	"encoding/csv"
 	"fmt"
 	"gocryptotrader/data"
+	"io"
 
 	"github.com/shopspring/decimal"
 	"gonum.org/v1/gonum/stat"
@@ -77,6 +79,47 @@ func GetCurrentDateStats(kline *IntervalDataFrame, d data.Handler) *NCalculation
 		RangeDivClose: nrange.Div(nclose),
 		Slope:         slope,
 	}
+}
+
+func WriteCSV(w io.Writer, calcs []*Calculation) {
+	cw := csv.NewWriter(w)
+
+	headers := []string{}
+	for _, h := range calcs[0].CSVHeader() {
+		headers = append(headers, h)
+	}
+	for _, h := range calcs[0].N10.CSVHeader() {
+		h = fmt.Sprintf("n10_%s", h)
+		headers = append(headers, h)
+	}
+	cw.Write(headers)
+
+	// rows
+	for _, c := range calcs {
+		cw.Write(c.ToStrings())
+	}
+
+	cw.Flush()
+}
+
+func (c *Calculation) ToStrings() []string {
+	strings := []string{c.High.String(), c.Low.String(), c.Close.String()}
+	for _, x := range c.N10.CSVRow() {
+		strings = append(strings, x)
+	}
+	return strings
+}
+
+func (n *Calculation) CSVHeader() []string {
+	return []string{"open", "low", "high"}
+}
+
+func (n *NCalculation) CSVHeader() []string {
+	return []string{"high", "low", "close"}
+}
+
+func (n *NCalculation) CSVRow() []string {
+	return []string{n.Open.String(), n.Low.String(), n.High.String()}
 }
 
 func GetBaseStats(kline *IntervalDataFrame, n int, d data.Handler) *NCalculation {
