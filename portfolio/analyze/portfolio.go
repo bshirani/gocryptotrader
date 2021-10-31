@@ -28,11 +28,11 @@ func (p *PortfolioAnalysis) CalculateProductionWeights() {
 		// 	analysis.NetProfit,
 		// )
 
-		if analysis.NetProfit.IsZero() {
+		if analysis.Base.NetProfit == 0 {
 			panic("net profit is zero")
 		}
 		ss := s.GetSettings()
-		if analysis.NetProfit.GreaterThan(decimal.NewFromFloat(0.0)) {
+		if analysis.Base.NetProfit > 0.0 {
 			ss.Weight = decimal.NewFromFloat(1.0)
 			p.Weights.Strategies = append(p.Weights.Strategies, ss)
 		}

@@ -54,8 +54,9 @@ func GetPredictions(filename string) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("lastBT", lastBT)
-	fmt.Println("trades", len(trades))
+	for _, t := range trades {
+		t.Prediction = 0
+	}
 	url := fmt.Sprintf(
 		"%s/predict?file=../results/fcsv/%s",
 		host,
@@ -70,6 +71,8 @@ func GetPredictions(filename string) {
 	}
 	var result map[string]interface{}
 	json.Unmarshal([]byte(body), &result)
+
+	// zero the predictions from earlier runs
 	for key, value := range result {
 		for _, t := range trades {
 			id, _ := strconv.ParseInt(key, 10, 32)

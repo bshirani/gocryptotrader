@@ -12,8 +12,6 @@ import (
 	"gocryptotrader/portfolio/strategies"
 	"io"
 	"strings"
-
-	"github.com/shopspring/decimal"
 )
 
 func (p *PortfolioAnalysis) AnalyzeStrategies() {
@@ -33,7 +31,7 @@ func (p *PortfolioAnalysis) analyzeGrouped() {
 }
 
 func analyzeStrategy(s strategies.Handler, trades []*livetrade.Details) (a *StrategyAnalysis) {
-	a = &StrategyAnalysis{}
+	sa := &StrategyAnalysis{}
 	var predTrades []*livetrade.Details
 	for _, t := range trades {
 		if t.Prediction > 0 {
@@ -41,6 +39,20 @@ func analyzeStrategy(s strategies.Handler, trades []*livetrade.Details) (a *Stra
 		}
 	}
 
+	sa.Label = s.GetLabel()
+	sa.Name = s.Name()
+	sa.Direction = s.GetDirection()
+	sa.Pair = s.GetPair()
+	sa.StartDate = trades[0].EntryTime
+	sa.EndDate = trades[len(trades)-1].ExitTime
+
+	sa.Base = analyzeStrategyTrades(s, trades)
+	sa.Prediction = analyzeStrategyTrades(s, predTrades)
+	return sa
+}
+
+func analyzeStrategyTrades(s strategies.Handler, trades []*livetrade.Details) *StrategyStats {
+	ss := &StrategyStats{}
 	sumPl := 0.0
 	sumProfits := 0.0
 	sumLosses := 0.0
@@ -57,44 +69,15 @@ func analyzeStrategy(s strategies.Handler, trades []*livetrade.Details) (a *Stra
 			lossCount += 1
 		}
 	}
-	a.NumTrades = len(trades)
-	a.NetProfit = decimal.NewFromFloat(sumPl)
-	a.Label = s.GetLabel()
-	a.Name = s.Name()
-	a.Direction = s.GetDirection()
-	a.Pair = s.GetPair()
-	a.StartDate = trades[0].EntryTime
-	a.EndDate = trades[len(trades)-1].ExitTime
-	a.AveragePL = sumPl / float64(winCount+lossCount)
-	a.AverageWin = sumProfits / float64(winCount)
-	a.AverageLoss = sumLosses / float64(lossCount)
-	a.WinPercentage = float64(winCount) / float64(len(trades))
+	ss.NumTrades = len(trades)
+	ss.NetProfit = sumPl
+	ss.AveragePL = sumPl / float64(winCount+lossCount)
+	ss.AverageWin = sumProfits / float64(winCount)
+	ss.AverageLoss = sumLosses / float64(lossCount)
+	ss.AvgWinByAvgLoss = ss.AverageWin / ss.AverageLoss * -1
+	ss.WinPercentage = float64(winCount) / float64(len(trades))
 
-	sumPl = 0.0
-	sumProfits = 0.0
-	sumLosses = 0.0
-	winCount = 0
-	lossCount = 0
-	for _, t := range predTrades {
-		pl, _ := t.ProfitLossQuote.Float64()
-		pl = pl * t.Prediction
-		sumPl += pl
-		if pl > 0 {
-			sumProfits += pl
-			winCount += 1
-		} else {
-			sumLosses += pl
-			lossCount += 1
-		}
-	}
-	a.NumTradesPredicted = len(predTrades)
-	a.NetProfitPredicted = decimal.NewFromFloat(sumPl)
-	a.AveragePLPredicted = sumPl / float64(winCount+lossCount)
-	a.AverageWinPredicted = sumProfits / float64(winCount)
-	a.AverageLossPredicted = sumLosses / float64(lossCount)
-	a.WinPercentagePredicted = float64(winCount) / float64(len(trades))
-
-	return a
+	return ss
 }
 
 func GenerateAllStrategies() (out []config.StrategySetting) {

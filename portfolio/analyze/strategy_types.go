@@ -4,39 +4,16 @@ import (
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange/order"
 	"time"
-
-	"github.com/shopspring/decimal"
 )
 
-// CurrencyStatistic Holds all events and statistics relevant to an exchange, asset type and currency pair
-type StrategyAnalysis struct {
-	// Trades                       []*livetrade.Details
-	Pair      currency.Pair `json:"pair"`
-	Direction order.Side    `json:"direction"`
-	Name      string        `json:"name"`
-	Label     string        `json:"label"`
-
-	StartDate time.Time `json:"startDate"`
-	EndDate   time.Time `json:"endDate"`
-
-	NumTrades          int `json:"numTrades"`
-	NumTradesPredicted int `json:"numTradesPredicted"`
-
-	NetProfit          decimal.Decimal `json:"netProfit"`
-	NetProfitPredicted decimal.Decimal `json:"netProfitPredicted"`
-
-	WinPercentage          float64 `json:"winPercentage"`
-	WinPercentagePredicted float64 `json:"winPercentagePredicted"`
-
-	AveragePL          float64 `json:"averagePl"`
-	AveragePLPredicted float64 `json:"averagePlPredicted"`
-
-	AverageWin          float64 `json:"averageWin"`
-	AverageWinPredicted float64 `json:"averageWinPredicted"`
-
-	AverageLoss          float64 `json:"averageLoss"`
-	AverageLossPredicted float64 `json:"averageLossPredicted"`
-
+type StrategyStats struct {
+	NumTrades       int     `json:"numTrades"`
+	NetProfit       float64 `json:"netProfit"`
+	WinPercentage   float64 `json:"winPercentage"`
+	AveragePL       float64 `json:"averagePl"`
+	AverageWin      float64 `json:"averageWin"`
+	AverageLoss     float64 `json:"averageLoss"`
+	AvgWinByAvgLoss float64 `json:"avgWinByAvgLoss"`
 	// MaxDrawdown                  Swing                 `json:"maxDrawdown,omitempty"`
 	// StartingClosePrice           decimal.Decimal       `json:"startingClosePrice"`
 	// EndingClosePrice             decimal.Decimal       `json:"endingClosePrice"`
@@ -58,4 +35,18 @@ type StrategyAnalysis struct {
 	// ShowMissingDataWarning       bool                  `json:""`
 	// IsStrategyProfitable         bool                  `json:"isStrategyProfitable"`
 	// DoesPerformanceBeatTheMarket bool                  `json:"doesPerformanceBeatTheMarket"`
+}
+
+type StrategyAnalysis struct {
+	// Trades                       []*livetrade.Details
+	Pair      currency.Pair `json:"pair"`
+	Direction order.Side    `json:"direction"`
+	Name      string        `json:"name"`
+	Label     string        `json:"label"`
+
+	StartDate time.Time `json:"startDate"`
+	EndDate   time.Time `json:"endDate"`
+
+	Base       *StrategyStats
+	Prediction *StrategyStats
 }

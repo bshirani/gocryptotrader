@@ -44,9 +44,8 @@ async def predict():
     # return df['profit_loss_quote'].to_dict()
     # return df['profit_loss_quote'].values.tolist()
 
-    x = df['id'].values.tolist()
-    n = len(x)
-    return zip(x, np.random.rand(n).tolist())
+    x = df['id'][:int(len(df)*.5)].values.tolist()
+    return zip(x, np.random.rand(len(x)).tolist())
     # return "ok"
 
     # res = []
