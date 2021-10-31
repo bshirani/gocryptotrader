@@ -33,9 +33,11 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-// var (
-// 	errStrategyNotFound = errors.New("Strategy Not found")
-// )
+var (
+	errStrategyNotFound = errors.New("Strategy Not found")
+	tradeDryRunCount    = 0
+)
+
 // Setup creates a portfolio manager instance and sets private fields
 func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*Portfolio, error) {
 	buyRule := config.MinMax{
@@ -586,6 +588,19 @@ func (p *Portfolio) GetOpenOrdersForStrategy(sid string) (orders []gctorder.Deta
 		}
 	}
 	return orders
+}
+
+func (p *Portfolio) GetAllClosedTradesByStrategy() map[string][]*livetrade.Details {
+	res := make(map[string][]*livetrade.Details)
+	for _, s := range p.store.closedTrades {
+		for _, t := range s {
+			if res[t.StrategyName] == nil {
+				res[t.StrategyName] = make([]*livetrade.Details, 0)
+			}
+			res[t.StrategyName] = append(res[t.StrategyName], t)
+		}
+	}
+	return res
 }
 
 func (p *Portfolio) GetAllClosedTrades() []*livetrade.Details {
@@ -1199,6 +1214,7 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 	}
 
 	t := livetrade.Details{
+		ID:            GetNewTradeID(),
 		Status:        gctorder.Open,
 		StrategyID:    ev.GetStrategyID(),
 		StrategyName:  s.GetLabel(),
@@ -1362,4 +1378,9 @@ func (p *Portfolio) recordExitTrade(f fill.Event, t *livetrade.Details) {
 			Message: notificationMsg,
 		})
 	}
+}
+
+func GetNewTradeID() int {
+	tradeDryRunCount += 1
+	return tradeDryRunCount
 }

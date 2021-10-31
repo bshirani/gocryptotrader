@@ -344,7 +344,7 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 }
 
 func (tm *TradeManager) Run() error {
-	count := 0
+	debugCount := 0
 	log.Debugf(log.TradeMgr, "TradeManager Running")
 	sigc := make(chan os.Signal, 1)
 	signal.Notify(sigc,
@@ -384,20 +384,13 @@ dataLoadingIssue:
 			dataHandlerMap := tm.Datas.GetAllData()
 			for _, exchangeMap := range dataHandlerMap {
 				for _, assetMap := range exchangeMap {
-					// var hasProcessedData bool
-					tm.hasHandledEvent = false
 					for _, dataHandler := range assetMap {
 						d := dataHandler.Next()
 
 						if d == nil {
-							// if !tm.hasHandledEvent {
-							// 	log.Errorf(log.TradeMgr, "Unable to perform `Next` for %v %v %v", exchangeName, assetItem, currencyPair)
-							// }
 							break dataLoadingIssue
 						}
-						tm.hasHandledEvent = true
-						count += 1
-						// fmt.Println("data event", d)
+						debugCount += 1
 
 						if !tm.bot.Config.ProductionMode {
 							tm.bot.OrderManager.UpdateFakeOrders(d)
@@ -420,9 +413,6 @@ dataLoadingIssue:
 				return err
 			}
 		}
-		if !tm.hasHandledEvent {
-			tm.hasHandledEvent = true
-		}
 	}
 
 	if !tm.liveMode {
@@ -436,7 +426,7 @@ dataLoadingIssue:
 	}
 
 	if tm.debug {
-		fmt.Println("done running", count, "data events")
+		fmt.Println("done running", debugCount, "data events")
 	}
 
 	return nil
@@ -813,10 +803,6 @@ func (tm *TradeManager) processEvents() error {
 			}
 		} else {
 			return nil
-		}
-
-		if !tm.hasHandledEvent {
-			tm.hasHandledEvent = true
 		}
 	}
 }
@@ -1253,20 +1239,32 @@ func (tm *TradeManager) writeFactorEngines() (err error) {
 			time.Now().Format("2006-01-02-15-04-05"),
 			cs.CurrencyPair.Upper().String(),
 		)
-		factorsCSV := fmt.Sprintf(
-			"results/fcsv/%v-%s.csv",
-			time.Now().Format("2006-01-02-15-04-05"),
-			cs.CurrencyPair.Upper().String(),
-		)
 		fmt.Println("writing factors", factorsFile)
-		fmt.Println("writing fe csv", factorsCSV)
 		fe.WriteJSON(factorsFile)
+	}
 
+	trades := tm.Portfolio.GetAllClosedTradesByStrategy()
+
+	for _, s := range tm.Strategies {
+		var scs *ExchangeAssetPairSettings
+		for _, cs := range tm.bot.CurrencySettings {
+			if currency.ArePairsEqual(cs.CurrencyPair, s.GetPair()) {
+				scs = cs
+				break
+			}
+		}
+		factorsCSV := fmt.Sprintf(
+			"results/fcsv/%s-%s.csv",
+			time.Now().Format("2006-01-02-15-04-05"),
+			s.GetLabel(),
+		)
+		fmt.Println("writing fe csv", factorsCSV)
 		writer, err := file.Writer(factorsCSV)
 		if err != nil {
 			return err
 		}
-		fe.WriteCSV(writer)
+		fe := tm.FactorEngines[scs.ExchangeName][scs.AssetType][scs.CurrencyPair]
+		fe.WriteCSV(writer, trades[s.GetLabel()])
 	}
 	return err
 }

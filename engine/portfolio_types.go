@@ -49,6 +49,32 @@ type portfolioStore struct {
 	wg           *sync.WaitGroup
 }
 
+// Handler contains all functions expected to operate a portfolio manager
+type PortfolioHandler interface {
+	GetVerbose() bool
+	OnSignal(signal.Event, *ExchangeAssetPairSettings) (*order.Order, error)
+	GetOpenOrdersForStrategy(string) []gctorder.Detail
+	GetOrderFromStore(int) *gctorder.Detail
+
+	OnFill(fill.Event)
+	OnCancel(cancel.Event)
+
+	GetLiveMode() bool
+	GetAllClosedTrades() []*livetrade.Details
+	GetAllClosedTradesByStrategy() map[string][]*livetrade.Details
+
+	ViewHoldingAtTimePeriod(eventtypes.EventHandler) (*holdings.Holding, error)
+	setHoldingsForOffset(*holdings.Holding, bool) error
+	UpdateHoldings(eventtypes.DataEventHandler) error
+	GetTradeForStrategy(string) *livetrade.Details
+	GetComplianceManager(string, asset.Item, currency.Pair) (*compliance.Manager, error)
+
+	SetFee(string, asset.Item, currency.Pair, decimal.Decimal)
+	GetFee(string, asset.Item, currency.Pair) decimal.Decimal
+
+	Reset()
+}
+
 // Portfolio stores all holdings and rules to assess orders, allowing the portfolio manager to
 // modify, accept or reject strategy signals
 type Portfolio struct {
@@ -101,31 +127,6 @@ type ExchangeAssetPairSettings struct {
 	Limits                  *gctorder.Limits
 	CanUseExchangeLimits    bool
 	SkipCandleVolumeFitting bool
-}
-
-// Handler contains all functions expected to operate a portfolio manager
-type PortfolioHandler interface {
-	GetVerbose() bool
-	OnSignal(signal.Event, *ExchangeAssetPairSettings) (*order.Order, error)
-	GetOpenOrdersForStrategy(string) []gctorder.Detail
-	GetOrderFromStore(int) *gctorder.Detail
-
-	OnFill(fill.Event)
-	OnCancel(cancel.Event)
-
-	GetLiveMode() bool
-	GetAllClosedTrades() []*livetrade.Details
-
-	ViewHoldingAtTimePeriod(eventtypes.EventHandler) (*holdings.Holding, error)
-	setHoldingsForOffset(*holdings.Holding, bool) error
-	UpdateHoldings(eventtypes.DataEventHandler) error
-	GetTradeForStrategy(string) *livetrade.Details
-	GetComplianceManager(string, asset.Item, currency.Pair) (*compliance.Manager, error)
-
-	SetFee(string, asset.Item, currency.Pair, decimal.Decimal)
-	GetFee(string, asset.Item, currency.Pair) decimal.Decimal
-
-	Reset()
 }
 
 // SizeHandler is the interface to help size orders

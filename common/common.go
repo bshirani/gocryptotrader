@@ -491,3 +491,25 @@ const ASCIILogo = `
               / /_/ / /_/ / /__/ ,< / /_/  __(__  ) /_/  __/ /
              /_____/\__,_/\___/_/|_|\__/\___/____/\__/\___/_/
 `
+
+func LastFileInDir(dir string) (string, error) {
+	wd, _ := os.Getwd()
+	files, _ := ioutil.ReadDir(filepath.Join(wd, dir))
+	var modTime time.Time
+	var names []string
+	for _, fi := range files {
+		if fi.Mode().IsRegular() {
+			if !fi.ModTime().Before(modTime) {
+				if fi.ModTime().After(modTime) {
+					modTime = fi.ModTime()
+					names = names[:0]
+				}
+				names = append(names, fi.Name())
+			}
+		}
+	}
+	if len(names) == 0 {
+		return "", fmt.Errorf("could not find file in dir %s", dir)
+	}
+	return names[len(names)-1], nil
+}

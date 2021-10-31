@@ -11,6 +11,7 @@ import (
 	"gocryptotrader/common/file"
 	"gocryptotrader/config"
 	"gocryptotrader/data"
+	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/factors"
 	"gocryptotrader/log"
 
@@ -352,8 +353,8 @@ type TestRow struct {
 	y  float64
 }
 
-func (f *FactorEngine) WriteCSV(w io.Writer) {
-	factors.WriteCSV(w, f.calcs)
+func (f *FactorEngine) WriteCSV(w io.Writer, t []*livetrade.Details) {
+	factors.WriteCSV(w, f.calcs, t)
 }
 
 // func (f *FactorEngine) WriteCSV(fpath string) error {

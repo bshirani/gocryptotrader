@@ -23,6 +23,8 @@ type Handler interface {
 	GetNumID() int
 	GetDirection() order.Side
 	GetPair() currency.Pair
+	// GetCurrencySettings() *ExchangeAssetPairSettings
+	// SetCurrencySettings(*ExchangeAssetPairSettings)
 	SetPair(currency.Pair)
 	Name() string
 	Stop()

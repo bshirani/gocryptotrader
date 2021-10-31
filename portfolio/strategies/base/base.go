@@ -15,9 +15,10 @@ import (
 
 // Strategy is base implementation of the Handler interface
 type Strategy struct {
-	Name                      string
-	ID                        int
-	NumID                     int
+	Name  string
+	ID    int
+	NumID int
+	// currencySettings          *ExchangeAssetPairSettings
 	pair                      currency.Pair
 	exchange                  string
 	weight                    decimal.Decimal
@@ -137,6 +138,10 @@ func (s *Strategy) SetDirection(direction order.Side) {
 	s.direction = direction
 }
 
+func (s *Strategy) SelectFeatures() {
+	fmt.Println("make api request here")
+}
+
 func (s *Strategy) Stop() {
 	// fmt.Println("num trades:", len(p.ClosedTrades))
 	return
@@ -145,3 +150,11 @@ func (s *Strategy) Stop() {
 	// 	fmt.Printf("%d,%s,%s\n", x.Timestamp.Unix(), x.rsiValue, x.maValue)
 	// }
 }
+
+// func (s *Strategy) GetCurrencySettings() *ExchangeAssetPairSettings {
+// 	return s.currencySettings
+// }
+//
+// func (s *Strategy) SetCurrencySettings(e *ExchangeAssetPairSettings) {
+// 	s.currencySettings = e
+// }

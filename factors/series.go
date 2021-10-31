@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"gocryptotrader/data"
+	"gocryptotrader/database/repository/livetrade"
 	"io"
 
 	"github.com/shopspring/decimal"
@@ -81,10 +82,10 @@ func GetCurrentDateStats(kline *IntervalDataFrame, d data.Handler) *NCalculation
 	}
 }
 
-func WriteCSV(w io.Writer, calcs []*Calculation) {
+func WriteCSV(w io.Writer, calcs []*Calculation, trades []*livetrade.Details) {
 	cw := csv.NewWriter(w)
 
-	headers := []string{}
+	headers := []string{"time", "id"}
 	for _, h := range calcs[0].CSVHeader() {
 		headers = append(headers, h)
 	}
@@ -92,14 +93,29 @@ func WriteCSV(w io.Writer, calcs []*Calculation) {
 		h = fmt.Sprintf("n10_%s", h)
 		headers = append(headers, h)
 	}
+	headers = append(headers, "profit_loss_quote")
 	cw.Write(headers)
 
-	// rows
-	for _, c := range calcs {
-		cw.Write(c.ToStrings())
+	for _, t := range trades {
+		calc, _ := getCalcForTrade(calcs, t)
+		strings := []string{fmt.Sprintf("%d", t.EntryTime.Unix()), fmt.Sprintf("%d", t.ID)}
+		for _, s := range calc.ToStrings() {
+			strings = append(strings, s)
+		}
+		strings = append(strings, t.ProfitLossQuote.String())
+		cw.Write(strings)
 	}
 
 	cw.Flush()
+}
+
+func getCalcForTrade(calcs []*Calculation, t *livetrade.Details) (*Calculation, error) {
+	for _, c := range calcs {
+		if c.Time == t.EntryTime {
+			return c, nil
+		}
+	}
+	return nil, fmt.Errorf("calcuation not found for trade %v", t)
 }
 
 func (c *Calculation) ToStrings() []string {

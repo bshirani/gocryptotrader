@@ -61,6 +61,11 @@ var (
 				Action: analyzePF,
 			},
 			{
+				Name:   "backtest_model",
+				Usage:  "backtest model",
+				Action: backtestModel,
+			},
+			{
 				Name:   "update_weights",
 				Usage:  "calculate and update pf weights",
 				Action: updateWeights,
@@ -195,6 +200,17 @@ func updateWeights(c *cli.Context) error {
 	prodWeighted := filepath.Join(workingDir, "confs/prod.strat")
 	fmt.Println("saving", len(pf.Weights.Strategies), "pf weights to", prodWeighted)
 	pf.Weights.Save(prodWeighted)
+	return err
+}
+
+func backtestModel(c *cli.Context) error {
+	err := setupBot()
+	// pf, err := getPF()
+	analyze.BacktestModel()
+	// fmt.Println("backtest models", pf)
+	// prodWeighted := filepath.Join(workingDir, "confs/prod.strat")
+	// fmt.Println("saving", len(pf.Weights.Strategies), "pf weights to", prodWeighted)
+	// pf.Weights.Save(prodWeighted)
 	return err
 }
 

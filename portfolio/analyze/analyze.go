@@ -1,13 +1,11 @@
 package analyze
 
 import (
-	"fmt"
+	"gocryptotrader/common"
 	"gocryptotrader/config"
 	"gocryptotrader/database/repository/livetrade"
-	"io/ioutil"
 	"os"
 	"path/filepath"
-	"time"
 )
 
 func SetupPortfolio(cfg *config.Config, filepath string) (pf *PortfolioAnalysis, err error) {
@@ -32,39 +30,12 @@ func (p *PortfolioAnalysis) loadTradesFromFile(filepath string) error {
 }
 
 func getTradeFilePath(path string) (string, error) {
-	// return os.MkdirAll(dir, 0770)
-	wd, err := os.Getwd()
-	dir := filepath.Join(wd, "results/bt")
+	wd, _ := os.Getwd()
+	var err error
 	if path == "" {
-		path = lastFileInDir(dir)
-	}
-
-	if err != nil {
-		return "", err
+		path, err = common.LastFileInDir("results/bt")
 	}
 	return filepath.Join(wd, "results/bt", path), err
-}
-
-func lastFileInDir(dir string) string {
-	files, _ := ioutil.ReadDir(dir)
-	var modTime time.Time
-	var names []string
-	for _, fi := range files {
-		if fi.Mode().IsRegular() {
-			if !fi.ModTime().Before(modTime) {
-				if fi.ModTime().After(modTime) {
-					modTime = fi.ModTime()
-					names = names[:0]
-				}
-				names = append(names, fi.Name())
-			}
-		}
-	}
-	if len(names) == 0 {
-		panic(fmt.Sprintf("could not find file in dir %s", dir))
-		fmt.Println(modTime, names)
-	}
-	return names[len(names)-1]
 }
 
 // func calculateMaxDrawdown(closePrices []eventtypes.DataEventHandler) Swing {
