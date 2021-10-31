@@ -1,0 +1,5 @@
+__pycache__/
+libs/
+lightning_logs/
+data/
+*.pt
