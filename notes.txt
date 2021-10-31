@@ -308,4 +308,21 @@ create a portfolio backtest and get the results
 get a neural network running for each strategy
 train and test
 
+see if we can get a performance improvement
+
+run prediction
+run analysis
+observe difference, see if there's improvement
+keep trying until you see an improvement
+classify the conditions under which the strategy is performing under
+
+long term trendiness
+we need more features
+how do we get more features
+I need information about the days
+how do I want to handle strategies with multiple time intervals?
+
+each strategy can request any number of time intervals
+
+just make it work for one to start
 

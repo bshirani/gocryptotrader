@@ -3,3 +3,4 @@ libs/
 lightning_logs/
 data/
 *.pt
+MNIST/
