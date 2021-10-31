@@ -4,22 +4,28 @@ import (
 	"encoding/json"
 	"fmt"
 	"gocryptotrader/common"
+	"gocryptotrader/database/repository/livetrade"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strconv"
+
+	"github.com/shopspring/decimal"
 )
 
 const (
 	host = "http://localhost:8000"
 )
 
-func BacktestModel() {
+func (p *PortfolioAnalysis) BacktestModel() {
 	lastCSV, _ := common.LastFileInDir("results/fcsv")
 	// SelectFeatures(lastCSV)
 	GetPredictions(lastCSV)
 }
 
-func SelectFeatures(filename string) {
+func (p *PortfolioAnalysis) SelectFeatures(filename string) {
 	url := fmt.Sprintf("%s/select_features?file=../results/fcsv/%s", host, filename)
 	resp, err := http.Get(url)
 	if err != nil {
@@ -37,11 +43,23 @@ func SelectFeatures(filename string) {
 }
 
 func GetPredictions(filename string) {
+	wd, err := os.Getwd()
+	if err != nil {
+		fmt.Printf("Could not get working directory. Error: %v.\n", err)
+		os.Exit(1)
+	}
+	lastBT, _ := common.LastFileInDir("results/bt")
+	btPath := filepath.Join(wd, "results/bt", lastBT)
+	trades, err := livetrade.LoadJSON(btPath)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("lastBT", lastBT)
+	fmt.Println("trades", len(trades))
 	url := fmt.Sprintf(
 		"%s/predict?file=../results/fcsv/%s",
 		host,
 		filename)
-	fmt.Println(url)
 	resp, err := http.Get(url)
 	if err != nil {
 		log.Fatalln(err)
@@ -53,6 +71,14 @@ func GetPredictions(filename string) {
 	var result map[string]interface{}
 	json.Unmarshal([]byte(body), &result)
 	for key, value := range result {
-		fmt.Println(key, value.(float64))
+		for _, t := range trades {
+			id, _ := strconv.ParseInt(key, 10, 32)
+			if t.ID == int(id) {
+				t.Prediction = value.(float64)
+				t.PredictionAmount = decimal.NewFromFloat(t.Prediction).Mul(t.Amount)
+				break
+			}
+		}
 	}
+	livetrade.WriteJSON(trades, btPath)
 }

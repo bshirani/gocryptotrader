@@ -16,14 +16,26 @@ type StrategyAnalysis struct {
 	Name      string        `json:"name"`
 	Label     string        `json:"label"`
 
-	NumTrades     int             `json:"numTrades"`
-	NetProfit     decimal.Decimal `json:"netProfit"`
-	StartDate     time.Time       `json:"startDate"`
-	EndDate       time.Time       `json:"endDate"`
-	WinPercentage float64         `json:"winPercentage"`
-	AveragePL     float64         `json:"averagePl"`
-	AverageWin    float64         `json:"averageWin"`
-	AverageLoss   float64         `json:"averageLoss"`
+	StartDate time.Time `json:"startDate"`
+	EndDate   time.Time `json:"endDate"`
+
+	NumTrades          int `json:"numTrades"`
+	NumTradesPredicted int `json:"numTradesPredicted"`
+
+	NetProfit          decimal.Decimal `json:"netProfit"`
+	NetProfitPredicted decimal.Decimal `json:"netProfitPredicted"`
+
+	WinPercentage          float64 `json:"winPercentage"`
+	WinPercentagePredicted float64 `json:"winPercentagePredicted"`
+
+	AveragePL          float64 `json:"averagePl"`
+	AveragePLPredicted float64 `json:"averagePlPredicted"`
+
+	AverageWin          float64 `json:"averageWin"`
+	AverageWinPredicted float64 `json:"averageWinPredicted"`
+
+	AverageLoss          float64 `json:"averageLoss"`
+	AverageLossPredicted float64 `json:"averageLossPredicted"`
 
 	// MaxDrawdown                  Swing                 `json:"maxDrawdown,omitempty"`
 	// StartingClosePrice           decimal.Decimal       `json:"startingClosePrice"`

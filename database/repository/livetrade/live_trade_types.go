@@ -21,6 +21,8 @@ type Details struct {
 	ID               int
 	Side             order.Side
 	EntryPrice       decimal.Decimal
+	Prediction       float64
+	PredictionAmount decimal.Decimal
 	ExitPrice        decimal.Decimal
 	Amount           decimal.Decimal
 	DurationMinutes  float64

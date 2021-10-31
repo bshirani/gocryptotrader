@@ -18,6 +18,7 @@ type PortfolioAnalysis struct {
 	groupedTrades      map[string][]*livetrade.Details
 	trades             []*livetrade.Details
 	Config             *config.Config
+	Filepath           string
 	StrategiesAnalyses []*StrategyAnalysis
 }
 

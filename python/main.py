@@ -36,12 +36,21 @@ async def select_features(file: str):
 # receives a list of trades and returns the predictions for each
 # returns an array of floats
 @app.get("/predict")
-async def predict(file: str):
-    df = pd.read_csv(file, header=0)
+async def predict():
+    filename = "../results/fcsv/2021-10-31-11-03-31-trend@BTC_USDT@BUY.csv"
+    df = pd.read_csv(filename, header=0)
     df.set_index('time',inplace=True)
+    # predict_df(df)
+    # return df['profit_loss_quote'].to_dict()
+    # return df['profit_loss_quote'].values.tolist()
 
-    res = []
-    res.append({"id": 1, "pred": 0.52})
-    res.append({"id": 2, "pred": 0.93})
-    res.append({"id": 3, "pred": 0.19})
-    return res
+    x = df['id'].values.tolist()
+    n = len(x)
+    return zip(x, np.random.rand(n).tolist())
+    # return "ok"
+
+    # res = []
+    # res.append({"id": 1, "pred": 0.52})
+    # res.append({"id": 2, "pred": 0.93})
+    # res.append({"id": 3, "pred": 0.19})
+    # return res

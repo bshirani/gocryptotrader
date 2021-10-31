@@ -168,7 +168,11 @@ func setupBot() error {
 			panic("config file is empty")
 			// fmt.Println("config file", settings.ConfigFile)
 			// fmt.Println("emoty config file")
-			settings.ConfigFile = filepath.Join(configDir, "dev/live.json")
+			if settings.EnableLiveMode {
+				settings.ConfigFile = filepath.Join(configDir, "dev/live.json")
+			} else {
+				settings.ConfigFile = filepath.Join(configDir, "dev/backtest.json")
+			}
 		} else {
 			settings.ConfigFile = filepath.Join(configDir, fmt.Sprintf("dev/%s.json", settings.ConfigFile))
 		}
@@ -197,6 +201,7 @@ func setupBot() error {
 func updateWeights(c *cli.Context) error {
 	setupBot()
 	pf, err := getPF()
+	pf.Analyze()
 	prodWeighted := filepath.Join(workingDir, "confs/prod.strat")
 	fmt.Println("saving", len(pf.Weights.Strategies), "pf weights to", prodWeighted)
 	pf.Weights.Save(prodWeighted)
@@ -205,8 +210,9 @@ func updateWeights(c *cli.Context) error {
 
 func backtestModel(c *cli.Context) error {
 	err := setupBot()
-	// pf, err := getPF()
-	analyze.BacktestModel()
+	pf, err := getPF()
+	pf.BacktestModel()
+	pf.Analyze()
 	// fmt.Println("backtest models", pf)
 	// prodWeighted := filepath.Join(workingDir, "confs/prod.strat")
 	// fmt.Println("saving", len(pf.Weights.Strategies), "pf weights to", prodWeighted)
@@ -217,12 +223,8 @@ func backtestModel(c *cli.Context) error {
 func analyzePF(c *cli.Context) error {
 	setupBot()
 	pf, err := getPF()
-	filename := fmt.Sprintf(
-		"portfolio_analysis_%v.json",
-		time.Now().Format("2006-01-02-15-04-05"))
-	filename = filepath.Join(workingDir, "results/pf", filename)
-	fmt.Println("saving", filename)
-	pf.Save(filename)
+	pf.Analyze()
+	pf.Save("")
 	return err
 }
 

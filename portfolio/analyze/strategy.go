@@ -34,7 +34,13 @@ func (p *PortfolioAnalysis) analyzeGrouped() {
 
 func analyzeStrategy(s strategies.Handler, trades []*livetrade.Details) (a *StrategyAnalysis) {
 	a = &StrategyAnalysis{}
-	a.NumTrades = len(trades)
+	var predTrades []*livetrade.Details
+	for _, t := range trades {
+		if t.Prediction > 0 {
+			predTrades = append(predTrades, t)
+		}
+	}
+
 	sumPl := 0.0
 	sumProfits := 0.0
 	sumLosses := 0.0
@@ -51,6 +57,7 @@ func analyzeStrategy(s strategies.Handler, trades []*livetrade.Details) (a *Stra
 			lossCount += 1
 		}
 	}
+	a.NumTrades = len(trades)
 	a.NetProfit = decimal.NewFromFloat(sumPl)
 	a.Label = s.GetLabel()
 	a.Name = s.Name()
@@ -62,6 +69,30 @@ func analyzeStrategy(s strategies.Handler, trades []*livetrade.Details) (a *Stra
 	a.AverageWin = sumProfits / float64(winCount)
 	a.AverageLoss = sumLosses / float64(lossCount)
 	a.WinPercentage = float64(winCount) / float64(len(trades))
+
+	sumPl = 0.0
+	sumProfits = 0.0
+	sumLosses = 0.0
+	winCount = 0
+	lossCount = 0
+	for _, t := range predTrades {
+		pl, _ := t.ProfitLossQuote.Float64()
+		pl = pl * t.Prediction
+		sumPl += pl
+		if pl > 0 {
+			sumProfits += pl
+			winCount += 1
+		} else {
+			sumLosses += pl
+			lossCount += 1
+		}
+	}
+	a.NumTradesPredicted = len(predTrades)
+	a.NetProfitPredicted = decimal.NewFromFloat(sumPl)
+	a.AveragePLPredicted = sumPl / float64(winCount+lossCount)
+	a.AverageWinPredicted = sumProfits / float64(winCount)
+	a.AverageLossPredicted = sumLosses / float64(lossCount)
+	a.WinPercentagePredicted = float64(winCount) / float64(len(trades))
 
 	return a
 }

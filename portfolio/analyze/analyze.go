@@ -9,14 +9,19 @@ import (
 )
 
 func SetupPortfolio(cfg *config.Config, filepath string) (pf *PortfolioAnalysis, err error) {
-	pf = &PortfolioAnalysis{
-		Config: cfg,
-	}
-	err = pf.loadTradesFromFile(filepath)
-	pf.AnalyzePortfolio()
-	pf.AnalyzeStrategies()
-	pf.CalculateProductionWeights()
-	return pf, err
+	return &PortfolioAnalysis{
+		Config:   cfg,
+		Filepath: filepath,
+	}, nil
+}
+
+func (p *PortfolioAnalysis) Analyze() error {
+	err := p.loadTradesFromFile(p.Filepath)
+	p.AnalyzePortfolio()
+	p.AnalyzeStrategies()
+	p.CalculateProductionWeights()
+	p.Save("")
+	return err
 }
 
 func (p *PortfolioAnalysis) loadTradesFromFile(filepath string) error {
