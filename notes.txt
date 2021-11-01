@@ -326,3 +326,7 @@ each strategy can request any number of time intervals
 
 just make it work for one to start
 
+create real predictions
+give false input to prove it works
+
+- what's the distribution of the data

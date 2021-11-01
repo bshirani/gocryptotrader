@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.feature_selection import SelectFromModel
 from sklearn.metrics import accuracy_score
 from fastapi import FastAPI
+from predict2 import predict as predict2
 import json
 
 app = FastAPI()
@@ -40,6 +41,7 @@ async def predict():
     filename = "../results/fcsv/2021-10-31-11-03-31-trend@BTC_USDT@BUY.csv"
     df = pd.read_csv(filename, header=0)
     df.set_index('time',inplace=True)
+    predict2()
     # predict_df(df)
     # return df['profit_loss_quote'].to_dict()
     # return df['profit_loss_quote'].values.tolist()

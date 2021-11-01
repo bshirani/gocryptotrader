@@ -30,70 +30,73 @@ from sklearn.model_selection import train_test_split
 from pathlib import Path
 import wget
 from pytorch_tabular.utils import get_balanced_sampler, get_class_weighted_cross_entropy
-
-target_name = ["profit_loss_quote"]
-num_col_names = ['pl2']
-cat_col_names = []
-filename = "../results/fcsv/2021-10-31-11-03-31-trend@BTC_USDT@BUY.csv"
-df = pd.read_csv(filename, header=0)
-df['pl2'] = df['profit_loss_quote']
-print(len(df))
-# print(df.head())
-train, test = train_test_split(df, random_state=42)
-train, val = train_test_split(train, random_state=42)
-data_config = DataConfig(
-    target=target_name,
-    continuous_cols=num_col_names,
-    categorical_cols=cat_col_names,
-    continuous_feature_transform="quantile_normal",
-    normalize_continuous_features=True,
-    num_workers=12,
-)
-
-# model_config = CategoryEmbeddingModelConfig(task="regression")
-model_config = AutoIntConfig(
-    task="regression",
-    deep_layers=True,
-    embedding_dropout=0.2,
-    batch_norm_continuous_input=True,
-    attention_pooling=True,
-)
-
-trainer_config = TrainerConfig(
-    checkpoints=None,
-    max_epochs=5,
-    gpus=1,
-    profiler=None,
-    fast_dev_run=False,
-    auto_lr_find=False,
-)
-optimizer_config = OptimizerConfig()
-
-tabular_model = TabularModel(
-    data_config=data_config,
-    model_config=model_config,
-    optimizer_config=optimizer_config,
-    trainer_config=trainer_config,
-)
 from sklearn.preprocessing import PowerTransformer
-tr = PowerTransformer()
 
-def fake_metric(y_hat, y):
-    return (y_hat - y).mean()
+filename = '../results/fcsv/2021-10-31-11-03-31-trend@BTC_USDT@BUY.csv'
+df = pd.read_csv(filename, header=0)
 
-tabular_model.fit(
-    train=train,
-    test=test,
-    metrics=[fake_metric],
-    target_transform=tr,
-    loss=torch.nn.L1Loss(),
-    optimizer=torch.optim.Adagrad,
-    optimizer_params={},
-)
-from pytorch_tabular.feature_extractor import DeepFeatureExtractor
-result = tabular_model.evaluate(test)
-print(test)
-print(result)
+def predict():
+    target_name = ['profit_loss_quote']
+    num_col_names = ['pl2']
+    cat_col_names = []
+    df['pl2'] = df['profit_loss_quote']
+    train, test = train_test_split(df, random_state=42)
+    train, val = train_test_split(train, random_state=42)
+
+    data_config = DataConfig(
+        target=target_name,
+        continuous_cols=num_col_names,
+        categorical_cols=cat_col_names,
+        continuous_feature_transform=None,#"quantile_normal",
+        normalize_continuous_features=True,
+        num_workers=12,
+    )
+
+    # model_config = CategoryEmbeddingModelConfig(task="regression")
+    model_config = AutoIntConfig(
+        task="regression",
+        deep_layers=True,
+        embedding_dropout=0.2,
+        batch_norm_continuous_input=True,
+        attention_pooling=True,
+    )
+
+    trainer_config = TrainerConfig(
+        checkpoints=None,
+        max_epochs=10,
+        gpus=1,
+        profiler=None,
+        fast_dev_run=True,
+        auto_lr_find=False,
+    )
+    optimizer_config = OptimizerConfig()
+
+    tabular_model = TabularModel(
+        data_config=data_config,
+        model_config=model_config,
+        optimizer_config=optimizer_config,
+        trainer_config=trainer_config,
+    )
+    tr = PowerTransformer()
+
+    def fake_metric(y_hat, y):
+        return (y_hat - y).mean()
+
+    tabular_model.fit(
+        train=train,
+        test=test,
+        metrics=[fake_metric],
+        target_transform=tr,
+        loss=torch.nn.L1Loss(),
+        optimizer=torch.optim.Adagrad,
+        optimizer_params={},
+    )
+    # result = tabular_model.evaluate(test)
+    result = tabular_model.predict(test)
+    print(result[['pl2', 'profit_loss_quote_prediction']].head())
+
+if __name__ == "__main__":
+    predict()
 
 # sampler = get_balanced_sampler(train[target_name].values.ravel())
 # # cust_loss = get_class_weighted_cross_entropy(train[target_name].values.ravel())

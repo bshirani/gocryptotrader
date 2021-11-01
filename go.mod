@@ -53,4 +53,5 @@ require (
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0 // indirect
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
+	mlpack.org/v1/mlpack v0.0.0-20201030224927-1958871f884c // indirect
 )
