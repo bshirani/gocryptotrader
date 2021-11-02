@@ -449,3 +449,28 @@ improve entries/exits
 run backtest
 run experiment, view results
 repeat until profitable
+
+add daily data to factors
+we need to handle minutes and days
+
+do we want to handle different time series besides minutes?
+say 5 minutes, 15 minutes? 1 hour?
+yes yes yes
+
+so how will we add daily data?
+
+will each strategy have a daily data stream?
+will each strategy have multiple data streams?
+will we add the daily data to the event itself?
+all the data ultimately will end up in the factor calculations as the strategies are stateless,
+so focus there
+
+how do I add daily data
+
+without having to scan an entire day.
+I could scan an entire day, that's fine.
+or just start at midnight
+
+so the strategies will need one day of warmup
+they will require all daily data to have been downloaded already
+they will be loaded....

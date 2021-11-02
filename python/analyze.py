@@ -39,6 +39,8 @@ class ModelAnalyzer:
         'max_consequtive_losers',
         'max_consequtive_winners',
         'max_drawdown',
+        'avg_win_by_avg_loss',
+        'net_profit_by_maxdd',
         # 'sortino_trades',
         # 'sortino_180',
         # 'num_trades',

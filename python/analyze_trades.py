@@ -35,7 +35,7 @@ def analyze_trades(ts, portfolio=False, initial_balance=10000):
     perf = {
         "initial_balance": initial_balance,
         "ending_balance": initial_balance,
-        "annual_return": 0 if np == 0 else 100000/np,
+        "annual_return": 0 if np == 0 else 1000/np,
         "cum_returns_final": 1,
         "annual_volatility": 1,
         "calmar_ratio": 1,
@@ -63,6 +63,7 @@ def analyze_trades(ts, portfolio=False, initial_balance=10000):
         "gross_losses": gross_losses(ts),
         "avg_winner": average_winner(ts),
         "avg_loser": average_loser(ts),
+        "avg_win_by_avg_loss": average_winner(ts)/average_loser(ts)*-1,
         "perc_winners": perc_profitable(ts),
         "num_wins": int((ts["net_profit"] > 0).sum()),
         "num_losses": int((ts["net_profit"] < 0).sum()),
@@ -73,6 +74,7 @@ def analyze_trades(ts, portfolio=False, initial_balance=10000):
         "max_win": ts.net_profit.max(),
         "max_loss": ts.net_profit.min(),
         "sharpe_ratio": 1.33333333312312312,
+        "net_profit_by_maxdd": np/md,
     }
 
     if portfolio:
