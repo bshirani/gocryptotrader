@@ -752,7 +752,7 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 						ev.GetTime().Minute(),
 						strings.ToUpper(ev.Pair().String()),
 						fe.Last().Close,
-						fe.Last().N60.RangeDivClose.Mul(decimal.NewFromInt(100)).Round(2),
+						fe.Last().N60.RangeRel.Mul(decimal.NewFromInt(100)).Round(2),
 						hrChg,
 						fe.Last().N60.Range,
 						fe.Last().N60.High,
@@ -1260,7 +1260,8 @@ func (tm *TradeManager) writeFactorEngines(allFactors bool) (err error) {
 			time.Now().Format("2006-01-02-15-04-05"),
 			s.GetLabel(),
 		)
-		fmt.Println("writing fe csv", factorsCSV)
+		fmt.Println("writing fe csv")
+		fmt.Println(factorsCSV)
 		writer, err := file.Writer(factorsCSV)
 		if err != nil {
 			return err

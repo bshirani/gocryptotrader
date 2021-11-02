@@ -103,12 +103,17 @@ func (f *FactorEngine) Last() *factors.Calculation {
 
 func appendNSeries(fs *factors.NSeries, fc *factors.NCalculation) {
 	fs.Open = append(fs.Open, fc.Open)
+	fs.OpenRel = append(fs.OpenRel, fc.OpenRel)
 	fs.Close = append(fs.Close, fc.Close)
 	fs.Low = append(fs.Low, fc.Low)
+	fs.LowRel = append(fs.LowRel, fc.LowRel)
 	fs.High = append(fs.High, fc.High)
+	fs.HighRel = append(fs.HighRel, fc.HighRel)
 	fs.Range = append(fs.Range, fc.Range)
-	fs.RangeDivClose = append(fs.RangeDivClose, fc.RangeDivClose)
+	fs.RangeRel = append(fs.RangeRel, fc.RangeRel)
 	fs.PctChange = append(fs.PctChange, fc.PctChange)
+	fs.Slope = append(fs.Slope, fc.Slope)
+	fs.SlopeRel = append(fs.SlopeRel, fc.SlopeRel)
 }
 
 func (f *FactorEngine) OnBar(d data.Handler) error {
@@ -181,7 +186,7 @@ func (f *FactorEngine) OnBar(d data.Handler) error {
 
 // func (f *FactorEngine) PrintLast(d data.Handler) {
 // 	if len(f.Kline().Close) > 60 {
-// 		nRangeRelClose := f.kline.N60RangeDivClose[len(f.kline.N60RangeDivClose)-1]
+// 		nRangeRelClose := f.kline.N60RangeRel[len(f.kline.N60RangeRel)-1]
 // 		hrRange := f.kline.N60Range[len(f.kline.N60Range)-1]
 // 		lt := d.Latest()
 //
