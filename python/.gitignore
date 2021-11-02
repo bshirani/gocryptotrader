@@ -4,3 +4,11 @@ lightning_logs/
 data/
 *.pt
 MNIST/
+AutoML*/
+.ipynb_checkpoints/
+*.csv
+.pt_tmp
+examples/ddate
+examples/ddata
+*.zip
+**/**.zip
