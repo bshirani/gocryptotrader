@@ -384,24 +384,68 @@ backtest operation API
 create the backtest operation API
 create the live operation API
 
-let's start with live beacuse it's more fun
+python experiment.py
+- returns the best model code
+- returns the results of the best model applied on the input data
+
+automl libraries:
+- pycaret
+- tpot
+- autokeras
+- autovi_ml
+- autogluon
+- mljar-supervised
+- automl-gs
+
+serving libraries live mode:
+- bentoml
+
+feature engineering:
+- tsfresh
+- fb prophet
+
+goal today:
+- experiment generates a model gleamed from several strategies, produces best model
+- model is train/eval on each strategy
+- measure the current performance metric
 
 
-do I want to run a python command in order to do this?
-I don't want to run a go command and have it wait
-or use a job queue
-
-so just all this in python
-
-so what do I need?
-
-a command line application?
-a set of files each for a specific command?
+# apply the prediction and return an actual sortino ratio for the strategy
 
 
-ability to load the training data, create a test sample
+run backtest
 
-organize the data
-what's the data that we have
+goal: build a model
+offline/backtest python - backtest models, apply prediction, get results
+
+what is the performance improvement?
+what is the sortino ratio of the strategy without a model?
+what is the sortino ratio of the strategy with the model with all application methods
 
 
+Add features, rerun backtest
+repeat the process until a successful trading strategy is found
+then deploy the model far and wide
+
+live mode is easy to understand and apply
+
+focus now on:
+
+
+modeling variables:
+- strategies: i.e. entries/exits
+- features
+- fitness functions
+- feature selection methods
+- kinds of models
+- application methods
+
+observe:
+- performance results of individual strategies
+
+add targets definition
+add features
+improve entries/exits
+run backtest
+run experiment, view results
+repeat until profitable

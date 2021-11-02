@@ -70,12 +70,12 @@ func NewTradeManager(bot *Engine) (*TradeManager, error) {
 	tm.debug = bot.Config.TradeManager.Debug
 
 	stats := &statistics.Statistic{
-		StrategyName:                "ok",
-		StrategyNickname:            "trend",
-		StrategyDescription:         "ok",
-		StrategyGoal:                "make money",
-		StrategyStatistics: make(map[string]map[asset.Item]map[currency.Pair]*strategystatistics.StrategyStatistic),
-		RiskFreeRate:                decimal.NewFromFloat(3.0),
+		StrategyName:        "ok",
+		StrategyNickname:    "trend",
+		StrategyDescription: "ok",
+		StrategyGoal:        "make money",
+		StrategyStatistics:  make(map[string]map[asset.Item]map[currency.Pair]*strategystatistics.StrategyStatistic),
+		RiskFreeRate:        decimal.NewFromFloat(3.0),
 	}
 	tm.Statistic = stats
 
@@ -370,9 +370,9 @@ func (tm *TradeManager) Run() error {
 		t1 := tm.bot.Config.DataSettings.DatabaseData.StartDate
 		t2 := tm.bot.Config.DataSettings.DatabaseData.EndDate
 		dayDuration := int(t2.Sub(t1).Minutes()) / 60 / 24
-		if dayDuration > 30 {
-			panic("more than 30 days")
-		}
+		// if dayDuration > 30 {
+		// 	panic("more than 30 days")
+		// }
 		log.Warnln(log.TradeMgr, "startdate :", t1)
 		log.Warnln(log.TradeMgr, "enddate   :", t2)
 		log.Warnln(log.TradeMgr, "duration  :", dayDuration, "days")
@@ -420,7 +420,7 @@ dataLoadingIssue:
 			"results/bt/trades-%v.json",
 			time.Now().Format("2006-01-02-15-04-05"))
 		livetrade.WriteJSON(tm.Portfolio.GetAllClosedTrades(), fileName)
-		tm.writeFactorEngines()
+		tm.writeFactorEngines(false)
 		// WriteJSON(tm.Portfolio.GetAllClosedTrades(), newpath)
 		// &analyze.PortfolioAnalysis{}.Analyze("")
 	}
@@ -1231,16 +1231,18 @@ func (tm *TradeManager) initializeFactorEngines() error {
 	return nil
 }
 
-func (tm *TradeManager) writeFactorEngines() (err error) {
-	for _, cs := range tm.bot.CurrencySettings {
-		fe := tm.FactorEngines[cs.ExchangeName][cs.AssetType][cs.CurrencyPair]
-		factorsFile := fmt.Sprintf(
-			"results/factors/%v-%s.json",
-			time.Now().Format("2006-01-02-15-04-05"),
-			cs.CurrencyPair.Upper().String(),
-		)
-		fmt.Println("writing factors", factorsFile)
-		fe.WriteJSON(factorsFile)
+func (tm *TradeManager) writeFactorEngines(allFactors bool) (err error) {
+	if allFactors {
+		for _, cs := range tm.bot.CurrencySettings {
+			fe := tm.FactorEngines[cs.ExchangeName][cs.AssetType][cs.CurrencyPair]
+			factorsFile := fmt.Sprintf(
+				"results/factors/%v-%s.json",
+				time.Now().Format("2006-01-02-15-04-05"),
+				cs.CurrencyPair.Upper().String(),
+			)
+			fmt.Println("writing factors", factorsFile)
+			fe.WriteJSON(factorsFile)
+		}
 	}
 
 	trades := tm.Portfolio.GetAllClosedTradesByStrategy()

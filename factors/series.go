@@ -94,6 +94,7 @@ func WriteCSV(w io.Writer, calcs []*Calculation, trades []*livetrade.Details) {
 		headers = append(headers, h)
 	}
 	headers = append(headers, "profit_loss_quote")
+	headers = append(headers, "risked_quote")
 	cw.Write(headers)
 
 	for _, t := range trades {
@@ -103,6 +104,7 @@ func WriteCSV(w io.Writer, calcs []*Calculation, trades []*livetrade.Details) {
 			strings = append(strings, s)
 		}
 		strings = append(strings, t.ProfitLossQuote.String())
+		strings = append(strings, decimal.NewFromFloat(t.RiskedQuote).String())
 		cw.Write(strings)
 	}
 

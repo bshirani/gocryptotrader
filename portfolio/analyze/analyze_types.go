@@ -47,14 +47,6 @@ type PortfolioReport struct {
 	AverageDurationMin float64
 }
 
-// Ratios stores all the ratios used for statistics
-type Ratios struct {
-	SharpeRatio      decimal.Decimal `json:"sharpeRatio"`
-	SortinoRatio     decimal.Decimal `json:"sortinoRatio"`
-	InformationRatio decimal.Decimal `json:"informationRatio"`
-	CalmarRatio      decimal.Decimal `json:"calmarRatio"`
-}
-
 // Swing holds a drawdown
 type Swing struct {
 	Highest          Iteration       `json:"highest"`
