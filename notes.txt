@@ -330,3 +330,58 @@ create real predictions
 give false input to prove it works
 
 - what's the distribution of the data
+
+/automl?num_strategies=n&
+
+use cases:
+- run automl on 5-20 strategies, analyze the results of those specific trading models
+- run train + predict on all strategies (1000+) and analyze the results of each of those specific models
+
+offline mode:
+>> model experiment num-strategies=5
+>> model train strategies=all
+>> model eval strategies=all
+
+live mode:
+>> model run
+
+provides http API to enable strategies to get real-time inference
+
+I should definitely use python for this because most data science tools are coded in python.
+Then interface between the go app and python using REST or files on the same drive
+
+I definitely should use python for the data science stuff
+
+I need to have a way to evaluate the results back in go to tell me the improvement.
+
+or I just keep it all in python for this part
+
+
+the key is to develop an API that will abstract the machine learning techniques used
+one that will not have to change, while being able to modify completely how the machine learning operates
+
+from the perspective of the application we only have few actions that need to be taken
+
+backtest:
+1. run experiments and train models. get the results for the models and display them. run a search of all machine learning algorithms, find the best one, then show the result
+2. train + predict chosen model on all strategies, show results
+
+live:
+1. run live models for real-time inference
+
+
+there are different AutoML tools. we can use all of them. we don't have to choose one.
+first build the API to make sure taht you can run experiements and evaluate results
+codify all your desired fitness functions and scoring methods (sortino ratio, for example)
+
+cleanup your input data
+
+ensure works in real time
+
+live operation API
+backtest operation API
+
+create the backtest operation API
+create the live operation API
+
+let's start with live beacuse it's more fun

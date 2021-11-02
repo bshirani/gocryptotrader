@@ -1,4 +1,4 @@
-package currencystatistics
+package strategystatistics
 
 import (
 	"errors"
@@ -19,7 +19,7 @@ import (
 )
 
 // CalculateResults calculates all statistics for the exchange, asset, currency pair
-func (c *CurrencyStatistic) CalculateResults() error {
+func (c *StrategyStatistic) CalculateResults() error {
 	var errs gctcommon.Errors
 	var err error
 	first := c.Events[0]
@@ -205,7 +205,7 @@ func (c *CurrencyStatistic) CalculateResults() error {
 }
 
 // PrintResults outputs all calculated statistics to the command line
-func (c *CurrencyStatistic) PrintResults(e string, a asset.Item, p currency.Pair, usingExchangeLevelFunding bool) {
+func (c *StrategyStatistic) PrintResults(e string, a asset.Item, p currency.Pair, usingExchangeLevelFunding bool) {
 	var errs gctcommon.Errors
 	sort.Slice(c.Events, func(i, j int) bool {
 		return c.Events[i].DataEvent.GetTime().Before(c.Events[j].DataEvent.GetTime())
@@ -394,7 +394,7 @@ func calculateMaxDrawdown(closePrices []eventtypes.DataEventHandler) Swing {
 	return maxDrawdown
 }
 
-func (c *CurrencyStatistic) calculateHighestCommittedFunds() {
+func (c *StrategyStatistic) calculateHighestCommittedFunds() {
 	for i := range c.Events {
 		if c.Events[i].Holdings.BaseSize.Mul(c.Events[i].DataEvent.ClosePrice()).GreaterThan(c.HighestCommittedFunds.Value) {
 			c.HighestCommittedFunds.Value = c.Events[i].Holdings.BaseSize.Mul(c.Events[i].DataEvent.ClosePrice())

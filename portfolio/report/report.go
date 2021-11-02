@@ -128,7 +128,7 @@ func (d *Data) enhanceCandles() error {
 		}
 
 		statsForCandles :=
-			d.Statistics.ExchangeAssetPairStatistics[lookup.Exchange][lookup.Asset][lookup.Pair]
+			d.Statistics.StrategyStatistics[lookup.Exchange][lookup.Asset][lookup.Pair]
 		if statsForCandles == nil {
 			continue
 		}

@@ -1,4 +1,4 @@
-package currencystatistics
+package strategystatistics
 
 import (
 	"time"
@@ -13,9 +13,9 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-// CurrencyStats defines what is expected in order to
+// StrategyStats defines what is expected in order to
 // calculate statistics based on an exchange, asset type and currency pair
-type CurrencyStats interface {
+type StrategyStats interface {
 	TotalEquityReturn() (decimal.Decimal, error)
 	MaxDrawdown() Swing
 	LongestDrawdown() Swing
@@ -34,8 +34,8 @@ type EventStore struct {
 	FillEvent    fill.Event
 }
 
-// CurrencyStatistic Holds all events and statistics relevant to an exchange, asset type and currency pair
-type CurrencyStatistic struct {
+// StrategyStatistic Holds all events and statistics relevant to an exchange, asset type and currency pair
+type StrategyStatistic struct {
 	Events                       []EventStore          `json:"-"`
 	MaxDrawdown                  Swing                 `json:"max-drawdown,omitempty"`
 	StartingClosePrice           decimal.Decimal       `json:"starting-close-price"`

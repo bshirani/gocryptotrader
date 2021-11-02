@@ -16,7 +16,7 @@ import (
 	"gocryptotrader/log"
 	"gocryptotrader/portfolio/compliance"
 	"gocryptotrader/portfolio/holdings"
-	"gocryptotrader/portfolio/statistics/currencystatistics"
+	"gocryptotrader/portfolio/statistics/strategystatistics"
 )
 
 // Reset returns the struct to defaults
@@ -33,10 +33,10 @@ func (s *Statistic) SetupEventForTime(ev eventtypes.DataEventHandler) error {
 	a := ev.GetAssetType()
 	p := ev.Pair()
 	s.setupMap(ex, a)
-	lookup := s.ExchangeAssetPairStatistics[ex][a][p]
+	lookup := s.StrategyStatistics[ex][a][p]
 	if lookup == nil {
 		// fmt.Println("lookup nil")
-		lookup = &currencystatistics.CurrencyStatistic{}
+		lookup = &strategystatistics.StrategyStatistic{}
 	}
 	for i := range lookup.Events {
 		if lookup.Events[i].DataEvent.GetTime().Equal(ev.GetTime()) &&
@@ -48,25 +48,25 @@ func (s *Statistic) SetupEventForTime(ev eventtypes.DataEventHandler) error {
 		}
 	}
 	lookup.Events = append(lookup.Events,
-		currencystatistics.EventStore{
+		strategystatistics.EventStore{
 			DataEvent: ev,
 		},
 	)
 	// fmt.Println("adding event to stats", ev.GetTime())
-	s.ExchangeAssetPairStatistics[ex][a][p] = lookup
+	s.StrategyStatistics[ex][a][p] = lookup
 
 	return nil
 }
 
 func (s *Statistic) setupMap(ex string, a asset.Item) {
-	if s.ExchangeAssetPairStatistics == nil {
-		s.ExchangeAssetPairStatistics = make(map[string]map[asset.Item]map[currency.Pair]*currencystatistics.CurrencyStatistic)
+	if s.StrategyStatistics == nil {
+		s.StrategyStatistics = make(map[string]map[asset.Item]map[currency.Pair]*strategystatistics.StrategyStatistic)
 	}
-	if s.ExchangeAssetPairStatistics[ex] == nil {
-		s.ExchangeAssetPairStatistics[ex] = make(map[asset.Item]map[currency.Pair]*currencystatistics.CurrencyStatistic)
+	if s.StrategyStatistics[ex] == nil {
+		s.StrategyStatistics[ex] = make(map[asset.Item]map[currency.Pair]*strategystatistics.StrategyStatistic)
 	}
-	if s.ExchangeAssetPairStatistics[ex][a] == nil {
-		s.ExchangeAssetPairStatistics[ex][a] = make(map[currency.Pair]*currencystatistics.CurrencyStatistic)
+	if s.StrategyStatistics[ex][a] == nil {
+		s.StrategyStatistics[ex][a] = make(map[currency.Pair]*strategystatistics.StrategyStatistic)
 	}
 }
 
@@ -75,16 +75,16 @@ func (s *Statistic) SetEventForOffset(ev eventtypes.EventHandler) error {
 	if ev == nil {
 		return eventtypes.ErrNilEvent
 	}
-	if s.ExchangeAssetPairStatistics == nil {
+	if s.StrategyStatistics == nil {
 		return errExchangeAssetPairStatsUnset
 	}
 	exch := ev.GetExchange()
 	a := ev.GetAssetType()
 	p := ev.Pair()
 	offset := ev.GetOffset()
-	lookup := s.ExchangeAssetPairStatistics[exch][a][p]
+	lookup := s.StrategyStatistics[exch][a][p]
 	if lookup == nil {
-		return fmt.Errorf("%w for %v %v %v to set signal event", errCurrencyStatisticsUnset, exch, a, p)
+		return fmt.Errorf("%w for %v %v %v to set signal event", errStrategyStatisticsUnset, exch, a, p)
 	}
 
 	for i := len(lookup.Events) - 1; i >= 0; i-- {
@@ -96,7 +96,7 @@ func (s *Statistic) SetEventForOffset(ev eventtypes.EventHandler) error {
 	return nil
 }
 
-func applyEventAtOffset(ev eventtypes.EventHandler, lookup *currencystatistics.CurrencyStatistic, i int) error {
+func applyEventAtOffset(ev eventtypes.EventHandler, lookup *strategystatistics.StrategyStatistic, i int) error {
 	switch t := ev.(type) {
 	case eventtypes.DataEventHandler:
 		lookup.Events[i].DataEvent = t
@@ -115,12 +115,12 @@ func applyEventAtOffset(ev eventtypes.EventHandler, lookup *currencystatistics.C
 // AddHoldingsForTime adds all holdings to the statistics at the time period
 func (s *Statistic) AddHoldingsForTime(h *holdings.Holding) error {
 	// fmt.Println("add holding for time....................")
-	if s.ExchangeAssetPairStatistics == nil {
+	if s.StrategyStatistics == nil {
 		return errExchangeAssetPairStatsUnset
 	}
-	lookup := s.ExchangeAssetPairStatistics[h.Exchange][h.Asset][h.Pair]
+	lookup := s.StrategyStatistics[h.Exchange][h.Asset][h.Pair]
 	if lookup == nil {
-		return fmt.Errorf("%w for %v %v %v to set holding event", errCurrencyStatisticsUnset, h.Exchange, h.Asset, h.Pair)
+		return fmt.Errorf("%w for %v %v %v to set holding event", errStrategyStatisticsUnset, h.Exchange, h.Asset, h.Pair)
 	}
 	for i := len(lookup.Events) - 1; i >= 0; i-- {
 		if lookup.Events[i].DataEvent.GetOffset() == h.Offset {
@@ -136,15 +136,15 @@ func (s *Statistic) AddComplianceSnapshotForTime(c compliance.Snapshot, e fill.E
 	if e == nil {
 		return eventtypes.ErrNilEvent
 	}
-	if s.ExchangeAssetPairStatistics == nil {
+	if s.StrategyStatistics == nil {
 		return errExchangeAssetPairStatsUnset
 	}
 	exch := e.GetExchange()
 	a := e.GetAssetType()
 	p := e.Pair()
-	lookup := s.ExchangeAssetPairStatistics[exch][a][p]
+	lookup := s.StrategyStatistics[exch][a][p]
 	if lookup == nil {
-		return fmt.Errorf("%w for %v %v %v to set compliance snapshot", errCurrencyStatisticsUnset, exch, a, p)
+		return fmt.Errorf("%w for %v %v %v to set compliance snapshot", errStrategyStatisticsUnset, exch, a, p)
 	}
 	for i := len(lookup.Events) - 1; i >= 0; i-- {
 		if lookup.Events[i].DataEvent.GetOffset() == e.GetOffset() {
@@ -165,7 +165,7 @@ func (s *Statistic) CalculateAllResults() error {
 	var finalResults []FinalResultsHolder
 	var err error
 	// var startDate, endDate time.Time
-	for exchangeName, exchangeMap := range s.ExchangeAssetPairStatistics {
+	for exchangeName, exchangeMap := range s.StrategyStatistics {
 		for assetItem, assetMap := range exchangeMap {
 			for pair, stats := range assetMap {
 				currCount++
@@ -335,63 +335,63 @@ func (s *Statistic) PrintAllEventsChronologically() {
 	var results []eventOutputHolder
 	log.Info(log.TradeMgr, "------------------Events-------------------------------------")
 	var errs gctcommon.Errors
-	for exch, x := range s.ExchangeAssetPairStatistics {
+	for exch, x := range s.StrategyStatistics {
 		for a, y := range x {
-			for pair, currencyStatistic := range y {
-				for i := range currencyStatistic.Events {
+			for pair, strategyStatistic := range y {
+				for i := range strategyStatistic.Events {
 					switch {
-					case currencyStatistic.Events[i].FillEvent != nil:
-						direction := currencyStatistic.Events[i].FillEvent.GetDirection()
+					case strategyStatistic.Events[i].FillEvent != nil:
+						direction := strategyStatistic.Events[i].FillEvent.GetDirection()
 						if direction == eventtypes.CouldNotBuy ||
 							direction == eventtypes.CouldNotSell ||
 							direction == eventtypes.DoNothing ||
 							direction == eventtypes.MissingData ||
 							direction == eventtypes.TransferredFunds ||
 							direction == "" {
-							results = addEventOutputToTime(results, currencyStatistic.Events[i].FillEvent.GetTime(),
+							results = addEventOutputToTime(results, strategyStatistic.Events[i].FillEvent.GetTime(),
 								fmt.Sprintf("%v %v %v %v | Price: $%v - Direction: %v - Reason: %s",
-									currencyStatistic.Events[i].FillEvent.GetTime().Format(gctcommon.SimpleTimeFormat),
-									currencyStatistic.Events[i].FillEvent.GetExchange(),
-									currencyStatistic.Events[i].FillEvent.GetAssetType(),
-									currencyStatistic.Events[i].FillEvent.Pair(),
-									currencyStatistic.Events[i].FillEvent.GetClosePrice().Round(8),
-									currencyStatistic.Events[i].FillEvent.GetDirection(),
-									currencyStatistic.Events[i].FillEvent.GetReason()))
+									strategyStatistic.Events[i].FillEvent.GetTime().Format(gctcommon.SimpleTimeFormat),
+									strategyStatistic.Events[i].FillEvent.GetExchange(),
+									strategyStatistic.Events[i].FillEvent.GetAssetType(),
+									strategyStatistic.Events[i].FillEvent.Pair(),
+									strategyStatistic.Events[i].FillEvent.GetClosePrice().Round(8),
+									strategyStatistic.Events[i].FillEvent.GetDirection(),
+									strategyStatistic.Events[i].FillEvent.GetReason()))
 						} else {
-							results = addEventOutputToTime(results, currencyStatistic.Events[i].FillEvent.GetTime(),
+							results = addEventOutputToTime(results, strategyStatistic.Events[i].FillEvent.GetTime(),
 								fmt.Sprintf("%v %v %v %v | Price: $%v - Amount: %v - Fee: $%v - Total: $%v - Direction %v - Reason: %s",
-									currencyStatistic.Events[i].FillEvent.GetTime().Format(gctcommon.SimpleTimeFormat),
-									currencyStatistic.Events[i].FillEvent.GetExchange(),
-									currencyStatistic.Events[i].FillEvent.GetAssetType(),
-									currencyStatistic.Events[i].FillEvent.Pair(),
-									currencyStatistic.Events[i].FillEvent.GetPurchasePrice().Round(8),
-									currencyStatistic.Events[i].FillEvent.GetAmount().Round(8),
-									currencyStatistic.Events[i].FillEvent.GetExchangeFee().Round(8),
-									currencyStatistic.Events[i].FillEvent.GetTotal().Round(8),
-									currencyStatistic.Events[i].FillEvent.GetDirection(),
-									currencyStatistic.Events[i].FillEvent.GetReason(),
+									strategyStatistic.Events[i].FillEvent.GetTime().Format(gctcommon.SimpleTimeFormat),
+									strategyStatistic.Events[i].FillEvent.GetExchange(),
+									strategyStatistic.Events[i].FillEvent.GetAssetType(),
+									strategyStatistic.Events[i].FillEvent.Pair(),
+									strategyStatistic.Events[i].FillEvent.GetPurchasePrice().Round(8),
+									strategyStatistic.Events[i].FillEvent.GetAmount().Round(8),
+									strategyStatistic.Events[i].FillEvent.GetExchangeFee().Round(8),
+									strategyStatistic.Events[i].FillEvent.GetTotal().Round(8),
+									strategyStatistic.Events[i].FillEvent.GetDirection(),
+									strategyStatistic.Events[i].FillEvent.GetReason(),
 								))
 						}
-					case currencyStatistic.Events[i].SignalEvent != nil:
-						results = addEventOutputToTime(results, currencyStatistic.Events[i].SignalEvent.GetTime(),
+					case strategyStatistic.Events[i].SignalEvent != nil:
+						results = addEventOutputToTime(results, strategyStatistic.Events[i].SignalEvent.GetTime(),
 							fmt.Sprintf("%v %v %v %v | Price: $%v - Reason: %v",
-								currencyStatistic.Events[i].SignalEvent.GetTime().Format(gctcommon.SimpleTimeFormat),
-								currencyStatistic.Events[i].SignalEvent.GetExchange(),
-								currencyStatistic.Events[i].SignalEvent.GetAssetType(),
-								currencyStatistic.Events[i].SignalEvent.Pair(),
-								currencyStatistic.Events[i].SignalEvent.GetPrice().Round(8),
-								currencyStatistic.Events[i].SignalEvent.GetReason()))
-					case currencyStatistic.Events[i].DataEvent != nil:
-						results = addEventOutputToTime(results, currencyStatistic.Events[i].DataEvent.GetTime(),
+								strategyStatistic.Events[i].SignalEvent.GetTime().Format(gctcommon.SimpleTimeFormat),
+								strategyStatistic.Events[i].SignalEvent.GetExchange(),
+								strategyStatistic.Events[i].SignalEvent.GetAssetType(),
+								strategyStatistic.Events[i].SignalEvent.Pair(),
+								strategyStatistic.Events[i].SignalEvent.GetPrice().Round(8),
+								strategyStatistic.Events[i].SignalEvent.GetReason()))
+					case strategyStatistic.Events[i].DataEvent != nil:
+						results = addEventOutputToTime(results, strategyStatistic.Events[i].DataEvent.GetTime(),
 							fmt.Sprintf("%v %v %v %v | Price: $%v - Reason: %v",
-								currencyStatistic.Events[i].DataEvent.GetTime().Format(gctcommon.SimpleTimeFormat),
-								currencyStatistic.Events[i].DataEvent.GetExchange(),
-								currencyStatistic.Events[i].DataEvent.GetAssetType(),
-								currencyStatistic.Events[i].DataEvent.Pair(),
-								currencyStatistic.Events[i].DataEvent.ClosePrice().Round(8),
-								currencyStatistic.Events[i].DataEvent.GetReason()))
+								strategyStatistic.Events[i].DataEvent.GetTime().Format(gctcommon.SimpleTimeFormat),
+								strategyStatistic.Events[i].DataEvent.GetExchange(),
+								strategyStatistic.Events[i].DataEvent.GetAssetType(),
+								strategyStatistic.Events[i].DataEvent.Pair(),
+								strategyStatistic.Events[i].DataEvent.ClosePrice().Round(8),
+								strategyStatistic.Events[i].DataEvent.GetReason()))
 					default:
-						errs = append(errs, fmt.Errorf("%v %v %v unexpected data received %+v", exch, a, pair, currencyStatistic.Events[i]))
+						errs = append(errs, fmt.Errorf("%v %v %v unexpected data received %+v", exch, a, pair, strategyStatistic.Events[i]))
 					}
 				}
 			}

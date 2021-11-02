@@ -136,7 +136,7 @@ func getTradeFilePath(path string) (string, error) {
 // 	return maxDrawdown
 // }
 //
-// func (c *CurrencyStatistic) calculateHighestCommittedFunds() {
+// func (c *StrategyStatistic) calculateHighestCommittedFunds() {
 // 	for i := range c.Events {
 // 		if c.Events[i].Holdings.BaseSize.Mul(c.Events[i].DataEvent.ClosePrice()).GreaterThan(c.HighestCommittedFunds.Value) {
 // 			c.HighestCommittedFunds.Value = c.Events[i].Holdings.BaseSize.Mul(c.Events[i].DataEvent.ClosePrice())

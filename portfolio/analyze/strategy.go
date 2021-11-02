@@ -3,7 +3,9 @@ package analyze
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"gocryptotrader/common/file"
+	gctmath "gocryptotrader/common/math"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/database/repository/livetrade"
@@ -12,6 +14,8 @@ import (
 	"gocryptotrader/portfolio/strategies"
 	"io"
 	"strings"
+
+	"github.com/shopspring/decimal"
 )
 
 func (p *PortfolioAnalysis) AnalyzeStrategies() {
@@ -76,6 +80,40 @@ func analyzeStrategyTrades(s strategies.Handler, trades []*livetrade.Details) *S
 	ss.AverageLoss = sumLosses / float64(lossCount)
 	ss.AvgWinByAvgLoss = ss.AverageWin / ss.AverageLoss * -1
 	ss.WinPercentage = float64(winCount) / float64(len(trades))
+
+	// remove the first entry as its zero and impacts
+	// ratio calculations as no movement has been made
+	benchmarkRates = benchmarkRates[1:]
+	returnPerCandle = returnPerCandle[1:]
+
+	var arithmeticSortino, geomSortino decimal.Decimal
+	var err error
+
+	arithmeticSortino, err = gctmath.DecimalSortinoRatio(returnPerCandle, riskFreeRatePerCandle, arithmeticReturnsPerCandle)
+	if err != nil && !errors.Is(err, gctmath.ErrNoNegativeResults) {
+		if errors.Is(err, gctmath.ErrInexactConversion) {
+			log.Warnf(log.TradeMgr, "%v arithmetic sortino ratio %v", sep, err)
+		} else {
+			errs = append(errs, err)
+		}
+	}
+
+	if !arithmeticSortino.IsZero() {
+		ss.ArithmeticRatios.SortinoRatio = arithmeticSortino
+	}
+
+	geomSortino, err = gctmath.DecimalSortinoRatio(returnPerCandle, riskFreeRatePerCandle, geometricReturnsPerCandle)
+	if err != nil && !errors.Is(err, gctmath.ErrNoNegativeResults) {
+		if errors.Is(err, gctmath.ErrInexactConversion) {
+			log.Warnf(log.TradeMgr, "%v geometric sortino ratio %v", sep, err)
+		} else {
+			errs = append(errs, err)
+		}
+	}
+
+	if !arithmeticSortino.IsZero() {
+		ss.GeometricRatios.SortinoRatio = geomSortino
+	}
 
 	return ss
 }

@@ -1,6 +1,6 @@
-## Currencystatistics package overview
+## Strategystatistics package overview
 
-Currency Statistics is an important package to verify the effectiveness of your strategies.
+Strategy Statistics is an important package to verify the effectiveness of your strategies.
 It can calculate the following:
 - Calmar ratio
 - Information ratio

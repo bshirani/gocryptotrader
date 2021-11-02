@@ -37,7 +37,7 @@ import (
 
 	gctlog "gocryptotrader/log"
 	"gocryptotrader/portfolio/statistics"
-	"gocryptotrader/portfolio/statistics/currencystatistics"
+	"gocryptotrader/portfolio/statistics/strategystatistics"
 
 	"github.com/fatih/color"
 	"github.com/shopspring/decimal"
@@ -74,7 +74,7 @@ func NewTradeManager(bot *Engine) (*TradeManager, error) {
 		StrategyNickname:            "trend",
 		StrategyDescription:         "ok",
 		StrategyGoal:                "make money",
-		ExchangeAssetPairStatistics: make(map[string]map[asset.Item]map[currency.Pair]*currencystatistics.CurrencyStatistic),
+		StrategyStatistics: make(map[string]map[asset.Item]map[currency.Pair]*strategystatistics.StrategyStatistic),
 		RiskFreeRate:                decimal.NewFromFloat(3.0),
 	}
 	tm.Statistic = stats

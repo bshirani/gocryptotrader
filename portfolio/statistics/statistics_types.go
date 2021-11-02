@@ -11,7 +11,7 @@ import (
 	gctorder "gocryptotrader/exchange/order"
 	"gocryptotrader/portfolio/compliance"
 	"gocryptotrader/portfolio/holdings"
-	"gocryptotrader/portfolio/statistics/currencystatistics"
+	"gocryptotrader/portfolio/statistics/strategystatistics"
 
 	"github.com/shopspring/decimal"
 )
@@ -20,17 +20,17 @@ var (
 	// ErrAlreadyProcessed occurs when an event has already been processed
 	ErrAlreadyProcessed            = errors.New("this event has been processed already")
 	errExchangeAssetPairStatsUnset = errors.New("exchangeAssetPairStatistics not setup")
-	errCurrencyStatisticsUnset     = errors.New("no data")
+	errStrategyStatisticsUnset     = errors.New("no data")
 )
 
 // Statistic holds all statistical information for a backtester run, from drawdowns to ratios.
-// Any currency specific information is handled in currencystatistics
+// Any currency specific information is handled in strategystatistics
 type Statistic struct {
 	StrategyName                string                                                                            `json:"strategy-name"`
 	StrategyDescription         string                                                                            `json:"strategy-description"`
 	StrategyNickname            string                                                                            `json:"strategy-nickname"`
 	StrategyGoal                string                                                                            `json:"strategy-goal"`
-	ExchangeAssetPairStatistics map[string]map[asset.Item]map[currency.Pair]*currencystatistics.CurrencyStatistic `json:"-"`
+	StrategyStatistics map[string]map[asset.Item]map[currency.Pair]*strategystatistics.StrategyStatistic `json:"-"`
 	RiskFreeRate                decimal.Decimal                                                                   `json:"risk-free-rate"`
 	TotalBuyOrders              int64                                                                             `json:"total-buy-orders"`
 	TotalSellOrders             int64                                                                             `json:"total-sell-orders"`
@@ -38,7 +38,7 @@ type Statistic struct {
 	BiggestDrawdown             *FinalResultsHolder                                                               `json:"biggest-drawdown,omitempty"`
 	BestStrategyResults         *FinalResultsHolder                                                               `json:"best-start-results,omitempty"`
 	BestMarketMovement          *FinalResultsHolder                                                               `json:"best-market-movement,omitempty"`
-	AllStats                    []currencystatistics.CurrencyStatistic                                            `json:"results"` // as ExchangeAssetPairStatistics cannot be rendered via json.Marshall, we append all result to this slice instead
+	AllStats                    []strategystatistics.StrategyStatistic                                            `json:"results"` // as StrategyStatistics cannot be rendered via json.Marshall, we append all result to this slice instead
 	WasAnyDataMissing           bool                                                                              `json:"was-any-data-missing"`
 }
 
@@ -47,7 +47,7 @@ type FinalResultsHolder struct {
 	Exchange         string                   `json:"exchange"`
 	Asset            asset.Item               `json:"asset"`
 	Pair             currency.Pair            `json:"currency"`
-	MaxDrawdown      currencystatistics.Swing `json:"max-drawdown"`
+	MaxDrawdown      strategystatistics.Swing `json:"max-drawdown"`
 	MarketMovement   decimal.Decimal          `json:"market-movement"`
 	StrategyMovement decimal.Decimal          `json:"strategy-movement"`
 }

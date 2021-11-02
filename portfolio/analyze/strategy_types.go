@@ -4,7 +4,17 @@ import (
 	"gocryptotrader/currency"
 	"gocryptotrader/exchange/order"
 	"time"
+
+	"github.com/shopspring/decimal"
 )
+
+// Ratios stores all the ratios used for statistics
+type Ratios struct {
+	SharpeRatio      decimal.Decimal `json:"sharpe-ratio"`
+	SortinoRatio     decimal.Decimal `json:"sortino-ratio"`
+	InformationRatio decimal.Decimal `json:"information-ratio"`
+	CalmarRatio      decimal.Decimal `json:"calmar-ratio"`
+}
 
 type StrategyStats struct {
 	NumTrades       int     `json:"numTrades"`
@@ -14,6 +24,7 @@ type StrategyStats struct {
 	AverageWin      float64 `json:"averageWin"`
 	AverageLoss     float64 `json:"averageLoss"`
 	AvgWinByAvgLoss float64 `json:"avgWinByAvgLoss"`
+
 	// MaxDrawdown                  Swing                 `json:"maxDrawdown,omitempty"`
 	// StartingClosePrice           decimal.Decimal       `json:"startingClosePrice"`
 	// EndingClosePrice             decimal.Decimal       `json:"endingClosePrice"`
@@ -24,8 +35,8 @@ type StrategyStats struct {
 	// HighestCommittedFunds        HighestCommittedFunds `json:"highestCommittedFunds"`
 	// RiskFreeRate                 decimal.Decimal       `json:"riskFreeRate"`
 	// BuyOrders                    int64                 `json:"buyOrders"`
-	// GeometricRatios              Ratios                `json:"geometricRatios"`
-	// ArithmeticRatios             Ratios                `json:"arithmeticRatios"`
+	GeometricRatios  Ratios `json:"geometricRatios"`
+	ArithmeticRatios Ratios `json:"arithmeticRatios"`
 	// CompoundAnnualGrowthRate     decimal.Decimal       `json:"compoundAnnualGrowthRate"`
 	// SellOrders                   int64                 `json:"sellOrders"`
 	// TotalOrders                  int64                 `json:"totalOrders"`
