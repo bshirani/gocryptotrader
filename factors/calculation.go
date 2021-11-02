@@ -12,6 +12,15 @@ func (c *Calculation) ToStrings() (list []string) {
 	for _, x := range c.N10.CSVRow() {
 		list = append(list, x)
 	}
+	for _, x := range c.N20.CSVRow() {
+		list = append(list, x)
+	}
+	for _, x := range c.N60.CSVRow() {
+		list = append(list, x)
+	}
+	for _, x := range c.N100.CSVRow() {
+		list = append(list, x)
+	}
 	return list
 }
 
@@ -25,6 +34,9 @@ func (c *Calculation) CSVHeader() (headers []string) {
 	}
 	for _, h := range strings {
 		headers = append(headers, fmt.Sprintf("n10_%s", h))
+		headers = append(headers, fmt.Sprintf("n20_%s", h))
+		headers = append(headers, fmt.Sprintf("n60_%s", h))
+		headers = append(headers, fmt.Sprintf("n100_%s", h))
 	}
 	return headers
 }

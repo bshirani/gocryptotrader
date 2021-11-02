@@ -13,7 +13,21 @@ from analyze import ModelAnalyzer
 TARGET_NAME = 'profit_loss_quote'
 # INPUT_COLS = ['n10_high', 'n10_low']
 # INPUT_COLS = ['pl_cheat']
-INPUT_COLS = ['pl_cheat', 'n10_high', 'n10_low']
+# INPUT_COLS = ['pl_cheat', 'n10_high', 'n10_low']
+IGNORE_COLS = [
+    'profit_loss_quote',
+    'risk_quote',
+    'id',
+    'time',
+]
+# INPUT_COLS = [
+#     'n10_highrel',
+#     'n10_lowrel',
+#     'n10_openrel',
+#     'n10_pctchg',
+#     'n10_sloperel'
+# ]
+INPUT_COLS = df.columns - IGNORE_COLS
 
 # Target columns
 # percentage of range captured
@@ -27,7 +41,7 @@ def experiment(test=False):
     returns the best result and breakdown of the various methods
     """
 
-    filename = last_file_in_dir('../results/fcsv/*SELL*')
+    filename = last_file_in_dir('../results/fcsv/*BUY*')
     df = pd.read_csv(filename, header=0)
     df['pl_cheat'] = df[TARGET_NAME]
     df.time = pd.to_datetime(df.time, unit='s')
