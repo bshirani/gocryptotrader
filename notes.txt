@@ -385,3 +385,23 @@ create the backtest operation API
 create the live operation API
 
 let's start with live beacuse it's more fun
+
+
+do I want to run a python command in order to do this?
+I don't want to run a go command and have it wait
+or use a job queue
+
+so just all this in python
+
+so what do I need?
+
+a command line application?
+a set of files each for a specific command?
+
+
+ability to load the training data, create a test sample
+
+organize the data
+what's the data that we have
+
+
