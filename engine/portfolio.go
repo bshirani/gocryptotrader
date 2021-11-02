@@ -391,6 +391,8 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	o.BuyLimit = ev.GetBuyLimit()
 	o.SellLimit = ev.GetSellLimit()
 	o.StrategyID = ev.GetStrategyID()
+	// check if order is in base or quote and adjust accordingly
+
 	o = p.sizeOrder(ev, cs, o, decimal.NewFromFloat(1000.0))
 	// o.Amount = decimal.NewFromFloat(0.0001)
 	p.recordTrade(ev)

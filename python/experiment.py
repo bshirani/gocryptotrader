@@ -40,12 +40,12 @@ def experiment(test=False, mode="Explain", version=None):
     returns the best result and breakdown of the various methods
     """
 
-    filename = last_file_in_dir('../results/fcsv/*BUY*')
+    filename = last_file_in_dir('../results/fcsv/*SELL*')
     df = pd.read_csv(filename, header=0)
     # df['pl_cheat'] = df[TARGET_NAME]
     df.time = pd.to_datetime(df.time, unit='s')
     target = df.drop(columns=[TARGET_NAME])
-    df.profit_loss_quote = df.profit_loss_quote  # * 0.001
+    df.profit_loss_quote = df.profit_loss_quote * 0.001
     input_cols = [item for item in df.columns.values if item not in IGNORE_COLS]
 
     # import pdbr

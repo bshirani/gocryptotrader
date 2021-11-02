@@ -13,7 +13,7 @@ class ModelAnalysis:
 
     def analyze(self):
         df = self.mpreds.copy()
-        df['net_profit'] = df.profit_loss_quote
+        df['net_profit'] = df.profit_loss_quote * 0.001
         df['time'] = pd.to_datetime(df['time'], unit='s')
         df.set_index('time', inplace=True)
         adf = analyze_trades(df)
