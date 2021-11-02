@@ -3,6 +3,9 @@ import numpy as np
 
 
 def analyze_trades(ts, portfolio=False, initial_balance=10000):
+    if len(ts) == 0:
+        return pd.DataFrame()
+
     if "units" not in ts:
         ts.loc[:, "units"] = 1
     if "unit_profit" not in ts:

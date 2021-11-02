@@ -27,7 +27,6 @@ IGNORE_COLS = [
 #     'n10_pctchg',
 #     'n10_sloperel'
 # ]
-INPUT_COLS = df.columns - IGNORE_COLS
 
 # Target columns
 # percentage of range captured
@@ -35,7 +34,7 @@ INPUT_COLS = df.columns - IGNORE_COLS
 # profit_loss / risked
 
 
-def experiment(test=False):
+def experiment(test=False, mode="Explain", version=None):
     """
     tries various machine learning methods on the data
     returns the best result and breakdown of the various methods
@@ -43,20 +42,25 @@ def experiment(test=False):
 
     filename = last_file_in_dir('../results/fcsv/*BUY*')
     df = pd.read_csv(filename, header=0)
-    df['pl_cheat'] = df[TARGET_NAME]
+    # df['pl_cheat'] = df[TARGET_NAME]
     df.time = pd.to_datetime(df.time, unit='s')
     target = df.drop(columns=[TARGET_NAME])
     df.profit_loss_quote = df.profit_loss_quote * 0.001
+    input_cols = [item for item in df.columns.values if item not in IGNORE_COLS]
+
+    # import pdbr
+    # pdbr.set_trace()
 
     X_train, X_test, y_train, y_test = train_test_split(
-        df[INPUT_COLS], df[TARGET_NAME], test_size=0.25
+        df[input_cols], df[TARGET_NAME], test_size=0.25
     )
 
     print("running experiment on", filename)
     if test:
         preds = np.random.uniform(low=-5, high=5, size=(len(X_test,)))
     else:
-        preds = experiment_mljar(X_train, X_test, y_train, y_test)
+        preds = experiment_mljar(
+            X_train, X_test, y_train, y_test, mode=mode, version=version)
 
     analyze_model_performance(df, preds, X_test, y_test)
 
