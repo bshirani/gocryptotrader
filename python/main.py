@@ -53,6 +53,7 @@ async def select_features(file: str):
 async def predict(model: str):
     filename = f'../results/fcsv/*{model}*'
     filename = last_file_in_dir(filename)
+    model = os.path.join("../models", model)
     if not os.path.exists(filename):
         return f"model {filename} does not exist"
     else:
@@ -62,7 +63,7 @@ async def predict(model: str):
     try:
         return MlJarExperiment.predict(df[-1:], f"{model}").tolist()
     except supervised.exceptions.AutoMLException:
-        return f"modelnot found {model}"
+        return f"model not found {model}"
 
 
 if __name__ == "__main__":
