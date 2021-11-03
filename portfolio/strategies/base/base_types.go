@@ -35,6 +35,7 @@ type StrategyPortfolioHandler interface {
 }
 
 type FactorEngineHandler interface {
+	ToQueryParams() map[string]interface{}
 	Last() *factors.Calculation
 	OnBar(data.Handler) error
 	Kline() *factors.IntervalDataFrame

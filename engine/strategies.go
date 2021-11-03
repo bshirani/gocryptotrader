@@ -21,6 +21,7 @@ func SetupStrategies(cfg []*config.StrategySetting, exch string) (slit []strateg
 		strat.SetPair(pair)
 		strat.SetName(cs.Capture)
 		strat.SetDefaults()
+		strat.SetDropFeatures()
 		slit = append(slit, strat)
 	}
 

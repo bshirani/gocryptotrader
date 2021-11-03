@@ -2,6 +2,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from supervised.automl import AutoML
 from utils import last_file_in_dir
+import json
 
 
 class MlJarExperiment:
@@ -23,3 +24,7 @@ class MlJarExperiment:
             cls.automl_predictors[version] = AutoML(
                 results_path=version, mode="Perform")
         return cls.automl_predictors[version].predict(X_test)
+
+    @classmethod
+    def drop_features(cls, version):
+        return json.load(open(f'../models/{version}/drop_features.json'))

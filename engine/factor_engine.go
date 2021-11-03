@@ -117,6 +117,10 @@ func appendNSeries(fs *factors.NSeries, fc *factors.NCalculation) {
 	fs.SlopeRel = append(fs.SlopeRel, fc.SlopeRel)
 }
 
+func (f *FactorEngine) ToQueryParams() map[string]interface{} {
+	return f.calcs[len(f.calcs)-1].ToQueryParams()
+}
+
 func (f *FactorEngine) OnBar(d data.Handler) error {
 	bar := d.Latest()
 	t := bar.GetTime()

@@ -51,6 +51,11 @@ async def select_features(file: str):
 # returns an array of floats
 
 
+@app.get("/drop_features")
+async def drop_features(model: str):
+    return MlJarExperiment.drop_features(model)
+
+
 @app.get("/predict")
 async def predict(model: str, req: Request):
     rd = dict(req.query_params)
@@ -74,7 +79,7 @@ async def predict(model: str, req: Request):
     # pdbr.set_trace()
 
     try:
-        return MlJarExperiment.predict(X_test, f"{model}").tolist()
+        return MlJarExperiment.predict(X_test, f"{model}").tolist()[0]
     except supervised.exceptions.AutoMLException:
         return f"model not found {model}"
 

@@ -3,6 +3,8 @@ package factors
 import (
 	"fmt"
 	"gocryptotrader/data"
+	"reflect"
+	"strings"
 
 	"github.com/shopspring/decimal"
 	"gonum.org/v1/gonum/stat"
@@ -39,6 +41,56 @@ func (c *Calculation) CSVHeader() (headers []string) {
 		headers = append(headers, fmt.Sprintf("n100_%s", h))
 	}
 	return headers
+}
+
+func (c *Calculation) ToQueryParams() map[string]interface{} {
+	return merge(
+		c.N10.QueryParams("n10"),
+		c.N20.QueryParams("n20"),
+		c.N60.QueryParams("n60"),
+		c.N100.QueryParams("n100"),
+	)
+}
+
+func merge(ms ...map[string]interface{}) map[string]interface{} {
+	res := make(map[string]interface{})
+	for _, m := range ms {
+		for k, v := range m {
+			res[k] = v
+		}
+	}
+	return res
+}
+
+func getAttr(obj interface{}, fieldName string) reflect.Value {
+	pointToStruct := reflect.ValueOf(obj) // addressable
+	curStruct := pointToStruct.Elem()
+	if curStruct.Kind() != reflect.Struct {
+		panic("not struct")
+	}
+	curField := curStruct.FieldByName(fieldName) // type: reflect.Value
+	if !curField.IsValid() {
+		panic("not found:" + fieldName)
+	}
+	return curField
+}
+
+func PrintFields(b interface{}) {
+	val := reflect.ValueOf(b)
+	for i := 0; i < val.Type().NumField(); i++ {
+		t := val.Type().Field(i)
+		fieldName := t.Name
+
+		if jsonTag := t.Tag.Get("json"); jsonTag != "" && jsonTag != "-" {
+			// check for possible comma as in "...,omitempty"
+			var commaIdx int
+			if commaIdx = strings.Index(jsonTag, ","); commaIdx < 0 {
+				commaIdx = len(jsonTag)
+			}
+			fieldName = jsonTag[:commaIdx]
+		}
+		fmt.Println(fieldName)
+	}
 }
 
 func GetBaseStats(kline *IntervalDataFrame, n int, d data.Handler) *NCalculation {

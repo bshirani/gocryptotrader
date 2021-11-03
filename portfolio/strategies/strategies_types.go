@@ -14,6 +14,8 @@ import (
 // Handler defines all functions required to run strategies against data events
 type Handler interface {
 	GetLabel() string
+	GetPrediction(base.FactorEngineHandler) float64
+	SetDropFeatures()
 	SetName(string)
 	GetSettings() *config.StrategySetting
 	SetID(int)

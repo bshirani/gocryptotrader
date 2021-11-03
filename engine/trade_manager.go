@@ -772,17 +772,17 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 				if currency.ArePairsEqual(sp, ep) {
 					// fmt.Println("ON DATA", d.Latest().Pair())
 					s, err := strategy.OnData(d, tm.Portfolio, fe)
+
+					pred := strategy.GetPrediction(fe)
+					fmt.Println("pred", pred)
+					// fmt.Println("query params", rawParams)
+					// fmt.Println("N10SLOPE", params["n10_slope_rel"].(float64))
 					s.SetStrategyID(strategy.GetID())
 					s.SetStrategyName(strategy.GetLabel())
 					if err != nil {
 						fmt.Println("error processing data event", err)
 						return err
 					}
-
-					// err = tm.Statistic.SetEventForOffset(s)
-					// if err != nil {
-					// 	log.Error(log.TradeMgr, err)
-					// }
 					tm.EventQueue.AppendEvent(s)
 				}
 			}

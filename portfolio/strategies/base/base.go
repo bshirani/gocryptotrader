@@ -1,6 +1,7 @@
 package base
 
 import (
+	"encoding/json"
 	"fmt"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
@@ -9,6 +10,10 @@ import (
 	"gocryptotrader/eventtypes/event"
 	"gocryptotrader/eventtypes/signal"
 	"gocryptotrader/exchange/order"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"strconv"
 
 	"github.com/shopspring/decimal"
 )
@@ -26,6 +31,49 @@ type Strategy struct {
 	useSimultaneousProcessing bool
 	usingExchangeLevelFunding bool
 	Debug                     bool
+	dropFeatures              []string
+}
+
+func (s *Strategy) SetDropFeatures() {
+	tmpUrl := fmt.Sprintf("http://localhost:8000/drop_features")
+	req, err := http.NewRequest("GET", tmpUrl, nil)
+	req.URL.RawQuery = fmt.Sprintf("model=%s", s.GetLabel())
+	client := http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatalln(err)
+		panic(err)
+	}
+	drop := make([]string, 0)
+	err = json.NewDecoder(resp.Body).Decode(&drop)
+	s.dropFeatures = drop
+}
+
+func (s *Strategy) GetPrediction(fe FactorEngineHandler) float64 {
+	tmpUrl := fmt.Sprintf("http://localhost:8000/predict")
+	req, err := http.NewRequest("GET", tmpUrl, nil)
+
+	params := fe.ToQueryParams()
+	params["risked_quote"] = 12.0
+	rawParams := ""
+	for k, v := range params {
+		if rawParams == "" {
+			rawParams = fmt.Sprintf("%s=%f", k, v)
+		} else {
+			rawParams = fmt.Sprintf("%s&%s=%f", rawParams, k, v)
+		}
+	}
+
+	req.URL.RawQuery = fmt.Sprintf("model=%s&%s", s.GetLabel(), rawParams)
+	client := http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatalln(err)
+		panic(err)
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	f, _ := strconv.ParseFloat(string(body), 64)
+	return f
 }
 
 func (s *Strategy) SetName(name string) {
