@@ -20,7 +20,6 @@ class MlJarExperiment:
     @classmethod
     def predict(cls, X_test, version):
         if version not in cls.automl_predictors:
-            print("running version", version)
             cls.automl_predictors[version] = AutoML(
                 results_path=version, mode="Perform")
         return cls.automl_predictors[version].predict(X_test)
