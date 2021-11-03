@@ -1,11 +1,12 @@
 import numpy as np
+from datetime import datetime
 import fire
 import pandas as pd
 import functools
 from math import sqrt
 
 from utils import last_file_in_dir
-from ex_mljar import run_experiment as experiment_mljar
+from ex_mljar import MlJarExperiment
 from sklearn.model_selection import train_test_split
 
 from analyze import ModelAnalyzer
@@ -34,13 +35,16 @@ IGNORE_COLS = [
 # profit_loss / risked
 
 
-def experiment(test=False, mode="Explain", version=None):
+def run(filename=None, test=False, mode="Explain", version=None):
     """
     tries various machine learning methods on the data
     returns the best result and breakdown of the various methods
     """
 
-    filename = last_file_in_dir('../results/fcsv/*SELL*')
+    if version is not None:
+        filename = last_file_in_dir(f'../results/fcsv/*{version}*')
+    if filename is None:
+        filename = last_file_in_dir('../results/fcsv/')
     df = pd.read_csv(filename, header=0)
     # df['pl_cheat'] = df[TARGET_NAME]
     df.time = pd.to_datetime(df.time, unit='s')
@@ -55,13 +59,19 @@ def experiment(test=False, mode="Explain", version=None):
         df[input_cols], df[TARGET_NAME], test_size=0.25
     )
 
-    print("running experiment on", filename)
+    print("running run on", filename)
     if test:
         preds = np.random.uniform(low=-5, high=5, size=(len(X_test,)))
     else:
-        preds = experiment_mljar(
+        preds = MlJarExperiment.learn(
             X_train, X_test, y_train, y_test, mode=mode, version=version)
 
+    # for i in range(100):
+    #     t1 = datetime.now()
+    #     p = MlJarExperiment.predict(X_test.iloc[:1], version=version)
+
+    # import pdbr
+    # pdbr.set_trace()
     analyze_model_performance(df, preds, X_test, y_test)
 
 
@@ -77,4 +87,4 @@ def analyze_model_performance(df, preds, X_test, y_test):
 
 
 if __name__ == '__main__':
-    fire.Fire(experiment)
+    fire.Fire(run)

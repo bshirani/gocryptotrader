@@ -361,6 +361,7 @@ func (tm *TradeManager) Run() error {
 	// interrupt := signaler.WaitForInterrupt()
 	// log.Infof(log.Global, "Captured %v, shutdown requested.\n", interrupt)
 	var lastUpdateDate time.Time
+	completed := false
 
 	if !tm.liveMode {
 		err := tm.loadBacktestData()
@@ -388,6 +389,7 @@ dataLoadingIssue:
 						d := dataHandler.Next()
 
 						if d == nil {
+							completed = true
 							break dataLoadingIssue
 						}
 						debugCount += 1
@@ -415,7 +417,7 @@ dataLoadingIssue:
 		}
 	}
 
-	if !tm.liveMode {
+	if !tm.liveMode && completed {
 		fileName := fmt.Sprintf(
 			"results/bt/trades-%v.json",
 			time.Now().Format("2006-01-02-15-04-05"))

@@ -4,11 +4,23 @@ from supervised.automl import AutoML
 from utils import last_file_in_dir
 
 
-def run_experiment(X_train, X_test, y_train, y_test, version=None,
-                   mode="Explain"):
-    if version is not None:
-        automl = AutoML(results_path=version, mode=mode)
-    else:
-        automl = AutoML(mode=mode)
-    automl.fit(X_train, y_train)
-    return automl.predict(X_test)
+class MlJarExperiment:
+    automl_predictors = dict()
+
+    @classmethod
+    def learn(cls, X_train, X_test, y_train, y_test, version=None,
+              mode="Explain"):
+        if version is not None:
+            automl = AutoML(results_path=version, mode=mode)
+        else:
+            automl = AutoML(mode=mode)
+        automl.fit(X_train, y_train)
+        return automl.predict(X_test)
+
+    @classmethod
+    def predict(cls, X_test, version):
+        if version not in cls.automl_predictors:
+            print("running version", version)
+            cls.automl_predictors[version] = AutoML(
+                results_path=version, mode="Perform")
+        return cls.automl_predictors[version].predict(X_test)

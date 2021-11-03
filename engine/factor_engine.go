@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 	"time"
 
 	"gocryptotrader/common"
@@ -123,7 +124,7 @@ func (f *FactorEngine) OnBar(d data.Handler) error {
 
 	if len(d.History()) > 1 && td != f.kline.LastDate() {
 		f.kline.Date = append(f.kline.Date, td)
-		f.daily = f.createNewDailyBar(f.kline, f.daily)
+		// f.daily = f.createNewDailyBar(f.kline, f.daily)
 	} else {
 		f.kline.Date = append(f.kline.Date, td)
 	}
@@ -203,23 +204,42 @@ func (f *FactorEngine) OnBar(d data.Handler) error {
 // }
 
 func (f *FactorEngine) createNewDailyBar(m *factors.IntervalDataFrame, d *factors.DailyDataFrame) *factors.DailyDataFrame {
+	fmt.Println("creating daily bar!!")
+
+	// whats the open of today
+
 	// d.Open = append(a.Date, decimal.NewFromFloat(421.0))
 
-	// newDate := m.Date[len(m.Date)-1]
-	// var ydayDate time.Time
-	//
-	// for i := len(m.Close) - 1; i >= 0; i-- {
-	// 	if newDate != m.Date[i] {
-	// 		ydayDate = m.Date[i]
-	// 		break
-	// 	}
-	// }
+	curDate := m.Date[len(m.Date)-1]
+	var ydayDate time.Time
 
+	for i := len(m.Close) - 1; i >= 0; i-- {
+		if curDate != m.Date[i] {
+			ydayDate = m.Date[i]
+			break
+		}
+	}
+	fmt.Println("ydaydate", ydayDate, "curdate", curDate)
+
+	var open decimal.Decimal
 	// calculate open here
-	d.Open = append(d.Open, decimal.NewFromFloat(421.0))
+	for i := len(m.Open) - 1; i >= 0; i-- {
+		if m.Date[i] == curDate {
+			continue
+		}
+
+		if m.Date[i] == ydayDate {
+			open = m.Open[i]
+		} else {
+			break
+		}
+	}
+	fmt.Println("appending open", open)
+	d.Open = append(d.Open, open)
 
 	// calculate range here
 	d.Range = append(d.Range, decimal.NewFromFloat(421.0))
+	os.Exit(123)
 
 	// fmt.Println("NEW DATE", f.kline.LastDate())
 	// // get high/open/low/close
