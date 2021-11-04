@@ -386,15 +386,31 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		o.StopPrice = o.Price.Mul(decimal.NewFromFloat(1.01))
 	}
 	// lo.StopPrice = o.StopPrice
-
 	o.OrderType = gctorder.Market
 	o.BuyLimit = ev.GetBuyLimit()
 	o.SellLimit = ev.GetSellLimit()
 	o.StrategyID = ev.GetStrategyID()
 	// check if order is in base or quote and adjust accordingly
+	// how much do we have in the currency being traded
+	// whats the currency being traded
+	// what kind of trade is it
+	// fmt.Println("amoutn before sizing", o.Amount)
+	// fmt.Println("currency being traded")
+	// fmt.Println(o.GetDecision(), o.GetDirection())
 
-	o = p.sizeOrder(ev, cs, o, decimal.NewFromFloat(1000.0))
-	// o.Amount = decimal.NewFromFloat(0.0001)
+	initialAccountBalanceUSD := decimal.NewFromFloat(10000.0)
+	var amountAvailable decimal.Decimal
+
+	if o.GetDirection() == gctorder.Buy {
+		amountAvailable = initialAccountBalanceUSD
+	} else if o.GetDirection() == gctorder.Sell {
+		amountAvailable = initialAccountBalanceUSD.Div(ev.GetPrice())
+	} else {
+		fmt.Println("unhandled direction", o.GetDirection())
+		panic(123)
+	}
+
+	o = p.sizeOrder(ev, cs, o, amountAvailable)
 	p.recordTrade(ev)
 	return o, nil
 
@@ -759,6 +775,7 @@ func (p *Portfolio) evaluateOrder(d eventtypes.Directioner, originalOrderSignal,
 		originalOrderSignal.AppendReason(err.Error())
 		switch d.GetDirection() {
 		case gctorder.Buy:
+			fmt.Println("eval order")
 			originalOrderSignal.Direction = eventtypes.CouldNotBuy
 		case gctorder.Sell:
 			originalOrderSignal.Direction = eventtypes.CouldNotSell
@@ -780,6 +797,7 @@ func (p *Portfolio) sizeOrder(d eventtypes.Directioner, cs *ExchangeAssetPairSet
 		originalOrderSignal.AppendReason(err.Error())
 		switch originalOrderSignal.Direction {
 		case gctorder.Buy:
+			fmt.Println("HERE", err)
 			originalOrderSignal.Direction = eventtypes.CouldNotBuy
 		case gctorder.Sell:
 			originalOrderSignal.Direction = eventtypes.CouldNotSell

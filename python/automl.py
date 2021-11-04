@@ -59,12 +59,17 @@ def run(filename=None, test=False, mode="Explain", version=None):
         df[input_cols], df[TARGET_NAME], test_size=0.25
     )
 
-    print("running run on", filename)
+    print("running run on", filename, version)
     if test:
         preds = np.random.uniform(low=-5, high=5, size=(len(X_test,)))
     else:
         preds = MlJarExperiment.learn(
-            X_train, X_test, y_train, y_test, mode=mode, version=version)
+            X_train,
+            X_test,
+            y_train,
+            y_test,
+            mode=mode,
+            version=version)
 
     # for i in range(100):
     #     t1 = datetime.now()

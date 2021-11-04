@@ -773,8 +773,8 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 					// fmt.Println("ON DATA", d.Latest().Pair())
 					s, err := strategy.OnData(d, tm.Portfolio, fe)
 
-					pred := strategy.GetPrediction(fe)
-					fmt.Println("pred", pred)
+					// pred := strategy.GetPrediction(fe)
+					// fmt.Println("pred", pred)
 					// fmt.Println("query params", rawParams)
 					// fmt.Println("N10SLOPE", params["n10_slope_rel"].(float64))
 					s.SetStrategyID(strategy.GetID())

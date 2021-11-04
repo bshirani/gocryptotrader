@@ -12,6 +12,7 @@ class MlJarExperiment:
     def learn(cls, X_train, X_test, y_train, y_test, version=None,
               mode="Explain"):
         if version is not None:
+            version = f'../models/{version}'
             automl = AutoML(results_path=version, mode=mode)
         else:
             automl = AutoML(mode=mode)

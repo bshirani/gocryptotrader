@@ -473,4 +473,44 @@ or just start at midnight
 
 so the strategies will need one day of warmup
 they will require all daily data to have been downloaded already
-they will be loaded....
+they will be loaded...
+
+=======================
+modeling
+
+the current problem is that when a signal is made, we need to keep track of that trade
+otherwise the strategy will create a signal, do a request to the model, and decide whether to trade or now.
+
+currently, if the strategy has no trades, it is eligble to make a new trade
+based on the current training data,
+we would need to make a fake trade if a real one is not made
+this means the system needs to handle fake/simulated and real trades at the same time
+
+this is only to keep track that the strategy has created a new trade
+
+another way to do this would be to keep track of all strategy signals treat it as a type of order or a separate entity altogether.
+
+the easiest way to do this
+
+treat an enter signal from a strategy as an order of sorts
+
+periodic retraining
+OR
+online machine learning
+
+is this an optimization?
+yes
+
+can we do without it?
+as long as we can periodically retrain and run the backtest, online machine learning is not necessary
+we would want to have ways of measuring concept drift
+
+- concept drift
+- non-stationary distrubutions
+- imbalanced data
+
+get a production system running
+
+do we have any considerations
+no considerations
+full speed

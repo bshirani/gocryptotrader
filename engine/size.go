@@ -13,7 +13,6 @@ import (
 
 // SizeOrder is responsible for ensuring that the order size is within config limits
 func (s *Size) SizeOrder(o order.Event, amountAvailable decimal.Decimal, cs *ExchangeAssetPairSettings) (*order.Order, error) {
-	// fmt.Println("sizing order")
 	if o == nil || cs == nil {
 		return nil, eventtypes.ErrNilArguments
 	}
@@ -24,6 +23,7 @@ func (s *Size) SizeOrder(o order.Event, amountAvailable decimal.Decimal, cs *Exc
 	if !ok {
 		return nil, fmt.Errorf("%w expected order event", eventtypes.ErrInvalidDataType)
 	}
+
 	var amount decimal.Decimal
 	var err error
 	switch retOrder.GetDirection() {
@@ -107,6 +107,7 @@ func (s *Size) calculateBuySize(price, availableFunds, feeRate, buyLimit decimal
 // this can only attempt to factor the potential fee to remain under the max rules
 func (s *Size) calculateSellSize(price, baseAmount, feeRate, sellLimit decimal.Decimal, minMaxSettings config.MinMax) (decimal.Decimal, error) {
 	if baseAmount.LessThanOrEqual(decimal.Zero) {
+		fmt.Println("sell zero here")
 		return decimal.Zero, errNoFunds
 	}
 	if price.IsZero() {
