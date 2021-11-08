@@ -32,6 +32,7 @@ type Signal struct {
 	Volume        decimal.Decimal
 	BuyLimit      decimal.Decimal
 	SellLimit     decimal.Decimal
+	Prediction    decimal.Decimal
 }
 
 // Event handler is used for getting trade signal details
@@ -54,4 +55,5 @@ type Event interface {
 	SetDecision(Decision)
 	SetStopLossPrice(decimal.Decimal)
 	GetStopLossPrice() decimal.Decimal
+	SetPrediction(float64)
 }

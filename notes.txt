@@ -514,3 +514,50 @@ get a production system running
 do we have any considerations
 no considerations
 full speed
+
+do I need to be able to make a fake trade and a live trade at the same time?
+do I need to be able to always make a fake trade?
+
+what would it take to do that?
+would I have to store it the same as a live trade
+
+is this necessary?
+
+what else could I do?
+what's the purpose of this?
+the purpose is that the predictions match the backtest
+the purpose is that the real-time predictions match the backtest
+in a backtest, we get the trades from the strategies and then apply the signals after
+
+no this has nothing to do with backtesting.
+
+we want to be able to take a negative prediction for a straegy's trade, but to still simulate the trade
+
+another alternative would be to prevent the trading of a strategy for some period of time after it has made a prediction
+another alternative would be to not prevent the strategy at all from generating a signal for each  minute, and ensuring that the backtests also match the functionality of the system in this manner
+
+
+i generate an entry signal
+a negative decision is returned from the model
+what prevents the next minute from generating another signal?
+or should htis be prevented at all?
+I think it makes sense to prevent it, but it seems like a lot of work to implement this feature that may not be necesarry. If I do not make this change that means that I'd have to modify the way the backtesting works also
+
+the goal is to prevent trading for a strategy until the next valid signal is made
+
+one way this could be accomplished is in the form of an order
+a record that the strategy has given a signal
+a timeframe that the signal is valid for
+
+a signal could be something like an order
+
+when a strategy creates an entry signal, it saves it as an order type signal
+the signal then needs a prediction, which it will request from the ML model
+The strategy is only allowed one signal per period of time that is specified as a strategy parameter
+
+So a strategy could be set to only trade once per day in this way
+
+
+
+
+

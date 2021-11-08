@@ -772,9 +772,11 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 				if currency.ArePairsEqual(sp, ep) {
 					// fmt.Println("ON DATA", d.Latest().Pair())
 					s, err := strategy.OnData(d, tm.Portfolio, fe)
+					if s.GetDecision() == gctsignal.Enter {
+						pred := strategy.GetPrediction(fe)
+						s.SetPrediction(pred)
+					}
 
-					// pred := strategy.GetPrediction(fe)
-					// fmt.Println("pred", pred)
 					// fmt.Println("query params", rawParams)
 					// fmt.Println("N10SLOPE", params["n10_slope_rel"].(float64))
 					s.SetStrategyID(strategy.GetID())
@@ -1257,11 +1259,17 @@ func (tm *TradeManager) writeFactorEngines(allFactors bool) (err error) {
 				break
 			}
 		}
+
+		startDate := tm.bot.Config.DataSettings.DatabaseData.StartDate
+		endDate := tm.bot.Config.DataSettings.DatabaseData.EndDate
+		duration := int(endDate.Sub(startDate).Hours() / 24)
 		factorsCSV := fmt.Sprintf(
-			"results/fcsv/%s-%s.csv",
+			"results/fcsv/%s-%s-%d-days.csv",
 			time.Now().Format("2006-01-02-15-04-05"),
 			s.GetLabel(),
+			duration,
 		)
+
 		fmt.Println("writing fe csv")
 		fmt.Println(factorsCSV)
 		writer, err := file.Writer(factorsCSV)

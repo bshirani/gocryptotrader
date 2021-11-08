@@ -480,11 +480,10 @@ func (p *Portfolio) OnFill(f fill.Event) {
 	}
 
 	// update trades and orders here
-	// t := p.store.openTrade[f.GetStrategyID()]
 	t := p.GetTradeForStrategy(f.GetStrategyName())
 
 	if t == nil {
-		// fmt.Println("no trade for strategy, PF ON fILL creating NEW TRADE")
+		fmt.Println("no trade for strategy, PF ON fILL creating NEW TRADE")
 		p.recordEnterTrade(f)
 	} else if t.Status == gctorder.Open {
 		p.recordExitTrade(f, t)
@@ -1207,7 +1206,7 @@ func (p *Portfolio) getStrategy(strategyName string) (strategies.Handler, error)
 
 func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 	// if p.debug {
-	// fmt.Println("ENTER TRADE RECORD", ev.GetStrategyName())
+	// 	fmt.Println("ENTER TRADE RECORD", ev.GetStrategyName())
 	// }
 	s, _ := p.getStrategy(ev.GetStrategyName())
 	// fmt.Println("STRATEGY DIR", s.GetDirection())

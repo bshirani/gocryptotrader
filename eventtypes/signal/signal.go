@@ -22,6 +22,10 @@ func (s *Signal) GetDirection() order.Side {
 	return s.Direction
 }
 
+func (s *Signal) SetPrediction(p float64) {
+	s.Prediction = decimal.NewFromFloat(p)
+}
+
 func (s *Signal) GetStrategyID() int {
 	return s.StrategyID
 }
