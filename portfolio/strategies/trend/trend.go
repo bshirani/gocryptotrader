@@ -66,14 +66,16 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 
 	orders := p.GetOpenOrdersForStrategy(s.GetLabel())
 	trade := p.GetTradeForStrategy(s.GetLabel())
-	mlsignal := p.GetSignalForStrategy(s.GetLabel())
+	livesignal := p.GetSignalForStrategy(d.Latest().GetTime(), s.GetLabel())
 
-	if trade == nil {
-		fmt.Println("no trade, mlsignal:", mlsignal)
-		// fmt.Println("trend.go has", len(orders), "orders", "has trade")
-	}
+	// only check for entry if last entry signal has timed out
 
-	if trade == nil && len(orders) == 0 {
+	// if trade == nil {
+	// 	// fmt.Println("no trade, mlsignal:", mlsignal)
+	// 	// fmt.Println("trend.go has", len(orders), "orders", "has trade")
+	// }
+
+	if livesignal == nil && trade == nil && len(orders) == 0 {
 		// fmt.Println("has no trade")
 		return s.checkEntry(es, p, d, fe)
 	}

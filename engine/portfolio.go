@@ -58,6 +58,7 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 	portfolioRisk := &risk.Risk{
 		CurrencySettings: make(map[string]map[asset.Item]map[currency.Pair]*risk.CurrencySettings),
 	}
+
 	for i := range cfg.CurrencySettings {
 		if portfolioRisk.CurrencySettings[cfg.CurrencySettings[i].ExchangeName] == nil {
 			portfolioRisk.CurrencySettings[cfg.CurrencySettings[i].ExchangeName] = make(map[asset.Item]map[currency.Pair]*risk.CurrencySettings)
@@ -134,6 +135,7 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 	// create open trades array for every strategy
 	// you need the strategy IDS here
 	p.store.openTrade = make(map[string]*livetrade.Details)
+	p.store.openSignal = make(map[string]*livesignal.Details)
 	p.store.closedTrades = make(map[string][]*livetrade.Details)
 
 	p.orderManager = bot.OrderManager
@@ -146,6 +148,7 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 
 	// p.PrintPortfolioStrategiesConfig()
 
+	// load live trades from database
 	if !p.bot.Settings.EnableDryRun {
 		activeTrades, _ := livetrade.Active()
 		for _, t := range activeTrades {
@@ -155,6 +158,11 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 			// p.getStrategyTrade(t.StrategyID)
 			// set open trade
 			p.store.openTrade[t.StrategyName] = &t
+		}
+
+		activeSignals, _ := livesignal.Active(time.Now())
+		for _, s := range activeSignals {
+			p.store.openSignal[s.StrategyName] = &s
 		}
 
 		log.Infof(log.Portfolio,
@@ -251,27 +259,33 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	// }
 	switch ev.GetDecision() {
 	case signal.Enter:
-		if s.GetDirection() == gctorder.Sell {
-			// fmt.Println("STRATEGY DIRECTION SELL, ENTER SELL")
-			// ev.Base.SetDirection(gctorder.Sell)
-			ev.SetDirection(gctorder.Sell)
-		} else if s.GetDirection() == gctorder.Buy {
-			// fmt.Println("STRATEGY DIRECTION BUY, ENTER BUY")
-			// ev.Base.SetDirection(gctorder.Buy)
-			ev.SetDirection(gctorder.Buy)
-		} else {
-			panic("no valid strategy side")
+		sig := livesignal.Details{
+			ID:           GetNewTradeID(),
+			SignalTime:   ev.GetTime(),
+			StrategyName: s.GetLabel(),
+			Prediction:   ev.GetPrediction(),
+			ValidUntil:   ev.GetTime().AddDate(0, 0, 1),
 		}
 
-		if !p.bot.Settings.EnableDryRun {
-			s := livesignal.Details{
-				ID:           GetNewTradeID(),
-				SignalTime:   ev.GetTime(),
-				StrategyName: s.GetLabel(),
-				Prediction:   ev.GetPrediction(),
+		if sig.Prediction < 0 {
+			ev.SetDecision(signal.DoNothing)
+			ev.SetDirection(eventtypes.DoNothing)
+		} else {
+			if s.GetDirection() == gctorder.Sell {
+				// fmt.Println("STRATEGY DIRECTION SELL, ENTER SELL")
+				// ev.Base.SetDirection(gctorder.Sell)
+				ev.SetDirection(gctorder.Sell)
+			} else if s.GetDirection() == gctorder.Buy {
+				// fmt.Println("STRATEGY DIRECTION BUY, ENTER BUY")
+				// ev.Base.SetDirection(gctorder.Buy)
+				ev.SetDirection(gctorder.Buy)
 			}
-			id, err := livesignal.Insert(s)
-			s.ID = id
+		}
+
+		p.store.openSignal[s.GetLabel()] = &sig
+		if !p.bot.Settings.EnableDryRun {
+			id, err := livesignal.Insert(sig)
+			sig.ID = id
 			if err != nil {
 				fmt.Println("error inserting signal", err)
 				os.Exit(2)
@@ -445,10 +459,6 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	// return p.evaluateOrder(ev, o, sizedOrder)
 }
 
-func (p *Portfolio) GetSignalForStrategy(s string) *livesignal.Details {
-	return p.store.openSignal[sid]
-}
-
 func (p *Portfolio) GetOrderFromStore(orderid int) *gctorder.Detail {
 	var foundOrd *gctorder.Detail
 	ords, _ := p.bot.OrderManager.GetOrdersSnapshot("")
@@ -614,6 +624,18 @@ func (p *Portfolio) UpdateTrades(ev eventtypes.DataEventHandler) error {
 
 func (p *Portfolio) GetTradeForStrategy(sid string) *livetrade.Details {
 	return p.store.openTrade[sid]
+}
+
+func (p *Portfolio) GetSignalForStrategy(t time.Time, s string) *livesignal.Details {
+	sig := p.store.openSignal[s]
+	if sig != nil {
+		if sig.ValidUntil.Before(t) {
+			p.store.openSignal[s] = nil
+			return nil
+		}
+		return sig
+	}
+	return nil
 }
 
 func (p *Portfolio) GetOpenOrdersForStrategy(sid string) (orders []gctorder.Detail) {

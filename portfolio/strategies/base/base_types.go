@@ -2,6 +2,7 @@ package base
 
 import (
 	"errors"
+	"time"
 
 	"gocryptotrader/data"
 	"gocryptotrader/database/repository/livesignal"
@@ -33,7 +34,7 @@ type StrategyPortfolioHandler interface {
 	GetOpenOrdersForStrategy(string) []order.Detail
 	GetVerbose() bool
 	GetTradeForStrategy(string) *livetrade.Details
-	GetSignalForStrategy(string) *livesignal.Details
+	GetSignalForStrategy(time.Time, string) *livesignal.Details
 }
 
 type FactorEngineHandler interface {

@@ -46,6 +46,7 @@ var (
 type portfolioStore struct {
 	m            sync.RWMutex
 	openTrade    map[string]*livetrade.Details
+	openSignal   map[string]*livesignal.Details
 	closedTrades map[string][]*livetrade.Details
 	wg           *sync.WaitGroup
 }
@@ -68,7 +69,7 @@ type PortfolioHandler interface {
 	setHoldingsForOffset(*holdings.Holding, bool) error
 	UpdateHoldings(eventtypes.DataEventHandler) error
 	GetTradeForStrategy(string) *livetrade.Details
-	GetSignalForStrategy(string) *livesignal.Details
+	GetSignalForStrategy(time.Time, string) *livesignal.Details
 	GetComplianceManager(string, asset.Item, currency.Pair) (*compliance.Manager, error)
 
 	SetFee(string, asset.Item, currency.Pair, decimal.Decimal)

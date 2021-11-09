@@ -599,3 +599,63 @@ always use it to make a fake trade
 how do I reconcile fake and real trades?
 
 if the real trade stops out, I need to close both the fake and real trade
+
+
+if i make a real trade, do I need a fake trade?
+do I distinguish all orders and trades as fake or real?
+
+
+there are two options:
+
+- pretend like the trade was made in the system, though it wasn't, in order to allow the strategy to think it's trading, and to only trade once per period maximum.
+
+OR
+
+i need to evalulate which one is better for the top level goal of the system
+
+the top level goal
+is it desirable to have the strategy create a fake trade
+or to keep track of an entry signal?
+
+we need context
+
+iwe need to keep track of a strategy and keep it in line with backtest
+though this manner affects backtesting also
+
+we would have to change the results we look at
+and scope things by whether it's real or simulated
+
+this would have to apply to orders and trades
+
+currently the system does fake orders
+but it does real orders in production mode
+now we want to change it to always either do a fake or real trade
+the real order manager will always run with the fake order manager
+
+there is no fake order manager. there's only a single order manager.
+
+if I use entry signals
+keep track of them
+set a timeout
+this will overlap with the results of the system
+the results will change accordingly
+
+if a trade is made, it won't trade again
+if a trade is not made because of a negative prediction,
+the entry signal is still created and can prevent the creation of new trades for a period of time
+I think this is much simpler than fake trades, which makes the whole system confusing
+
+the entry signal can solve the problem with less confusion and complexity
+but what are the implications?
+it's much simpler
+
+what are the negative implications?
+I can't think of any
+why would I rather have fake trades?
+I wouldnt if I could just use entry signals
+needs to work same in BT as real life
+the system doesn't tell the difference between those two things
+
+
+the livesignal is created via portfolio.OnSignal
+
