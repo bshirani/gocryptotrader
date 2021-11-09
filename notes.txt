@@ -559,5 +559,43 @@ So a strategy could be set to only trade once per day in this way
 
 
 
+do I need to make a fake trade?
 
+you might as well simulate the trades
+what's the best way to do this?
 
+you want a fake trade to be made?
+why are we doing this?
+CAPTURE THE FUCKING OPPORTUNITIES
+
+in and backtest mode
+we will create a fake trade to let the strategy know that it's made it's decision
+
+what's another way to do this?
+Set a timeout on the entry signals that can be made for a period of time
+
+this would imply that multiple trades can be made be a strategy at once which is not desirable at this time
+
+so the
+
+do I make a fake trade?
+do I keep track of entry signals?
+
+if i keep track of entry signals, and do not make the trades
+i need to know when that entry signal is valid for, so I can reset it to allow the strategy to trade again
+
+this might be a good chance to implement the X time period to allow trades
+the only problem with this is that currently some trades might go past this time window, which I want to allow
+
+but in backtesting, this would allow the strategy to execute a new trade while it's still in one
+
+a fake trade seems to give me what I want
+
+how would a fake trade work?
+
+always use the fake order manager
+always use it to make a fake trade
+
+how do I reconcile fake and real trades?
+
+if the real trade stops out, I need to close both the fake and real trade

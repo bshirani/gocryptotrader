@@ -18,6 +18,7 @@ var TableNames = struct {
 	Gateiocoin              string
 	GooseDBVersion          string
 	LiveOrder               string
+	LiveSignal              string
 	LiveTrade               string
 	Script                  string
 	ScriptExecution         string
@@ -41,6 +42,7 @@ var TableNames = struct {
 	Gateiocoin:              "gateiocoin",
 	GooseDBVersion:          "goose_db_version",
 	LiveOrder:               "live_order",
+	LiveSignal:              "live_signal",
 	LiveTrade:               "live_trade",
 	Script:                  "script",
 	ScriptExecution:         "script_execution",

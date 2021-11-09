@@ -12,6 +12,7 @@ import (
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/database/repository/candle"
+	"gocryptotrader/database/repository/livesignal"
 	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/cancel"
@@ -28,7 +29,6 @@ import (
 	"gocryptotrader/portfolio/risk"
 	"gocryptotrader/portfolio/slippage"
 	"gocryptotrader/portfolio/strategies"
-	"gocryptotrader/portfolio/trades"
 
 	"github.com/shopspring/decimal"
 )
@@ -213,6 +213,8 @@ func (p *Portfolio) updateStrategyTrades(ev signal.Event) {
 // if successful, it will pass on an order.Order to be used by the exchange event handler to place an order based on
 // the portfolio manager's recommendations
 func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*order.Order, error) {
+	// get the prediction. if it's negative store the entry signal and don't trade
+
 	// if p.GetLiveMode() {
 	// fmt.Println("UPDATE STRATEGY TRADES", ev.GetStrategyID(), ev.GetDecision())
 	// }
@@ -227,7 +229,6 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	// 	fmt.Println(ev.Pair(), s.GetPair(), s.Name())
 	// 	panic("updating wrong strategy/pair")
 	// }
-
 	// }
 	if ev == nil || cs == nil {
 		return nil, eventtypes.ErrNilArguments
@@ -261,6 +262,21 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		} else {
 			panic("no valid strategy side")
 		}
+
+		if !p.bot.Settings.EnableDryRun {
+			s := livesignal.Details{
+				ID:           GetNewTradeID(),
+				SignalTime:   ev.GetTime(),
+				StrategyName: s.GetLabel(),
+				Prediction:   ev.GetPrediction(),
+			}
+			id, err := livesignal.Insert(s)
+			s.ID = id
+			if err != nil {
+				fmt.Println("error inserting signal", err)
+				os.Exit(2)
+			}
+		}
 	case signal.Exit:
 		if s.GetDirection() == gctorder.Sell {
 			// ev.Base.SetDirection(gctorder.Buy)
@@ -285,7 +301,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 
 	if !p.dryRun {
 		activeTrades, _ := livetrade.Active()
-		maxTradeCount := 6
+		maxTradeCount := 600
 
 		// validate new entry order
 		if ev.GetDecision() == signal.Enter {
@@ -303,7 +319,6 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 		}
 	}
 
-	// get trade for strategy
 	t := p.GetTradeForStrategy(ev.GetStrategyName())
 	var tradeStatus string
 	if t == nil {
@@ -394,7 +409,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	// how much do we have in the currency being traded
 	// whats the currency being traded
 	// what kind of trade is it
-	// fmt.Println("amoutn before sizing", o.Amount)
+	// fmt.Println("amount before sizing", o.Amount)
 	// fmt.Println("currency being traded")
 	// fmt.Println(o.GetDecision(), o.GetDirection())
 
@@ -411,7 +426,6 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	}
 
 	o = p.sizeOrder(ev, cs, o, amountAvailable)
-	p.recordTrade(ev)
 	return o, nil
 
 	// var sizingFunds decimal.Decimal
@@ -429,6 +443,10 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	// fmt.Println("sized order", sizedOrder.Amount)
 	// fmt.Println("PORTFOLIO", ev.GetDirection(), ev.GetStrategyID(), ev.GetReason())
 	// return p.evaluateOrder(ev, o, sizedOrder)
+}
+
+func (p *Portfolio) GetSignalForStrategy(s string) *livesignal.Details {
+	return p.store.openSignal[sid]
 }
 
 func (p *Portfolio) GetOrderFromStore(orderid int) *gctorder.Detail {
@@ -480,10 +498,11 @@ func (p *Portfolio) OnFill(f fill.Event) {
 	}
 
 	// update trades and orders here
+	// t := p.store.openTrade[f.GetStrategyID()]
 	t := p.GetTradeForStrategy(f.GetStrategyName())
 
 	if t == nil {
-		fmt.Println("no trade for strategy, PF ON fILL creating NEW TRADE")
+		// fmt.Println("no trade for strategy, PF ON fILL creating NEW TRADE")
 		p.recordEnterTrade(f)
 	} else if t.Status == gctorder.Open {
 		p.recordExitTrade(f, t)
@@ -752,14 +771,6 @@ func (e *PortfolioSettings) Value() decimal.Decimal {
 		return decimal.Zero
 	}
 	return latest.TotalValue
-}
-
-func (p *Portfolio) recordTrade(ev signal.Event) {
-	direction := ev.GetDirection()
-	if direction == gctorder.Sell || direction == gctorder.Buy {
-		t, _ := trades.Create(ev)
-		t.Update(ev)
-	}
 }
 
 func (p *Portfolio) evaluateOrder(d eventtypes.Directioner, originalOrderSignal, sizedOrder *order.Order) (*order.Order, error) {

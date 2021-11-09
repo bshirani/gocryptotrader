@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"gocryptotrader/data"
+	"gocryptotrader/database/repository/livesignal"
 	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/exchange/order"
@@ -32,6 +33,7 @@ type StrategyPortfolioHandler interface {
 	GetOpenOrdersForStrategy(string) []order.Detail
 	GetVerbose() bool
 	GetTradeForStrategy(string) *livetrade.Details
+	GetSignalForStrategy(string) *livesignal.Details
 }
 
 type FactorEngineHandler interface {

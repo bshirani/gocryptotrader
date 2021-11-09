@@ -13,6 +13,7 @@ import (
 	"gocryptotrader/database/repository/candle"
 	"gocryptotrader/database/repository/datahistoryjob"
 	"gocryptotrader/database/repository/liveorder"
+	"gocryptotrader/database/repository/livesignal"
 	"gocryptotrader/database/repository/livetrade"
 	"os"
 	"os/signal"
@@ -141,6 +142,7 @@ func NewTradeManager(bot *Engine) (*TradeManager, error) {
 				// check database name to ensure we don't delete anything
 				panic("trying to delete production")
 			}
+			livesignal.DeleteAll()
 			livetrade.DeleteAll()
 			liveorder.DeleteAll()
 		}

@@ -7,6 +7,7 @@ import (
 
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
+	"gocryptotrader/database/repository/livesignal"
 	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/cancel"
@@ -67,6 +68,7 @@ type PortfolioHandler interface {
 	setHoldingsForOffset(*holdings.Holding, bool) error
 	UpdateHoldings(eventtypes.DataEventHandler) error
 	GetTradeForStrategy(string) *livetrade.Details
+	GetSignalForStrategy(string) *livesignal.Details
 	GetComplianceManager(string, asset.Item, currency.Pair) (*compliance.Manager, error)
 
 	SetFee(string, asset.Item, currency.Pair, decimal.Decimal)

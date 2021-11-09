@@ -66,9 +66,10 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 
 	orders := p.GetOpenOrdersForStrategy(s.GetLabel())
 	trade := p.GetTradeForStrategy(s.GetLabel())
+	mlsignal := p.GetSignalForStrategy(s.GetLabel())
 
 	if trade == nil {
-		// fmt.Println("no trade")
+		fmt.Println("no trade, mlsignal:", mlsignal)
 		// fmt.Println("trend.go has", len(orders), "orders", "has trade")
 	}
 

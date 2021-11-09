@@ -23,7 +23,11 @@ func (s *Signal) GetDirection() order.Side {
 }
 
 func (s *Signal) SetPrediction(p float64) {
-	s.Prediction = decimal.NewFromFloat(p)
+	s.Prediction = p
+}
+
+func (s *Signal) GetPrediction() float64 {
+	return s.Prediction
 }
 
 func (s *Signal) GetStrategyID() int {
