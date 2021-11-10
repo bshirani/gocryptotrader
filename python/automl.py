@@ -4,6 +4,8 @@ import fire
 import pandas as pd
 import functools
 from math import sqrt
+import glob
+import os
 
 from utils import last_file_in_dir
 from ex_mljar import MlJarExperiment
@@ -35,27 +37,31 @@ IGNORE_COLS = [
 # profit_loss / risked
 
 
-def run(filename=None, test=False, mode="Explain", version=None, retrain=False):
+def run_all(dirname=None, test=False, mode="Explain", version=None, retrain=False):
     """
     tries various machine learning methods on the data
     returns the best result and breakdown of the various methods
     """
 
-    if filename is None:
-        if version is not None:
-            filename = last_file_in_dir(f'../results/fcsv/*{version}*')
-        else:
-            filename = last_file_in_dir('../results/fcsv/')
+    if dirname is None:
+        # if version is not None:
+        #     dirname = last_file_in_dir(f'../results/fcsv/*{version}*')
+        # else:
+        dirname = last_file_in_dir('../results/fcsv')
+    dirname = max(glob.glob('../results/fcsv/*/'), key=os.path.getctime)
+    files = glob.glob(dirname+'*')
+    [run_one(filename) for filename in files]
 
+
+def run_one(filename: str):
     df = pd.read_csv(filename, header=0)
     # df['pl_cheat'] = df[TARGET_NAME]
     df.time = pd.to_datetime(df.time, unit='s')
     target = df.drop(columns=[TARGET_NAME])
     df.profit_loss_quote = df.profit_loss_quote * 0.001
-    input_cols = [item for item in df.columns.values if item not in IGNORE_COLS]
-
-    # import pdbr
-    # pdbr.set_trace()
+    input_cols = [
+        item for item in df.columns.values if item not in IGNORE_COLS
+    ]
 
     X_train, X_test, y_train, y_test = train_test_split(
         df[input_cols], df[TARGET_NAME], test_size=0.25
@@ -80,7 +86,7 @@ def run(filename=None, test=False, mode="Explain", version=None, retrain=False):
 
     # import pdbr
     # pdbr.set_trace()
-    analyze_model_performance(df, preds, X_test, y_test)
+    # analyze_model_performance(df, preds, X_test, y_test)
 
 
 def analyze_model_performance(df, preds, X_test, y_test):
@@ -95,4 +101,4 @@ def analyze_model_performance(df, preds, X_test, y_test):
 
 
 if __name__ == '__main__':
-    fire.Fire(run)
+    fire.Fire(run_all)

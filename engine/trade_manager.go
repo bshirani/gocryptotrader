@@ -1246,8 +1246,13 @@ func (tm *TradeManager) writeFactorEngines(allFactors bool) (err error) {
 	if allFactors {
 		for _, cs := range tm.bot.CurrencySettings {
 			fe := tm.FactorEngines[cs.ExchangeName][cs.AssetType][cs.CurrencyPair]
+			factorsDir := fmt.Sprintf(
+				"results/factors/%v",
+				time.Now().Format("2006-01-02-15-04-05"),
+			)
+			os.MkdirAll(factorsDir, os.ModePerm)
 			factorsFile := fmt.Sprintf(
-				"results/factors/%v-%s.json",
+				"results/factors/%v/%s.json",
 				time.Now().Format("2006-01-02-15-04-05"),
 				cs.CurrencyPair.Upper().String(),
 			)
@@ -1272,8 +1277,13 @@ func (tm *TradeManager) writeFactorEngines(allFactors bool) (err error) {
 		startDate := tm.startDate
 		endDate := tm.bot.Config.DataSettings.DatabaseData.EndDate
 		duration := int(endDate.Sub(startDate).Hours() / 24)
+		factorsDir := fmt.Sprintf(
+			"results/fcsv/%v",
+			time.Now().Format("2006-01-02-15-04-05"),
+		)
+		os.MkdirAll(factorsDir, os.ModePerm)
 		factorsCSV := fmt.Sprintf(
-			"results/fcsv/%s-%s-%d-days.csv",
+			"results/fcsv/%v/%s-%d-days.csv",
 			time.Now().Format("2006-01-02-15-04-05"),
 			s.GetLabel(),
 			duration,
