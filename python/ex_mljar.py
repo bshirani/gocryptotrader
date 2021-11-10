@@ -8,7 +8,7 @@ import shutil
 
 
 class MlJarExperiment:
-    automl_predictors = dict()
+    models = dict()
 
     @classmethod
     def learn(cls, X_train, X_test, y_train, y_test, mode,
@@ -29,10 +29,9 @@ class MlJarExperiment:
     @classmethod
     def predict(cls, X_test, version, mode):
         version = f'../models/{version}'
-        if version not in cls.automl_predictors:
-            cls.automl_predictors[version] = AutoML(
-                results_path=version, mode=mode)
-        return cls.automl_predictors[version].predict(X_test)
+        if version not in cls.models:
+            cls.models[version] = AutoML(results_path=version, mode=mode)
+        return cls.models[version].predict(X_test)
 
     @classmethod
     def drop_features(cls, version):

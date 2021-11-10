@@ -17,7 +17,6 @@ import (
 	"gocryptotrader/database/repository/livetrade"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"strings"
 	"sync/atomic"
 	"syscall"
@@ -433,13 +432,19 @@ dataLoadingIssue:
 	}
 
 	if !tm.liveMode && completed {
-		_, file := filepath.Split(tm.bot.Settings.TradeConfigFile)
-		fileName := fmt.Sprintf(
-			"results/bt/trades-%v-%s.json",
+		factorsDir := fmt.Sprintf(
+			"results/backtest/trades-%v",
 			time.Now().Format("2006-01-02-15-04-05"),
-			file,
 		)
-		livetrade.WriteJSON(tm.Portfolio.GetAllClosedTrades(), fileName)
+		os.MkdirAll(factorsDir, os.ModePerm)
+		for _, s := range tm.Strategies {
+			fileName := fmt.Sprintf(
+				"%s/%s.json",
+				factorsDir,
+				s.GetLabel(),
+			)
+			livetrade.WriteJSON(tm.Portfolio.GetTradesForStrategy(s.GetLabel()), fileName)
+		}
 		tm.writeFactorEngines(false)
 		// WriteJSON(tm.Portfolio.GetAllClosedTrades(), newpath)
 		// &analyze.PortfolioAnalysis{}.Analyze("")
@@ -1289,7 +1294,7 @@ func (tm *TradeManager) writeFactorEngines(allFactors bool) (err error) {
 			duration,
 		)
 
-		fmt.Println("writing fe csv")
+		// fmt.Println("writing fe csv")
 		fmt.Println(factorsCSV)
 		writer, err := file.Writer(factorsCSV)
 		if err != nil {

@@ -737,5 +737,25 @@ Instead, a cronjob will run that will train models that should be trained and ha
 should this not be possible with a future strategy then a concurrent retraining process will be implemented
 
 
+I'm going to have a separate system to manage the machine learning backtesting
+and to analyze the results
+this system will also be responsible for analyzing teh results of the portfolio optimization
+
+it will be an experimentation framework
+
+
+soletsgo
+
+prediction
+go
+I need separated trade files
+then I update the trade files
+go
+
+
+>> retrain every 30 traes
+
+
+
 
 

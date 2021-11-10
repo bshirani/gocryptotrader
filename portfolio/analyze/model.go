@@ -48,8 +48,8 @@ func GetPredictions(filename string) {
 		fmt.Printf("Could not get working directory. Error: %v.\n", err)
 		os.Exit(1)
 	}
-	lastBT, _ := common.LastFileInDir("results/bt")
-	btPath := filepath.Join(wd, "results/bt", lastBT)
+	lastBT, _ := common.LastFileInDir(BacktestResults)
+	btPath := filepath.Join(wd, BacktestResults, lastBT)
 	trades, err := livetrade.LoadJSON(btPath)
 	if err != nil {
 		panic(err)

@@ -40,9 +40,9 @@ func getTradeFilePath(path string) (string, error) {
 	wd, _ := os.Getwd()
 	var err error
 	if path == "" {
-		path, err = common.LastFileInDir("results/bt")
+		path, err = common.LastFileInDir(BacktestResults)
 	}
-	return filepath.Join(wd, "results/bt", path), err
+	return filepath.Join(wd, BacktestResults, path), err
 }
 
 // func calculateMaxDrawdown(closePrices []eventtypes.DataEventHandler) Swing {

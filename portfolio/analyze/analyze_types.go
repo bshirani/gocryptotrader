@@ -9,6 +9,10 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+const (
+	BacktestResults = "results/bt"
+)
+
 type PortfolioAnalysis struct {
 	AllSettings        []*config.StrategySetting `json:"strategies"`
 	GroupedSettings    []*config.StrategySetting `json:"strategies"`
