@@ -37,23 +37,37 @@ IGNORE_COLS = [
 # profit_loss / risked
 
 
-def run_all(dirname=None, test=False, mode="Explain", version=None, retrain=False):
+def run_all(dirname=None, mode="Explain", version=None):
     """
-    tries various machine learning methods on the data
-    returns the best result and breakdown of the various methods
+    runs full machine learning backtest
+    runs training during the test
+    models and predicts each strategy individually
+    predictions are stored back in the trade results
     """
 
     if dirname is None:
-        # if version is not None:
-        #     dirname = last_file_in_dir(f'../results/fcsv/*{version}*')
-        # else:
         dirname = last_file_in_dir('../results/fcsv')
     dirname = max(glob.glob('../results/fcsv/*/'), key=os.path.getctime)
     files = glob.glob(dirname+'*')
-    [run_one(filename) for filename in files]
+    [run_one(mode, filename) for filename in files]
 
 
-def run_one(filename: str):
+def run_one(mode: str, filename: str):
+    """
+    tries various machine learning methods on the data
+    returns the best result and breakdown of the various methods
+
+    backtests a single strategy
+
+    method 1:
+    train on first 30
+    retrieve predictions for next 30
+    retrain and continue until finished
+
+    method 2:
+    use river and stream the entire thing
+    """
+
     df = pd.read_csv(filename, header=0)
     # df['pl_cheat'] = df[TARGET_NAME]
     df.time = pd.to_datetime(df.time, unit='s')
@@ -66,19 +80,16 @@ def run_one(filename: str):
     X_train, X_test, y_train, y_test = train_test_split(
         df[input_cols], df[TARGET_NAME], test_size=0.25
     )
+    version = os.path.basename(filename).split('-')[0]
 
-    print("running run on", filename, version)
-    if test:
-        preds = np.random.uniform(low=-5, high=5, size=(len(X_test,)))
-    else:
-        preds = MlJarExperiment.learn(
-            X_train,
-            X_test,
-            y_train,
-            y_test,
-            mode=mode,
-            version=version,
-            retrain=retrain)
+    preds = MlJarExperiment.learn(
+        X_train,
+        X_test,
+        y_train,
+        y_test,
+        mode=mode,
+        version=version,
+        retrain=True)
 
     # for i in range(100):
     #     t1 = datetime.now()
