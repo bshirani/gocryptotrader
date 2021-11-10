@@ -11,9 +11,8 @@ class MlJarExperiment:
     automl_predictors = dict()
 
     @classmethod
-    def learn(cls, X_train, X_test, y_train, y_test,
+    def learn(cls, X_train, X_test, y_train, y_test, mode,
               version=None,
-              mode="Explain",
               retrain=False):
         # import pdbr
         # pdbr.set_trace()
@@ -26,13 +25,13 @@ class MlJarExperiment:
         else:
             automl = AutoML(mode=mode)
         automl.fit(X_train, y_train)
-        return automl.predict(X_test)
 
     @classmethod
-    def predict(cls, X_test, version):
+    def predict(cls, X_test, version, mode):
+        version = f'../models/{version}'
         if version not in cls.automl_predictors:
             cls.automl_predictors[version] = AutoML(
-                results_path=version, mode="Perform")
+                results_path=version, mode=mode)
         return cls.automl_predictors[version].predict(X_test)
 
     @classmethod

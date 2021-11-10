@@ -6,6 +6,7 @@ import (
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
 	"gocryptotrader/data"
+	"gocryptotrader/database/repository/livetrade"
 	"gocryptotrader/eventtypes"
 	"gocryptotrader/eventtypes/event"
 	"gocryptotrader/eventtypes/signal"
@@ -15,6 +16,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/shopspring/decimal"
 )
@@ -36,8 +38,8 @@ type Strategy struct {
 }
 
 func (s *Strategy) SetDropFeatures() {
-	tmpUrl := fmt.Sprintf("http://localhost:8000/drop_features")
-	req, err := http.NewRequest("GET", tmpUrl, nil)
+	url := fmt.Sprintf("http://localhost:8000/drop_features")
+	req, err := http.NewRequest("GET", url, nil)
 	req.URL.RawQuery = fmt.Sprintf("model=%s", s.GetLabel())
 	client := http.Client{}
 	resp, err := client.Do(req)
@@ -50,15 +52,17 @@ func (s *Strategy) SetDropFeatures() {
 	s.dropFeatures = drop
 }
 
-func (s *Strategy) Learn(fe FactorEngineHandler) error {
+func (s *Strategy) Learn(fe FactorEngineHandler, trades []*livetrade.Details) error {
 	url := fmt.Sprintf("http://localhost:8000/learn?model=%s", s.GetLabel())
+	calcs := fe.GetCalculationsForTrades(trades)
 	r, w := io.Pipe()
 	go func() {
-		w.CloseWithError(json.NewEncoder(w).Encode(fe.GetCalculations()))
+		w.CloseWithError(json.NewEncoder(w).Encode(calcs))
 	}()
 	defer r.Close()
 	resp, err := http.Post(url, "application/json", r)
 	if err != nil {
+		return err
 		log.Fatal(err)
 	}
 
@@ -72,30 +76,32 @@ func (s *Strategy) Learn(fe FactorEngineHandler) error {
 	return nil
 }
 
-func (s *Strategy) GetPrediction(fe FactorEngineHandler) float64 {
-	tmpUrl := fmt.Sprintf("http://localhost:8000/predict")
-	req, err := http.NewRequest("GET", tmpUrl, nil)
+func (s *Strategy) GetPrediction(fe FactorEngineHandler, sigTime time.Time) float64 {
+	url := fmt.Sprintf("http://localhost:8000/predict?model=%s", s.GetLabel())
+	trade := &livetrade.Details{EntryTime: sigTime}
+	trades := make([]*livetrade.Details, 0)
+	trades = append(trades, trade)
+	calcs := fe.GetCalculationsForTrades(trades)
 
-	params := fe.ToQueryParams()
-	// params["risked_quote"] = 12.0
-	rawParams := ""
-	for k, v := range params {
-		if rawParams == "" {
-			rawParams = fmt.Sprintf("%s=%f", k, v)
-		} else {
-			rawParams = fmt.Sprintf("%s&%s=%f", rawParams, k, v)
-		}
+	r, w := io.Pipe()
+	go func() {
+		w.CloseWithError(json.NewEncoder(w).Encode(calcs))
+	}()
+	defer r.Close()
+	resp, err := http.Post(url, "application/json", r)
+	if err != nil {
+		panic(err)
+		log.Fatal(err)
 	}
 
-	req.URL.RawQuery = fmt.Sprintf("model=%s&%s", s.GetLabel(), rawParams)
-	client := http.Client{}
-	resp, err := client.Do(req)
+	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil || resp.StatusCode > 200 {
 		fmt.Println("error", err, resp.StatusCode)
 		panic(resp.StatusCode)
 		log.Fatalln(err)
 	}
+
 	f, _ := strconv.ParseFloat(string(body), 64)
 	return f
 }

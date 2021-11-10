@@ -710,3 +710,32 @@ I should never be in this situation
 when a trade is exited, we close out signals to allow the strategy to trade again
 
 ensure you only save the last valid signal per strategy
+
+>> train a model after n trades
+
+>> year long backtest with all models
+
+>> get all predicted trades
+>> get all trades with portfolio weights
+>> get all model trades for 1 year
+>> get all model trades for all data
+
+
+full system test from beginning to end
+
+the system is running from zero
+the calculations are gathered
+the trades are made without concern to prediction
+once there are enough trades, a training is commenced on that strategy's model
+this process is done periodically to keep the model updated
+PERIODIC RETRAINING
+
+
+in live trading
+there is no retraining
+Instead, a cronjob will run that will train models that should be trained and have a window of time available
+should this not be possible with a future strategy then a concurrent retraining process will be implemented
+
+
+
+

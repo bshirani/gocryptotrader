@@ -11,12 +11,13 @@ from sklearn import datasets
 from sklearn.model_selection import train_test_split
 from sklearn.feature_selection import SelectFromModel
 from sklearn.metrics import accuracy_score
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response, HTTPException
 from ex_mljar import MlJarExperiment
 from utils import last_file_in_dir
 import json
 
 app = FastAPI()
+MODE = "Explain"
 
 
 @app.get("/")
@@ -58,12 +59,51 @@ async def drop_features(model: str):
 
 @app.post("/learn")
 async def learn(model: str, request: Request):
-    print("LEARNING")
-
-    print(await request.json())
+    j = await request.json()
+    df = pd.json_normalize(j)
     # rd = dict(req.query_params)
     # del rd['model']
-    # print(req)
+    df.set_index('Time', inplace=True)
+    df.drop(columns='Date', inplace=True)
+    keep_cols = [x for x in df.columns if "time" not in x]
+    df = df[keep_cols]
+    df = df.astype(float)
+    X_train, X_test, y_train, y_test = train_test_split(
+        df[keep_cols], df['ProfitLossQuote'], test_size=0.25
+    )
+    print(df.columns)
+
+    # import pdbr
+    # pdbr.set_trace()
+
+    try:
+        MlJarExperiment.learn(
+            X_train,
+            X_test,
+            y_train,
+            y_test,
+            MODE,
+            f"{model}",
+            retrain=True,
+        )
+        return "ok"
+    except supervised.exceptions.AutoMLException:
+        raise HTTPException(status_code=500, detail="AutoML Exception")
+
+
+@app.post("/predict")
+async def predict(model: str, request: Request):
+    j = await request.json()
+    df = pd.json_normalize(j)
+    # rd = dict(req.query_params)
+    # del rd['model']
+    df.set_index('Time', inplace=True)
+    df.drop(columns='Date', inplace=True)
+    keep_cols = [x for x in df.columns if "time" not in x]
+    df = df[keep_cols]
+    df = df.astype(float)
+    print(df.columns)
+
     # odf = pd.read_csv(filename, header=0)
     # odf.set_index('time', inplace=True)
     # oX_test = odf[-1:].iloc[0]
@@ -74,48 +114,17 @@ async def learn(model: str, request: Request):
     # import pdbr
     # pdbr.set_trace()
 
-    # try:
-    #     res = MlJarExperiment.learn(X_test, f"{model}").tolist()[0]
-    #     print("PREDICTION:", res)
-    #     if res == float('inf'):
-    #         print("INFINITYYYYYYYYYY")
-    #         res = 1
-    #     return res
-    # except supervised.exceptions.AutoMLException:
-    #     return f"model not found {model}"
-
-
-@app.get("/predict")
-async def predict(model: str, req: Request):
-    rd = dict(req.query_params)
-    del rd['model']
-    print(rd)
-    filename = f'../results/fcsv/*{model}*'
-    filename = last_file_in_dir(filename)
-    model = os.path.join("../models", model)
-    if not os.path.exists(filename):
-        return f"model {filename} does not exist"
-
-    odf = pd.read_csv(filename, header=0)
-    odf.set_index('time', inplace=True)
-    oX_test = odf[-1:].iloc[0]
-
-    X_test = pd.DataFrame(rd, index=[0]).astype(float)
-    # print(X_test.to_dict())
-    # print(urllib.parse.urlencode(rd, doseq=False))
-    # X_test = pd.DataFrame(rd, index=[0])
-    # import pdbr
-    # pdbr.set_trace()
-
     try:
-        res = MlJarExperiment.predict(X_test, f"{model}").tolist()[0]
+        res = MlJarExperiment.predict(
+            df, f"{model}", mode=MODE).tolist()[0]
         print("PREDICTION:", res)
         if res == float('inf'):
             print("INFINITYYYYYYYYYY")
             res = 1
         return res
     except supervised.exceptions.AutoMLException:
-        return f"model not found {model}"
+        raise HTTPException(status_code=500, detail="AutoML Exception")
+        # return f"model not found {model}"
 
 
 if __name__ == "__main__":

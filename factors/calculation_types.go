@@ -22,4 +22,7 @@ type Calculation struct {
 	N30  *NCalculation
 	N60  *NCalculation
 	N100 *NCalculation
+
+	// prediction metrics
+	ProfitLossQuote decimal.Decimal
 }

@@ -74,8 +74,27 @@ func (f *FactorEngine) Daily() *factors.DailyDataFrame {
 	return f.daily
 }
 
-func (f *FactorEngine) GetCalculations() []*factors.Calculation {
-	return f.calcs
+func (f *FactorEngine) GetCalculationsForTrades(trades []*livetrade.Details) (out []*factors.Calculation) {
+	if len(trades) == 0 {
+		panic("no trades to get calcs for")
+	}
+	fmt.Println("getting calcs for", len(trades))
+	for _, t := range trades {
+		var calcForTrade *factors.Calculation
+		for _, c := range f.calcs {
+			// fmt.Println("checking calc time", c.Time)
+			if common.IsSameMinute(c.Time, t.EntryTime) {
+				calcForTrade = c
+				c.ProfitLossQuote = t.ProfitLossQuote
+				out = append(out, c)
+				break
+			}
+		}
+		if calcForTrade == nil {
+			panic(fmt.Sprintf("could not find calculation for trade at time %s", t.EntryTime))
+		}
+	}
+	return out
 }
 
 func (f *FactorEngine) getFactorCalculations(d data.Handler) *factors.Calculation {

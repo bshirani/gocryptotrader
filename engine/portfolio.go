@@ -191,6 +191,10 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 	return p, nil
 }
 
+func (p *Portfolio) GetTradesForStrategy(sid string) []*livetrade.Details {
+	return p.store.closedTrades[sid]
+}
+
 // Reset returns the portfolio manager to its default state
 func (p *Portfolio) Reset() {
 	p.exchangeAssetPairSettings = nil
@@ -289,7 +293,6 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 			}
 			p.store.openSignal[s.GetLabel()] = &sig
 			if !p.bot.Settings.EnableDryRun {
-				fmt.Println("creating live signal", sig.SignalTime, sig.ValidUntil)
 				id, err := livesignal.Insert(sig)
 				sig.ID = id
 				if err != nil {
@@ -1259,9 +1262,9 @@ func (p *Portfolio) getStrategy(strategyName string) (strategies.Handler, error)
 }
 
 func (p *Portfolio) recordEnterTrade(ev fill.Event) {
-	// if p.debug {
-	fmt.Println("ENTER TRADE", ev.GetStrategyName(), ev.GetTime())
-	// }
+	if p.debug {
+		fmt.Println("ENTER TRADE", ev.GetStrategyName(), ev.GetTime())
+	}
 	s, _ := p.getStrategy(ev.GetStrategyName())
 	// fmt.Println("STRATEGY DIR", s.GetDirection())
 	// fmt.Println("EV DIR", ev.GetDirection())
@@ -1370,7 +1373,9 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 }
 
 func (p *Portfolio) recordExitTrade(f fill.Event, t *livetrade.Details) {
-	fmt.Println("RECORD EXIT TRADE duration", f.GetTime(), f.GetTime().Sub(t.EntryTime).Minutes(), "minutes")
+	if p.debug {
+		fmt.Println("RECORD EXIT TRADE duration", f.GetTime(), f.GetTime().Sub(t.EntryTime).Minutes(), "minutes")
+	}
 
 	// check if we have stop loss here
 	openOrders := p.GetOpenOrdersForStrategy(f.GetStrategyName())

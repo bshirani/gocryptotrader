@@ -38,7 +38,7 @@ type StrategyPortfolioHandler interface {
 }
 
 type FactorEngineHandler interface {
-	GetCalculations() []*factors.Calculation
+	GetCalculationsForTrades([]*livetrade.Details) []*factors.Calculation
 	ToQueryParams() map[string]interface{}
 	Last() *factors.Calculation
 	OnBar(data.Handler) error

@@ -17,6 +17,7 @@ import (
 	"gocryptotrader/database/repository/livetrade"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"sync/atomic"
 	"syscall"
@@ -432,9 +433,12 @@ dataLoadingIssue:
 	}
 
 	if !tm.liveMode && completed {
+		_, file := filepath.Split(tm.bot.Settings.TradeConfigFile)
 		fileName := fmt.Sprintf(
-			"results/bt/trades-%v.json",
-			time.Now().Format("2006-01-02-15-04-05"))
+			"results/bt/trades-%v-%s.json",
+			time.Now().Format("2006-01-02-15-04-05"),
+			file,
+		)
 		livetrade.WriteJSON(tm.Portfolio.GetAllClosedTrades(), fileName)
 		tm.writeFactorEngines(false)
 		// WriteJSON(tm.Portfolio.GetAllClosedTrades(), newpath)
@@ -788,18 +792,23 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 					s, err := strategy.OnData(d, tm.Portfolio, fe)
 					if s.GetDecision() == gctsignal.Enter {
 						if tm.useML {
-							if tm.lastTrainingDate[strategy].IsZero() {
-								// run training
-								// how many trades does this strategy have?
-								// countTrades := livetrade.CountForStrategy(strategy.GetLabel())
-								// fmt.Println("count trades", countTrades)
-								// if countTrades > 2 {
-								// 	fmt.Println("TRAIN IT")
-								// 	strategy.Learn(fe)
-								// }
+							// run training
+							// how many trades does this strategy have?
+							countTrades := livetrade.CountForStrategy(strategy.GetLabel())
+							// fmt.Println("count trades", countTrades)
+							if countTrades >= 10 && countTrades%10 == 0 {
+								fmt.Println("TRAIN IT", strategy.GetLabel())
+								err := strategy.Learn(fe, tm.Portfolio.GetTradesForStrategy(strategy.GetLabel()))
+								if err != nil {
+									fmt.Println("error", err)
+									panic(err)
+								}
+								tm.lastTrainingDate[strategy] = ev.GetTime()
+							}
+							if countTrades < 10 {
 								s.SetPrediction(1)
 							} else {
-								pred := strategy.GetPrediction(fe)
+								pred := strategy.GetPrediction(fe, ev.GetTime())
 								fmt.Println("strategy prediction", pred, strategy.GetLabel())
 								s.SetPrediction(pred)
 							}

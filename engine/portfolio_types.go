@@ -63,6 +63,7 @@ type PortfolioHandler interface {
 
 	GetLiveMode() bool
 	GetAllClosedTrades() []*livetrade.Details
+	GetTradesForStrategy(string) []*livetrade.Details
 	GetAllClosedTradesByStrategy() map[string][]*livetrade.Details
 
 	ViewHoldingAtTimePeriod(eventtypes.EventHandler) (*holdings.Holding, error)
