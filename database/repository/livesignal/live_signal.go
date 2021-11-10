@@ -6,10 +6,9 @@ import (
 	"gocryptotrader/database"
 	"gocryptotrader/database/models/postgres"
 	"gocryptotrader/log"
-	"time"
 
 	"github.com/volatiletech/sqlboiler/v4/boil"
-	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+	. "github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
 // Insert writes a single entry into database
@@ -28,6 +27,7 @@ func Insert(in Details) (id int, err error) {
 		SignalTime:   in.SignalTime,
 		StrategyName: in.StrategyName,
 		Prediction:   in.Prediction,
+		ValidUntil:   in.ValidUntil,
 	}
 
 	err = tempInsert.Upsert(
@@ -63,28 +63,38 @@ func Insert(in Details) (id int, err error) {
 	return tempInsert.ID, nil
 }
 
-func Active(currentTime time.Time) (out []Details, err error) {
+func Active() (out []Details, err error) {
+	boil.DebugMode = true
+	defer func() { boil.DebugMode = false }()
 	if database.DB.SQL == nil {
 		return out, database.ErrDatabaseSupportDisabled
 	}
+	// if currentTime == nil {
+	// 	return []Details{}, nil
+	// }
 
-	whereQM := qm.Where("valid_until < ?", currentTime)
-	ret, errS := postgres.LiveSignals(whereQM).All(context.Background(), database.DB.SQL)
+	ret, errS := postgres.LiveSignals(
+		Select("strategy_name", "valid_until", "signal_time"),
+		// Where("valid_until < ?", currentTime),
+		OrderBy("signal_time desc"),
+		GroupBy("strategy_name"),
+		GroupBy("valid_until"),
+		GroupBy("signal_time"),
+		Limit(1),
+	).All(context.Background(), database.DB.SQL)
 
 	for _, x := range ret {
 		out = append(out, Details{
 			StrategyName: x.StrategyName,
 			SignalTime:   x.SignalTime,
 			ValidUntil:   x.ValidUntil,
-			Prediction:   x.Prediction,
-			UpdatedAt:    x.UpdatedAt,
-			CreatedAt:    x.CreatedAt,
 		})
 	}
 
 	if errS != nil {
 		return out, errS
 	}
+	fmt.Println("signals returning", len(out))
 
 	return out, err
 }
@@ -105,7 +115,7 @@ func DeleteAll() error {
 		}
 	}()
 
-	query := postgres.LiveSignals(qm.Where(`1=1`))
+	query := postgres.LiveSignals(Where(`1=1`))
 	_, err = query.DeleteAll(ctx, tx)
 	if err != nil {
 		return err

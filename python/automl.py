@@ -17,7 +17,7 @@ TARGET_NAME = 'profit_loss_quote'
 # INPUT_COLS = ['pl_cheat', 'n10_high', 'n10_low']
 IGNORE_COLS = [
     'profit_loss_quote',
-    'risk_quote',
+    'risked_quote',
     'id',
     'time',
 ]
@@ -35,16 +35,18 @@ IGNORE_COLS = [
 # profit_loss / risked
 
 
-def run(filename=None, test=False, mode="Explain", version=None):
+def run(filename=None, test=False, mode="Explain", version=None, retrain=False):
     """
     tries various machine learning methods on the data
     returns the best result and breakdown of the various methods
     """
 
-    if version is not None:
-        filename = last_file_in_dir(f'../results/fcsv/*{version}*')
     if filename is None:
-        filename = last_file_in_dir('../results/fcsv/')
+        if version is not None:
+            filename = last_file_in_dir(f'../results/fcsv/*{version}*')
+        else:
+            filename = last_file_in_dir('../results/fcsv/')
+
     df = pd.read_csv(filename, header=0)
     # df['pl_cheat'] = df[TARGET_NAME]
     df.time = pd.to_datetime(df.time, unit='s')
@@ -69,7 +71,8 @@ def run(filename=None, test=False, mode="Explain", version=None):
             y_train,
             y_test,
             mode=mode,
-            version=version)
+            version=version,
+            retrain=retrain)
 
     # for i in range(100):
     #     t1 = datetime.now()

@@ -1,6 +1,7 @@
 package analyze
 
 import (
+	"fmt"
 	"gocryptotrader/common"
 	"gocryptotrader/config"
 	"gocryptotrader/database/repository/livetrade"
@@ -26,8 +27,9 @@ func (p *PortfolioAnalysis) Analyze() error {
 
 func (p *PortfolioAnalysis) loadTradesFromFile(filepath string) error {
 	p.Report = &Report{}
-	p.Report.Portfolio = &PortfolioReport{}
+	p.Report.Portfolio = PortfolioReport{}
 	lf, err := getTradeFilePath(filepath)
+	fmt.Println("analyzing trades file", lf)
 	trades, err := livetrade.LoadJSON(lf)
 	p.trades = trades
 	p.groupedTrades = groupByStrategyID(trades)

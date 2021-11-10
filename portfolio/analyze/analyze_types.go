@@ -19,7 +19,7 @@ type PortfolioAnalysis struct {
 	trades             []*livetrade.Details
 	Config             *config.Config
 	Filepath           string
-	StrategiesAnalyses []*StrategyAnalysis
+	StrategiesAnalyses []StrategyAnalysis
 }
 
 type TradeCSVData struct {
@@ -37,14 +37,14 @@ type PortfolioWeights struct {
 }
 
 type Report struct {
-	Portfolio  *PortfolioReport    `json:"portfolio"`
-	Strategies []*StrategyAnalysis `json:"strategies"`
+	Portfolio  PortfolioReport    `json:"portfolio"`
+	Strategies []StrategyAnalysis `json:"strategies"`
 }
 
 type PortfolioReport struct {
-	NumTrades          int64
-	NumStrategies      int64
-	AverageDurationMin float64
+	NumTrades          int64   `json:"numTrades"`
+	NumStrategies      int64   `json:"numStrategies"`
+	AverageDurationMin float64 `json:"averageDurationMin"`
 }
 
 // Swing holds a drawdown

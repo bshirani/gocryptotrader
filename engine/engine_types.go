@@ -18,6 +18,7 @@ type Settings struct {
 	// Core Settings
 	EnableProductionMode        bool
 	EnableClearDB               bool
+	EnableMachineLearning       bool
 	EnableAllExchanges          bool
 	EnableAllPairs              bool
 	EnableCoinmarketcapAnalysis bool

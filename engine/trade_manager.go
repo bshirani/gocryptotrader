@@ -39,6 +39,7 @@ import (
 	gctlog "gocryptotrader/log"
 	"gocryptotrader/portfolio/statistics"
 	"gocryptotrader/portfolio/statistics/strategystatistics"
+	"gocryptotrader/portfolio/strategies"
 
 	"github.com/fatih/color"
 	"github.com/shopspring/decimal"
@@ -69,6 +70,7 @@ func NewTradeManager(bot *Engine) (*TradeManager, error) {
 	tm.dryRun = bot.Settings.EnableDryRun
 	tm.liveMode = bot.Config.LiveMode
 	tm.debug = bot.Config.TradeManager.Debug
+	tm.useML = bot.Settings.EnableMachineLearning
 
 	stats := &statistics.Statistic{
 		StrategyName:        "ok",
@@ -86,38 +88,28 @@ func NewTradeManager(bot *Engine) (*TradeManager, error) {
 	// }
 
 	tm.bot = bot
+	tm.lastTrainingDate = make(map[strategies.Handler]time.Time)
+
 	var err error
-	if bot.OrderManager == nil && bot.Settings.EnableOrderManager {
-		// log.Warnln(log.TradeMgr, "!!!!!!!!!!!!!!!!!!!!!!!! Enabling REAL $$$$$$$$ order manager!!!!!!!!!!!!!!!!!!!!")
-		bot.OrderManager, err = SetupOrderManager(
-			bot.ExchangeManager,
-			bot.CommunicationsManager,
-			&bot.ServicesWG,
-			bot.Config.OrderManager.Verbose,
-			bot.Config.ProductionMode,
-			bot.Config.LiveMode,
-			bot.Config.DryRun,
-		)
-
-		if err != nil {
-			log.Errorf(log.Global, "Fake Order manager unable to setup: %s", err)
-		} else {
-			err = bot.OrderManager.Start()
-
-			if err != nil {
-				log.Errorf(log.Global, "Fake Order manager unable to start: %s", err)
-			}
-		}
+	tm.bot.DatabaseManager, err = SetupDatabaseConnectionManager(gctdatabase.DB.GetConfig())
+	err = tm.bot.DatabaseManager.Start(&tm.bot.ServicesWG)
+	if err != nil {
+		gctlog.Errorf(gctlog.Global, "Database manager unable to start: %v", err)
 	}
+	ltt := livetrade.LastTradeTime()
+	if ltt != nil {
+		tm.startDate = *ltt
+	} else {
+		tm.startDate = tm.bot.Config.DataSettings.DatabaseData.StartDate
+	}
+	fmt.Println("STARTING FROM LAST TRADE TIME", tm.startDate)
+
 	tm.syncManager = bot.currencyPairSyncer
 
 	tm.Datas = &data.HandlerPerCurrency{}
 	tm.Datas.Setup()
 	if !tm.liveMode {
-		// validate that we have teh data for all pairs requested
 		tm.validateBacktestData()
-
-		// log.Debug(log.TradeMgr, "starting offline services")
 		err = tm.startOfflineServices()
 	}
 	if err != nil {
@@ -145,6 +137,26 @@ func NewTradeManager(bot *Engine) (*TradeManager, error) {
 			livesignal.DeleteAll()
 			livetrade.DeleteAll()
 			liveorder.DeleteAll()
+			tm.startDate = tm.bot.Config.DataSettings.DatabaseData.StartDate
+		}
+		bot.OrderManager, err = SetupOrderManager(
+			bot.ExchangeManager,
+			bot.CommunicationsManager,
+			&bot.ServicesWG,
+			bot.Config.OrderManager.Verbose,
+			bot.Config.ProductionMode,
+			bot.Config.LiveMode,
+			bot.Config.DryRun,
+		)
+		tm.bot.OrderManager.SetOnFill(tm.onFill)
+		if err != nil {
+			log.Errorf(log.Global, "Order manager unable to setup: %s", err)
+		} else {
+			err = bot.OrderManager.Start()
+
+			if err != nil {
+				log.Errorf(log.Global, "Order manager unable to start: %s", err)
+			}
 		}
 
 		p, err := SetupPortfolio(tm.Strategies, tm.bot, tm.bot.Config)
@@ -775,8 +787,23 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 					// fmt.Println("ON DATA", d.Latest().Pair())
 					s, err := strategy.OnData(d, tm.Portfolio, fe)
 					if s.GetDecision() == gctsignal.Enter {
-						pred := strategy.GetPrediction(fe)
-						s.SetPrediction(pred)
+						if tm.useML {
+							if tm.lastTrainingDate[strategy].IsZero() {
+								// run training
+								// how many trades does this strategy have?
+								// countTrades := livetrade.CountForStrategy(strategy.GetLabel())
+								// fmt.Println("count trades", countTrades)
+								// if countTrades > 2 {
+								// 	fmt.Println("TRAIN IT")
+								// 	strategy.Learn(fe)
+								// }
+								s.SetPrediction(1)
+							} else {
+								pred := strategy.GetPrediction(fe)
+								fmt.Println("strategy prediction", pred, strategy.GetLabel())
+								s.SetPrediction(pred)
+							}
+						}
 					}
 
 					// fmt.Println("query params", rawParams)
@@ -1118,37 +1145,6 @@ func (tm *TradeManager) startOfflineServices() (err error) {
 		panic(err)
 	}
 
-	// start fake order manager here since we don't start engine in backtest mode
-	tm.bot.OrderManager, err = SetupOrderManager(
-		tm.bot.ExchangeManager,
-		tm.bot.CommunicationsManager,
-		&tm.bot.ServicesWG,
-		tm.bot.Config.OrderManager.Verbose,
-		tm.bot.Config.ProductionMode,
-		tm.liveMode,
-		tm.bot.Settings.EnableDryRun,
-	)
-	tm.bot.OrderManager.SetOnFill(tm.onFill)
-
-	if err != nil {
-		gctlog.Errorf(gctlog.Global, "Order manager unable to setup: %s", err)
-	} else {
-		err = tm.bot.OrderManager.Start()
-		if err != nil {
-			gctlog.Errorf(gctlog.Global, "Order manager unable to start: %s", err)
-		}
-	}
-
-	tm.bot.DatabaseManager, err = SetupDatabaseConnectionManager(gctdatabase.DB.GetConfig())
-	if err != nil {
-		return err
-	} else {
-		err = tm.bot.DatabaseManager.Start(&tm.bot.ServicesWG)
-		if err != nil {
-			gctlog.Errorf(gctlog.Global, "Database manager unable to start: %v", err)
-		}
-	}
-
 	tm.initializeFactorEngines()
 
 	return err
@@ -1262,7 +1258,9 @@ func (tm *TradeManager) writeFactorEngines(allFactors bool) (err error) {
 			}
 		}
 
-		startDate := tm.bot.Config.DataSettings.DatabaseData.StartDate
+		// start from the last trade
+		// startDate := tm.bot.Config.DataSettings.DatabaseData.StartDate
+		startDate := tm.startDate
 		endDate := tm.bot.Config.DataSettings.DatabaseData.EndDate
 		duration := int(endDate.Sub(startDate).Hours() / 24)
 		factorsCSV := fmt.Sprintf(
@@ -1298,7 +1296,7 @@ func (tm *TradeManager) loadBacktestData() (err error) {
 		a := eap.AssetType
 		p := eap.CurrencyPair
 		// fmt.Println("loading data for", p)
-		startDate := tm.bot.Config.DataSettings.DatabaseData.StartDate
+		startDate := tm.startDate
 		endDate := tm.bot.Config.DataSettings.DatabaseData.EndDate
 		dbData, err := database.LoadData(
 			startDate,

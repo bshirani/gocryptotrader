@@ -219,6 +219,9 @@ func validateSettings(b *Engine, s *Settings, flagSet map[string]bool) {
 			b.Settings.EnableClearDB = true
 		}
 	}
+	if flagSet["useml"] {
+		b.Settings.EnableMachineLearning = true
+	}
 
 	if !flagSet["grpc"] {
 		b.Settings.EnableGRPC = b.Config.RemoteControl.GRPC.Enabled

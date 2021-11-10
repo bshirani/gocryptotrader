@@ -160,8 +160,13 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 			p.store.openTrade[t.StrategyName] = &t
 		}
 
-		activeSignals, _ := livesignal.Active(time.Now())
+		activeSignals, err := livesignal.Active()
+		if err != nil {
+			fmt.Println("error", err)
+			panic(err)
+		}
 		for _, s := range activeSignals {
+			fmt.Println("saving signal", s.SignalTime, s.ValidUntil)
 			p.store.openSignal[s.StrategyName] = &s
 		}
 
@@ -259,17 +264,40 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	// }
 	switch ev.GetDecision() {
 	case signal.Enter:
-		sig := livesignal.Details{
-			ID:           GetNewTradeID(),
-			SignalTime:   ev.GetTime(),
-			StrategyName: s.GetLabel(),
-			Prediction:   ev.GetPrediction(),
-			ValidUntil:   ev.GetTime().AddDate(0, 0, 1),
-		}
+		if p.bot.Config.TradeManager.UseML {
+			validUntil := ev.GetTime().AddDate(0, 0, 1)
+			sig := livesignal.Details{
+				SignalTime:   ev.GetTime(),
+				StrategyName: s.GetLabel(),
+				Prediction:   ev.GetPrediction(),
+				ValidUntil:   validUntil,
+			}
 
-		if sig.Prediction < 0 {
-			ev.SetDecision(signal.DoNothing)
-			ev.SetDirection(eventtypes.DoNothing)
+			if sig.Prediction < 0 {
+				ev.SetDecision(signal.DoNothing)
+				ev.SetDirection(eventtypes.DoNothing)
+			} else {
+				if s.GetDirection() == gctorder.Sell {
+					// fmt.Println("STRATEGY DIRECTION SELL, ENTER SELL")
+					// ev.Base.SetDirection(gctorder.Sell)
+					ev.SetDirection(gctorder.Sell)
+				} else if s.GetDirection() == gctorder.Buy {
+					// fmt.Println("STRATEGY DIRECTION BUY, ENTER BUY")
+					// ev.Base.SetDirection(gctorder.Buy)
+					ev.SetDirection(gctorder.Buy)
+				}
+			}
+			p.store.openSignal[s.GetLabel()] = &sig
+			if !p.bot.Settings.EnableDryRun {
+				fmt.Println("creating live signal", sig.SignalTime, sig.ValidUntil)
+				id, err := livesignal.Insert(sig)
+				sig.ID = id
+				if err != nil {
+					fmt.Println("error inserting signal", err)
+					os.Exit(2)
+				}
+			}
+
 		} else {
 			if s.GetDirection() == gctorder.Sell {
 				// fmt.Println("STRATEGY DIRECTION SELL, ENTER SELL")
@@ -282,15 +310,6 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 			}
 		}
 
-		p.store.openSignal[s.GetLabel()] = &sig
-		if !p.bot.Settings.EnableDryRun {
-			id, err := livesignal.Insert(sig)
-			sig.ID = id
-			if err != nil {
-				fmt.Println("error inserting signal", err)
-				os.Exit(2)
-			}
-		}
 	case signal.Exit:
 		if s.GetDirection() == gctorder.Sell {
 			// ev.Base.SetDirection(gctorder.Buy)
@@ -486,6 +505,7 @@ func (p *Portfolio) GetOrderFromStore(orderid int) *gctorder.Detail {
 
 // OnFill processes the event after an order has been placed by the exchange. Its purpose is to track holdings for future portfolio decisions.
 func (p *Portfolio) OnFill(f fill.Event) {
+	// fmt.Println("on fill", f.GetTime())
 	if f.GetStrategyID() == 0 {
 		fmt.Println("fill has no strategy ID")
 		os.Exit(2)
@@ -640,6 +660,7 @@ func (p *Portfolio) GetSignalForStrategy(t time.Time, s string) *livesignal.Deta
 
 func (p *Portfolio) GetOpenOrdersForStrategy(sid string) (orders []gctorder.Detail) {
 	active, _ := p.bot.OrderManager.GetOrdersActive(nil)
+	// fmt.Println("retrieved", len(active), "active orders from order manager")
 	for _, ao := range active {
 		if ao.StrategyName == sid {
 			orders = append(orders, ao)
@@ -1239,7 +1260,7 @@ func (p *Portfolio) getStrategy(strategyName string) (strategies.Handler, error)
 
 func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 	// if p.debug {
-	// 	fmt.Println("ENTER TRADE RECORD", ev.GetStrategyName())
+	fmt.Println("ENTER TRADE", ev.GetStrategyName(), ev.GetTime())
 	// }
 	s, _ := p.getStrategy(ev.GetStrategyName())
 	// fmt.Println("STRATEGY DIR", s.GetDirection())
@@ -1265,13 +1286,21 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 		riskedPts = stopOrd.Price - entryOrder.Price
 	}
 
+	sig := p.GetSignalForStrategy(ev.GetTime(), s.GetLabel())
+	var pred float64
+	if sig != nil {
+		pred = sig.Prediction
+	} else {
+		pred = 0
+	}
+
 	t := livetrade.Details{
-		ID:            GetNewTradeID(),
 		Status:        gctorder.Open,
 		StrategyID:    ev.GetStrategyID(),
 		StrategyName:  s.GetLabel(),
 		EntryTime:     ev.GetTime(),
 		EntryOrderID:  entryOrder.InternalOrderID,
+		Prediction:    pred,
 		EntryPrice:    ev.GetPurchasePrice(),
 		StopLossPrice: decimal.NewFromFloat(stopOrd.Price),
 		Side:          entryOrder.Side,
@@ -1279,6 +1308,10 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 		Amount:        decimal.NewFromFloat(entryOrder.Amount),
 		RiskedQuote:   riskedPts * entryOrder.Amount,
 		RiskedPoints:  riskedPts,
+	}
+
+	if p.dryRun {
+		t.ID = GetNewTradeID()
 	}
 
 	if t.EntryPrice.IsZero() {
@@ -1337,9 +1370,17 @@ func (p *Portfolio) recordEnterTrade(ev fill.Event) {
 }
 
 func (p *Portfolio) recordExitTrade(f fill.Event, t *livetrade.Details) {
-	// fmt.Println("EXIT TRADE")
+	fmt.Println("RECORD EXIT TRADE duration", f.GetTime(), f.GetTime().Sub(t.EntryTime).Minutes(), "minutes")
+
+	// check if we have stop loss here
+	openOrders := p.GetOpenOrdersForStrategy(f.GetStrategyName())
+	// fmt.Println("there are", len(openOrders), "for strategy")
+	if len(openOrders) > 0 {
+		panic("open order exists while trying to exit trade")
+	}
 
 	if t.Status == gctorder.Open {
+		p.GetSignalForStrategy(f.GetTime(), f.GetStrategyName())
 		t.Status = gctorder.Closed
 		t.ExitTime = f.GetTime()
 		t.ExitPrice = f.GetClosePrice()

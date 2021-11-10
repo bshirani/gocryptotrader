@@ -14,6 +14,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"time"
 
 	"gocryptotrader/database/models/postgres"
 	"gocryptotrader/log"
@@ -67,7 +68,7 @@ func one(in int, clause string) (out Details, err error) {
 	}
 	// boil.DebugMode = true
 
-	whereQM := qm.Where(clause+"= ?", in)
+	whereQM := qm.Where(clause+"=?", in)
 	ret, errS := postgres.LiveTrades(whereQM).One(context.Background(), database.DB.SQL)
 	out.ID = ret.ID
 	if errS != nil {
@@ -75,6 +76,26 @@ func one(in int, clause string) (out Details, err error) {
 	}
 
 	return out, err
+}
+
+func LastTradeTime() *time.Time {
+	query := qm.OrderBy(`entry_time desc`)
+	t, _ := postgres.LiveTrades(query).One(context.Background(), database.DB.SQL)
+	if t == nil {
+		return nil
+	}
+	if t.ExitTime.IsZero() {
+		return &t.EntryTime
+	}
+	return t.ExitTime.Ptr()
+}
+
+func CountForStrategy(strategy string) int64 {
+	// boil.DebugMode = true
+	// defer func() { boil.DebugMode = false }()
+	whereQM := qm.Where("strategy_name = ?", strategy)
+	i, _ := postgres.LiveTrades(whereQM).Count(context.Background(), database.DB.SQL)
+	return i
 }
 
 func Active() (out []Details, err error) {

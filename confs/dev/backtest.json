@@ -107,6 +107,7 @@
   "enabled": true,
   "verbose": false,
   "trading": true,
+  "useML": false,
   "debug": false,
   "clearDB": false,
   "strategies": null

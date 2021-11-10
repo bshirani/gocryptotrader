@@ -56,6 +56,35 @@ async def drop_features(model: str):
     return MlJarExperiment.drop_features(model)
 
 
+@app.post("/learn")
+async def learn(model: str, request: Request):
+    print("LEARNING")
+
+    print(await request.json())
+    # rd = dict(req.query_params)
+    # del rd['model']
+    # print(req)
+    # odf = pd.read_csv(filename, header=0)
+    # odf.set_index('time', inplace=True)
+    # oX_test = odf[-1:].iloc[0]
+    # X_test = pd.DataFrame(rd, index=[0]).astype(float)
+    # print(X_test.to_dict())
+    # print(urllib.parse.urlencode(rd, doseq=False))
+    # X_test = pd.DataFrame(rd, index=[0])
+    # import pdbr
+    # pdbr.set_trace()
+
+    # try:
+    #     res = MlJarExperiment.learn(X_test, f"{model}").tolist()[0]
+    #     print("PREDICTION:", res)
+    #     if res == float('inf'):
+    #         print("INFINITYYYYYYYYYY")
+    #         res = 1
+    #     return res
+    # except supervised.exceptions.AutoMLException:
+    #     return f"model not found {model}"
+
+
 @app.get("/predict")
 async def predict(model: str, req: Request):
     rd = dict(req.query_params)
@@ -79,7 +108,12 @@ async def predict(model: str, req: Request):
     # pdbr.set_trace()
 
     try:
-        return MlJarExperiment.predict(X_test, f"{model}").tolist()[0]
+        res = MlJarExperiment.predict(X_test, f"{model}").tolist()[0]
+        print("PREDICTION:", res)
+        if res == float('inf'):
+            print("INFINITYYYYYYYYYY")
+            res = 1
+        return res
     except supervised.exceptions.AutoMLException:
         return f"model not found {model}"
 

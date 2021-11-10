@@ -76,9 +76,19 @@ func (s *Strategy) OnData(d data.Handler, p base.StrategyPortfolioHandler, fe ba
 	// }
 
 	if livesignal == nil && trade == nil && len(orders) == 0 {
-		// fmt.Println("has no trade")
+		// fmt.Println("has no signal, trade, or open orders")
 		return s.checkEntry(es, p, d, fe)
 	}
+
+	// if trade != nil {
+	// 	fmt.Println("has trade, check exit")
+	// }
+	// if len(orders) > 0 {
+	// 	fmt.Println("has open orders", orders[0].Type)
+	// }
+	// if livesignal != nil {
+	// 	fmt.Println("has live signal", d.Latest().GetTime())
+	// }
 
 	if trade != nil {
 		return s.checkExit(es, p, d, fe)

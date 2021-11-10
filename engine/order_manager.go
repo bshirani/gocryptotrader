@@ -25,6 +25,7 @@ import (
 
 // SetupOrderManager will boot up the OrderManager
 func SetupOrderManager(exchangeManager iExchangeManager, communicationsManager iCommsManager, wg *sync.WaitGroup, verbose bool, realOrders bool, liveMode bool, dryRun bool) (*OrderManager, error) {
+	fmt.Println("setup order manager")
 	if exchangeManager == nil {
 		return nil, errNilExchangeManager
 	}
@@ -35,21 +36,33 @@ func SetupOrderManager(exchangeManager iExchangeManager, communicationsManager i
 		return nil, errNilWaitGroup
 	}
 
+	orderStore := store{
+		Orders:          make(map[string][]*order.Detail),
+		exchangeManager: exchangeManager,
+		commsManager:    communicationsManager,
+		wg:              wg,
+		dryRun:          dryRun,
+	}
+
 	// load orders from database
-	// activeOrders, _ := liveorder.Active()
-	// for _, t := range activeOrders {
-	// 	p.store.openOrders[t.StrategyID] = append(p.store.openOrders[t.StrategyID], &t)
-	// }
+	if !dryRun {
+		activeOrders, err := liveorder.Active()
+		// if len(activeOrders) == 0 {
+		// 	panic("no active orders")
+		// }
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("loading", len(activeOrders), "active orders")
+		for _, o := range activeOrders {
+			fmt.Println("adding open order for", o.StrategyName)
+			orderStore.Orders[o.StrategyName] = append(orderStore.Orders[o.StrategyName], &o)
+		}
+	}
 
 	return &OrderManager{
-		shutdown: make(chan struct{}),
-		orderStore: store{
-			Orders:          make(map[string][]*order.Detail),
-			exchangeManager: exchangeManager,
-			commsManager:    communicationsManager,
-			wg:              wg,
-			dryRun:          dryRun,
-		},
+		shutdown:      make(chan struct{}),
+		orderStore:    orderStore,
 		realOrders:    realOrders,
 		verbose:       verbose,
 		liveMode:      liveMode,
@@ -1322,6 +1335,10 @@ func (s *store) getActiveOrders(f *order.Filter) []order.Detail {
 	s.m.RLock()
 	defer s.m.RUnlock()
 
+	// fmt.Println("there are", len(s.Orders), "in the order store")
+	// for k, v := range s.Orders {
+	// 	fmt.Println(k, v[0], v[0].IsActive())
+	// }
 	var orders []order.Detail
 	switch {
 	case f == nil:

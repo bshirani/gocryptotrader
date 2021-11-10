@@ -21,6 +21,7 @@ type Handler interface {
 	SetID(int)
 	GetID() int
 	GetWeight() decimal.Decimal
+	Learn(base.FactorEngineHandler) error
 	SetNumID(int)
 	GetNumID() int
 	GetDirection() order.Side

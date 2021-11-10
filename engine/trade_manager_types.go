@@ -56,7 +56,10 @@ type TradeManager struct {
 	debug              bool
 	liveMode           bool
 	dryRun             bool
+	useML              bool
 	tradingEnabled     bool
+	lastTrainingDate   map[strategies.Handler]time.Time
+	startDate          time.Time
 	cfg                []*config.StrategySetting
 	hasHandledEvent    bool
 	shutdown           chan struct{}

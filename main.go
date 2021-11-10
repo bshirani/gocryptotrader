@@ -224,7 +224,6 @@ func analyzePF(c *cli.Context) error {
 	setupBot()
 	pf, err := getPF()
 	pf.Analyze()
-	pf.Save("")
 	return err
 }
 

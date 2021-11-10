@@ -91,8 +91,9 @@ func ActiveForStrategyName(sname string) (out []Details, err error) {
 	return out, err
 }
 
-func Active() (out []Details, err error) {
-	// boil.DebugMode = true
+func Active() (out []order.Detail, err error) {
+	boil.DebugMode = true
+	defer func() { boil.DebugMode = false }()
 	if database.DB.SQL == nil {
 		return out, database.ErrDatabaseSupportDisabled
 	}
@@ -101,19 +102,24 @@ func Active() (out []Details, err error) {
 	ret, errS := postgres.LiveOrders(whereQM).All(context.Background(), database.DB.SQL)
 
 	for _, x := range ret {
-		out = append(out, Details{
-			ID: x.ID,
+		out = append(out, order.Detail{
+			InternalOrderID: x.ID,
+			Status:          order.Status(x.Status),
+			Type:            order.Type(x.OrderType),
+			InternalType:    order.InternalOrderType(x.InternalType),
+			Exchange:        x.Exchange,
+			Side:            order.Side(x.Side),
+			Price:           x.Price,
+			StopLossPrice:   x.StopLossPrice,
+			TakeProfitPrice: x.TakeProfitPrice,
+			ClientOrderID:   string(x.ID),
+			StrategyName:    x.StrategyName,
+			ID:              x.ClientOrderID,
 		})
 	}
-	if errS != nil {
-		return out, errS
-	}
+	fmt.Println("returning", len(out))
 
-	if errS != nil {
-		return out, errS
-	}
-
-	return out, err
+	return out, errS
 }
 
 // Insert writes a single entry into database

@@ -659,3 +659,54 @@ the system doesn't tell the difference between those two things
 
 the livesignal is created via portfolio.OnSignal
 
+PORTFOLIO BACKTEST
+NEVER STOPS WORKING
+
+PB ERR DAY
+
+the goal of today is to have a portfolio backtest
+
+that's the only goal
+
+I want to do a portfolio backtest
+
+this involves retraining the model
+I have to run the model
+generate teh trades
+then train the machine learning for each model
+then continue the backtest
+
+the alternative is to do online-learning
+
+i either can run the retraining periodically during the operation of the system
+
+or I can setup an online machine learning system
+
+I think I should skip online-learning right now
+
+it seems more difficult to do right
+I don't know if I have the necessary models in order to do this
+
+let's try it and see how it does first
+
+that could save a lot of work
+
+
+I start the system and it begins training
+I start the backtest and it starts training
+periodically it will retrain the models via a worker pool
+
+try this with one strategy first
+
+let's generate some trades, then every X days it will retrain using the data within some range
+this will require passing all the inputs at once via api to python for training
+
+the trade manager will facilitate this
+
+why would I have an active stop loss when I don't have an active trade?
+
+I should never be in this situation
+
+when a trade is exited, we close out signals to allow the strategy to trade again
+
+ensure you only save the last valid signal per strategy

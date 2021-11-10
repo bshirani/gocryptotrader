@@ -28,6 +28,7 @@ type Fill struct {
 	StrategyName        string                  `json:"strategyName"`
 	Order               *order.Detail           `json:"-"`
 	StopLossOrderID     int                     `json:"stopLossOrderId"`
+	Prediction          float64                 `json:"prediction"`
 }
 
 // Event holds all functions required to handle a fill event
@@ -38,6 +39,8 @@ type Event interface {
 	GetOrderID() string
 	SetAmount(decimal.Decimal)
 	GetAmount() decimal.Decimal
+	GetPrediction() float64
+	SetPrediction(float64)
 	GetClosePrice() decimal.Decimal
 	GetVolumeAdjustedPrice() decimal.Decimal
 	GetSlippageRate() decimal.Decimal

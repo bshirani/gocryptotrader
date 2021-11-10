@@ -13,7 +13,7 @@ import (
 )
 
 var startDate, endDate, tradeConfigPath, configPath, templatePath, reportOutput, pairsArg string
-var clearDB, printLogo, generateReport, dryrun, darkReport bool
+var clearDB, printLogo, generateReport, dryrun, darkReport, useML bool
 
 var BacktestCommand = &cli.Command{
 	Name:   "backtest",
@@ -31,6 +31,12 @@ var BacktestCommand = &cli.Command{
 			Usage:       "clear database",
 			Value:       false,
 			Destination: &clearDB,
+		},
+		&cli.BoolFlag{
+			Name:        "useml",
+			Usage:       "use machine learning models",
+			Value:       false,
+			Destination: &useML,
 		},
 		&cli.StringFlag{
 			Name:        "config",
@@ -95,6 +101,7 @@ func backtest(c *cli.Context) error {
 		EnableDryRun:                  dryrun,
 		EnableAllPairs:                false,
 		EnableClearDB:                 clearDB,
+		EnableMachineLearning:         useML,
 		EnableExchangeHTTPRateLimiter: true,
 		EnableLiveMode:                false,
 	}, flags)

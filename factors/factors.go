@@ -18,6 +18,7 @@ func WriteCSV(w io.Writer, calcs []*Calculation, trades []*livetrade.Details) {
 	}
 	headers = append(headers, "profit_loss_quote")
 	headers = append(headers, "risked_quote")
+	// headers = append(headers, "prediction")
 	cw.Write(headers)
 
 	for _, t := range trades {
@@ -28,6 +29,7 @@ func WriteCSV(w io.Writer, calcs []*Calculation, trades []*livetrade.Details) {
 		}
 		strings = append(strings, t.ProfitLossQuote.String())
 		strings = append(strings, decimal.NewFromFloat(t.RiskedQuote).String())
+		// strings = append(strings, decimal.NewFromFloat(t.Prediction).String())
 		cw.Write(strings)
 	}
 

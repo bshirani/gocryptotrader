@@ -10,6 +10,7 @@ import (
 	"gocryptotrader/eventtypes/event"
 	"gocryptotrader/eventtypes/signal"
 	"gocryptotrader/exchange/order"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -49,12 +50,34 @@ func (s *Strategy) SetDropFeatures() {
 	s.dropFeatures = drop
 }
 
+func (s *Strategy) Learn(fe FactorEngineHandler) error {
+	url := fmt.Sprintf("http://localhost:8000/learn?model=%s", s.GetLabel())
+	r, w := io.Pipe()
+	go func() {
+		w.CloseWithError(json.NewEncoder(w).Encode(fe.GetCalculations()))
+	}()
+	defer r.Close()
+	resp, err := http.Post(url, "application/json", r)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer resp.Body.Close()
+	_, err = ioutil.ReadAll(resp.Body)
+	if err != nil || resp.StatusCode > 200 {
+		fmt.Println("error", err, resp.StatusCode)
+		panic(resp.StatusCode)
+		log.Fatalln(err)
+	}
+	return nil
+}
+
 func (s *Strategy) GetPrediction(fe FactorEngineHandler) float64 {
 	tmpUrl := fmt.Sprintf("http://localhost:8000/predict")
 	req, err := http.NewRequest("GET", tmpUrl, nil)
 
 	params := fe.ToQueryParams()
-	params["risked_quote"] = 12.0
+	// params["risked_quote"] = 12.0
 	rawParams := ""
 	for k, v := range params {
 		if rawParams == "" {
@@ -67,11 +90,12 @@ func (s *Strategy) GetPrediction(fe FactorEngineHandler) float64 {
 	req.URL.RawQuery = fmt.Sprintf("model=%s&%s", s.GetLabel(), rawParams)
 	client := http.Client{}
 	resp, err := client.Do(req)
-	if err != nil {
-		log.Fatalln(err)
-		panic(err)
-	}
 	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil || resp.StatusCode > 200 {
+		fmt.Println("error", err, resp.StatusCode)
+		panic(resp.StatusCode)
+		log.Fatalln(err)
+	}
 	f, _ := strconv.ParseFloat(string(body), 64)
 	return f
 }

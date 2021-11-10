@@ -74,6 +74,10 @@ func (f *FactorEngine) Daily() *factors.DailyDataFrame {
 	return f.daily
 }
 
+func (f *FactorEngine) GetCalculations() []*factors.Calculation {
+	return f.calcs
+}
+
 func (f *FactorEngine) getFactorCalculations(d data.Handler) *factors.Calculation {
 	curDate := factors.GetCurrentDateStats(f.kline, d)
 	n10 := factors.GetBaseStats(f.kline, 10, d)

@@ -78,6 +78,7 @@
   "trading": true,
   "debug": false,
   "clearDB": false,
+  "useML": true,
   "strategies": null
  },
  "factorEngine": {

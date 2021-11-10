@@ -64,8 +64,8 @@ class ModelAnalyzer:
         ]
 
     def analyze(self):
-        print("prediction range", self.preds.prediction.max(),
-              self.preds.prediction.min())
+        print("prediction range", self.preds.prediction.min(),
+              self.preds.prediction.max())
 
         cols = [x.name for x in self.analyses]
         df = [x.analyze() for x in self.analyses]

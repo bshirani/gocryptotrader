@@ -31,6 +31,14 @@ func (f *Fill) GetClosePrice() decimal.Decimal {
 	return f.ClosePrice
 }
 
+func (f *Fill) GetPrediction() float64 {
+	return f.Prediction
+}
+
+func (f *Fill) SetPrediction(p float64) {
+	f.Prediction = p
+}
+
 // GetVolumeAdjustedPrice returns the volume adjusted price
 func (f *Fill) GetVolumeAdjustedPrice() decimal.Decimal {
 	return f.VolumeAdjustedPrice

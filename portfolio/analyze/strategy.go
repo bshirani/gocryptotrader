@@ -3,6 +3,7 @@ package analyze
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"gocryptotrader/common/file"
 	"gocryptotrader/config"
 	"gocryptotrader/currency"
@@ -24,10 +25,14 @@ func (p *PortfolioAnalysis) analyzeGrouped() {
 	for label, trades := range p.groupedTrades {
 		strat := loadStrategyFromLabel(label)
 		a := analyzeStrategy(strat, trades)
-		p.StrategiesAnalyses = append(p.StrategiesAnalyses, a)
+		p.StrategiesAnalyses = append(p.StrategiesAnalyses, *a)
 		p.GroupedSettings = append(p.GroupedSettings, strat.GetSettings())
 		p.Strategies = append(p.Strategies, strat)
 	}
+	// fmt.Println("have", len(p.StrategiesAnalyses), "analyses")
+	// for _, sa := range p.StrategiesAnalyses {
+	// 	fmt.Println("num trades", sa.Base.NumTrades)
+	// }
 }
 
 func analyzeStrategy(s strategies.Handler, trades []*livetrade.Details) (a *StrategyAnalysis) {
@@ -47,7 +52,12 @@ func analyzeStrategy(s strategies.Handler, trades []*livetrade.Details) (a *Stra
 	sa.EndDate = trades[len(trades)-1].ExitTime
 
 	sa.Base = analyzeStrategyTrades(s, trades)
-	sa.Prediction = analyzeStrategyTrades(s, predTrades)
+	fmt.Println("analyzing", len(predTrades), "predicted trades")
+	if len(predTrades) > 0 {
+		sa.Prediction = analyzeStrategyTrades(s, predTrades)
+	} else {
+		fmt.Println("no predicted trades for", sa.Label)
+	}
 	return sa
 }
 
@@ -71,11 +81,20 @@ func analyzeStrategyTrades(s strategies.Handler, trades []*livetrade.Details) *S
 	}
 	ss.NumTrades = len(trades)
 	ss.NetProfit = sumPl
-	ss.AveragePL = sumPl / float64(winCount+lossCount)
-	ss.AverageWin = sumProfits / float64(winCount)
-	ss.AverageLoss = sumLosses / float64(lossCount)
-	ss.AvgWinByAvgLoss = ss.AverageWin / ss.AverageLoss * -1
-	ss.WinPercentage = float64(winCount) / float64(len(trades))
+
+	if winCount == 0 || lossCount == 0 {
+		ss.AveragePL = 0
+		ss.AverageWin = 0
+		ss.AverageLoss = 0
+		ss.AvgWinByAvgLoss = 0
+		ss.WinPercentage = 0
+	} else {
+		ss.AveragePL = sumPl / float64(winCount+lossCount)
+		ss.AverageWin = sumProfits / float64(winCount)
+		ss.AverageLoss = sumLosses / float64(lossCount)
+		ss.AvgWinByAvgLoss = ss.AverageWin / ss.AverageLoss * -1
+		ss.WinPercentage = float64(winCount) / float64(len(trades))
+	}
 
 	// remove the first entry as its zero and impacts
 	// ratio calculations as no movement has been made
@@ -156,14 +175,14 @@ func SaveStrategiesConfigFile(outpath string, ss []config.StrategySetting) error
 	_, err = io.Copy(writer, bytes.NewReader(payload))
 	return err
 }
-func (p *PortfolioAnalysis) GetStrategyAnalysis(s strategies.Handler) *StrategyAnalysis {
+
+func (p *PortfolioAnalysis) GetStrategyAnalysis(s strategies.Handler) StrategyAnalysis {
 	for _, a := range p.StrategiesAnalyses {
 		if strings.EqualFold(a.Label, s.GetLabel()) {
 			return a
 		}
 	}
-	panic("could not find strategy analysis")
-	return nil
+	return StrategyAnalysis{}
 }
 
 func loadStrategyFromTrade(t *livetrade.Details) strategies.Handler {

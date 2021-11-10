@@ -159,6 +159,7 @@ type TradeManagerConfig struct {
 	Enabled    bool               `json:"enabled"`
 	Verbose    bool               `json:"verbose"`
 	Trading    bool               `json:"trading"`
+	UseML      bool               `json:"useML"`
 	Debug      bool               `json:"debug"`
 	ClearDB    bool               `json:"clearDB"`
 	Strategies []*StrategySetting `json:"strategies"`
