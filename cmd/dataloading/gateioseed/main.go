@@ -24,7 +24,7 @@ func main() {
 	log.SetFlags(log.Ltime)
 
 	// For monitoring purpose.
-	waitC := make(chan bool)
+	// waitC := make(chan bool)
 	// go func() {
 	// 	for {
 	// 		log.Printf("[main] Total current goroutine: %d", runtime.NumGoroutine())
@@ -33,7 +33,7 @@ func main() {
 	// }()
 
 	// Start Worker Pool.
-	totalWorker := 12
+	totalWorker := 1
 	wp := workerpool.NewWorkerPool(totalWorker)
 	wp.Run()
 
@@ -42,54 +42,68 @@ func main() {
 		value string
 	}
 
-	totalTask := 10000
-	resultC := make(chan result, totalTask)
+	totalTask := 0
+	resultC := make(chan result, 10000)
 
 	finished := finishedSymbols()
-	files, err := ioutil.ReadDir(baseDir)
+	symbolDirs, err := ioutil.ReadDir(baseDir)
 	if err != nil {
 		log.Fatal(err)
 	}
 	i := 0
 	// fmt.Println("finished", finished)
-	for _, file := range files {
-		if file.IsDir() {
-			if !inSymbolList(file.Name()) {
+	for _, symbolDir := range symbolDirs {
+		if symbolDir.IsDir() {
+			if !inSymbolList(symbolDir.Name()) {
 				continue
 			}
-			files, _ = ioutil.ReadDir(path.Join(baseDir, file.Name()))
+			// fmt.Println("checking", symbolDir.Name())
+			files, _ := ioutil.ReadDir(path.Join(baseDir, symbolDir.Name()))
 			for _, f := range files {
-				var skipProcessing bool
-				if strings.HasSuffix(f.Name(), ".csv") {
-					for _, fin := range finished {
-						if strings.EqualFold(fin, f.Name()) {
-							skipProcessing = true
-						}
-					}
-
-					if skipProcessing {
-						continue
-					}
-
-					i += 1
-					id := i + 1
-					wp.AddTask(func() {
-						log.Printf("[main] Starting task %s", f.Name())
-						task(f.Name())
-						resultC <- result{id, f.Name()}
-					})
+				// fmt.Println(f.Name())
+				name := f.Name()
+				if !strings.HasSuffix(name, ".csv") {
+					continue
 				}
+				if isFinished(name, finished) {
+					// fmt.Println("skipping", name)
+					continue
+				}
+
+				fmt.Println("create task NOT IN FINISHED LIST", name)
+
+				i += 1
+				id := i + 1
+				totalTask = i
+				wp.AddTask(func() {
+					log.Printf("[main] Starting task %s", name)
+					task(name)
+					resultC <- result{id, name}
+					fmt.Println("finished", name)
+				})
+				fmt.Println("done adding task")
 			}
 		}
 	}
 
+	fmt.Println("waiting for", totalTask)
 	for i := 0; i < totalTask; i++ {
 		// <-resultC
 		res := <-resultC
 		log.Printf("[main] Task %s has been finished", res.value)
 	}
 
-	<-waitC
+	// <-waitC
+}
+
+func isFinished(filename string, finished []string) bool {
+	for _, fin := range finished {
+		if strings.EqualFold(fin, filename) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func inSymbolList(dirname string) bool {
@@ -118,7 +132,7 @@ func printOutput(outs []byte) {
 }
 
 func task(fileName string) {
-	// fmt.Println("run task", fileName)
+	fmt.Println("run task", fileName)
 	dirName := strings.Split(fileName, "-")[0]
 	c, err := currency.NewPairFromString(dirName)
 	if err != nil {

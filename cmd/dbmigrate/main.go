@@ -14,7 +14,7 @@ import (
 	dbPSQL "gocryptotrader/database/drivers/postgres"
 	"gocryptotrader/database/repository"
 
-	"github.com/pressly/goose"
+	"github.com/pressly/goose/v3"
 )
 
 var (
@@ -76,7 +76,7 @@ func main() {
 		return
 	}
 
-	if err = goose.Run(command, dbConn.SQL, drv, migrationDir, args); err != nil {
+	if err = goose.Run(command, dbConn.SQL, migrationDir, args); err != nil {
 		fmt.Println(err)
 	}
 }

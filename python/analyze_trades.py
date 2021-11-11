@@ -38,24 +38,24 @@ def analyze_trades(ts, portfolio=False, initial_balance=10000):
     sortino_180 = sortino_ratio(ts, 180, 0.01)
 
     perf = {
-        "alpha": 1,
+        # "alpha": 1,
         "annual_return": 0 if np == 0 else 1000/np,
-        "annual_volatility": 1,
+        # "annual_volatility": 1,
         "avg_loser": average_loser(ts),
         "avg_win_by_avg_loss": average_winner(ts)/average_loser(ts)*-1,
         "avg_winner": average_winner(ts),
-        "beta": 1,
-        "calmar_ratio": 1,
-        "common_sense_ratio": 1,
-        "cum_returns_final": 1,
+        # "beta": 1,
+        # "calmar_ratio": 1,
+        # "common_sense_ratio": 1,
+        # "cum_returns_final": 1,
         "date_start": ts.index.values[0],
-        "date_stop": ts.index.values[-1],
+        "date_stop": ts.sort_index().index.values[-1],
         "ending_balance": initial_balance,
         "expectancy": expectancy(ts),
         "gross_losses": gross_losses(ts),
         "gross_profit": gross_wins(ts),
         "initial_balance": initial_balance,
-        "kurtosis": 1,
+        # "kurtosis": 1,
         "max_consequtive_losers": max_consequtive_losers(ts),
         "max_consequtive_winners": max_consequtive_winners(ts),
         "max_drawdown": md,
@@ -69,31 +69,31 @@ def analyze_trades(ts, portfolio=False, initial_balance=10000):
         "num_weeks": ((ts.index.max() - ts.index.min()).days + 1) / 7,
         "num_trades": int(len(ts)),
         "num_wins": int((ts["net_profit"] > 0).sum()),
-        "omega_ratio": 1,
+        # "omega_ratio": 1,
         "perc_months_profitable": perc_months_profitable(ts),
         "perc_weeks_profitable": perc_weeks_profitable(ts),
         "perc_winners": perc_profitable(ts),
         "profit_factor": profit_factor(ts),
         "recovery_factor": float(np) / md,
-        "sharpe_ratio": 1.33333333312312312,
-        "skew": 1,
+        # "sharpe_ratio": 1.33333333312312312,
+        # "skew": 1,
         "sortino_180": sortino_180,
         "sortino_trades": sortino_trades,
-        "stability": 1,
-        "stability_of_timeseries": 1,
-        "tail_ratio": 1,
+        # "stability": 1,
+        # "stability_of_timeseries": 1,
+        # "tail_ratio": 1,
         "trades_per_year": trades_per_year(ts),
-        "value_at_risk": 1,
+        # "value_at_risk": 1,
     }
 
-    if portfolio:
-        perf["num_trade_rules"] = 5
-        perf["num_trade_rule_targets"] = 100
-        perf["num_instruments"] = 100
+    # if portfolio:
+    #     perf["num_trade_rules"] = 5
+    #     perf["num_trade_rule_targets"] = 100
+    #     perf["num_instruments"] = 100
 
     if "prediction" in ts:
-        perf["target_false_negative"] = target_false_negative(ts),
-        perf["trade_false_negative"] = trade_false_negative(ts),
+        # perf["target_false_negative"] = target_false_negative(ts),
+        # perf["trade_false_negative"] = trade_false_negative(ts),
         perf["preds_mean"] = ts["prediction"].mean()
         perf["preds_std"] = ts["prediction"].std()
         perf["preds_max"] = ts["prediction"].max()

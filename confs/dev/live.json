@@ -78,10 +78,10 @@
   "verbose": false,
   "driver": "postgres",
   "connectionDetails": {
-   "host": "localhost",
+   "host": "fullstack-postgres",
    "port": 5432,
    "username": "bijan",
-   "password": "",
+   "password": "lkj3lkj3",
    "database": "gct_dev_live",
    "sslmode": ""
   }

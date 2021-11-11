@@ -96,18 +96,18 @@ func NewTradeManager(bot *Engine) (*TradeManager, error) {
 	if err != nil {
 		gctlog.Errorf(gctlog.Global, "Database manager unable to start: %v", err)
 	}
-	ltt := livetrade.LastTradeTime()
-	if ltt != nil {
-		tm.startDate = *ltt
-	} else {
-		tm.startDate = tm.bot.Config.DataSettings.DatabaseData.StartDate
-	}
 
 	tm.syncManager = bot.currencyPairSyncer
 
 	tm.Datas = &data.HandlerPerCurrency{}
 	tm.Datas.Setup()
 	if !tm.liveMode {
+		ltt := livetrade.LastTradeTime()
+		if ltt != nil {
+			tm.startDate = *ltt
+		} else {
+			tm.startDate = tm.bot.Config.DataSettings.DatabaseData.StartDate
+		}
 		tm.validateBacktestData()
 		err = tm.startOfflineServices()
 	}

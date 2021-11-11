@@ -7,7 +7,6 @@ import (
 	"gocryptotrader/config"
 	"gocryptotrader/database"
 	dbPSQL "gocryptotrader/database/drivers/postgres"
-	"gocryptotrader/database/repository"
 
 	"github.com/urfave/cli/v2"
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -33,7 +32,7 @@ func load(c *cli.Context) error {
 		return err
 	}
 
-	drv := repository.GetSQLDialect()
+	// drv := repository.GetSQLDialect()
 	fmt.Printf("Connected to: %s\n", conf.Database.Host)
 
 	return nil

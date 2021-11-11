@@ -41,16 +41,17 @@ IGNORE_COLS = [
 # profit_loss / risked
 
 
-def pfbacktest():
+def pfbacktest(results: str = None):
     """
     runs full portfolio backtest
     applies weights
     this is the final report
     """
-    tdirname = last_file_in_dir('../results/backtest/*')
+    if results is None:
+        results = last_file_in_dir('../results/backtest/*')
     all_trades = None
-    for d in os.listdir(tdirname):
-        df = pd.read_json(open(os.path.join(tdirname, d)))
+    for d in os.listdir(results):
+        df = pd.read_json(open(os.path.join(results, d)))
         if all_trades is not None:
             all_trades = pd.concat([all_trades, df])
         else:
