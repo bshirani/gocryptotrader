@@ -33,11 +33,9 @@ const (
 
 func main() {
 	start, _ := time.Parse("2006-01-02", startDate)
-	t1 := start.AddDate(-3, 0, 0)
-	finished := make(chan bool)
+	t1 := start.AddDate(-30, 0, 0)
+	finished := make(chan string)
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-
 	signal.Notify(c, os.Interrupt)
 	go func() {
 		for range c {
@@ -47,19 +45,35 @@ func main() {
 	}()
 
 	for _, p := range symbols() {
+		var results []string
 		fmt.Printf("%s%10s%s...", string(colorCyan), p, string(colorReset))
 		for d := start; d.After(t1); d = d.AddDate(0, -1, 0) {
 			go worker(d, p, finished)
-			<-finished
+			lr := <-finished
+			results = append(results, lr)
+			// check if last 3 results have been failures
+			if len(results) > 3 {
+				if checkAllFailed(results[len(results)-3:]) {
+					break
+				}
+			}
+
+			// fmt.Println(results)
 		}
 		fmt.Println(string(colorReset))
 	}
 }
 
-func worker(d time.Time, p string, finished chan bool) {
-	defer func() {
-		finished <- true
-	}()
+func checkAllFailed(results []string) bool {
+	for _, x := range results[len(results)-3:] {
+		if x != "4" && x != "F" {
+			return false
+		}
+	}
+	return true
+}
+
+func worker(d time.Time, p string, finished chan string) {
 	var monthYear string
 	if int(d.Month()) < 10 {
 		monthYear = fmt.Sprintf("%d0%d", d.Year(), d.Month())
@@ -68,6 +82,7 @@ func worker(d time.Time, p string, finished chan bool) {
 	}
 
 	path := fmt.Sprintf(gateioDownloadURL+gateioPathFormat, "spot", "candlesticks_1m", monthYear, p, monthYear)
+	// fmt.Println("path", path)
 
 	// only if file does not exist
 	// does file exist?
@@ -78,15 +93,20 @@ func worker(d time.Time, p string, finished chan bool) {
 
 	if _, err := os.Stat(csvFilename); !errors.Is(err, os.ErrNotExist) {
 		fmt.Printf("%s%s", string(colorGreen), "E")
+		defer func() {
+			finished <- "E"
+		}()
 		return
 
 	} else if _, err := os.Stat(filename404); !errors.Is(err, os.ErrNotExist) {
 		// 404ed already
 		fmt.Printf("%s%s", string(colorRed), "4")
+		defer func() {
+			finished <- "4"
+		}()
 		return
 	} else if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
 		// file does not exist
-
 		// create dir if necessary
 		// fmt.Println("wget", path, filename)
 		newpath := filepath.Join(baseDir, p)
@@ -95,12 +115,19 @@ func worker(d time.Time, p string, finished chan bool) {
 		// file exists
 
 		fmt.Printf("%s%s", string(colorGreen), "E")
+		defer func() {
+			finished <- "E"
+		}()
 		return
 	}
 
 	res, e := http.Get(path)
 	if res.StatusCode > 299 {
 		fmt.Printf("%s%s", string(colorRed), "F")
+		fmt.Println("failed", path)
+		defer func() {
+			finished <- "F"
+		}()
 		f, e := os.Create(filename404)
 		if e != nil {
 			panic(e)
@@ -108,6 +135,9 @@ func worker(d time.Time, p string, finished chan bool) {
 		f.Close()
 		return
 	} else {
+		defer func() {
+			finished <- "S"
+		}()
 		fmt.Printf("%s%s", string(colorGreen), "S")
 	}
 	defer res.Body.Close()

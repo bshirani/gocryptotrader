@@ -1116,6 +1116,7 @@ func (bot *Engine) SetupExchangeSettings() error {
 	for _, e := range bot.Config.GetEnabledExchanges() {
 		for _, a := range []asset.Item{asset.Spot, asset.Futures} {
 			enabledPairs, _ := bot.Config.GetEnabledPairs(e, a)
+			// fmt.Println("enabled pairs", enabledPairs)
 			for _, pair := range enabledPairs {
 				// _, pair, a, err := bot.loadExchangePairAssetBase(e, pair.Base.String(), pair.Quote.String(), asset.Spot)
 				// if err != nil {
