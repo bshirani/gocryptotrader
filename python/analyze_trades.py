@@ -3,11 +3,16 @@ import numpy as np
 
 
 def analyze_trades(ts, portfolio=False, initial_balance=10000):
+    ts = ts.copy()
     if len(ts) == 0:
         return pd.DataFrame()
 
+    # import pdbr
+    # pdbr.set_trace()
     if "units" not in ts:
         ts.loc[:, "units"] = 1
+    if "net_profit" not in ts:
+        ts.loc[:, 'net_profit'] = ts.profit_loss_quote
     if "unit_profit" not in ts:
         ts.loc[:, "unit_profit"] = ts.net_profit
 
@@ -33,48 +38,52 @@ def analyze_trades(ts, portfolio=False, initial_balance=10000):
     sortino_180 = sortino_ratio(ts, 180, 0.01)
 
     perf = {
-        "initial_balance": initial_balance,
-        "ending_balance": initial_balance,
-        "annual_return": 0 if np == 0 else 1000/np,
-        "cum_returns_final": 1,
-        "annual_volatility": 1,
-        "calmar_ratio": 1,
-        "stability_of_timeseries": 1,
-        "max_drawdown": md,
-        "omega_ratio": 1,
-        "sortino_trades": sortino_trades,
-        "sortino_180": sortino_180,
-        "skew": 1,
-        "kurtosis": 1,
-        "tail_ratio": 1,
-        "common_sense_ratio": 1,
-        "value_at_risk": 1,
         "alpha": 1,
-        "beta": 1,
-        "stability": 1,
-        "net_profit": np,
-        "recovery_factor": float(np) / md,
-        "profit_factor": profit_factor(ts),
-        "expectancy": expectancy(ts),
-        "num_trades": int(len(ts)),
-        "gross_profit": gross_wins(ts),
-        "trades_per_year": trades_per_year(ts),
-        "max_consequtive_losers": max_consequtive_losers(ts),
-        "gross_losses": gross_losses(ts),
-        "avg_winner": average_winner(ts),
+        "annual_return": 0 if np == 0 else 1000/np,
+        "annual_volatility": 1,
         "avg_loser": average_loser(ts),
         "avg_win_by_avg_loss": average_winner(ts)/average_loser(ts)*-1,
-        "perc_winners": perc_profitable(ts),
-        "num_wins": int((ts["net_profit"] > 0).sum()),
+        "avg_winner": average_winner(ts),
+        "beta": 1,
+        "calmar_ratio": 1,
+        "common_sense_ratio": 1,
+        "cum_returns_final": 1,
+        "date_start": ts.index.values[0],
+        "date_stop": ts.index.values[-1],
+        "ending_balance": initial_balance,
+        "expectancy": expectancy(ts),
+        "gross_losses": gross_losses(ts),
+        "gross_profit": gross_wins(ts),
+        "initial_balance": initial_balance,
+        "kurtosis": 1,
+        "max_consequtive_losers": max_consequtive_losers(ts),
+        "max_consequtive_winners": max_consequtive_winners(ts),
+        "max_drawdown": md,
+        "max_drawdown": md,
+        "max_loss": ts.net_profit.min(),
+        "max_win": ts.net_profit.max(),
+        "net_profit": np,
+        "net_profit_by_maxdd": np/md,
         "num_losses": int((ts["net_profit"] < 0).sum()),
+        "num_strategies": len(ts.strategy_name.unique()),
+        "num_weeks": ((ts.index.max() - ts.index.min()).days + 1) / 7,
+        "num_trades": int(len(ts)),
+        "num_wins": int((ts["net_profit"] > 0).sum()),
+        "omega_ratio": 1,
         "perc_months_profitable": perc_months_profitable(ts),
         "perc_weeks_profitable": perc_weeks_profitable(ts),
-        "max_drawdown": md,
-        "max_consequtive_winners": max_consequtive_winners(ts),
-        "max_win": ts.net_profit.max(),
-        "max_loss": ts.net_profit.min(),
+        "perc_winners": perc_profitable(ts),
+        "profit_factor": profit_factor(ts),
+        "recovery_factor": float(np) / md,
         "sharpe_ratio": 1.33333333312312312,
-        "net_profit_by_maxdd": np/md,
+        "skew": 1,
+        "sortino_180": sortino_180,
+        "sortino_trades": sortino_trades,
+        "stability": 1,
+        "stability_of_timeseries": 1,
+        "tail_ratio": 1,
+        "trades_per_year": trades_per_year(ts),
+        "value_at_risk": 1,
     }
 
     if portfolio:

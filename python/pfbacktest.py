@@ -55,12 +55,12 @@ def pfbacktest():
             all_trades = pd.concat([all_trades, df])
         else:
             all_trades = df
-    all_trades['net_profit'] = all_trades.ProfitLossQuote
     all_trades.columns = [re.sub(r'(?<!^)(?=[A-Z])', '_', c).lower()
                           for c in all_trades.columns]
     all_trades['entry_time'] = pd.to_datetime(all_trades.entry_time)
     # all_trades.set_index(pd.to_datetime(all_trades['entry_time']), inplace=True)
-    print(analyze_trades(all_trades))
+    df = analyze_trades(all_trades)
+    print(df[sorted(df)].T)
 
 
 if __name__ == '__main__':

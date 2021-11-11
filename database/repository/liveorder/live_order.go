@@ -92,8 +92,8 @@ func ActiveForStrategyName(sname string) (out []Details, err error) {
 }
 
 func Active() (out []order.Detail, err error) {
-	boil.DebugMode = true
-	defer func() { boil.DebugMode = false }()
+	// boil.DebugMode = true
+	// defer func() { boil.DebugMode = false }()
 	if database.DB.SQL == nil {
 		return out, database.ErrDatabaseSupportDisabled
 	}
@@ -117,7 +117,6 @@ func Active() (out []order.Detail, err error) {
 			ID:              x.ClientOrderID,
 		})
 	}
-	fmt.Println("returning", len(out))
 
 	return out, errS
 }

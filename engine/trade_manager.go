@@ -102,7 +102,6 @@ func NewTradeManager(bot *Engine) (*TradeManager, error) {
 	} else {
 		tm.startDate = tm.bot.Config.DataSettings.DatabaseData.StartDate
 	}
-	fmt.Println("STARTING FROM LAST TRADE TIME", tm.startDate)
 
 	tm.syncManager = bot.currencyPairSyncer
 
@@ -413,7 +412,7 @@ dataLoadingIssue:
 						}
 						lastDate := lastUpdateDate
 						curDate := common.GetDate(d.GetTime())
-						if !common.IsSameDate(lastDate, curDate) {
+						if !common.IsSameDate(lastDate, curDate) && curDate.After(lastDate) {
 							log.Infoln(log.TradeMgr, "--------------->", curDate.Format(common.SimpleDateFormat))
 							lastUpdateDate = curDate
 						}
@@ -1283,15 +1282,15 @@ func (tm *TradeManager) writeFactorEngines(allFactors bool) (err error) {
 		endDate := tm.bot.Config.DataSettings.DatabaseData.EndDate
 		duration := int(endDate.Sub(startDate).Hours() / 24)
 		factorsDir := fmt.Sprintf(
-			"results/fcsv/%v",
+			"results/fcsv/%v-%d-days",
 			time.Now().Format("2006-01-02-15-04-05"),
+			duration,
 		)
 		os.MkdirAll(factorsDir, os.ModePerm)
 		factorsCSV := fmt.Sprintf(
-			"results/fcsv/%v/%s-%d-days.csv",
-			time.Now().Format("2006-01-02-15-04-05"),
+			"%s/%s.csv",
+			factorsDir,
 			s.GetLabel(),
-			duration,
 		)
 
 		// fmt.Println("writing fe csv")

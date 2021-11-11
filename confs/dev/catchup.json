@@ -50,6 +50,7 @@
   "enabled": false,
   "verbose": false,
   "trading": false,
+  "useML": false,
   "debug": false,
   "clearDB": false,
   "strategies": null
@@ -127,7 +128,7 @@
   "checkInterval": 60000000000,
   "maxJobsPerCycle": 100,
   "maxResultInsertions": 10000,
-  "daysBack": 100
+  "daysBack": 500
  },
  "currencyStateManager": {
   "enabled": true,

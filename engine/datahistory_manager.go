@@ -84,18 +84,21 @@ func (m *DataHistoryManager) CatchupDays(daysBack int64) error {
 	dayTime := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 	startDate := dayTime.AddDate(0, 0, int(daysBack)*-1)
 	for _, p := range m.bot.CurrencySettings {
-		for x := startDate; x.Before(dayTime); x = x.AddDate(0, 0, 1) {
-			t1 := x
-			t2 := x.AddDate(0, 0, 1)
-			candles, _ := candle.Series(p.ExchangeName, p.CurrencyPair.Base.String(), p.CurrencyPair.Quote.String(), 60, p.AssetType.String(), t1, t2)
-			if len(candles.Candles) > 1400 {
-				// fmt.Printf("%d-%d:%d, ", x.Month(), x.Day(), len(candles.Candles))
-				continue
-			}
-			log.Warnln(log.DataHistory, "Data history manager Syncing Days. Only have:", len(candles.Candles), "bars", p.ExchangeName, p.CurrencyPair, t1, t2)
-			m.createCatchupJob(p.ExchangeName, p.AssetType, p.CurrencyPair, t1, t2)
-			time.Sleep(time.Second)
+		// if p.CurrencyPair.Base.String() != "AAVE" {
+		// 	continue
+		// }
+		// for x := startDate; x.Before(dayTime); x = x.AddDate(0, 0, 1) {
+		t1 := startDate
+		t2 := startDate.AddDate(0, 0, 1)
+		candles, _ := candle.Series(p.ExchangeName, p.CurrencyPair.Base.String(), p.CurrencyPair.Quote.String(), 60, p.AssetType.String(), t1, t2)
+		if len(candles.Candles) > 1400 {
+			// fmt.Printf("%d-%d:%d, ", x.Month(), x.Day(), len(candles.Candles))
+			continue
 		}
+		log.Warnln(log.DataHistory, "Data history manager Syncing Days. Only have:", len(candles.Candles), "bars", p.ExchangeName, p.CurrencyPair, t1, t2)
+		m.createCatchupJob(p.ExchangeName, p.AssetType, p.CurrencyPair, t1, t2)
+		// time.Sleep(time.Second)
+		// }
 	}
 
 	// var activePair bool

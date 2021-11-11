@@ -25,7 +25,6 @@ import (
 
 // SetupOrderManager will boot up the OrderManager
 func SetupOrderManager(exchangeManager iExchangeManager, communicationsManager iCommsManager, wg *sync.WaitGroup, verbose bool, realOrders bool, liveMode bool, dryRun bool) (*OrderManager, error) {
-	fmt.Println("setup order manager")
 	if exchangeManager == nil {
 		return nil, errNilExchangeManager
 	}
@@ -53,9 +52,7 @@ func SetupOrderManager(exchangeManager iExchangeManager, communicationsManager i
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println("loading", len(activeOrders), "active orders")
 		for _, o := range activeOrders {
-			fmt.Println("adding open order for", o.StrategyName)
 			orderStore.Orders[o.StrategyName] = append(orderStore.Orders[o.StrategyName], &o)
 		}
 	}

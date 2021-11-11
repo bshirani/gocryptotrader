@@ -64,8 +64,8 @@ func Insert(in Details) (id int, err error) {
 }
 
 func Active() (out []Details, err error) {
-	boil.DebugMode = true
-	defer func() { boil.DebugMode = false }()
+	// boil.DebugMode = true
+	// defer func() { boil.DebugMode = false }()
 	if database.DB.SQL == nil {
 		return out, database.ErrDatabaseSupportDisabled
 	}
@@ -94,7 +94,6 @@ func Active() (out []Details, err error) {
 	if errS != nil {
 		return out, errS
 	}
-	fmt.Println("signals returning", len(out))
 
 	return out, err
 }

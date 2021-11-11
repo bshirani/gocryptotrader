@@ -4,6 +4,7 @@ from datetime import datetime
 import fire
 import pandas as pd
 import functools
+from analyze_trades import analyze_trades
 from math import sqrt
 import glob
 import os
@@ -51,7 +52,10 @@ def run_all(mode=MODE, retrain=False, dirname=None, version=None):
         dirname = last_file_in_dir('../results/fcsv')
     dirname = max(glob.glob('../results/fcsv/*/'), key=os.path.getctime)
     files = glob.glob(dirname+'*')
-    [run_one(filename, retrain) for filename in files]
+    dfs = [run_one(filename, retrain) for filename in files]
+    df = pd.concat(dfs)
+    df.index = [os.path.basename(x).split('-')[0].split('.')[0] for x in files]
+    print(df.T)
 
 
 def run_one(filename: str, retrain: bool):
@@ -81,7 +85,10 @@ def run_one(filename: str, retrain: bool):
     X_test = df[input_cols].iloc[split:]
     y_train = df[TARGET_NAME].iloc[:split]
     y_test = df[TARGET_NAME].iloc[split:]
-    version = os.path.basename(filename).split('-')[0]
+
+    from pathlib import Path
+    version = os.path.basename(filename).split('-')[0].split('.')[0]
+    # p.with_suffix('')
 
     if retrain:
         print("learning", len(X_train), "samples")
@@ -120,6 +127,10 @@ def run_one(filename: str, retrain: bool):
     print("writing filename", tfilename)
     with open(tfilename, 'w') as f:
         json.dump(js, f)
+
+    df.loc[:, 'strategy_name'] = version
+    df = df.set_index('time')
+    return analyze_trades(df.iloc[split:])
 
 
 # def run_one_river(mode: str, filename: str):
