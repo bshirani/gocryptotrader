@@ -1,11 +1,10 @@
 package main
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
+	"gocryptotrader/common"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -19,7 +18,6 @@ const (
 	gateioPathFormat = "/%s/%s/%s/%s-%s.csv.gz"
 	baseDir          = "/home/bijan/work/crypto/gateiodata"
 	colorReset       = "\033[0m"
-	symbolsFile      = "./symbols.txt"
 	startDate        = "2021-08-01"
 
 	colorRed    = "\033[31m"
@@ -33,7 +31,7 @@ const (
 
 func main() {
 	start, _ := time.Parse("2006-01-02", startDate)
-	t1 := start.AddDate(-30, 0, 0)
+	t1 := start.AddDate(-300, 0, 0)
 	finished := make(chan string)
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
@@ -44,7 +42,8 @@ func main() {
 		}
 	}()
 
-	for _, p := range symbols() {
+	// fmt.Println("loaded symbols", len(common.Symbols())
+	for _, p := range common.Symbols() {
 		var results []string
 		fmt.Printf("%s%10s%s...", string(colorCyan), p, string(colorReset))
 		for d := start; d.After(t1); d = d.AddDate(0, -1, 0) {
@@ -124,7 +123,7 @@ func worker(d time.Time, p string, finished chan string) {
 	res, e := http.Get(path)
 	if res.StatusCode > 299 {
 		fmt.Printf("%s%s", string(colorRed), "F")
-		fmt.Println("failed", path)
+		// fmt.Println("failed", path)
 		defer func() {
 			finished <- "F"
 		}()
@@ -155,20 +154,4 @@ func worker(d time.Time, p string, finished chan string) {
 		os.Exit(123)
 	}
 
-}
-
-func symbols() []string {
-	file, err := os.Open(symbolsFile)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
-	pairs := make([]string, 0)
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		pairs = append(pairs, scanner.Text())
-	}
-	fmt.Println("loaded", len(pairs))
-	return pairs
 }

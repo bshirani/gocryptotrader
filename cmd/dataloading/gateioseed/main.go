@@ -3,17 +3,16 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"gocryptotrader/cmd/gateiosync/workerpool"
+	"gocryptotrader/common"
 	"gocryptotrader/currency"
+	"gocryptotrader/workerpool"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
 	"path"
-	"runtime"
 	"strings"
 	"syscall"
-	"time"
 )
 
 const (
@@ -26,12 +25,12 @@ func main() {
 
 	// For monitoring purpose.
 	waitC := make(chan bool)
-	go func() {
-		for {
-			log.Printf("[main] Total current goroutine: %d", runtime.NumGoroutine())
-			time.Sleep(1 * time.Second)
-		}
-	}()
+	// go func() {
+	// 	for {
+	// 		log.Printf("[main] Total current goroutine: %d", runtime.NumGoroutine())
+	// 		time.Sleep(1 * time.Second)
+	// 	}
+	// }()
 
 	// Start Worker Pool.
 	totalWorker := 12
@@ -40,7 +39,7 @@ func main() {
 
 	type result struct {
 		id    int
-		value int
+		value string
 	}
 
 	totalTask := 10000
@@ -52,24 +51,32 @@ func main() {
 		log.Fatal(err)
 	}
 	i := 0
+	// fmt.Println("finished", finished)
 	for _, file := range files {
 		if file.IsDir() {
+			if !inSymbolList(file.Name()) {
+				continue
+			}
 			files, _ = ioutil.ReadDir(path.Join(baseDir, file.Name()))
 			for _, f := range files {
+				var skipProcessing bool
 				if strings.HasSuffix(f.Name(), ".csv") {
 					for _, fin := range finished {
 						if strings.EqualFold(fin, f.Name()) {
-							// fmt.Println("already processed")
-							continue
+							skipProcessing = true
 						}
+					}
+
+					if skipProcessing {
+						continue
 					}
 
 					i += 1
 					id := i + 1
 					wp.AddTask(func() {
-						// log.Printf("[main] Starting task %d", id)
+						log.Printf("[main] Starting task %s", f.Name())
 						task(f.Name())
-						resultC <- result{id, id * 2}
+						resultC <- result{id, f.Name()}
 					})
 				}
 			}
@@ -77,13 +84,23 @@ func main() {
 	}
 
 	for i := 0; i < totalTask; i++ {
-		<-resultC
-		// res := <-resultC
-		// log.Printf("[main] Task %d has been finished with result %d", res.id, res.value)
+		// <-resultC
+		res := <-resultC
+		log.Printf("[main] Task %s has been finished", res.value)
 	}
 
 	<-waitC
 }
+
+func inSymbolList(dirname string) bool {
+	for _, s := range common.Symbols() {
+		if s == dirname {
+			return true
+		}
+	}
+	return false
+}
+
 func printCommand(cmd *exec.Cmd) {
 	fmt.Printf("==> Executing: %s\n", strings.Join(cmd.Args, " "))
 }
@@ -101,7 +118,7 @@ func printOutput(outs []byte) {
 }
 
 func task(fileName string) {
-	fmt.Println(fileName)
+	// fmt.Println("run task", fileName)
 	dirName := strings.Split(fileName, "-")[0]
 	c, err := currency.NewPairFromString(dirName)
 	if err != nil {

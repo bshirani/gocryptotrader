@@ -1,7 +1,5 @@
 package workerpool
 
-import "log"
-
 // T is a type alias to accept any type.
 type T = interface{}
 
@@ -41,13 +39,13 @@ func (wp *workerPool) GetTotalQueuedTask() int {
 func (wp *workerPool) run() {
 	for i := 0; i < wp.maxWorker; i++ {
 		wID := i + 1
-		log.Printf("[WorkerPool] Worker %d has been spawned", wID)
+		// log.Printf("[WorkerPool] Worker %d has been spawned", wID)
 
 		go func(workerID int) {
 			for task := range wp.queuedTaskC {
-				log.Printf("[WorkerPool] Worker %d start processing task", wID)
+				// log.Printf("[WorkerPool] Worker %d start processing task", wID)
 				task()
-				log.Printf("[WorkerPool] Worker %d finish processing task", wID)
+				// log.Printf("[WorkerPool] Worker %d finish processing task", wID)
 			}
 		}(wID)
 	}

@@ -1,6 +1,7 @@
 package common
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
@@ -30,6 +31,7 @@ const (
 	// GctExt is the extension for GCT Tengo script files
 	GctExt         = ".gct"
 	defaultTimeout = time.Second * 15
+	symbolsFile    = "symbols.txt"
 )
 
 // Vars for common.go operations
@@ -512,4 +514,19 @@ func LastFileInDir(dir string) (string, error) {
 		return "", fmt.Errorf("could not find file in dir %s", dir)
 	}
 	return names[len(names)-1], nil
+}
+
+func Symbols() []string {
+	file, err := os.Open(symbolsFile)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	pairs := make([]string, 0)
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		pairs = append(pairs, scanner.Text())
+	}
+	return pairs
 }
