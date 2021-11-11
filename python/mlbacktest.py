@@ -121,6 +121,7 @@ def run_one(filename: str, retrain: bool):
     with open(tfilename, 'w') as f:
         json.dump(js, f)
 
+
 # def run_one_river(mode: str, filename: str):
 #     """
 #     tries various machine learning methods on the data
@@ -190,17 +191,6 @@ def run_one(filename: str, retrain: bool):
 #     # import pdbr
 #     # pdbr.set_trace()
 #     # analyze_model_performance(df, preds, X_test, y_test)
-
-
-def analyze_model_performance(df, preds, X_test, y_test):
-    preds = pd.DataFrame(preds)
-    preds.columns = ['prediction']
-    preds.index = y_test.index
-    preds = preds.join(df)
-    preds['error'] = preds.profit_loss_quote - preds.prediction
-    preds['error2'] = preds.error**2
-    res = ModelAnalyzer(preds).analyze()
-    print(res.round(2))
 
 
 if __name__ == '__main__':

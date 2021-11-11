@@ -1,4 +1,5 @@
 from sklearn.metrics import mean_squared_error
+import fire
 from metrics import sortino_ratio
 import pandas as pd
 from analyze_trades import analyze_trades
@@ -14,8 +15,8 @@ class ModelAnalysis:
     def analyze(self):
         df = self.mpreds.copy()
         df['net_profit'] = df.profit_loss_quote * 0.001
-        df['time'] = pd.to_datetime(df['time'], unit='s')
-        df.set_index('time', inplace=True)
+        df['EntryTime'] = pd.to_datetime(df['EntryTime'])
+        df.set_index('EntryTime', inplace=True)
         adf = analyze_trades(df)
         adf['name'] = self.name
         return adf
@@ -75,3 +76,17 @@ class ModelAnalyzer:
         # df = df.iloc[1:]
         # df.index = ModelAnalyzer.rows
         return df[ModelAnalyzer.rows].T
+
+
+def analyze_model_performance(filename: str):
+    df = pd.read_json(filename)
+    df['Error'] = df.ProfitLossQuote - df.Prediction
+    df['Error2'] = df.Error**2
+    df['prediction'] = df.Prediction
+    df['profit_loss_quote'] = df.ProfitLossQuote
+    res = ModelAnalyzer(df).analyze()
+    print(res.round(2))
+
+
+if __name__ == "__main__":
+    fire.Fire(analyze_model_performance)
