@@ -28,6 +28,7 @@ import (
 	"gocryptotrader/exchanges/huobi"
 	"gocryptotrader/exchanges/itbit"
 	"gocryptotrader/exchanges/kraken"
+	"gocryptotrader/exchanges/kucoin"
 	"gocryptotrader/exchanges/lbank"
 	"gocryptotrader/exchanges/localbitcoins"
 	"gocryptotrader/exchanges/okcoin"
@@ -185,6 +186,8 @@ func (m *ExchangeManager) NewExchangeByName(name string) (exchange.IBotExchange,
 		exch = new(itbit.ItBit)
 	case "kraken":
 		exch = new(kraken.Kraken)
+	case "kucoin":
+		exch = new(kucoin.Kucoin)
 	case "lbank":
 		exch = new(lbank.Lbank)
 	case "localbitcoins":

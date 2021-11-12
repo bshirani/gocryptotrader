@@ -754,8 +754,10 @@ go
 
 
 >> retrain every 30 traes
+either get it working with bityard
+or kucoin
 
+bityard at least works now
 
-
-
-
+kucoin
+
