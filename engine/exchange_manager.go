@@ -164,6 +164,8 @@ func (m *ExchangeManager) NewExchangeByName(name string) (exchange.IBotExchange,
 		exch = new(btse.BTSE)
 	case "coinbene":
 		exch = new(coinbene.Coinbene)
+	// case "coinex":
+	// 	exch = new(coinbene.Coinbene)
 	case "coinut":
 		exch = new(coinut.COINUT)
 	case "exmo":

@@ -25,6 +25,7 @@ var Exchanges = []string{
 	"btse",
 	"coinbasepro",
 	"coinbene",
+	"coinex",
 	"coinut",
 	"exmo",
 	"fake",

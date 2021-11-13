@@ -760,4 +760,7 @@ or kucoin
 bityard at least works now
 
 kucoin
-
+
+do a backtest with gate.io
+use gate.io via mexican identity
+
