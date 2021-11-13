@@ -735,8 +735,9 @@ func (bot *Engine) Start() error {
 	// handle script here
 
 	if bot.Settings.EnableDataImporter {
+		panic("HERE")
 		dataImporter := SetupDataImporter(bot, &bot.Config.DataImporter)
-		dataImporter.Run("kraken")
+		dataImporter.Run("kucoin")
 	}
 
 	if bot.Config.Script {
@@ -926,6 +927,7 @@ func (bot *Engine) LoadExchange(name string, wg *sync.WaitGroup) error {
 
 	exchCfg, err := bot.Config.GetExchangeConfig(name)
 	if err != nil {
+		fmt.Println("returning error")
 		return err
 	}
 
@@ -993,6 +995,7 @@ func (bot *Engine) LoadExchange(name string, wg *sync.WaitGroup) error {
 	err = exch.Setup(exchCfg)
 	if err != nil {
 		exchCfg.Enabled = false
+		fmt.Println("error", err)
 		return err
 	}
 
@@ -1073,6 +1076,7 @@ func (bot *Engine) SetupExchanges() error {
 			err := bot.LoadExchange(c.Name, &wg)
 			if err != nil {
 				log.Errorf(log.ExchangeSys, "LoadExchange %s failed: %s\n", c.Name, err)
+				panic("failed to load exchange")
 				return
 			}
 			log.Infof(log.ExchangeSys,
@@ -1096,28 +1100,13 @@ func (bot *Engine) WaitForInitialCurrencySync() error {
 	return bot.currencyPairSyncer.WaitForInitialSync()
 }
 
-func (bot *Engine) SetupOfflineExchangeSettings() error {
-	for _, ex := range bot.Config.GetEnabledExchanges() {
-		for _, a := range []asset.Item{asset.Spot, asset.Futures} {
-			enabledPairs, _ := bot.Config.GetEnabledPairs(ex, a)
-			for _, pair := range enabledPairs {
-				bot.CurrencySettings = append(bot.CurrencySettings, &ExchangeAssetPairSettings{
-					ExchangeName: strings.ToLower(ex),
-					CurrencyPair: pair,
-					AssetType:    asset.Spot,
-				})
-			}
-		}
-	}
-	return nil
-}
-
 func (bot *Engine) SetupExchangeSettings() error {
 	for _, e := range bot.Config.GetEnabledExchanges() {
 		for _, a := range []asset.Item{asset.Spot, asset.Futures} {
 			enabledPairs, _ := bot.Config.GetEnabledPairs(e, a)
 			// fmt.Println("enabled pairs", enabledPairs)
 			for _, pair := range enabledPairs {
+				fmt.Println("loading pair", pair, e)
 				// _, pair, a, err := bot.loadExchangePairAssetBase(e, pair.Base.String(), pair.Quote.String(), asset.Spot)
 				// if err != nil {
 				// 	fmt.Println("error enabling pair", err)

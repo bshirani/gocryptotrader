@@ -9,12 +9,13 @@ import (
 )
 
 const (
-	kucoinAPIVersion       = "0"
+	kucoinAPIVersion       = "v1"
 	kucoinServerTime       = "Time"
-	kucoinAssets           = "Assets"
+	kucoinSymbols          = "symbols"
 	kucoinAssetPairs       = "AssetPairs?"
 	kucoinTicker           = "Ticker"
 	kucoinOHLC             = "OHLC"
+	kucoinMarket           = "market"
 	kucoinDepth            = "Depth"
 	kucoinTrades           = "Trades"
 	kucoinSpread           = "Spread"
@@ -71,9 +72,9 @@ const (
 	kucoinFormat = "2006-01-02T15:04:05.000Z"
 )
 
-// var (
-// 	assetTranslator assetTranslatorStore
-// )
+var (
+	assetTranslator assetTranslatorStore
+)
 
 // GenericResponse stores general response data for functions that only return success
 type GenericResponse struct {

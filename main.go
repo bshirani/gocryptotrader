@@ -44,6 +44,13 @@ var (
 				Usage:       "trade config file",
 				Destination: &settings.TradeConfigFile,
 			},
+			&cli.BoolFlag{
+				Name:        "exchange_verbose",
+				Aliases:     []string{"ev"},
+				Value:       false,
+				Usage:       "exchange verbose",
+				Destination: &settings.EnableExchangeVerbose,
+			},
 			&cli.StringFlag{
 				Name:        "command",
 				Value:       "",

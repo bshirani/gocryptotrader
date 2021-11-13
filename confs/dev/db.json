@@ -563,9 +563,9 @@
      "requiresBase64DecodeSecret": true
     },
     "urlEndpoints": {
-     "RestFuturesURL": "https://futures.kraken.com/derivatives",
-     "RestSpotURL": "https://api.kraken.com",
-     "WebsocketSpotURL": "wss://ws.kraken.com"
+     "RestFuturesURL": "https://futures.kucoin.com/derivatives",
+     "RestSpotURL": "https://api.kucoin.com/api",
+     "WebsocketSpotURL": "wss://push1-v2.kucoin.com/endpoint"
     }
    },
    "features": {

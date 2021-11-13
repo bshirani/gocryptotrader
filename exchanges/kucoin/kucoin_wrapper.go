@@ -202,7 +202,6 @@ func (k *Kucoin) Setup(exch *config.ExchangeConfig) error {
 	if err != nil {
 		return err
 	}
-
 	wsRunningURL, err := k.API.Endpoints.GetURL(exchange.WebsocketSpot)
 	if err != nil {
 		return err
@@ -1491,7 +1490,6 @@ func (k *Kucoin) GetHistoricCandles(ctx context.Context, pair currency.Pair, a a
 
 // GetHistoricCandlesExtended returns candles between a time period for a set time interval
 func (k *Kucoin) GetHistoricCandlesExtended(ctx context.Context, pair currency.Pair, a asset.Item, start, end time.Time, interval kline.Interval) (kline.Item, error) {
-	// fmt.Println("Syncing candles for", pair)
 	if err := k.ValidateKline(pair, a, interval); err != nil {
 		return kline.Item{}, err
 	}

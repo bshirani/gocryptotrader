@@ -617,15 +617,9 @@ func (c *Config) GetEnabledPairs(exchName string, assetType asset.Item) (currenc
 		return nil, err
 	}
 
-	for _, ss := range c.TradeManager.Strategies {
-		// fmt.Println("loading asset type", asset.Spot)
-		enabled := exchCfg.CurrencyPairs.Pairs[asset.Spot].Enabled
-		pair := currency.GetPairTranslation(exchName, ss.Pair)
-
-		if !enabled.Contains(pair, true) {
-			exchCfg.CurrencyPairs.Pairs[asset.Spot].Enabled = append(exchCfg.CurrencyPairs.Pairs[asset.Spot].Enabled, pair)
-		}
-	}
+	// for _, ss := range c.TradeManager.Strategies {
+	// 	// fmt.Println("loading asset type", asset.Spot)
+	// }
 
 	pairFormat, err := c.GetPairFormat(exchName, assetType)
 	if err != nil {
@@ -633,6 +627,7 @@ func (c *Config) GetEnabledPairs(exchName string, assetType asset.Item) (currenc
 	}
 
 	pairs, err := exchCfg.CurrencyPairs.GetPairs(assetType, true)
+	fmt.Println("got pairs", pairs, exchName, err)
 	if err != nil {
 		return pairs, err
 	}
@@ -641,10 +636,16 @@ func (c *Config) GetEnabledPairs(exchName string, assetType asset.Item) (currenc
 		return nil, nil
 	}
 
-	// fmt.Println("filter pairs hereuuuuuuuuuuuuuuuuu")
 	// fmt.Println(c.TradeManager.Strategies[0].Pair)
 	// var pairActive  bool
-	// for _, p := pairs {
+	// for _, p := range pairs {
+	// 	fmt.Println("adding pair", p)
+	// 	enabled := exchCfg.CurrencyPairs.Pairs[asset.Spot].Enabled
+	// 	// pair := currency.GetPairTranslation(exchName, ss.Pair)
+	//
+	// 	if !enabled.Contains(p, true) {
+	// 		exchCfg.CurrencyPairs.Pairs[asset.Spot].Enabled = append(exchCfg.CurrencyPairs.Pairs[asset.Spot].Enabled, p)
+	// 	}
 	// }
 
 	return pairs.Format(pairFormat.Delimiter,
