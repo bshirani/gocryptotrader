@@ -131,6 +131,7 @@ func catchup(c *cli.Context) error {
 	for _, cs := range bot.CurrencySettings {
 		fmt.Println(cs.CurrencyPair)
 	}
+	return nil
 
 	for i := range daysBack {
 		i += 1

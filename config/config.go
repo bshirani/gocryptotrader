@@ -627,7 +627,7 @@ func (c *Config) GetEnabledPairs(exchName string, assetType asset.Item) (currenc
 	}
 
 	pairs, err := exchCfg.CurrencyPairs.GetPairs(assetType, true)
-	fmt.Println("got pairs", pairs, exchName, err)
+	// fmt.Println("got pairs", pairs, exchName, err)
 	if err != nil {
 		return pairs, err
 	}

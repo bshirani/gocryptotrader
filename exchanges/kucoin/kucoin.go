@@ -40,7 +40,7 @@ const (
 	MinimumZEC  = 0.02
 	MinimumUSDT = 5.0
 
-	kucoinAPIURL         = "https://api.kucoin.com"
+	kucoinAPIURL         = "https://api.kucoin.com/api"
 	kucoinFuturesURL     = "https://futures.kucoin.com"
 	futuresURL           = "https://futures.kucoin.com/derivatives"
 	kucoinSpotVersion    = "0"
