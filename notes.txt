@@ -763,3 +763,70 @@ kucoin
 
 do a backtest with gate.io
 use gate.io via mexican identity
+
+live does not work right now
+it is trying to reach history that it does not have
+it does a warmup, then it requests a out of bounds range
+
+should I skip it, or should I ensure that the history is not zeroed out after warmup?
+
+what is the data being requested, and what is the context
+
+it is requesting the base statistics for a given bar to calculate the features
+it is using a data handler
+in this case, after live starts running the data handler has no history,
+should it be skipped, or shouldf the data handler have the history of the warmup?
+
+it is trying to get the data for a specific n range
+it should return a null ncalculation, why doesn't it?
+should it return a null calculation?
+it already has the data but it cannot access it in this context since we are using a different data handler
+is this important? is this necessary?
+
+how do I deploy a single model?
+
+you can turn on the existing program to run a single model
+there are some limitations
+but it's possible now
+what else do you want?
+
+I don't know how to successfully accomplish projects
+especially long-term projects
+long-lasting projects
+
+i realize that simplicity is key
+but that's not all
+
+I don't think I respect production enough, and that my production is small
+
+my production is not well-defined
+what defines what runs in production?
+how do I qualify a winning strategy?
+one that makes money you MONKEY
+
+get a portfolio of models out for bitcoin and ethereum TODAY MONKEY
+
+ok so we have the live models running, now what?
+now make sure it doesn't go down again, then refine it
+
+how do you define the next tasks?
+how do you decide what to spend time on?
+how do you know if what you have is good enough?
+how do you make changes to a live running system without messing up what's already running?
+
+how do you decide which strategies to trade and how much of each?
+
+first get a live running system going
+
+get a portfolio backtest running of the strategies you have running
+provide updated results for each version of the deployed strategy
+each deployed version of the model will have a portoflio backtest result into each build
+that way we can track what the prediction is vs the actual results over time
+
+speed
+
+how much ram is required you think?
+to run 50 strategies?
+
+
+

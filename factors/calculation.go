@@ -122,11 +122,11 @@ func GetBaseStats(kline *IntervalDataFrame, n int, d data.Handler) *NCalculation
 	bar := d.Latest()
 	nclose := bar.ClosePrice()
 	nPctChg := (nclose.Sub(nAgoClose)).Div(nclose).Mul(decimal.NewFromInt(100))
-	nAgo := d.History()[len(d.History())-n]
+	nAgoTime := kline.Time[len(kline.Time)-n]
 	return &NCalculation{
 		NLen:      n,
 		Time:      bar.GetTime(),
-		FirstTime: nAgo.GetTime(),
+		FirstTime: nAgoTime,
 		NAgoClose: nAgoClose,
 		Range:     nRange,
 		PctChange: nPctChg,

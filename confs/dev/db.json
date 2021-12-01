@@ -338,7 +338,7 @@
  "exchanges": [
   {
    "name": "gateio",
-   "enabled": false,
+   "enabled": true,
    "verbose": false,
    "httpTimeout": 15000000000,
    "websocketResponseCheckTimeout": 30000000,
@@ -512,7 +512,7 @@
   },
   {
    "name": "kucoin",
-   "enabled": true,
+   "enabled": false,
    "verbose": false,
    "httpTimeout": 15000000000,
    "websocketResponseCheckTimeout": 30000000,

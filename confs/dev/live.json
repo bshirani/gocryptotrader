@@ -78,7 +78,7 @@
   "verbose": false,
   "driver": "postgres",
   "connectionDetails": {
-   "host": "fullstack-postgres",
+   "host": "localhost",
    "port": 5432,
    "username": "bijan",
    "password": "lkj3lkj3",
@@ -404,7 +404,7 @@
   {
    "name": "gateio",
    "enabled": true,
-   "verbose": true,
+   "verbose": false,
    "httpTimeout": 15000000000,
    "websocketResponseCheckTimeout": 30000000,
    "websocketResponseMaxLimit": 7000000000,

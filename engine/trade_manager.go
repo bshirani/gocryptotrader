@@ -136,7 +136,9 @@ func NewTradeManager(bot *Engine) (*TradeManager, error) {
 			livesignal.DeleteAll()
 			livetrade.DeleteAll()
 			liveorder.DeleteAll()
-			tm.startDate = tm.bot.Config.DataSettings.DatabaseData.StartDate
+			if !bot.Config.LiveMode {
+				tm.startDate = tm.bot.Config.DataSettings.DatabaseData.StartDate
+			}
 		}
 		bot.OrderManager, err = SetupOrderManager(
 			bot.ExchangeManager,
@@ -432,7 +434,8 @@ dataLoadingIssue:
 
 	if !tm.liveMode && completed {
 		factorsDir := fmt.Sprintf(
-			"results/backtest/trades-%v",
+			"results/backtest/trades-%d-%v",
+			len(tm.Strategies),
 			time.Now().Format("2006-01-02-15-04-05"),
 		)
 		os.MkdirAll(factorsDir, os.ModePerm)

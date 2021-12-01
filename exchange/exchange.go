@@ -464,7 +464,7 @@ func (b *Base) GetAvailablePairs(assetType asset.Item) (currency.Pairs, error) {
 		fmt.Println("ap error", err)
 		return nil, err
 	}
-	fmt.Println("returning", len(pairs), "available pairs")
+	// fmt.Println("returning", len(pairs), "available pairs")
 	return pairs.Format(format.Delimiter, format.Index, format.Uppercase), nil
 }
 

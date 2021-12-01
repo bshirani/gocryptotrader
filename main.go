@@ -117,6 +117,11 @@ func runCommand(c *cli.Context) {
 	}
 }
 
+func script(c *cli.Context) error {
+	startOfflineServices()
+	return nil
+}
+
 func catchup(c *cli.Context) error {
 	startOfflineServices()
 	db := bot.DatabaseManager.GetInstance()
@@ -131,7 +136,7 @@ func catchup(c *cli.Context) error {
 	for _, cs := range bot.CurrencySettings {
 		fmt.Println(cs.CurrencyPair)
 	}
-	return nil
+	// return nil
 
 	for i := range daysBack {
 		i += 1
