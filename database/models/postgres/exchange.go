@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/friendsofgo/errors"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -23,37 +24,58 @@ import (
 
 // Exchange is an object representing the database table.
 type Exchange struct {
-	ID   string `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Name string `boil:"name" json:"name" toml:"name" yaml:"name"`
+	ID        string       `boil:"id" json:"id" toml:"id" yaml:"id"`
+	Name      string       `boil:"name" json:"name" toml:"name" yaml:"name"`
+	Balance   null.Float64 `boil:"balance" json:"balance,omitempty" toml:"balance" yaml:"balance,omitempty"`
+	NumPairs  null.Int     `boil:"num_pairs" json:"num_pairs,omitempty" toml:"num_pairs" yaml:"num_pairs,omitempty"`
+	HQCountry null.String  `boil:"hq_country" json:"hq_country,omitempty" toml:"hq_country" yaml:"hq_country,omitempty"`
 
 	R *exchangeR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L exchangeL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var ExchangeColumns = struct {
-	ID   string
-	Name string
+	ID        string
+	Name      string
+	Balance   string
+	NumPairs  string
+	HQCountry string
 }{
-	ID:   "id",
-	Name: "name",
+	ID:        "id",
+	Name:      "name",
+	Balance:   "balance",
+	NumPairs:  "num_pairs",
+	HQCountry: "hq_country",
 }
 
 var ExchangeTableColumns = struct {
-	ID   string
-	Name string
+	ID        string
+	Name      string
+	Balance   string
+	NumPairs  string
+	HQCountry string
 }{
-	ID:   "exchange.id",
-	Name: "exchange.name",
+	ID:        "exchange.id",
+	Name:      "exchange.name",
+	Balance:   "exchange.balance",
+	NumPairs:  "exchange.num_pairs",
+	HQCountry: "exchange.hq_country",
 }
 
 // Generated where
 
 var ExchangeWhere = struct {
-	ID   whereHelperstring
-	Name whereHelperstring
+	ID        whereHelperstring
+	Name      whereHelperstring
+	Balance   whereHelpernull_Float64
+	NumPairs  whereHelpernull_Int
+	HQCountry whereHelpernull_String
 }{
-	ID:   whereHelperstring{field: "\"exchange\".\"id\""},
-	Name: whereHelperstring{field: "\"exchange\".\"name\""},
+	ID:        whereHelperstring{field: "\"exchange\".\"id\""},
+	Name:      whereHelperstring{field: "\"exchange\".\"name\""},
+	Balance:   whereHelpernull_Float64{field: "\"exchange\".\"balance\""},
+	NumPairs:  whereHelpernull_Int{field: "\"exchange\".\"num_pairs\""},
+	HQCountry: whereHelpernull_String{field: "\"exchange\".\"hq_country\""},
 }
 
 // ExchangeRels is where relationship names are stored.
@@ -86,8 +108,8 @@ func (*exchangeR) NewStruct() *exchangeR {
 type exchangeL struct{}
 
 var (
-	exchangeAllColumns            = []string{"id", "name"}
-	exchangeColumnsWithoutDefault = []string{"name"}
+	exchangeAllColumns            = []string{"id", "name", "balance", "num_pairs", "hq_country"}
+	exchangeColumnsWithoutDefault = []string{"name", "balance", "num_pairs", "hq_country"}
 	exchangeColumnsWithDefault    = []string{"id"}
 	exchangePrimaryKeyColumns     = []string{"id"}
 )
