@@ -21,9 +21,6 @@ import (
 	"github.com/volatiletech/strmangle"
 )
 
-// ok
-/////////////////
-
 // LiveSignal is an object representing the database table.
 type LiveSignal struct {
 	ID           int       `boil:"id" json:"id" toml:"id" yaml:"id"`

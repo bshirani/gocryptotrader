@@ -77,6 +77,7 @@ func main() {
 	}
 
 	if err = goose.Run(command, dbConn.SQL, migrationDir, args); err != nil {
+		fmt.Println("error", err)
 		fmt.Println(err)
 	}
 }
