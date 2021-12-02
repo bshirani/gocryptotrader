@@ -458,7 +458,6 @@ func (b *Base) GetAvailablePairs(assetType asset.Item) (currency.Pairs, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(123)
 	pairs, err := b.CurrencyPairs.GetPairs(assetType, false)
 	if err != nil {
 		fmt.Println("ap error", err)

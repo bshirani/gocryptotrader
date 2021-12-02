@@ -167,9 +167,8 @@ func setupBot() error {
 	configDir := filepath.Join(wd, "confs")
 
 	if settings.EnableProductionMode {
-		settings.ConfigFile = filepath.Join(configDir, fmt.Sprintf("prod.json", settings.ConfigFile))
-		settings.TradeConfigFile = filepath.Join(configDir, fmt.Sprintf("all.strat", settings.TradeConfigFile))
-
+		settings.ConfigFile = filepath.Join(configDir, "prod.json")
+		settings.TradeConfigFile = filepath.Join(configDir, settings.TradeConfigFile)
 	} else {
 		if settings.TradeConfigFile == "" {
 			settings.TradeConfigFile = filepath.Join(configDir, "all.strat")
