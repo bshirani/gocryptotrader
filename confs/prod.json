@@ -69,7 +69,7 @@
   "toDate": "",
   "numWorkers": 0
  },
- "name": "Dev Live",
+ "name": "Production",
  "dataDirectory": "",
  "encryptConfig": -1,
  "globalHTTPTimeout": 15000000000,
