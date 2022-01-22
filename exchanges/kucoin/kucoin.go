@@ -55,7 +55,6 @@ type Kucoin struct {
 
 // // GetServerTime returns current server time
 func (k *Kucoin) GetServerTime(ctx context.Context) (TimeResponse, error) {
-	fmt.Println("get server time")
 	path := fmt.Sprintf("/%s/public/%s", kucoinAPIVersion, kucoinServerTime)
 
 	var response struct {
@@ -79,6 +78,7 @@ func (k *Kucoin) SeedAssets(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("seed1")
 	for orig, val := range assets {
 		assetTranslator.Seed(orig, val.Altname)
 	}

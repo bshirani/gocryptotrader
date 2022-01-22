@@ -198,6 +198,7 @@ func (k *Kucoin) Setup(exch *config.ExchangeConfig) error {
 		return err
 	}
 
+	fmt.Println(2)
 	err = k.SeedAssets(context.TODO())
 	if err != nil {
 		return err
@@ -206,6 +207,7 @@ func (k *Kucoin) Setup(exch *config.ExchangeConfig) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println(3)
 	err = k.Websocket.Setup(&stream.WebsocketSetup{
 		Enabled:                          exch.Features.Enabled.Websocket,
 		Verbose:                          exch.Verbose,

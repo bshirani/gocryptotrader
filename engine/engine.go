@@ -995,7 +995,7 @@ func (bot *Engine) LoadExchange(name string, wg *sync.WaitGroup) error {
 	err = exch.Setup(exchCfg)
 	if err != nil {
 		exchCfg.Enabled = false
-		fmt.Println("error", err)
+		fmt.Println("error enabling exchange config:", err)
 		return err
 	}
 
@@ -1053,7 +1053,7 @@ func (bot *Engine) SetupExchanges() error {
 		}
 		wg.Add(1)
 
-		// fmt.Println("enabling config", configs[x])
+		fmt.Println("enabling config", configs[x])
 
 		// enablePair(exMgr, pair)
 		// func enablePair(exMgr iExchangeManager, pair currency.Pair) {

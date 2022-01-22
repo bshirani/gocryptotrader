@@ -1,0 +1,4 @@
+[x] get 1 model running in production
+12/2 11:59pm - get 1 model running in production with real money
+- ensure position sizing is correct
+- ensure the contract type is correct. we should be trading contracts

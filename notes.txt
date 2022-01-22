@@ -829,4 +829,45 @@ how much ram is required you think?
 to run 50 strategies?
 
 
+run the system with a single strategy
+don't let it stop running
+the next step will be making it profitable
+for now just get the system running
+
+what's the next step?
+to get the system running
+gate.io
+
+one trade per day
+daily timeframe
+
+next we will add multiple strategies and weights
+
+it looks like we don't have contracts available for gate.io, only spot
+FUCK
+
+So at this point, we could probably use kucoin and it would be the same
+
+# 2022-01-22
+
+Here's the plan:
+
+- we need to create backtests
+- what is the end goal?
+
+- which currencies am I going to trade?
+- how am I going to make money from this?
+
+I need uncorrelated strategies
+I need to test as many strategies as possible
+What's the goal?
+First get a backtest of all your strategies
+
+What am I going to do with all the results of the backtests?
+How am I going to aggregate all of them into a report?
+
+Currently each backtesting run outputs all of its trades into a csv file
+
+
+
 
