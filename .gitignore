@@ -49,3 +49,4 @@ tls/
 cmd/backtest/results.old/
 cmd/backtest/results/
 mlmodels/
+cryptostats/
