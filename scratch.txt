@@ -1,0 +1,1 @@
+https://download.gatedata.org/spot/candlesticks_1m/$(year)$(month)/$(market)-$(year)(month).csv.gz

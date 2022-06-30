@@ -1,4 +1,4 @@
-from sklearn.metrics import mean_squared_error
+# from sklearn.metrics imporree mean_squared_error
 import fire
 from metrics import sortino_ratio
 import pandas as pd
@@ -25,16 +25,16 @@ class ModelAnalysis:
 class ModelAnalyzer:
     rows = [
         # 'sum_return',
+        'num_trades',
         'sortino_180',
         'sortino_trades',
         'net_profit',
         'perc_winners',
         'profit_factor',
         'expectancy',
-        'num_trades',
         'gross_profit',
         'gross_losses',
-        'trades_per_year',
+        'avg_trades_per_year',
         'perc_months_profitable',
         'perc_weeks_profitable',
         'max_consequtive_losers',

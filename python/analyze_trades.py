@@ -65,7 +65,7 @@ def analyze_trades(ts, portfolio=False, initial_balance=10000):
         "net_profit": np,
         "net_profit_by_maxdd": np/md,
         "num_losses": int((ts["net_profit"] < 0).sum()),
-        "num_strategies": len(ts.strategy_name.unique()),
+        # "num_strategies": len(ts.strategy_name.unique()),
         "num_weeks": ((ts.index.max() - ts.index.min()).days + 1) / 7,
         "num_trades": int(len(ts)),
         "num_wins": int((ts["net_profit"] > 0).sum()),
@@ -82,7 +82,7 @@ def analyze_trades(ts, portfolio=False, initial_balance=10000):
         # "stability": 1,
         # "stability_of_timeseries": 1,
         # "tail_ratio": 1,
-        "trades_per_year": trades_per_year(ts),
+        "avg_trades_per_year": trades_per_year(ts),
         # "value_at_risk": 1,
     }
 

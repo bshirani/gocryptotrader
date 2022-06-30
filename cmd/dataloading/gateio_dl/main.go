@@ -16,9 +16,9 @@ const (
 	gateioDownloadURL = "https://download.gatedata.org"
 	// gateioPathFormat = "/${biz}/${type}/${year}${month}/${market}-${year}${month}.csv.gz"
 	gateioPathFormat = "/%s/%s/%s/%s-%s.csv.gz"
-	baseDir          = "/home/bijan/work/crypto/gateiodata"
+	baseDir          = "/Users/bijan/gateiodata"
 	colorReset       = "\033[0m"
-	startDate        = "2021-08-01"
+	startDate        = "2022-03-01"
 
 	colorRed    = "\033[31m"
 	colorGreen  = "\033[32m"

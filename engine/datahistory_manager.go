@@ -672,7 +672,7 @@ timesToFetch:
 			requestEnd = job.EndDate
 		}
 		if m.verbose {
-			log.Debugf(log.DataHistory, "running data history job %v start: %s end: %s interval: %s datatype: %s",
+			log.Debugf(log.DataHistory, "running data history (validation) job %v start: %s end: %s interval: %s datatype: %s",
 				job.Nickname,
 				intervalsToCheck[i],
 				requestEnd,

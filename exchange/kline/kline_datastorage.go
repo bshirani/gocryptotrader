@@ -20,6 +20,10 @@ import (
 
 // LoadFromDatabase returns Item from database seeded data
 func LoadFromDatabase(exchange string, pair currency.Pair, a asset.Item, interval Interval, start, end time.Time) (Item, error) {
+	// boil.DebugMode = true
+	// log.Warnf(log.TradeMgr, "i am here LoadFromDatabase")
+	// boil.DebugMode = true
+	// defer func() { boil.DebugMode = false }()
 	retCandle, err := candle.Series(exchange,
 		pair.Base.String(), pair.Quote.String(),
 		int64(interval.Duration().Seconds()), a.String(), start, end)

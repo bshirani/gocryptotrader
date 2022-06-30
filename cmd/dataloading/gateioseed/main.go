@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	baseDir = "/home/bijan/work/crypto/gateiodata"
+	baseDir = "/Users/bijan/gateiodata"
 	baseCmd = "dbseed candle file --exchange %s --base %s --quote %s --interval 60 --asset spot --filename %s"
 )
 

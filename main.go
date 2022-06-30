@@ -107,13 +107,15 @@ func main() {
 func runCommand(c *cli.Context) {
 	cmd := c.Args().Get(0)
 	settings.ConfigFile = cmd
-	fmt.Println("set config file to", cmd)
+	// fmt.Println("set config file to", cmd)
 	if cmd == "analyze_pf" {
 		analyzePF(c)
 	} else if cmd == "catchup" {
 		settings.ConfigFile = "catchup"
 		setupBot()
 		catchup(c)
+	} else {
+		fmt.Println("no command, show help")
 	}
 }
 
