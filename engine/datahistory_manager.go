@@ -539,7 +539,7 @@ ranges:
 				case dataHistoryIntervalIssuesFound:
 					continue ranges
 				case dataHistoryStatusFailed:
-					panic("job failed")
+					panic("dataHistoryStatusFailed")
 					failures++
 				case dataHistoryStatusComplete:
 					// this can occur in the scenario where data is missing
