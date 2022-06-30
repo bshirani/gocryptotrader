@@ -111,7 +111,7 @@ func runCommand(c *cli.Context) {
 	if cmd == "analyze_pf" {
 		analyzePF(c)
 	} else if cmd == "catchup" {
-		settings.ConfigFile = "catchup"
+		settings.ConfigFile = "data"
 		setupBot()
 		catchup(c)
 	} else {
@@ -150,7 +150,7 @@ func catchup(c *cli.Context) error {
 				fmt.Println("error", err)
 			}
 			if active == 0 {
-				fmt.Println("starting days back", i)
+				fmt.Println("main.go starting days back", i)
 				break
 			}
 			time.Sleep(time.Second)

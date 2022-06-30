@@ -549,7 +549,7 @@ func (tm *TradeManager) waitForDataCatchup() {
 				fmt.Println("error", err)
 			}
 			if active == 0 {
-				fmt.Println("starting days back", i)
+				fmt.Println("trade_manager.go starting days back", i)
 				break
 			}
 			time.Sleep(time.Second)

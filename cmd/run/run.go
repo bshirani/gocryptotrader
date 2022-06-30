@@ -94,7 +94,7 @@ func runConfig(c *cli.Context) error {
 				fmt.Println("error", err)
 			}
 			if active == 0 {
-				fmt.Println("starting days back", i)
+				fmt.Println("run.go starting days back", i)
 				break
 			}
 			time.Sleep(time.Second)

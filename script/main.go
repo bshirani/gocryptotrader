@@ -117,7 +117,7 @@ func main() {
 				fmt.Println("error", err)
 			}
 			if active == 0 {
-				fmt.Println("starting days back", i)
+				fmt.Println("script/main.go starting days back", i)
 				break
 			}
 			time.Sleep(time.Second)
