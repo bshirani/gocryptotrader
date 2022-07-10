@@ -35,7 +35,6 @@ require (
 	github.com/spf13/cobra v1.2.1 // indirect
 	github.com/spf13/viper v1.12.0
 	github.com/thrasher-corp/gct-ta v0.0.0-20200623072738-f2b55b7f9f41
-	github.com/thrasher-corp/gocryptotrader v0.0.0-20220629071734-d3339ad0b84e // indirect
 	github.com/timescale/timescaledb-tune v0.12.0 // indirect
 	github.com/urfave/cli/v2 v2.10.1
 	github.com/volatiletech/inflect v0.0.1 // indirect

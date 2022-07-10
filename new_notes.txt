@@ -1,0 +1,18 @@
+System Commands:
+- backtest
+- live trade
+    - Telegram notifications
+- Data Feed, offline and online
+- Order Management System
+- Many trading bots that create orders
+    - buy
+    - sell
+    - create opposing orders for stop loss and take profit ie bracket orders (buy limit -> sell limit (take profit), sell stop (stop loss)
+- plot/analyze strategy
+- plot/analyze portfolio
+- optimize one
+- optimize many
+
+- calculating lines
+- feeding the lines to the strategy
+- collecting buy/sell commands from the strategies
