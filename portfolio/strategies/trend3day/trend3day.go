@@ -147,7 +147,6 @@ func (s *Strategy) checkEntry(es signal.Signal, p base.StrategyPortfolioHandler,
 }
 
 func (s *Strategy) checkExit(es signal.Signal, p base.StrategyPortfolioHandler, d data.Handler, fe base.FactorEngineHandler) (signal.Event, error) {
-
 	// if trade.ProfitLossPoints.GreaterThan(decimal.NewFromFloat(10)) {
 	// 	fmt.Println("trade profit greater than 10, exiting")
 

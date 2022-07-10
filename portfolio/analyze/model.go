@@ -50,6 +50,7 @@ func GetPredictions(filename string) {
 	}
 	lastBT, _ := common.LastFileInDir(BacktestResults)
 	btPath := filepath.Join(wd, BacktestResults, lastBT)
+	fmt.Println("lastbt", lastBT)
 	trades, err := livetrade.LoadJSON(btPath)
 	if err != nil {
 		panic(err)

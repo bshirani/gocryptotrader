@@ -26,6 +26,7 @@ const (
 
 // WsConnect initiates a websocket connection
 func (g *Gateio) WsConnect() error {
+	fmt.Println("gateio ws connect................................")
 	if !g.Websocket.IsEnabled() || !g.IsEnabled() {
 		return errors.New(stream.WebsocketNotEnabled)
 	}

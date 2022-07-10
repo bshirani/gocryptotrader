@@ -56,7 +56,7 @@ func main() {
 	}
 
 	if !conf.Database.Enabled {
-		fmt.Println("Database support is disabled")
+		fmt.Println("~~Database support is disabled")
 		os.Exit(1)
 	}
 

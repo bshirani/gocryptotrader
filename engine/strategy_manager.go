@@ -661,9 +661,10 @@ func (tm *StrategyManager) processLiveMinute() error {
 		if tm.lastUpdateMin[cs] != thisMinute {
 			dbData, err := tm.loadLatestCandleFromDatabase(cs)
 			if err != nil {
-				if thisMinute.Sub(tm.lastUpdateMin[cs]).Minutes() > 1 {
-					fmt.Println("error loading latest candle", err)
-				}
+				log.Errorln(log.StrategyMgr, err)
+				// if thisMinute.Sub(dataEvent.GetTime()).Minutes() > 1 {
+				// 	// log.Errorln(log.StrategyMgr, "loading latest candle", thisMinute, dataEvent.GetTime())
+				// }
 				continue
 			}
 			// fmt.Println("loaded latest candle")
@@ -676,18 +677,20 @@ func (tm *StrategyManager) processLiveMinute() error {
 			}
 			dataEvent = dbData.Latest()
 
-			if !common.IsSameMinute(thisMinute, dataEvent.GetTime()) {
+			if !common.IsSameMinute(thisMinute, dataEvent.GetTime().UTC()) {
 				fmt.Println("skipping already seen bar", dataEvent.GetTime(), thisMinute)
 				continue
 			}
 
-			if !dbData.HasDataAtTime(dataEvent.GetTime()) {
+			if !dbData.HasDataAtTime(dataEvent.GetTime().UTC()) {
 				log.Error(log.StrategyMgr, "doesnt have data in range")
 				os.Exit(123)
 			}
+
 			if tm.verbose {
 				log.Debugln(log.StrategyMgr, "processing pair", dataEvent.Pair())
 			}
+			fmt.Println("updating lastupdatemin")
 			tm.lastUpdateMin[cs] = dataEvent.GetTime().UTC()
 			tm.EventQueue.AppendEvent(dataEvent)
 		}
@@ -1371,7 +1374,7 @@ func (tm *StrategyManager) loadLatestCandleFromDatabase(eap *ExchangeAssetPairSe
 	e := eap.ExchangeName
 	a := eap.AssetType
 	p := eap.CurrencyPair
-	thisMinute := common.ThisMinute()
+	thisMinute := common.ThisMinute().UTC()
 	startTime := thisMinute.Add(time.Minute * -1)
 	dbData, err := database.LoadData(
 		startTime,
@@ -1387,11 +1390,11 @@ func (tm *StrategyManager) loadLatestCandleFromDatabase(eap *ExchangeAssetPairSe
 
 	// validate results
 	lastCandle := dbData.Item.Candles[len(dbData.Item.Candles)-1]
-	t1 := lastCandle.Time
+	t1 := lastCandle.Time.UTC()
 	// sameTime := (t1.Year() == t2.Year() && t1.Month() == t2.Month() && t1.Day() == t2.Day() && t1.Hour() == t2.Hour() && t1.Minute() == t2.Minute())
 	if !common.IsSameMinute(t1, thisMinute) {
-		// fmt.Println("don't have bar yet", lastCandle.Time, thisMinute)
-		return nil, fmt.Errorf("don't have bar yet. age: %d", int(thisMinute.Sub(lastCandle.Time).Minutes()))
+		fmt.Println("don't have bar yet", lastCandle.Time.UTC(), thisMinute)
+		// return nil, fmt.Errorf("don't have bar yet. age: %d", int(thisMinute.Sub(lastCandle.Time).Minutes()))
 	}
 	// fmt.Println("db load data", p, thisMinute)
 	dbData.Load()

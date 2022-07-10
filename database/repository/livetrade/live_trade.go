@@ -334,7 +334,7 @@ func WriteJSON(trades []*Details, filepath string) error {
 
 func LoadJSON(path string) (out []*Details, err error) {
 	if !file.Exists(path) {
-		return nil, errors.New("file not found")
+		return nil, errors.New(fmt.Sprintf("trade json file not found %s", path))
 	}
 
 	fileData, err := ioutil.ReadFile(path)

@@ -132,6 +132,7 @@ func (m *syncManager) Start() error {
 			supportsWebsocket &&
 			exchanges[x].IsWebsocketEnabled() {
 			usingWebsocket = true
+			fmt.Println("using websockets", x)
 		} else if supportsREST {
 			usingREST = true
 		}
@@ -239,7 +240,6 @@ func (m *syncManager) heartBeat() {
 		case <-m.shutdown:
 			return
 		case <-tick.C:
-
 			if m.config.Verbose {
 				log.Infoln(log.SyncMgr, "===============TICKERS===============")
 
@@ -260,7 +260,7 @@ func (m *syncManager) heartBeat() {
 						// ticker := m.currencyPairs[x].Ticker
 						secondsAgo := int(t1.Sub(tick.LastUpdated).Seconds())
 						if secondsAgo > 10 {
-							log.Warnln(log.SyncMgr, cp.Pair, tick.Last, secondsAgo)
+							log.Warnln(log.SyncMgr, cp.Pair, "last:", tick.Last, "secondsAgo", secondsAgo)
 						} else {
 							log.Infoln(log.SyncMgr, cp.Pair, tick.Last, secondsAgo)
 						}
@@ -505,7 +505,6 @@ func (m *syncManager) Update(exchangeName string, p currency.Pair, a asset.Item,
 				}
 
 			case SyncItemTrade:
-				fmt.Println("xx")
 				os.Exit(123)
 				origHadData := m.currencyPairs[x].Trade.HaveData
 				m.currencyPairs[x].Trade.LastUpdated = time.Now()
@@ -524,6 +523,7 @@ func (m *syncManager) Update(exchangeName string, p currency.Pair, a asset.Item,
 					m.initSyncWG.Done()
 				}
 			case SyncItemKline:
+				fmt.Println("sync item kline")
 				origHadData := m.currencyPairs[x].Kline.HaveData
 				// fmt.Println("updatting KLINE")
 				m.currencyPairs[x].Kline.LastUpdated = time.Now()
@@ -901,7 +901,7 @@ func (m *syncManager) worker() {
 								// }
 
 								if len(newCandle.Candles) > 0 {
-									// fmt.Println("saving candle")
+									fmt.Println("saving candle")
 									// fmt.Println("sync manager received", len(newCandle.Candles), "candles", "for", c.Pair)
 									_, err = m.candleSaver(&newCandle, false)
 									if err != nil {

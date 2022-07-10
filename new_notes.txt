@@ -16,3 +16,19 @@ System Commands:
 - calculating lines
 - feeding the lines to the strategy
 - collecting buy/sell commands from the strategies
+
+If we want to start off with 50 live strategies, we need centralized data and order management.
+ByBit limit the number of API requests to 50/70 GET requests
+
+Right now, any of the solutions considered in python does not provide this capability.
+
+Assumptions:
+- ideally we want to persist our trades
+
+Centralized Order Management.
+- calculating margin requirements
+- knowing the overall account balance
+
+is this required?
+
+- subaccounts

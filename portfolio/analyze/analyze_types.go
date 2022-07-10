@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	BacktestResults = "results/bt"
+	BacktestResults = "results/backtest"
 )
 
 type PortfolioAnalysis struct {

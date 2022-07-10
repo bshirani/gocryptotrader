@@ -1808,7 +1808,7 @@ func (c *Config) GetDataPath(elem ...string) string {
 // ReadConfigFromFile will take a config from a path
 func ReadConfigFromFile(path string) (*Config, error) {
 	if !file.Exists(path) {
-		return nil, errors.New("file not found")
+		return nil, errors.New(fmt.Sprintf("config file not found %s", path))
 	}
 
 	fileData, err := ioutil.ReadFile(path)
@@ -1822,7 +1822,7 @@ func ReadConfigFromFile(path string) (*Config, error) {
 // ReadConfigFromFile will take a config from a path
 func ReadStrategyConfigFromFile(path string) (resp []*StrategySetting, err error) {
 	if !file.Exists(path) {
-		return nil, errors.New("file not found")
+		return nil, errors.New(fmt.Sprintf("strategy config file not found %s", path))
 	}
 
 	fileData, err := ioutil.ReadFile(path)

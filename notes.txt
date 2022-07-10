@@ -1,8 +1,6 @@
 strategies can trade long and short at the same time
 the portfolio determines the final trade size and makes sure it is in compliance
 
-
-
 backtester:
 
 - portfolio is created in backtest.NewFromConfig()
@@ -24,7 +22,6 @@ backtester handle event ->
     signal ->  portfolio.OnSignal
     order ->  exchange.ExecuteOrder, submits fake order
     fill -> portfolio.OnFill
-
 
 exchange.ExecuteOrder is where the trade should be saved to the database
 exchange is a fake broker

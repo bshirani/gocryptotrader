@@ -96,7 +96,7 @@ func SetHTTPClient(client *http.Client) error {
 
 func ThisMinute() time.Time {
 	t := time.Now().UTC()
-	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location())
+	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location()).UTC()
 }
 
 func IsSameMinute(t1, t2 time.Time) bool {
@@ -497,6 +497,7 @@ const ASCIILogo = `
 func LastFileInDir(dir string) (string, error) {
 	wd, _ := os.Getwd()
 	files, _ := ioutil.ReadDir(filepath.Join(wd, dir))
+	fmt.Println("check last file in", filepath.Join(wd, dir))
 	var modTime time.Time
 	var names []string
 	for _, fi := range files {
