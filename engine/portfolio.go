@@ -166,7 +166,7 @@ func SetupPortfolio(st []strategies.Handler, bot *Engine, cfg *config.Config) (*
 			panic(err)
 		}
 		for _, s := range activeSignals {
-			fmt.Println("saving signal", s.SignalTime, s.ValidUntil)
+			log.Infoln(log.Portfolio, "saving signal", s.SignalTime, s.ValidUntil)
 			p.store.openSignal[s.StrategyName] = &s
 		}
 

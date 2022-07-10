@@ -1053,7 +1053,7 @@ func (bot *Engine) SetupExchanges() error {
 		}
 		wg.Add(1)
 
-		fmt.Println("enabling config", configs[x])
+		log.Infoln(log.ExchangeSys, "enabling config", configs[x])
 
 		// enablePair(exMgr, pair)
 		// func enablePair(exMgr iExchangeManager, pair currency.Pair) {
@@ -1106,7 +1106,7 @@ func (bot *Engine) SetupExchangeSettings() error {
 			enabledPairs, _ := bot.Config.GetEnabledPairs(e, a)
 			// fmt.Println("enabled pairs", enabledPairs)
 			for _, pair := range enabledPairs {
-				fmt.Println("loading pair", pair, e)
+				log.Debugln(log.Global, "Loading Pair", pair, e)
 				// _, pair, a, err := bot.loadExchangePairAssetBase(e, pair.Base.String(), pair.Quote.String(), asset.Spot)
 				// if err != nil {
 				// 	fmt.Println("error enabling pair", err)

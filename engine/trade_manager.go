@@ -1297,7 +1297,7 @@ func (tm *TradeManager) writeFactorEngines(allFactors bool) (err error) {
 		)
 
 		// fmt.Println("writing fe csv")
-		fmt.Println(factorsCSV)
+		log.Debugln(log.TradeMgr, factorsCSV)
 		writer, err := file.Writer(factorsCSV)
 		if err != nil {
 			return err
