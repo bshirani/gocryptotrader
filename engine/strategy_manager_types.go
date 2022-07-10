@@ -36,8 +36,8 @@ var (
 	// errInvalidDirection       = errors.New("received invalid order direction")
 )
 
-// TradeManager is the main holder of all strategy functionality
-type TradeManager struct {
+// StrategyManager is the main holder of all strategy functionality
+type StrategyManager struct {
 	bot                *Engine
 	DataHistoryManager *DataHistoryManager
 	Datas              data.Holder

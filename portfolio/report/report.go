@@ -19,7 +19,7 @@ import (
 // GenerateReport sends final data from statistics to a template
 // to create a lovely final report for someone to view
 func (d *Data) GenerateReport() error {
-	log.Info(log.TradeMgr, "generating report")
+	log.Info(log.StrategyMgr, "generating report")
 
 	fmt.Println("loaded original candles:", len(d.OriginalCandles))
 
@@ -74,7 +74,7 @@ func (d *Data) GenerateReport() error {
 	defer func() {
 		err = f.Close()
 		if err != nil {
-			log.Error(log.TradeMgr, err)
+			log.Error(log.StrategyMgr, err)
 		}
 	}()
 
@@ -82,7 +82,7 @@ func (d *Data) GenerateReport() error {
 	if err != nil {
 		return err
 	}
-	log.Infof(log.TradeMgr, "successfully saved report to %v\\%v", d.OutputPath, fileName)
+	log.Infof(log.StrategyMgr, "successfully saved report to %v\\%v", d.OutputPath, fileName)
 	return nil
 }
 

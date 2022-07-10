@@ -44,7 +44,7 @@ type Loader interface {
 	Load() error
 }
 
-// Streamer interface handles loading, parsing, distributing TradeManager data
+// Streamer interface handles loading, parsing, distributing StrategyManager data
 type Streamer interface {
 	Next() eventtypes.DataEventHandler
 	GetStream() []eventtypes.DataEventHandler

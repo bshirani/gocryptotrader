@@ -7,7 +7,7 @@ var (
 	subLoggers = map[string]*SubLogger{}
 
 	Global           *SubLogger
-	TradeMgr         *SubLogger
+	StrategyMgr         *SubLogger
 	ConnectionMgr    *SubLogger
 	CommunicationMgr *SubLogger
 	APIServerMgr     *SubLogger

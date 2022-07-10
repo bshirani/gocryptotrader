@@ -107,7 +107,7 @@ func analyzeStrategyTrades(s strategies.Handler, trades []*livetrade.Details) *S
 	// arithmeticSortino, err = gctmath.DecimalSortinoRatio(returnPerCandle, riskFreeRatePerCandle, arithmeticReturnsPerCandle)
 	// if err != nil && !errors.Is(err, gctmath.ErrNoNegativeResults) {
 	// 	if errors.Is(err, gctmath.ErrInexactConversion) {
-	// 		log.Warnf(log.TradeMgr, "%v arithmetic sortino ratio %v", sep, err)
+	// 		log.Warnf(log.StrategyMgr, "%v arithmetic sortino ratio %v", sep, err)
 	// 	} else {
 	// 		errs = append(errs, err)
 	// 	}
@@ -120,7 +120,7 @@ func analyzeStrategyTrades(s strategies.Handler, trades []*livetrade.Details) *S
 	// geomSortino, err = gctmath.DecimalSortinoRatio(returnPerCandle, riskFreeRatePerCandle, geometricReturnsPerCandle)
 	// if err != nil && !errors.Is(err, gctmath.ErrNoNegativeResults) {
 	// 	if errors.Is(err, gctmath.ErrInexactConversion) {
-	// 		log.Warnf(log.TradeMgr, "%v geometric sortino ratio %v", sep, err)
+	// 		log.Warnf(log.StrategyMgr, "%v geometric sortino ratio %v", sep, err)
 	// 	} else {
 	// 		errs = append(errs, err)
 	// 	}

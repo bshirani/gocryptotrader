@@ -268,7 +268,7 @@ func (p *Portfolio) OnSignal(ev signal.Event, cs *ExchangeAssetPairSettings) (*o
 	// }
 	switch ev.GetDecision() {
 	case signal.Enter:
-		if p.bot.Config.TradeManager.UseML {
+		if p.bot.Config.StrategyManager.UseML {
 			validUntil := ev.GetTime().AddDate(0, 0, 1)
 			sig := livesignal.Details{
 				SignalTime:   ev.GetTime(),

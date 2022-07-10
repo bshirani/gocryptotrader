@@ -128,8 +128,8 @@ func backtest(c *cli.Context) error {
 	}
 	// set default date somewhere else.
 
-	var tm *engine.TradeManager
-	tm, err = engine.NewTradeManager(bot)
+	var tm *engine.StrategyManager
+	tm, err = engine.NewStrategyManager(bot)
 	if err != nil {
 		fmt.Printf("Could not setup trade manager from config. Error: %v.\n", err)
 		os.Exit(1)

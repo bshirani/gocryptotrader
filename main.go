@@ -133,7 +133,7 @@ func catchup(c *cli.Context) error {
 	}
 	dhj.ClearJobs()
 
-	log.Infoln(log.TradeMgr, "Catching up days...", bot.Config.DataHistory.DaysBack)
+	log.Infoln(log.StrategyMgr, "Catching up days...", bot.Config.DataHistory.DaysBack)
 	daysBack := make([]int, bot.Config.DataHistory.DaysBack)
 	for _, cs := range bot.CurrencySettings {
 		fmt.Println(cs.CurrencyPair)

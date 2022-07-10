@@ -314,7 +314,7 @@ func upsertPostgresql(ctx context.Context, tx *sql.Tx, in Details) (id int, err 
 }
 
 func WriteJSON(trades []*Details, filepath string) error {
-	log.Debugln(log.TradeMgr, "saving to file:", filepath)
+	log.Debugln(log.StrategyMgr, "saving to file:", filepath)
 	writer, err := file.Writer(filepath)
 	defer func() {
 		if writer != nil {

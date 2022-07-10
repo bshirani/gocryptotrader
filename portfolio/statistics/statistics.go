@@ -159,7 +159,7 @@ func (s *Statistic) AddComplianceSnapshotForTime(c compliance.Snapshot, e fill.E
 // CalculateAllResults calculates the statistics of all exchange asset pair holdings,
 // orders, ratios and drawdowns
 func (s *Statistic) CalculateAllResults() error {
-	log.Info(log.TradeMgr, "calculating backtesting results")
+	log.Info(log.StrategyMgr, "calculating backtesting results")
 	s.PrintAllEventsChronologically()
 	currCount := 0
 	var finalResults []FinalResultsHolder
@@ -188,7 +188,7 @@ func (s *Statistic) CalculateAllResults() error {
 				// }
 				err = stats.CalculateResults()
 				if err != nil {
-					log.Error(log.TradeMgr, err)
+					log.Error(log.StrategyMgr, err)
 				}
 				stats.PrintResults(exchangeName, assetItem, pair, false)
 				stats.FinalHoldings = last.Holdings
@@ -226,57 +226,57 @@ func (s *Statistic) CalculateAllResults() error {
 
 // PrintTotalResults outputs all results to the CMD
 func (s *Statistic) PrintTotalResults(isUsingExchangeLevelFunding bool) {
-	log.Info(log.TradeMgr, "------------------Strategy-----------------------------------")
-	log.Infof(log.TradeMgr, "Strategy Name: %v", s.StrategyName)
-	log.Infof(log.TradeMgr, "Strategy Nickname: %v", s.StrategyNickname)
-	log.Infof(log.TradeMgr, "Strategy Goal: %v\n\n", s.StrategyGoal)
-	// log.Info(log.TradeMgr, "------------------Funding------------------------------------")
+	log.Info(log.StrategyMgr, "------------------Strategy-----------------------------------")
+	log.Infof(log.StrategyMgr, "Strategy Name: %v", s.StrategyName)
+	log.Infof(log.StrategyMgr, "Strategy Nickname: %v", s.StrategyNickname)
+	log.Infof(log.StrategyMgr, "Strategy Goal: %v\n\n", s.StrategyGoal)
+	// log.Info(log.StrategyMgr, "------------------Funding------------------------------------")
 	// for i := range s.Funding.Items {
-	// 	log.Infof(log.TradeMgr, "Exchange: %v", s.Funding.Items[i].Exchange)
-	// 	log.Infof(log.TradeMgr, "Asset: %v", s.Funding.Items[i].Asset)
-	// 	log.Infof(log.TradeMgr, "Currency: %v", s.Funding.Items[i].Currency)
+	// 	log.Infof(log.StrategyMgr, "Exchange: %v", s.Funding.Items[i].Exchange)
+	// 	log.Infof(log.StrategyMgr, "Asset: %v", s.Funding.Items[i].Asset)
+	// 	log.Infof(log.StrategyMgr, "Currency: %v", s.Funding.Items[i].Currency)
 	// 	if !s.Funding.Items[i].PairedWith.IsEmpty() {
-	// 		log.Infof(log.TradeMgr, "Paired with: %v", s.Funding.Items[i].PairedWith)
+	// 		log.Infof(log.StrategyMgr, "Paired with: %v", s.Funding.Items[i].PairedWith)
 	// 	}
-	// 	log.Infof(log.TradeMgr, "Initial funds: %v", s.Funding.Items[i].InitialFunds)
-	// 	log.Infof(log.TradeMgr, "Initial funds in USD: $%v", s.Funding.Items[i].InitialFundsUSD)
-	// 	log.Infof(log.TradeMgr, "Final funds: %v", s.Funding.Items[i].FinalFunds)
-	// 	log.Infof(log.TradeMgr, "Final funds in USD: $%v", s.Funding.Items[i].FinalFundsUSD)
+	// 	log.Infof(log.StrategyMgr, "Initial funds: %v", s.Funding.Items[i].InitialFunds)
+	// 	log.Infof(log.StrategyMgr, "Initial funds in USD: $%v", s.Funding.Items[i].InitialFundsUSD)
+	// 	log.Infof(log.StrategyMgr, "Final funds: %v", s.Funding.Items[i].FinalFunds)
+	// 	log.Infof(log.StrategyMgr, "Final funds in USD: $%v", s.Funding.Items[i].FinalFundsUSD)
 	// 	if s.Funding.Items[i].InitialFunds.IsZero() {
-	// 		log.Info(log.TradeMgr, "Difference: ∞%")
+	// 		log.Info(log.StrategyMgr, "Difference: ∞%")
 	// 	} else {
-	// 		log.Infof(log.TradeMgr, "Difference: %v%%", s.Funding.Items[i].Difference)
+	// 		log.Infof(log.StrategyMgr, "Difference: %v%%", s.Funding.Items[i].Difference)
 	// 	}
 	// 	if s.Funding.Items[i].TransferFee.GreaterThan(decimal.Zero) {
-	// 		log.Infof(log.TradeMgr, "Transfer fee: %v", s.Funding.Items[i].TransferFee)
+	// 		log.Infof(log.StrategyMgr, "Transfer fee: %v", s.Funding.Items[i].TransferFee)
 	// 	}
-	// 	log.Info(log.TradeMgr, "")
+	// 	log.Info(log.StrategyMgr, "")
 	// }
-	// log.Infof(log.TradeMgr, "Initial total funds in USD: $%v", s.Funding.InitialTotalUSD)
-	// log.Infof(log.TradeMgr, "Final total funds in USD: $%v", s.Funding.FinalTotalUSD)
-	// log.Infof(log.TradeMgr, "Difference: %v%%\n", s.Funding.Difference)
+	// log.Infof(log.StrategyMgr, "Initial total funds in USD: $%v", s.Funding.InitialTotalUSD)
+	// log.Infof(log.StrategyMgr, "Final total funds in USD: $%v", s.Funding.FinalTotalUSD)
+	// log.Infof(log.StrategyMgr, "Difference: %v%%\n", s.Funding.Difference)
 
-	log.Info(log.TradeMgr, "------------------Total Results------------------------------")
-	log.Info(log.TradeMgr, "------------------Orders-------------------------------------")
-	log.Infof(log.TradeMgr, "Total buy orders: %v", s.TotalBuyOrders)
-	log.Infof(log.TradeMgr, "Total sell orders: %v", s.TotalSellOrders)
-	log.Infof(log.TradeMgr, "Total orders: %v\n\n", s.TotalOrders)
+	log.Info(log.StrategyMgr, "------------------Total Results------------------------------")
+	log.Info(log.StrategyMgr, "------------------Orders-------------------------------------")
+	log.Infof(log.StrategyMgr, "Total buy orders: %v", s.TotalBuyOrders)
+	log.Infof(log.StrategyMgr, "Total sell orders: %v", s.TotalSellOrders)
+	log.Infof(log.StrategyMgr, "Total orders: %v\n\n", s.TotalOrders)
 
 	if s.BiggestDrawdown != nil {
-		log.Info(log.TradeMgr, "------------------Biggest Drawdown-----------------------")
-		log.Infof(log.TradeMgr, "Exchange: %v Asset: %v Currency: %v", s.BiggestDrawdown.Exchange, s.BiggestDrawdown.Asset, s.BiggestDrawdown.Pair)
-		log.Infof(log.TradeMgr, "Highest Price: %v", s.BiggestDrawdown.MaxDrawdown.Highest.Price.Round(8))
-		log.Infof(log.TradeMgr, "Highest Price Time: %v", s.BiggestDrawdown.MaxDrawdown.Highest.Time)
-		log.Infof(log.TradeMgr, "Lowest Price: %v", s.BiggestDrawdown.MaxDrawdown.Lowest.Price.Round(8))
-		log.Infof(log.TradeMgr, "Lowest Price Time: %v", s.BiggestDrawdown.MaxDrawdown.Lowest.Time)
-		log.Infof(log.TradeMgr, "Calculated Drawdown: %v%%", s.BiggestDrawdown.MaxDrawdown.DrawdownPercent.Round(2))
-		log.Infof(log.TradeMgr, "Difference: %v", s.BiggestDrawdown.MaxDrawdown.Highest.Price.Sub(s.BiggestDrawdown.MaxDrawdown.Lowest.Price).Round(8))
-		log.Infof(log.TradeMgr, "Drawdown length: %v\n\n", s.BiggestDrawdown.MaxDrawdown.IntervalDuration)
+		log.Info(log.StrategyMgr, "------------------Biggest Drawdown-----------------------")
+		log.Infof(log.StrategyMgr, "Exchange: %v Asset: %v Currency: %v", s.BiggestDrawdown.Exchange, s.BiggestDrawdown.Asset, s.BiggestDrawdown.Pair)
+		log.Infof(log.StrategyMgr, "Highest Price: %v", s.BiggestDrawdown.MaxDrawdown.Highest.Price.Round(8))
+		log.Infof(log.StrategyMgr, "Highest Price Time: %v", s.BiggestDrawdown.MaxDrawdown.Highest.Time)
+		log.Infof(log.StrategyMgr, "Lowest Price: %v", s.BiggestDrawdown.MaxDrawdown.Lowest.Price.Round(8))
+		log.Infof(log.StrategyMgr, "Lowest Price Time: %v", s.BiggestDrawdown.MaxDrawdown.Lowest.Time)
+		log.Infof(log.StrategyMgr, "Calculated Drawdown: %v%%", s.BiggestDrawdown.MaxDrawdown.DrawdownPercent.Round(2))
+		log.Infof(log.StrategyMgr, "Difference: %v", s.BiggestDrawdown.MaxDrawdown.Highest.Price.Sub(s.BiggestDrawdown.MaxDrawdown.Lowest.Price).Round(8))
+		log.Infof(log.StrategyMgr, "Drawdown length: %v\n\n", s.BiggestDrawdown.MaxDrawdown.IntervalDuration)
 	}
 	if s.BestMarketMovement != nil && s.BestStrategyResults != nil {
-		log.Info(log.TradeMgr, "------------------Orders----------------------------------")
-		log.Infof(log.TradeMgr, "Best performing market movement: %v %v %v %v%%", s.BestMarketMovement.Exchange, s.BestMarketMovement.Asset, s.BestMarketMovement.Pair, s.BestMarketMovement.MarketMovement.Round(2))
-		log.Infof(log.TradeMgr, "Best performing strategy movement: %v %v %v %v%%\n\n", s.BestStrategyResults.Exchange, s.BestStrategyResults.Asset, s.BestStrategyResults.Pair, s.BestStrategyResults.StrategyMovement.Round(2))
+		log.Info(log.StrategyMgr, "------------------Orders----------------------------------")
+		log.Infof(log.StrategyMgr, "Best performing market movement: %v %v %v %v%%", s.BestMarketMovement.Exchange, s.BestMarketMovement.Asset, s.BestMarketMovement.Pair, s.BestMarketMovement.MarketMovement.Round(2))
+		log.Infof(log.StrategyMgr, "Best performing strategy movement: %v %v %v %v%%\n\n", s.BestStrategyResults.Exchange, s.BestStrategyResults.Asset, s.BestStrategyResults.Pair, s.BestStrategyResults.StrategyMovement.Round(2))
 	}
 }
 
@@ -333,7 +333,7 @@ func addEventOutputToTime(events []eventOutputHolder, t time.Time, message strin
 // grouped by time to allow a clearer picture of events
 func (s *Statistic) PrintAllEventsChronologically() {
 	var results []eventOutputHolder
-	log.Info(log.TradeMgr, "------------------Events-------------------------------------")
+	log.Info(log.StrategyMgr, "------------------Events-------------------------------------")
 	var errs gctcommon.Errors
 	for exch, x := range s.StrategyStatistics {
 		for a, y := range x {
@@ -405,13 +405,13 @@ func (s *Statistic) PrintAllEventsChronologically() {
 	})
 	for i := range results {
 		for j := range results[i].Events {
-			log.Info(log.TradeMgr, results[i].Events[j])
+			log.Info(log.StrategyMgr, results[i].Events[j])
 		}
 	}
 	if len(errs) > 0 {
-		log.Info(log.TradeMgr, "------------------Errors-------------------------------------")
+		log.Info(log.StrategyMgr, "------------------Errors-------------------------------------")
 		for i := range errs {
-			log.Info(log.TradeMgr, errs[i].Error())
+			log.Info(log.StrategyMgr, errs[i].Error())
 		}
 	}
 }

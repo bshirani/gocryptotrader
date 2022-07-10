@@ -39,7 +39,7 @@ type Settings struct {
 	EnableNTPClient             bool
 	EnableOrderManager          bool
 	EnablePortfolioManager      bool
-	EnableTradeManager          bool
+	EnableStrategyManager          bool
 	EnableTrading               bool
 	EnableWatcher               bool
 	EnableDataImporter          bool

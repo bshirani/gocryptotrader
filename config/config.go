@@ -617,7 +617,7 @@ func (c *Config) GetEnabledPairs(exchName string, assetType asset.Item) (currenc
 		return nil, err
 	}
 
-	// for _, ss := range c.TradeManager.Strategies {
+	// for _, ss := range c.StrategyManager.Strategies {
 	// 	// fmt.Println("loading asset type", asset.Spot)
 	// }
 
@@ -636,7 +636,7 @@ func (c *Config) GetEnabledPairs(exchName string, assetType asset.Item) (currenc
 		return nil, nil
 	}
 
-	// fmt.Println(c.TradeManager.Strategies[0].Pair)
+	// fmt.Println(c.StrategyManager.Strategies[0].Pair)
 	// var pairActive  bool
 	// for _, p := range pairs {
 	// 	fmt.Println("adding pair", p)
@@ -1625,7 +1625,7 @@ func (c *Config) SaveConfigToFile(configPath string) error {
 // with encryption, if configured
 // If there is an error when preparing the data to store, the writer is never requested
 func (c *Config) Save(writerProvider func() (io.Writer, error), keyProvider func() ([]byte, error)) error {
-	c.TradeManager.Strategies = nil
+	c.StrategyManager.Strategies = nil
 
 	// remove all enabled pairs from config as we manage them from the strat file
 	for _, ex := range c.GetEnabledExchanges() {
@@ -1842,12 +1842,12 @@ func LoadConfig(data []byte) (resp *Config, err error) {
 
 // PrintSetting prints relevant settings to the console for easy reading
 func (c *Config) PrintSetting() {
-	log.Info(log.TradeMgr, "-------------------------------------------------------------\n")
+	log.Info(log.StrategyMgr, "-------------------------------------------------------------\n")
 	if c.DataSettings.DatabaseData != nil {
-		log.Infof(log.TradeMgr, "Start date: %v", c.DataSettings.DatabaseData.StartDate.Format(common.SimpleTimeFormat))
-		log.Infof(log.TradeMgr, "End date: %v", c.DataSettings.DatabaseData.EndDate.Format(common.SimpleTimeFormat))
+		log.Infof(log.StrategyMgr, "Start date: %v", c.DataSettings.DatabaseData.StartDate.Format(common.SimpleTimeFormat))
+		log.Infof(log.StrategyMgr, "End date: %v", c.DataSettings.DatabaseData.EndDate.Format(common.SimpleTimeFormat))
 	}
-	log.Info(log.TradeMgr, "-------------------------------------------------------------\n\n")
+	log.Info(log.StrategyMgr, "-------------------------------------------------------------\n\n")
 }
 
 // Validate checks all config settings
@@ -1948,8 +1948,8 @@ func (c *Config) validateCurrencySettings() error {
 	for i := range c.CurrencySettings {
 		if c.CurrencySettings[i].InitialLegacyFunds > 0 {
 			// temporarily migrate legacy start config value
-			log.Warn(log.TradeMgr, "config field 'initial-funds' no longer supported, please use 'initial-quote-funds'")
-			log.Warnf(log.TradeMgr, "temporarily setting 'initial-quote-funds' to 'initial-funds' value of %v", c.CurrencySettings[i].InitialLegacyFunds)
+			log.Warn(log.StrategyMgr, "config field 'initial-funds' no longer supported, please use 'initial-quote-funds'")
+			log.Warnf(log.StrategyMgr, "temporarily setting 'initial-quote-funds' to 'initial-funds' value of %v", c.CurrencySettings[i].InitialLegacyFunds)
 			iqf := decimal.NewFromFloat(c.CurrencySettings[i].InitialLegacyFunds)
 			c.CurrencySettings[i].InitialQuoteFunds = &iqf
 		}

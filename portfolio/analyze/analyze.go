@@ -70,7 +70,7 @@ func getTradeFilePath(path string) (string, error) {
 // 			}
 // 			intervals, err := gctkline.CalculateCandleDateRanges(highestTime, lowestTime, closePrices[i].GetInterval(), 0)
 // 			if err != nil {
-// 				log.Error(log.TradeMgr, err)
+// 				log.Error(log.StrategyMgr, err)
 // 				continue
 // 			}
 // 			swings = append(swings, Swing{
@@ -100,7 +100,7 @@ func getTradeFilePath(path string) (string, error) {
 // 		}
 // 		intervals, err := gctkline.CalculateCandleDateRanges(highestTime, lowestTime, closePrices[0].GetInterval(), 0)
 // 		if err != nil {
-// 			log.Error(log.TradeMgr, err)
+// 			log.Error(log.StrategyMgr, err)
 // 		}
 // 		drawdownPercent := decimal.Zero
 // 		if highestPrice.GreaterThan(decimal.Zero) {

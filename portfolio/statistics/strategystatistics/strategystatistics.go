@@ -111,7 +111,7 @@ func (c *StrategyStatistic) CalculateResults() error {
 	arithmeticSortino, err = gctmath.DecimalSortinoRatio(returnPerCandle, riskFreeRatePerCandle, arithmeticReturnsPerCandle)
 	if err != nil && !errors.Is(err, gctmath.ErrNoNegativeResults) {
 		if errors.Is(err, gctmath.ErrInexactConversion) {
-			log.Warnf(log.TradeMgr, "%v arithmetic sortino ratio %v", sep, err)
+			log.Warnf(log.StrategyMgr, "%v arithmetic sortino ratio %v", sep, err)
 		} else {
 			errs = append(errs, err)
 		}
@@ -148,7 +148,7 @@ func (c *StrategyStatistic) CalculateResults() error {
 	geomSortino, err = gctmath.DecimalSortinoRatio(returnPerCandle, riskFreeRatePerCandle, geometricReturnsPerCandle)
 	if err != nil && !errors.Is(err, gctmath.ErrNoNegativeResults) {
 		if errors.Is(err, gctmath.ErrInexactConversion) {
-			log.Warnf(log.TradeMgr, "%v geometric sortino ratio %v", sep, err)
+			log.Warnf(log.StrategyMgr, "%v geometric sortino ratio %v", sep, err)
 		} else {
 			errs = append(errs, err)
 		}
@@ -218,85 +218,85 @@ func (c *StrategyStatistic) PrintResults(e string, a asset.Item, p currency.Pair
 	last.Holdings.TotalValueLost = last.Holdings.TotalValueLostToSlippage.Add(last.Holdings.TotalValueLostToVolumeSizing)
 	sep := fmt.Sprintf("%v %v %v |\t", e, a, p)
 	currStr := fmt.Sprintf("------------------Stats for %v %v %v------------------------------------------", e, a, p)
-	log.Infof(log.TradeMgr, currStr[:61])
-	// log.Infof(log.TradeMgr, "%s Initial base funds: %v", sep, f.BaseInitialFunds())
-	// log.Infof(log.TradeMgr, "%s Initial base quote: %v", sep, f.QuoteInitialFunds())
-	log.Infof(log.TradeMgr, "%s Highest committed funds: %v at %v\n\n", sep, c.HighestCommittedFunds.Value.Round(8), c.HighestCommittedFunds.Time)
+	log.Infof(log.StrategyMgr, currStr[:61])
+	// log.Infof(log.StrategyMgr, "%s Initial base funds: %v", sep, f.BaseInitialFunds())
+	// log.Infof(log.StrategyMgr, "%s Initial base quote: %v", sep, f.QuoteInitialFunds())
+	log.Infof(log.StrategyMgr, "%s Highest committed funds: %v at %v\n\n", sep, c.HighestCommittedFunds.Value.Round(8), c.HighestCommittedFunds.Time)
 
-	log.Infof(log.TradeMgr, "%s Buy orders: %d", sep, c.BuyOrders)
-	log.Infof(log.TradeMgr, "%s Buy value: %v", sep, last.Holdings.BoughtValue.Round(8))
-	log.Infof(log.TradeMgr, "%s Buy amount: %v %v", sep, last.Holdings.BoughtAmount.Round(8), last.Holdings.Pair.Base)
-	log.Infof(log.TradeMgr, "%s Sell orders: %d", sep, c.SellOrders)
-	log.Infof(log.TradeMgr, "%s Sell value: %v", sep, last.Holdings.SoldValue.Round(8))
-	log.Infof(log.TradeMgr, "%s Sell amount: %v %v", sep, last.Holdings.SoldAmount.Round(8), last.Holdings.Pair.Base)
-	log.Infof(log.TradeMgr, "%s Total orders: %d\n\n", sep, c.TotalOrders)
+	log.Infof(log.StrategyMgr, "%s Buy orders: %d", sep, c.BuyOrders)
+	log.Infof(log.StrategyMgr, "%s Buy value: %v", sep, last.Holdings.BoughtValue.Round(8))
+	log.Infof(log.StrategyMgr, "%s Buy amount: %v %v", sep, last.Holdings.BoughtAmount.Round(8), last.Holdings.Pair.Base)
+	log.Infof(log.StrategyMgr, "%s Sell orders: %d", sep, c.SellOrders)
+	log.Infof(log.StrategyMgr, "%s Sell value: %v", sep, last.Holdings.SoldValue.Round(8))
+	log.Infof(log.StrategyMgr, "%s Sell amount: %v %v", sep, last.Holdings.SoldAmount.Round(8), last.Holdings.Pair.Base)
+	log.Infof(log.StrategyMgr, "%s Total orders: %d\n\n", sep, c.TotalOrders)
 
-	log.Info(log.TradeMgr, "------------------Max Drawdown-------------------------------")
-	log.Infof(log.TradeMgr, "%s Highest Price of drawdown: %v", sep, c.MaxDrawdown.Highest.Price.Round(8))
-	log.Infof(log.TradeMgr, "%s Time of highest price of drawdown: %v", sep, c.MaxDrawdown.Highest.Time)
-	log.Infof(log.TradeMgr, "%s Lowest Price of drawdown: %v", sep, c.MaxDrawdown.Lowest.Price.Round(8))
-	log.Infof(log.TradeMgr, "%s Time of lowest price of drawdown: %v", sep, c.MaxDrawdown.Lowest.Time)
-	log.Infof(log.TradeMgr, "%s Calculated Drawdown: %v%%", sep, c.MaxDrawdown.DrawdownPercent.Round(2))
-	log.Infof(log.TradeMgr, "%s Difference: %v", sep, c.MaxDrawdown.Highest.Price.Sub(c.MaxDrawdown.Lowest.Price).Round(2))
-	log.Infof(log.TradeMgr, "%s Drawdown length: %d\n\n", sep, c.MaxDrawdown.IntervalDuration)
+	log.Info(log.StrategyMgr, "------------------Max Drawdown-------------------------------")
+	log.Infof(log.StrategyMgr, "%s Highest Price of drawdown: %v", sep, c.MaxDrawdown.Highest.Price.Round(8))
+	log.Infof(log.StrategyMgr, "%s Time of highest price of drawdown: %v", sep, c.MaxDrawdown.Highest.Time)
+	log.Infof(log.StrategyMgr, "%s Lowest Price of drawdown: %v", sep, c.MaxDrawdown.Lowest.Price.Round(8))
+	log.Infof(log.StrategyMgr, "%s Time of lowest price of drawdown: %v", sep, c.MaxDrawdown.Lowest.Time)
+	log.Infof(log.StrategyMgr, "%s Calculated Drawdown: %v%%", sep, c.MaxDrawdown.DrawdownPercent.Round(2))
+	log.Infof(log.StrategyMgr, "%s Difference: %v", sep, c.MaxDrawdown.Highest.Price.Sub(c.MaxDrawdown.Lowest.Price).Round(2))
+	log.Infof(log.StrategyMgr, "%s Drawdown length: %d\n\n", sep, c.MaxDrawdown.IntervalDuration)
 
-	log.Info(log.TradeMgr, "------------------Rates-------------------------------------------------")
-	log.Infof(log.TradeMgr, "%s Risk free rate: %v%%", sep, c.RiskFreeRate.Round(2))
-	log.Infof(log.TradeMgr, "%s Compound Annual Growth Rate: %v\n\n", sep, c.CompoundAnnualGrowthRate.Round(2))
+	log.Info(log.StrategyMgr, "------------------Rates-------------------------------------------------")
+	log.Infof(log.StrategyMgr, "%s Risk free rate: %v%%", sep, c.RiskFreeRate.Round(2))
+	log.Infof(log.StrategyMgr, "%s Compound Annual Growth Rate: %v\n\n", sep, c.CompoundAnnualGrowthRate.Round(2))
 
-	log.Info(log.TradeMgr, "------------------Ratios------------------------------------------------")
+	log.Info(log.StrategyMgr, "------------------Ratios------------------------------------------------")
 	if usingExchangeLevelFunding {
-		log.Warnf(log.TradeMgr, "%s This strategy is using Exchange Level Funding. Calculation of ratios may be inaccurate\n", sep)
+		log.Warnf(log.StrategyMgr, "%s This strategy is using Exchange Level Funding. Calculation of ratios may be inaccurate\n", sep)
 	}
-	log.Info(log.TradeMgr, "------------------Arithmetic--------------------------------------------")
+	log.Info(log.StrategyMgr, "------------------Arithmetic--------------------------------------------")
 	if c.ShowMissingDataWarning {
-		log.Infoln(log.TradeMgr, "Missing data was detected during this backtesting run")
-		log.Infoln(log.TradeMgr, "Ratio calculations will be skewed")
+		log.Infoln(log.StrategyMgr, "Missing data was detected during this backtesting run")
+		log.Infoln(log.StrategyMgr, "Ratio calculations will be skewed")
 	}
-	log.Infof(log.TradeMgr, "%s Sharpe ratio: %v", sep, c.ArithmeticRatios.SharpeRatio.Round(4))
-	log.Infof(log.TradeMgr, "%s Sortino ratio: %v", sep, c.ArithmeticRatios.SortinoRatio.Round(4))
-	log.Infof(log.TradeMgr, "%s Information ratio: %v", sep, c.ArithmeticRatios.InformationRatio.Round(4))
-	log.Infof(log.TradeMgr, "%s Calmar ratio: %v\n\n", sep, c.ArithmeticRatios.CalmarRatio.Round(4))
+	log.Infof(log.StrategyMgr, "%s Sharpe ratio: %v", sep, c.ArithmeticRatios.SharpeRatio.Round(4))
+	log.Infof(log.StrategyMgr, "%s Sortino ratio: %v", sep, c.ArithmeticRatios.SortinoRatio.Round(4))
+	log.Infof(log.StrategyMgr, "%s Information ratio: %v", sep, c.ArithmeticRatios.InformationRatio.Round(4))
+	log.Infof(log.StrategyMgr, "%s Calmar ratio: %v\n\n", sep, c.ArithmeticRatios.CalmarRatio.Round(4))
 
-	log.Info(log.TradeMgr, "------------------Geometric--------------------------------------------")
+	log.Info(log.StrategyMgr, "------------------Geometric--------------------------------------------")
 	if c.ShowMissingDataWarning {
-		log.Infoln(log.TradeMgr, "Missing data was detected during this backtesting run")
-		log.Infoln(log.TradeMgr, "Ratio calculations will be skewed")
+		log.Infoln(log.StrategyMgr, "Missing data was detected during this backtesting run")
+		log.Infoln(log.StrategyMgr, "Ratio calculations will be skewed")
 	}
-	log.Infof(log.TradeMgr, "%s Sharpe ratio: %v", sep, c.GeometricRatios.SharpeRatio.Round(4))
-	log.Infof(log.TradeMgr, "%s Sortino ratio: %v", sep, c.GeometricRatios.SortinoRatio.Round(4))
-	log.Infof(log.TradeMgr, "%s Information ratio: %v", sep, c.GeometricRatios.InformationRatio.Round(4))
-	log.Infof(log.TradeMgr, "%s Calmar ratio: %v\n\n", sep, c.GeometricRatios.CalmarRatio.Round(4))
+	log.Infof(log.StrategyMgr, "%s Sharpe ratio: %v", sep, c.GeometricRatios.SharpeRatio.Round(4))
+	log.Infof(log.StrategyMgr, "%s Sortino ratio: %v", sep, c.GeometricRatios.SortinoRatio.Round(4))
+	log.Infof(log.StrategyMgr, "%s Information ratio: %v", sep, c.GeometricRatios.InformationRatio.Round(4))
+	log.Infof(log.StrategyMgr, "%s Calmar ratio: %v\n\n", sep, c.GeometricRatios.CalmarRatio.Round(4))
 
-	log.Info(log.TradeMgr, "------------------Results------------------------------------")
-	log.Infof(log.TradeMgr, "%s Starting Close Price: %v", sep, c.StartingClosePrice.Round(8))
-	log.Infof(log.TradeMgr, "%s Finishing Close Price: %v", sep, c.EndingClosePrice.Round(8))
-	log.Infof(log.TradeMgr, "%s Lowest Close Price: %v", sep, c.LowestClosePrice.Round(8))
-	log.Infof(log.TradeMgr, "%s Highest Close Price: %v", sep, c.HighestClosePrice.Round(8))
+	log.Info(log.StrategyMgr, "------------------Results------------------------------------")
+	log.Infof(log.StrategyMgr, "%s Starting Close Price: %v", sep, c.StartingClosePrice.Round(8))
+	log.Infof(log.StrategyMgr, "%s Finishing Close Price: %v", sep, c.EndingClosePrice.Round(8))
+	log.Infof(log.StrategyMgr, "%s Lowest Close Price: %v", sep, c.LowestClosePrice.Round(8))
+	log.Infof(log.StrategyMgr, "%s Highest Close Price: %v", sep, c.HighestClosePrice.Round(8))
 
-	log.Infof(log.TradeMgr, "%s Market movement: %v%%", sep, c.MarketMovement.Round(2))
+	log.Infof(log.StrategyMgr, "%s Market movement: %v%%", sep, c.MarketMovement.Round(2))
 	if usingExchangeLevelFunding {
-		log.Warnf(log.TradeMgr, "%s This strategy is using Exchange Level Funding. Calculation of strategic performance may be inaccurate", sep)
+		log.Warnf(log.StrategyMgr, "%s This strategy is using Exchange Level Funding. Calculation of strategic performance may be inaccurate", sep)
 	}
-	log.Infof(log.TradeMgr, "%s Strategy movement: %v%%", sep, c.StrategyMovement.Round(2))
-	log.Infof(log.TradeMgr, "%s Did it beat the market: %v", sep, c.StrategyMovement.GreaterThan(c.MarketMovement))
+	log.Infof(log.StrategyMgr, "%s Strategy movement: %v%%", sep, c.StrategyMovement.Round(2))
+	log.Infof(log.StrategyMgr, "%s Did it beat the market: %v", sep, c.StrategyMovement.GreaterThan(c.MarketMovement))
 
-	log.Infof(log.TradeMgr, "%s Value lost to volume sizing: %v", sep, last.Holdings.TotalValueLostToVolumeSizing.Round(2))
-	log.Infof(log.TradeMgr, "%s Value lost to slippage: %v", sep, last.Holdings.TotalValueLostToSlippage.Round(2))
-	log.Infof(log.TradeMgr, "%s Total Value lost: %v", sep, last.Holdings.TotalValueLost.Round(2))
-	log.Infof(log.TradeMgr, "%s Total Fees: %v\n\n", sep, last.Holdings.TotalFees.Round(8))
+	log.Infof(log.StrategyMgr, "%s Value lost to volume sizing: %v", sep, last.Holdings.TotalValueLostToVolumeSizing.Round(2))
+	log.Infof(log.StrategyMgr, "%s Value lost to slippage: %v", sep, last.Holdings.TotalValueLostToSlippage.Round(2))
+	log.Infof(log.StrategyMgr, "%s Total Value lost: %v", sep, last.Holdings.TotalValueLost.Round(2))
+	log.Infof(log.StrategyMgr, "%s Total Fees: %v\n\n", sep, last.Holdings.TotalFees.Round(8))
 
-	log.Infof(log.TradeMgr, "%s Final funds: %v", sep, last.Holdings.QuoteSize.Round(8))
-	log.Infof(log.TradeMgr, "%s Final holdings: %v", sep, last.Holdings.BaseSize.Round(8))
+	log.Infof(log.StrategyMgr, "%s Final funds: %v", sep, last.Holdings.QuoteSize.Round(8))
+	log.Infof(log.StrategyMgr, "%s Final holdings: %v", sep, last.Holdings.BaseSize.Round(8))
 	if usingExchangeLevelFunding {
-		log.Warnf(log.TradeMgr, "%s This strategy is using Exchange Level Funding. Calculation of holding values may be inaccurate", sep)
+		log.Warnf(log.StrategyMgr, "%s This strategy is using Exchange Level Funding. Calculation of holding values may be inaccurate", sep)
 	}
-	log.Infof(log.TradeMgr, "%s Final holdings value: %v", sep, last.Holdings.BaseValue.Round(8))
-	log.Infof(log.TradeMgr, "%s Final total value: %v\n\n", sep, last.Holdings.TotalValue.Round(8))
+	log.Infof(log.StrategyMgr, "%s Final holdings value: %v", sep, last.Holdings.BaseValue.Round(8))
+	log.Infof(log.StrategyMgr, "%s Final total value: %v\n\n", sep, last.Holdings.TotalValue.Round(8))
 	if len(errs) > 0 {
-		log.Info(log.TradeMgr, "------------------Errors-------------------------------------")
+		log.Info(log.StrategyMgr, "------------------Errors-------------------------------------")
 		for i := range errs {
-			log.Info(log.TradeMgr, errs[i].Error())
+			log.Info(log.StrategyMgr, errs[i].Error())
 		}
 	}
 }
@@ -326,7 +326,7 @@ func calculateMaxDrawdown(closePrices []eventtypes.DataEventHandler) Swing {
 			}
 			intervals, err := gctkline.CalculateCandleDateRanges(highestTime, lowestTime, closePrices[i].GetInterval(), 0)
 			if err != nil {
-				log.Error(log.TradeMgr, err)
+				log.Error(log.StrategyMgr, err)
 				continue
 			}
 			swings = append(swings, Swing{
@@ -356,7 +356,7 @@ func calculateMaxDrawdown(closePrices []eventtypes.DataEventHandler) Swing {
 		}
 		intervals, err := gctkline.CalculateCandleDateRanges(highestTime, lowestTime, closePrices[0].GetInterval(), 0)
 		if err != nil {
-			log.Error(log.TradeMgr, err)
+			log.Error(log.StrategyMgr, err)
 		}
 		drawdownPercent := decimal.Zero
 		if highestPrice.GreaterThan(decimal.Zero) {

@@ -18,7 +18,7 @@ const (
 
 // Watcher watches the system
 type Watcher struct {
-	tradeManager *TradeManager
+	tradeManager *StrategyManager
 	started      int32
 	shutdown     chan struct{}
 	wg           sync.WaitGroup
@@ -28,7 +28,7 @@ type Watcher struct {
 }
 
 // SetupWatcher applies configuration parameters before running
-func SetupWatcher(interval time.Duration, bot *Engine, tradeManager *TradeManager) (*Watcher, error) {
+func SetupWatcher(interval time.Duration, bot *Engine, tradeManager *StrategyManager) (*Watcher, error) {
 	var w Watcher
 	if interval <= 0 {
 		log.Warnf(log.ExchangeSys,
@@ -38,7 +38,7 @@ func SetupWatcher(interval time.Duration, bot *Engine, tradeManager *TradeManage
 	}
 	w.bot = bot
 	w.tradeManager = tradeManager
-	w.queue = bot.TradeManager.EventQueue
+	w.queue = bot.StrategyManager.EventQueue
 	w.sleep = interval
 	w.shutdown = make(chan struct{})
 	return &w, nil

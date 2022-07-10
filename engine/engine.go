@@ -40,7 +40,7 @@ type Engine struct {
 	OrderManager            OrderManagerHandler
 	ServicesWG              sync.WaitGroup
 	Settings                Settings
-	TradeManager            *TradeManager
+	StrategyManager            *StrategyManager
 	WithdrawManager         *WithdrawManager
 	apiServer               *apiServerManager
 	connectionManager       *connectionManager
@@ -142,7 +142,7 @@ func loadConfigWithSettings(settings *Settings, flagSet map[string]bool) (*confi
 	if err != nil {
 		return nil, fmt.Errorf(config.ErrFailureOpeningConfig, settings.TradeConfigFile, err)
 	}
-	conf.TradeManager.Strategies = ss
+	conf.StrategyManager.Strategies = ss
 	// fmt.Println("loaded", len(ss), "strategies")
 	// for _, s := range ss {
 	// 	fmt.Println("pair", s.Pair)
@@ -177,8 +177,8 @@ func validateSettings(b *Engine, s *Settings, flagSet map[string]bool) {
 	b.Settings = *s
 
 	b.Settings.EnableDataHistoryManager = (flagSet["datahistory"] && b.Settings.EnableDatabaseManager) || b.Config.DataHistory.Enabled
-	b.Settings.EnableTradeManager = (flagSet["trade"] && b.Settings.EnableTradeManager) || b.Config.TradeManager.Enabled
-	b.Settings.EnableTrading = (flagSet["strategies"] && b.Settings.EnableTrading) || b.Config.TradeManager.Trading
+	b.Settings.EnableStrategyManager = (flagSet["trade"] && b.Settings.EnableStrategyManager) || b.Config.StrategyManager.Enabled
+	b.Settings.EnableTrading = (flagSet["strategies"] && b.Settings.EnableTrading) || b.Config.StrategyManager.Trading
 	b.Settings.EnableOrderManager = flagSet["orders"] && b.Settings.EnableOrderManager || b.Config.OrderManager.Enabled
 	b.Settings.EnableExchangeSyncManager = flagSet["sync"] && b.Settings.EnableExchangeSyncManager || b.Config.SyncManager.Enabled
 	b.Settings.EnableDryRun = flagSet["dryrun"] && b.Settings.EnableDryRun || b.Config.DryRun
@@ -186,7 +186,7 @@ func validateSettings(b *Engine, s *Settings, flagSet map[string]bool) {
 	b.Settings.EnableProductionMode = flagSet["production"] && b.Settings.EnableProductionMode || b.Config.ProductionMode
 	b.Settings.EnableCommsRelayer = b.Config.Communications.TelegramConfig.Enabled
 
-	// if b.Settings.EnableTradeManager {
+	// if b.Settings.EnableStrategyManager {
 	// 	b.Settings.EnableDataHistoryManager = true
 	// }
 
@@ -322,7 +322,7 @@ func PrintSettings(s *Settings) {
 	}
 	elog("\t live:%v", s.EnableLiveMode)
 	elog("\t save_db: %v", !s.EnableDryRun)
-	elog("\t trader: %v", s.EnableTradeManager)
+	elog("\t trader: %v", s.EnableStrategyManager)
 	elog("\t trading: %v", s.EnableTrading)
 	elog("\t sync: %v kline:%v ticker:%v trade:%v wsTimeout:%v", s.EnableExchangeSyncManager, s.EnableKlineSyncing, s.EnableTickerSyncing, s.EnableTradeSyncing, s.SyncTimeoutWebsocket)
 
@@ -337,7 +337,7 @@ func PrintSettings(s *Settings) {
 	// elog("\t websocket RPC: %v", s.EnableWebsocketRPC)
 	// elog("\t websocket routine: %v", s.EnableWebsocketRoutine)
 	// elog("\t Enable orderbook syncing: %v\n", s.EnableOrderbookSyncing)
-	// elog("\t TM Verbose: %v", s.TradeManager.Verbose)
+	// elog("\t TM Verbose: %v", s.StrategyManager.Verbose)
 	// elog("\t Enable all exchanges: %v", s.EnableAllExchanges)
 	// elog("\t Enable all pairs: %v", s.EnableAllPairs)
 	// elog("\t Enable portfolio manager: %v", s.EnablePortfolioManager)
@@ -565,7 +565,7 @@ func (bot *Engine) Start() error {
 	}
 
 	if bot.Settings.EnableOrderManager && bot.Config.ProductionMode {
-		log.Warn(log.TradeMgr, "Enabling REAL order manager")
+		log.Warn(log.StrategyMgr, "Enabling REAL order manager")
 		bot.OrderManager, err = SetupOrderManager(
 			bot.ExchangeManager,
 			bot.CommunicationsManager,
@@ -693,14 +693,14 @@ func (bot *Engine) Start() error {
 		}
 	}
 
-	if bot.Settings.EnableTradeManager {
-		if bot.TradeManager == nil {
-			bot.TradeManager, err = NewTradeManager(bot)
+	if bot.Settings.EnableStrategyManager {
+		if bot.StrategyManager == nil {
+			bot.StrategyManager, err = NewStrategyManager(bot)
 			if err != nil {
 				fmt.Printf("Could not setup trade manager from config. Error: %v.\n", err)
 				os.Exit(1)
 			} else {
-				bot.TradeManager.Start()
+				bot.StrategyManager.Start()
 			}
 		}
 
@@ -709,7 +709,7 @@ func (bot *Engine) Start() error {
 			bot.watcher, err = SetupWatcher(
 				bot.Config.Watcher.Delay,
 				bot,
-				bot.TradeManager)
+				bot.StrategyManager)
 			if err != nil {
 				log.Errorf(log.Global,
 					"%s unable to setup: %s",
@@ -822,8 +822,8 @@ func (bot *Engine) Stop() {
 				err)
 		}
 	}
-	if bot.TradeManager.IsRunning() {
-		if err := bot.TradeManager.Stop(); err != nil {
+	if bot.StrategyManager.IsRunning() {
+		if err := bot.StrategyManager.Stop(); err != nil {
 			log.Errorf(log.Global, "bt unable to stop. Error: %v", err)
 		}
 	}
@@ -872,7 +872,7 @@ func (bot *Engine) Stop() {
 	bot.ServicesWG.Wait()
 	err = log.CloseLogger()
 	if err != nil {
-		log.Errorln(log.TradeMgr, "Failed to close logger. Error: %v\n", err)
+		log.Errorln(log.StrategyMgr, "Failed to close logger. Error: %v\n", err)
 	}
 }
 
@@ -1144,7 +1144,7 @@ func (bot *Engine) loadExchangePairAssetBase(exch, base, quote, ass string) (exc
 
 	exchangeBase := e.GetBase()
 	// if !exchangeBase.ValidateAPICredentials() {
-	// 	log.Warnf(log.TradeMgr, "no credentials set for %v, this is theoretical only", exchangeBase.Name)
+	// 	log.Warnf(log.StrategyMgr, "no credentials set for %v, this is theoretical only", exchangeBase.Name)
 	// }
 
 	fPair, err = exchangeBase.FormatExchangeCurrency(cp, a)

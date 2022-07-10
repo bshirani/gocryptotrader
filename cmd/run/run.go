@@ -81,7 +81,7 @@ func runConfig(c *cli.Context) error {
 	}
 	dhj.ClearJobs()
 
-	log.Infoln(log.TradeMgr, "Catching up days...", engine.Bot.Config.DataHistory.DaysBack)
+	log.Infoln(log.StrategyMgr, "Catching up days...", engine.Bot.Config.DataHistory.DaysBack)
 	daysBack := make([]int, engine.Bot.Config.DataHistory.DaysBack)
 
 	for i := range daysBack {
@@ -100,7 +100,7 @@ func runConfig(c *cli.Context) error {
 			time.Sleep(time.Second)
 		}
 	}
-	log.Infoln(log.TradeMgr, "Done with catchup")
+	log.Infoln(log.StrategyMgr, "Done with catchup")
 
 	return nil
 }

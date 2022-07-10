@@ -108,7 +108,7 @@ type Config struct {
 
 	StatisticSettings StatisticSettings  `json:"statisticSettings"`
 	SyncManager       SyncManagerConfig  `json:"syncManager"`
-	TradeManager      TradeManagerConfig `json:"tradeManager"`
+	StrategyManager      StrategyManagerConfig `json:"tradeManager"`
 	FactorEngine      FactorEngineConfig `json:"factorEngine"`
 	OrderManager      OrderManagerConfig `json:"orderManager"`
 	DataImporter      DataImporterConfig `json:"dataImporter"`
@@ -155,7 +155,7 @@ type DataImporterConfig struct {
 }
 
 // DataHistoryManager holds all information required for the data history manager
-type TradeManagerConfig struct {
+type StrategyManagerConfig struct {
 	Enabled    bool               `json:"enabled"`
 	Verbose    bool               `json:"verbose"`
 	Trading    bool               `json:"trading"`

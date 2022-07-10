@@ -45,7 +45,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func (tm *TradeManager) Reset() {
+func (tm *StrategyManager) Reset() {
 	tm.EventQueue.Reset()
 	tm.Datas.Reset()
 	tm.Portfolio.Reset()
@@ -55,21 +55,21 @@ func (tm *TradeManager) Reset() {
 	// tm.bot = nil
 }
 
-func NewTradeManager(bot *Engine) (*TradeManager, error) {
-	log.Debugln(log.TradeMgr, "TradeManager: Initializing...")
+func NewStrategyManager(bot *Engine) (*StrategyManager, error) {
+	log.Debugln(log.StrategyMgr, "StrategyManager: Initializing...")
 
 	if bot == nil {
 		return nil, errNilBot
 	}
-	tm := &TradeManager{
+	tm := &StrategyManager{
 		shutdown: make(chan struct{}),
 	}
 
-	tm.verbose = bot.Config.TradeManager.Verbose
+	tm.verbose = bot.Config.StrategyManager.Verbose
 	tm.tradingEnabled = bot.Settings.EnableTrading
 	tm.dryRun = bot.Settings.EnableDryRun
 	tm.liveMode = bot.Config.LiveMode
-	tm.debug = bot.Config.TradeManager.Debug
+	tm.debug = bot.Config.StrategyManager.Debug
 	tm.useML = bot.Settings.EnableMachineLearning
 
 	stats := &statistics.Statistic{
@@ -118,17 +118,17 @@ func NewTradeManager(bot *Engine) (*TradeManager, error) {
 
 	if tm.tradingEnabled {
 		ex := tm.bot.Config.GetEnabledExchanges()[0]
-		tm.Strategies = SetupStrategies(tm.bot.Config.TradeManager.Strategies, ex)
+		tm.Strategies = SetupStrategies(tm.bot.Config.StrategyManager.Strategies, ex)
 
 		log.Debugln(
-			log.TradeMgr,
+			log.StrategyMgr,
 			"-----------created strategies---------------")
 		for _, st := range tm.Strategies {
-			log.Debugln(log.TradeMgr, st.GetLabel())
+			log.Debugln(log.StrategyMgr, st.GetLabel())
 		}
 
 		if tm.bot.Settings.EnableClearDB {
-			log.Warn(log.TradeMgr, "clearing DB")
+			log.Warn(log.StrategyMgr, "clearing DB")
 			if tm.bot.Config.ProductionMode || tm.bot.Config.Database.ConnectionDetails.Database == "gct_prod" {
 				// check database name to ensure we don't delete anything
 				panic("trying to delete production")
@@ -175,9 +175,9 @@ func NewTradeManager(bot *Engine) (*TradeManager, error) {
 	return tm, err
 }
 
-func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om ExecutionHandler) (submit.Event, error) {
+func (tm *StrategyManager) ExecuteOrder(o order.Event, data data.Handler, om ExecutionHandler) (submit.Event, error) {
 	if tm.debug {
-		log.Debugln(log.TradeMgr, "Executing order", o.GetDecision())
+		log.Debugln(log.StrategyMgr, "Executing order", o.GetDecision())
 	}
 	priceFloat, _ := o.GetPrice().Float64()
 	a, _ := o.GetAmount().Float64()
@@ -293,7 +293,7 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	if !skipStop {
 		somr, err := om.Submit(context.TODO(), stopLossSubmission)
 		if err != nil {
-			log.Errorln(log.TradeMgr, "ERROR submitting order", err, stopLossSubmission.Side, somr)
+			log.Errorln(log.StrategyMgr, "ERROR submitting order", err, stopLossSubmission.Side, somr)
 		}
 		if somr == nil {
 			panic("no submission response")
@@ -352,15 +352,15 @@ func (tm *TradeManager) ExecuteOrder(o order.Event, data data.Handler, om Execut
 	}
 
 	// if ev.GetInternalOrderID() == "" {
-	// 	log.Errorln(log.TradeMgr, "error: order has no internal order id")
+	// 	log.Errorln(log.StrategyMgr, "error: order has no internal order id")
 	// }
 
 	return ev, nil
 }
 
-func (tm *TradeManager) Run() error {
+func (tm *StrategyManager) Run() error {
 	debugCount := 0
-	log.Debugf(log.TradeMgr, "TradeManager Running")
+	log.Debugf(log.StrategyMgr, "StrategyManager Running")
 	sigc := make(chan os.Signal, 1)
 	signal.Notify(sigc,
 		syscall.SIGHUP,
@@ -389,10 +389,10 @@ func (tm *TradeManager) Run() error {
 		// if dayDuration > 30 {
 		// 	panic("more than 30 days")
 		// }
-		log.Warnln(log.TradeMgr, "startdate :", t1)
-		log.Warnln(log.TradeMgr, "enddate   :", t2)
-		log.Warnln(log.TradeMgr, "duration  :", dayDuration, "days")
-		log.Warnln(log.TradeMgr, "strategies:", len(tm.Strategies))
+		log.Warnln(log.StrategyMgr, "startdate :", t1)
+		log.Warnln(log.StrategyMgr, "enddate   :", t2)
+		log.Warnln(log.StrategyMgr, "duration  :", dayDuration, "days")
+		log.Warnln(log.StrategyMgr, "strategies:", len(tm.Strategies))
 	}
 dataLoadingIssue:
 	for ev := tm.EventQueue.NextEvent(); ; ev = tm.EventQueue.NextEvent() {
@@ -415,7 +415,7 @@ dataLoadingIssue:
 						lastDate := lastUpdateDate
 						curDate := common.GetDate(d.GetTime())
 						if !common.IsSameDate(lastDate, curDate) && curDate.After(lastDate) {
-							log.Infoln(log.TradeMgr, "--------------->", curDate.Format(common.SimpleDateFormat))
+							log.Infoln(log.StrategyMgr, "--------------->", curDate.Format(common.SimpleDateFormat))
 							lastUpdateDate = curDate
 						}
 						tm.EventQueue.AppendEvent(d)
@@ -459,7 +459,7 @@ dataLoadingIssue:
 	return nil
 }
 
-func (tm *TradeManager) Start() error {
+func (tm *StrategyManager) Start() error {
 	if !atomic.CompareAndSwapInt32(&tm.started, 0, 1) {
 		return fmt.Errorf("backtester %w", ErrSubSystemAlreadyStarted)
 	}
@@ -474,7 +474,7 @@ func (tm *TradeManager) Start() error {
 	return nil
 }
 
-func (tm *TradeManager) Stop() error {
+func (tm *StrategyManager) Stop() error {
 	if tm == nil {
 		return ErrNilSubsystem
 	}
@@ -482,7 +482,7 @@ func (tm *TradeManager) Stop() error {
 		return ErrSubSystemNotStarted
 	}
 
-	log.Debugln(log.TradeMgr, "TradeManager Stopping...")
+	log.Debugln(log.StrategyMgr, "StrategyManager Stopping...")
 
 	if tm.bot.OrderManager != nil && tm.bot.OrderManager.IsRunning() {
 		tm.bot.OrderManager.Stop()
@@ -491,13 +491,13 @@ func (tm *TradeManager) Stop() error {
 		s.Stop()
 	}
 	close(tm.shutdown)
-	tm.bot.TradeManager = nil
+	tm.bot.StrategyManager = nil
 	tm.wg.Wait()
-	log.Debugln(log.TradeMgr, "TradeManager Stopped.")
+	log.Debugln(log.StrategyMgr, "StrategyManager Stopped.")
 	return nil
 }
 
-func (b *TradeManager) IsRunning() bool {
+func (b *StrategyManager) IsRunning() bool {
 	if b == nil {
 		return false
 	}
@@ -523,7 +523,7 @@ func (e *Holder) NextEvent() (i eventtypes.EventHandler) {
 	return i
 }
 
-func (tm *TradeManager) waitForDataCatchup() {
+func (tm *StrategyManager) waitForDataCatchup() {
 	// fmt.Println(0)
 	// var localWG sync.WaitGroup
 	// localWG.Add(1)
@@ -536,7 +536,7 @@ func (tm *TradeManager) waitForDataCatchup() {
 
 	dhj.ClearJobs()
 
-	log.Infoln(log.TradeMgr, "Catching up days...", tm.bot.DataHistoryManager.DaysBack)
+	log.Infoln(log.StrategyMgr, "Catching up days...", tm.bot.DataHistoryManager.DaysBack)
 	daysBack := make([]int, tm.bot.DataHistoryManager.DaysBack)
 
 	for i := range daysBack {
@@ -557,11 +557,11 @@ func (tm *TradeManager) waitForDataCatchup() {
 	}
 
 	// time.Sleep(time.Millisecond * 500)
-	log.Infoln(log.TradeMgr, "Done with catchup")
+	log.Infoln(log.StrategyMgr, "Done with catchup")
 	os.Exit(1123)
 }
 
-func (tm *TradeManager) waitForFactorEnginesWarmup() {
+func (tm *StrategyManager) waitForFactorEnginesWarmup() {
 	// fmt.Println("warm up factor engines")
 	tm.initializeFactorEngines()
 
@@ -615,10 +615,10 @@ func (tm *TradeManager) waitForFactorEnginesWarmup() {
 	// localWG.Wait()
 }
 
-func (tm *TradeManager) runLive() error {
-	log.Debugln(log.TradeMgr, "Waiting for initial currency sync...")
+func (tm *StrategyManager) runLive() error {
+	log.Debugln(log.StrategyMgr, "Waiting for initial currency sync...")
 	tm.bot.WaitForInitialCurrencySync()
-	log.Debugln(log.TradeMgr, "Finished Initial Currency Sync")
+	log.Debugln(log.StrategyMgr, "Finished Initial Currency Sync")
 
 	// var processEventTicker time.Ticker
 	// processEventTickerSim := time.NewTicker(time.Second)
@@ -627,7 +627,7 @@ func (tm *TradeManager) runLive() error {
 		tm.waitForDataCatchup()
 	}
 	tm.waitForFactorEnginesWarmup()
-	log.Infoln(log.TradeMgr, "Running Live!")
+	log.Infoln(log.StrategyMgr, "Running Live!")
 
 	tm.lastUpdateMin = make(map[*ExchangeAssetPairSettings]time.Time)
 
@@ -646,7 +646,7 @@ func (tm *TradeManager) runLive() error {
 	return nil
 }
 
-func (tm *TradeManager) processLiveMinute() error {
+func (tm *StrategyManager) processLiveMinute() error {
 	var thisMinute, lastMinute time.Time
 	loc, _ := time.LoadLocation("UTC")
 	t := tm.GetCurrentTime()
@@ -682,11 +682,11 @@ func (tm *TradeManager) processLiveMinute() error {
 			}
 
 			if !dbData.HasDataAtTime(dataEvent.GetTime()) {
-				log.Error(log.TradeMgr, "doesnt have data in range")
+				log.Error(log.StrategyMgr, "doesnt have data in range")
 				os.Exit(123)
 			}
 			if tm.verbose {
-				log.Debugln(log.TradeMgr, "processing pair", dataEvent.Pair())
+				log.Debugln(log.StrategyMgr, "processing pair", dataEvent.Pair())
 			}
 			tm.lastUpdateMin[cs] = dataEvent.GetTime().UTC()
 			tm.EventQueue.AppendEvent(dataEvent)
@@ -695,13 +695,13 @@ func (tm *TradeManager) processLiveMinute() error {
 
 	err := tm.processEvents()
 	if err != nil {
-		log.Errorln(log.TradeMgr, "procesing events", err)
+		log.Errorln(log.StrategyMgr, "procesing events", err)
 		return err
 	}
 	return nil
 }
 
-func (tm *TradeManager) handleEvent(ev eventtypes.EventHandler) error {
+func (tm *StrategyManager) handleEvent(ev eventtypes.EventHandler) error {
 	switch eType := ev.(type) {
 	case eventtypes.DataEventHandler:
 		return tm.processSingleDataEvent(eType)
@@ -722,7 +722,7 @@ func (tm *TradeManager) handleEvent(ev eventtypes.EventHandler) error {
 	return nil
 }
 
-func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) error {
+func (tm *StrategyManager) processSingleDataEvent(ev eventtypes.DataEventHandler) error {
 	// if tm.tradingEnabled {
 	// fmt.Println("tm processing event at", ev.GetTime(), ev.Pair(), tm.GetCurrentTime())
 	// }
@@ -773,7 +773,7 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 					}
 					defer color.Unset()
 
-					log.Debugf(log.TradeMgr,
+					log.Debugf(log.StrategyMgr,
 						"%2d:%2d %-12s %12v %7v%% %7v%% %12v %12v %12v",
 						ev.GetTime().Hour(),
 						ev.GetTime().Minute(),
@@ -843,7 +843,7 @@ func (tm *TradeManager) processSingleDataEvent(ev eventtypes.DataEventHandler) e
 	return nil
 }
 
-func (tm *TradeManager) processEvents() error {
+func (tm *StrategyManager) processEvents() error {
 	for ev := tm.EventQueue.NextEvent(); ; ev = tm.EventQueue.NextEvent() {
 		if ev != nil {
 			err := tm.handleEvent(ev)
@@ -856,11 +856,11 @@ func (tm *TradeManager) processEvents() error {
 	}
 }
 
-func (tm *TradeManager) processSimultaneousDataEvents() error {
+func (tm *StrategyManager) processSimultaneousDataEvents() error {
 	return nil
 }
 
-func (tm *TradeManager) processSignalEvent(ev gctsignal.Event) {
+func (tm *StrategyManager) processSignalEvent(ev gctsignal.Event) {
 	// fmt.Println("process gctsignal", ev.GetReason())
 
 	if ev.GetStrategyName() == "" {
@@ -869,17 +869,17 @@ func (tm *TradeManager) processSignalEvent(ev gctsignal.Event) {
 
 	cs, err := tm.bot.GetCurrencySettings(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 	if err != nil {
-		log.Error(log.TradeMgr, "error", err)
+		log.Error(log.StrategyMgr, "error", err)
 		return
 	}
 	var o *order.Order
 	o, err = tm.Portfolio.OnSignal(ev, cs)
 	if err != nil {
-		log.Error(log.TradeMgr, err)
+		log.Error(log.StrategyMgr, err)
 		return
 	}
 	if err != nil {
-		log.Error(log.TradeMgr, err)
+		log.Error(log.StrategyMgr, err)
 	}
 
 	if o != nil {
@@ -891,7 +891,7 @@ func (tm *TradeManager) processSignalEvent(ev gctsignal.Event) {
 	}
 }
 
-func (tm *TradeManager) createFillEvent(ev submit.Event) {
+func (tm *StrategyManager) createFillEvent(ev submit.Event) {
 	if ev.GetStrategyID() == 0 {
 		panic("order submit response has no strategyID")
 	}
@@ -984,16 +984,16 @@ func (tm *TradeManager) createFillEvent(ev submit.Event) {
 
 }
 
-func (tm *TradeManager) processSubmitEvent(ev submit.Event) {
+func (tm *StrategyManager) processSubmitEvent(ev submit.Event) {
 	if tm.debug {
-		log.Debugln(log.TradeMgr, "DEBUG: processing submit event strategy:", ev.GetStrategyID())
+		log.Debugln(log.StrategyMgr, "DEBUG: processing submit event strategy:", ev.GetStrategyID())
 	}
 	if ev.GetStrategyID() == 0 {
-		log.Error(log.TradeMgr, "submit event has no strategy ID")
+		log.Error(log.StrategyMgr, "submit event has no strategy ID")
 		return
 	}
 	if ev.GetOrderID() == "" {
-		log.Error(log.TradeMgr, "submit event has no order ID")
+		log.Error(log.StrategyMgr, "submit event has no order ID")
 		panic("no order id")
 		return
 	}
@@ -1004,11 +1004,11 @@ func (tm *TradeManager) processSubmitEvent(ev submit.Event) {
 	}
 }
 
-func (tm *TradeManager) processCancelEvent(ev cancel.Event) {
+func (tm *StrategyManager) processCancelEvent(ev cancel.Event) {
 	tm.Portfolio.OnCancel(ev)
 }
 
-func (tm *TradeManager) processFillEvent(ev fill.Event) {
+func (tm *StrategyManager) processFillEvent(ev fill.Event) {
 	// fmt.Println("process fill for", ev.GetStrategyID(), ev.Pair(), ev.GetOrder().Type)
 	tm.Portfolio.OnFill(ev)
 	// do it like this
@@ -1020,44 +1020,44 @@ func (tm *TradeManager) processFillEvent(ev fill.Event) {
 
 	// err := tm.Statistic.SetEventForOffset(ev)
 	// if err != nil {
-	// 	log.Error(log.TradeMgr, err)
+	// 	log.Error(log.StrategyMgr, err)
 	// }
 	//
 	// var holding *holdings.Holding
 	// holding, err = tm.Portfolio.ViewHoldingAtTimePeriod(ev)
 	// if err != nil {
-	// 	log.Error(log.TradeMgr, err)
+	// 	log.Error(log.StrategyMgr, err)
 	// }
 	//
 	// err = tm.Statistic.AddHoldingsForTime(holding)
 	// if err != nil {
-	// 	log.Error(log.TradeMgr, err)
+	// 	log.Error(log.StrategyMgr, err)
 	// }
 	//
 	// var cp *compliance.Manager
 	// cp, err = tm.Portfolio.GetComplianceManager(ev.GetExchange(), ev.GetAssetType(), ev.Pair())
 	// if err != nil {
-	// 	log.Error(log.TradeMgr, err)
+	// 	log.Error(log.StrategyMgr, err)
 	// }
 	//
 	// snap := cp.GetLatestSnapshot()
 	// err = tm.Statistic.AddComplianceSnapshotForTime(snap, ev)
 	// if err != nil {
-	// 	log.Error(log.TradeMgr, err)
+	// 	log.Error(log.StrategyMgr, err)
 	// }
 }
 
-func (tm *TradeManager) processOrderEvent(o order.Event) {
+func (tm *StrategyManager) processOrderEvent(o order.Event) {
 	if o.GetStrategyID() == 0 {
-		log.Error(log.TradeMgr, "order event has no strategy ID")
+		log.Error(log.StrategyMgr, "order event has no strategy ID")
 		panic(123)
 	}
 	if o.GetStrategyName() == "" {
-		log.Error(log.TradeMgr, "order event has no strategy ID")
+		log.Error(log.StrategyMgr, "order event has no strategy ID")
 		panic(123)
 	}
 	// else {
-	// 	// gctlog.Debugln(log.TradeMgr, "creating order for", o.GetStrategyID())
+	// 	// gctlog.Debugln(log.StrategyMgr, "creating order for", o.GetStrategyID())
 	// }
 	d := tm.Datas.GetDataForCurrency(o.GetExchange(), o.GetAssetType(), o.Pair())
 
@@ -1116,19 +1116,19 @@ func (tm *TradeManager) processOrderEvent(o order.Event) {
 	submitEvent, err := tm.ExecuteOrder(o, d, tm.bot.OrderManager)
 
 	if err != nil {
-		log.Error(log.TradeMgr, err)
+		log.Error(log.StrategyMgr, err)
 		return
 	}
 
 	if submitEvent.GetStrategyID() == 0 {
-		log.Error(log.TradeMgr, "Not strategy ID in order event")
+		log.Error(log.StrategyMgr, "Not strategy ID in order event")
 		return
 	}
 
 	tm.EventQueue.AppendEvent(submitEvent)
 }
 
-func (tm *TradeManager) updateStatsForDataEvent(ev eventtypes.DataEventHandler) error {
+func (tm *StrategyManager) updateStatsForDataEvent(ev eventtypes.DataEventHandler) error {
 	// fmt.Println("update stats", ev.GetTime())
 	// update statistics with the latest price
 	err := tm.Statistic.SetupEventForTime(ev)
@@ -1136,18 +1136,18 @@ func (tm *TradeManager) updateStatsForDataEvent(ev eventtypes.DataEventHandler) 
 		if err == statistics.ErrAlreadyProcessed {
 			return err
 		}
-		log.Error(log.TradeMgr, err)
+		log.Error(log.StrategyMgr, err)
 	}
 	// update portfolio manager with the latest price
 	// fmt.Println("portfolio", tm.Portfolio)
 	err = tm.Portfolio.UpdateHoldings(ev)
 	if err != nil {
-		log.Error(log.TradeMgr, err)
+		log.Error(log.StrategyMgr, err)
 	}
 	return nil
 }
 
-func (tm *TradeManager) startOfflineServices() (err error) {
+func (tm *StrategyManager) startOfflineServices() (err error) {
 	if tm.liveMode {
 		panic("cannot run offline services in live mode")
 	}
@@ -1167,7 +1167,7 @@ func (tm *TradeManager) startOfflineServices() (err error) {
 }
 
 // when order manager fills an order it calls here
-func (tm *TradeManager) onFill(order gctorder.Detail, ev eventtypes.DataEventHandler) {
+func (tm *StrategyManager) onFill(order gctorder.Detail, ev eventtypes.DataEventHandler) {
 	// fmt.Println("on fill called")
 
 	e := &fill.Fill{
@@ -1195,7 +1195,7 @@ func (tm *TradeManager) onFill(order gctorder.Detail, ev eventtypes.DataEventHan
 	tm.EventQueue.AppendEvent(e)
 }
 
-func (tm *TradeManager) initializeFactorEngines() error {
+func (tm *StrategyManager) initializeFactorEngines() error {
 	tm.FactorEngines = make(map[string]map[asset.Item]map[currency.Pair]*FactorEngine)
 	tm.Datas.Setup()
 	for _, cs := range tm.bot.CurrencySettings {
@@ -1249,7 +1249,7 @@ func (tm *TradeManager) initializeFactorEngines() error {
 	return nil
 }
 
-func (tm *TradeManager) writeFactorEngines(allFactors bool) (err error) {
+func (tm *StrategyManager) writeFactorEngines(allFactors bool) (err error) {
 	if allFactors {
 		for _, cs := range tm.bot.CurrencySettings {
 			fe := tm.FactorEngines[cs.ExchangeName][cs.AssetType][cs.CurrencyPair]
@@ -1297,7 +1297,7 @@ func (tm *TradeManager) writeFactorEngines(allFactors bool) (err error) {
 		)
 
 		// fmt.Println("writing fe csv")
-		log.Debugln(log.TradeMgr, factorsCSV)
+		log.Debugln(log.StrategyMgr, factorsCSV)
 		writer, err := file.Writer(factorsCSV)
 		if err != nil {
 			return err
@@ -1313,7 +1313,7 @@ func CandleSeriesForSettings(e *ExchangeAssetPairSettings, interval int64, start
 	return candle.Series(e.ExchangeName, e.CurrencyPair.Base.String(), e.CurrencyPair.Quote.String(), 60, e.AssetType.String(), start, end)
 }
 
-func (tm *TradeManager) loadBacktestData() (err error) {
+func (tm *StrategyManager) loadBacktestData() (err error) {
 	if len(tm.bot.CurrencySettings) == 0 {
 		panic("no cs")
 	}
@@ -1367,7 +1367,7 @@ func (tm *TradeManager) loadBacktestData() (err error) {
 	return err
 }
 
-func (tm *TradeManager) loadLatestCandleFromDatabase(eap *ExchangeAssetPairSettings) (*datakline.DataFromKline, error) {
+func (tm *StrategyManager) loadLatestCandleFromDatabase(eap *ExchangeAssetPairSettings) (*datakline.DataFromKline, error) {
 	e := eap.ExchangeName
 	a := eap.AssetType
 	p := eap.CurrencyPair
@@ -1423,16 +1423,16 @@ func (tm *TradeManager) loadLatestCandleFromDatabase(eap *ExchangeAssetPairSetti
 	return dbData, err
 }
 
-func (tm *TradeManager) validateBacktestData() {
+func (tm *StrategyManager) validateBacktestData() {
 	for _, x := range tm.bot.CurrencySettings {
 		fmt.Println("is data there for", x)
 	}
 }
 
-func (tm *TradeManager) GetCurrentTime() time.Time {
+func (tm *StrategyManager) GetCurrentTime() time.Time {
 	return time.Now().UTC()
 }
 
-func (tm *TradeManager) incrementMinute() {
+func (tm *StrategyManager) incrementMinute() {
 	tm.currentTime = tm.currentTime.Add(time.Minute)
 }

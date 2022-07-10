@@ -72,7 +72,7 @@ func (d *Data) GenerateReport() error {
 	defer func() {
 		err = f.Close()
 		if err != nil {
-			log.Error(log.TradeMgr, err)
+			log.Error(log.StrategyMgr, err)
 		}
 	}()
 
@@ -80,7 +80,7 @@ func (d *Data) GenerateReport() error {
 	if err != nil {
 		return err
 	}
-	log.Infof(log.TradeMgr, "successfully saved report to %v\\%v", d.OutputPath, fileName)
+	log.Infof(log.StrategyMgr, "successfully saved report to %v\\%v", d.OutputPath, fileName)
 	return nil
 }
 
