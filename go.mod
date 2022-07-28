@@ -33,6 +33,6 @@ require (
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
 	google.golang.org/genproto v0.0.0-20210903162649-d08c68adba83
 	google.golang.org/grpc v1.41.0
-	google.golang.org/protobuf v1.27.1
+	google.golang.org/protobuf v1.28.1
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 )
